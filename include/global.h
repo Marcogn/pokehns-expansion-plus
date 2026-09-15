@@ -338,6 +338,10 @@ struct ChallengeSettings
     u8 tx_Features_FrontierBans:1;
     u8 tx_Difficulty_EscapeRopeDig:1;
     u8 tx_Features_ShinyChance:4;
+    // Soulgold ports. These are appended deliberately: every field above keeps
+    // its bit offset, so existing saves still read correctly. See the
+    // ChallengeSettingsLayoutPinned assert in src/save.c before adding more.
+    u8 overworldSpeed:2; // OPTIONS_OVERWORLD_SPEED_[1X/2X/3X/4X]
 };
 
 struct SaveBlock3

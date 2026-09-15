@@ -620,6 +620,7 @@ static void Task_NewGameHnsSpeech_FadeOutToChallengeMenu(u8 taskId)
         gSaveBlock3Ptr->challengeSettings.followerLargeEnable= savedOptions.followerLargeEnable;
         gSaveBlock3Ptr->challengeSettings.autoRun            = savedOptions.autoRun;
         gSaveBlock3Ptr->challengeSettings.autorunSurf        = savedOptions.autorunSurf;
+        gSaveBlock3Ptr->challengeSettings.overworldSpeed     = savedOptions.overworldSpeed;
         gSaveBlock3Ptr->challengeSettings.fishing            = savedOptions.fishing;
         gSaveBlock3Ptr->challengeSettings.evenFasterJoy      = savedOptions.evenFasterJoy;
         gSaveBlock3Ptr->challengeSettings.unitSystem         = savedOptions.unitSystem;

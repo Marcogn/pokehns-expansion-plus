@@ -5,6 +5,7 @@
 #include "international_string_util.h"
 #include "list_menu.h"
 #include "main.h"
+#include "overworld.h"
 #include "malloc.h"
 #include "menu.h"
 #include "palette.h"
@@ -47,6 +48,7 @@ enum {
     ITEM_MAIN_LARGE_FOLLOWER,
     ITEM_MAIN_AUTORUN,
     ITEM_MAIN_AUTORUN_SURF,
+    ITEM_MAIN_OW_SPEED,
     ITEM_MAIN_FISHING,
     ITEM_MAIN_FASTER_JOY,
     ITEM_MAIN_UNIT_TYPE,
@@ -242,6 +244,13 @@ static const u8 *const sChoices_Gen3Gen4[] = {
     COMPOUND_STRING("GEN 4"),
 };
 
+static const u8 *const sChoices_OwSpeed[] = {
+    COMPOUND_STRING("1x"),
+    COMPOUND_STRING("2x"),
+    COMPOUND_STRING("3x"),
+    COMPOUND_STRING("4x"),
+};
+
 static const u8 *const sChoices_RunType[] = {
     COMPOUND_STRING("NO"),
     COMPOUND_STRING("L+R+A"),
@@ -298,6 +307,12 @@ static const u8 *const sDesc_Autorun[] = {
 static const u8 *const sDesc_AutorunSurf[] = {
     COMPOUND_STRING("Surf faster without pressing B."),
     COMPOUND_STRING("Press and hold B to surf faster."),
+};
+static const u8 *const sDesc_OwSpeed[] = {
+    COMPOUND_STRING("Move at the normal speed."),
+    COMPOUND_STRING("Move at double speed.\nHold {R_BUTTON} for normal speed."),
+    COMPOUND_STRING("Move at triple speed.\nHold {R_BUTTON} for normal speed."),
+    COMPOUND_STRING("Move at quadruple speed.\nHold {R_BUTTON} for normal speed."),
 };
 static const u8 *const sDesc_Fishing[] = {
     COMPOUND_STRING("Automatically reel while fishing."),
@@ -417,6 +432,12 @@ static const struct OptionMenuItem sTabItems_Main[] = {
         .descriptions = sDesc_AutorunSurf,
         .numChoices   = 2,
         .choiceNames  = sChoices_OnOff,
+    },
+    [ITEM_MAIN_OW_SPEED] = {
+        .name         = COMPOUND_STRING("OW SPEED"),
+        .descriptions = sDesc_OwSpeed,
+        .numChoices   = OPTIONS_OVERWORLD_SPEED_COUNT,
+        .choiceNames  = sChoices_OwSpeed,
     },
     [ITEM_MAIN_FISHING] = {
         .name         = COMPOUND_STRING("EASIER FISHING"),
@@ -1076,6 +1097,7 @@ static void Task_Save(u8 taskId)
     cs->followerLargeEnable= *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_LARGE_FOLLOWER);
     cs->autoRun            = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_AUTORUN);
     cs->autorunSurf        = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_AUTORUN_SURF);
+    cs->overworldSpeed     = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_OW_SPEED);
     cs->fishing            = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_FISHING);
     cs->evenFasterJoy      = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_FASTER_JOY);
     if (cs->evenFasterJoy == 0)
@@ -1188,6 +1210,7 @@ void CB2_InitOptionMenu(void)
         *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_LARGE_FOLLOWER) = cs->followerLargeEnable;
         *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_AUTORUN)        = cs->autoRun;
         *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_AUTORUN_SURF)   = cs->autorunSurf;
+        *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_OW_SPEED)       = cs->overworldSpeed;
         *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_FISHING)        = cs->fishing;
         *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_FASTER_JOY)     = cs->evenFasterJoy;
         *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_UNIT_TYPE)      = cs->unitSystem;

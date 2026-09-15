@@ -1919,12 +1919,50 @@ void CB2_OverworldBasic(void)
     OverworldBasic();
 }
 
+// How many *extra* overworld iterations to run this frame on top of the normal
+// one. Holding R drops back to 1x, and anything that needs real-time pacing
+// (a locked player, a DexNav search) is excluded by the caller or here.
+u8 OverworldSpeedup_AdditionalIterations(u16 speed, bool32 overworld)
+{
+    if (overworld && JOY_HELD(R_BUTTON))
+        return OPTIONS_OVERWORLD_SPEED_1X_EXTRA_ITERATIONS;
+
+    switch (speed)
+    {
+    case OPTIONS_OVERWORLD_SPEED_4X: return OPTIONS_OVERWORLD_SPEED_4X_EXTRA_ITERATIONS;
+    case OPTIONS_OVERWORLD_SPEED_3X: return OPTIONS_OVERWORLD_SPEED_3X_EXTRA_ITERATIONS;
+    case OPTIONS_OVERWORLD_SPEED_2X: return OPTIONS_OVERWORLD_SPEED_2X_EXTRA_ITERATIONS;
+    case OPTIONS_OVERWORLD_SPEED_1X: return OPTIONS_OVERWORLD_SPEED_1X_EXTRA_ITERATIONS;
+    default:                         return OPTIONS_OVERWORLD_SPEED_1X_EXTRA_ITERATIONS;
+    }
+}
+
+u8 GetOverworldSpeedupSetting(void)
+{
+    return gSaveblock3.challengeSettings.overworldSpeed;
+}
+
 void CB2_Overworld(void)
 {
     bool32 fading = (gPaletteFade.active != 0);
+    u8 loops;
+    u8 extraLoops;
+
     if (fading)
         SetVBlankCallback(NULL);
     OverworldBasic();
+
+    // Extra iterations move sprites and the camera only. Script execution and
+    // input live in callback1, so a scripted or locked player stays at 1x and
+    // cutscene timing is unaffected.
+    extraLoops = ArePlayerFieldControlsLocked() ? 0 : OverworldSpeedup_AdditionalIterations(GetOverworldSpeedupSetting(), TRUE);
+    for (loops = 0; loops < extraLoops; loops++)
+    {
+        AnimateSprites();
+        CameraUpdate();
+        UpdateCameraPanning();
+    }
+
     if (fading)
     {
         SetFieldVBlankCallback();

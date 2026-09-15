@@ -137,6 +137,7 @@ void SetDefaultChallengeSettings(void)
     gSaveblock3.challengeSettings.newBattleUI = 0;
     gSaveblock3.challengeSettings.musicOnOff = 0;
     gSaveblock3.challengeSettings.runType = 0;
+    gSaveblock3.challengeSettings.overworldSpeed = OPTIONS_OVERWORLD_SPEED_1X;
 
     // Challenge menu — "RECOMMENDED" defaults
     gSaveblock3.challengeSettings.tx_Mode_Modern_Moves       = 1;
