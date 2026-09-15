@@ -2604,12 +2604,23 @@ static u8 *AddTextPrinterAndCreateWindowOnHealthboxWithFont(const u8 *str, u32 x
     u8 color[3];
     struct WindowTemplate winTemplate = sHealthboxWindowTemplate;
 
+    union TextColor textColor = GetHealthBoxTextColor();
+
     winId = AddWindow(&winTemplate);
     FillWindowPixelBuffer(winId, PIXEL_FILL(bgColor));
 
+    // The nickname, the level and the HP numbers are drawn through this window
+    // rather than straight onto the sprite, so they need the same colours as the
+    // rest of the healthbox text instead of the hardcoded light-theme pair.
     color[0] = bgColor;
-    color[1] = 1;
-    color[2] = isHP ? 4 : 3;
+    color[1] = textColor.foreground;
+    color[2] = textColor.shadow;
+
+    // The light theme shades the HP numbers one step darker than the rest of the
+    // text. Only it has the room for that: on a dark palette entries 3 and 4 are
+    // both nearly black, so the distinction would be invisible anyway.
+    if (isHP && textColor.foreground == sHealthBoxTextColor.foreground)
+        color[2] = 4;
 
     AddTextPrinterParameterized4(winId, fontId, x, y, 0, 0, color, TEXT_SKIP_DRAW, str);
 
