@@ -1915,14 +1915,21 @@ static u32 RemapPixelIndex(u32 pixels, u32 from, u32 to)
 }
 
 // The last-used-ball tab and the move-info tab share the ability pop-up's
-// palette, whose entry 7 must stay dark because it is that pop-up's own panel.
-// Everything those two tabs draw white - the R, the START/MOVE INFO caption and
-// the frame highlights - comes from that entry, so it moves to entry 9, which is
-// already white there and which none of the three sheets uses.
-#define TAB_WHITE_SRC_PAL_INDEX 7
+// palette, and the entries they draw with have to stay dark there because the
+// pop-up needs them: entry 7 is its ability panel, entry 5 its name strip. Both
+// tabs therefore lose their contrast, and they move onto entry 9, which is
+// already white on that palette and which none of the three sheets uses.
+//
+// Which entries to move differs per sheet, because entry 5 does not mean the
+// same thing in both: on the ball tab it is the R itself, which has to stay
+// dark against the badge that entry 7 draws, while on the move-info tab it is
+// the MOVE INFO caption sitting on the tab body and so has to go white.
 #define TAB_WHITE_DST_PAL_INDEX 9
 
-static void RecolorTabWhitesForDarkUi(u16 tileTag, u32 size)
+static const u8 sTabWhites_LastUsedBall[] = { 7 };
+static const u8 sTabWhites_MoveInfo[] = { 5, 7 };
+
+static void RecolorTabWhitesForDarkUi(u16 tileTag, u32 size, const u8 *srcIndexes, u32 srcCount)
 {
     u16 tileStart = GetSpriteTileStartByTag(tileTag);
     u32 *vram;
@@ -1933,7 +1940,14 @@ static void RecolorTabWhitesForDarkUi(u16 tileTag, u32 size)
 
     vram = (u32 *)(OBJ_VRAM0 + tileStart * TILE_SIZE_4BPP);
     for (i = 0; i < size / sizeof(u32); i++)
-        vram[i] = RemapPixelIndex(vram[i], TAB_WHITE_SRC_PAL_INDEX, TAB_WHITE_DST_PAL_INDEX);
+    {
+        u32 pixels = vram[i];
+        u32 j;
+
+        for (j = 0; j < srcCount; j++)
+            pixels = RemapPixelIndex(pixels, srcIndexes[j], TAB_WHITE_DST_PAL_INDEX);
+        vram[i] = pixels;
+    }
 }
 
 // The caught-Pokemon indicator's white half is drawn from health bar palette
@@ -3366,7 +3380,7 @@ void TryAddLastUsedBallItemSprites(void)
     {
         struct SpriteSheet ballSheet = GetLastUsedBallWindowSpriteSheet();
         LoadSpriteSheet(&ballSheet);
-        RecolorTabWhitesForDarkUi(TAG_LAST_BALL_WINDOW, ballSheet.size);
+        RecolorTabWhitesForDarkUi(TAG_LAST_BALL_WINDOW, ballSheet.size, sTabWhites_LastUsedBall, ARRAY_COUNT(sTabWhites_LastUsedBall));
     }
 
     if (gBattleStruct->ballSpriteIds[1] == MAX_SPRITES)
@@ -3410,7 +3424,7 @@ void TryToAddMoveInfoWindow(void)
     if (GetSpriteTileStartByTag(MOVE_INFO_WINDOW_TAG) == 0xFFFF)
     {
         LoadSpriteSheet(&sSpriteSheet_MoveInfoWindow);
-        RecolorTabWhitesForDarkUi(MOVE_INFO_WINDOW_TAG, sSpriteSheet_MoveInfoWindow.size);
+        RecolorTabWhitesForDarkUi(MOVE_INFO_WINDOW_TAG, sSpriteSheet_MoveInfoWindow.size, sTabWhites_MoveInfo, ARRAY_COUNT(sTabWhites_MoveInfo));
     }
 
     if (gBattleStruct->moveInfoSpriteId == MAX_SPRITES)
