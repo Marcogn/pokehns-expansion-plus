@@ -1,6 +1,19 @@
 #ifndef GUARD_CONSTANTS_PARTY_MENU_H
 #define GUARD_CONSTANTS_PARTY_MENU_H
 
+// Party menu style. CLASSIC is this repo's own screen; SWSH is the screen
+// ported from soulgold. Both are compiled and the player picks at runtime.
+#define PARTY_MENU_STYLE_OPTION           TRUE
+#define SWSH_PARTY_MENU_PC_ACCESS         FALSE
+#define SWSH_PARTY_BATTLE_DETAILS         FALSE // Show moves and ability instead of the selected Pokemon in battle
+#define SWSH_PARTY_MON_IDLE_ANIMS         TRUE
+#define SWSH_PARTY_MON_IDLE_ANIMS_FRAMES  300 // Number of frames before mon animation loops
+
+#define PARTY_MENU_OPTION_CLASSIC 0
+#define PARTY_MENU_OPTION_SWSH    1
+#define PARTY_MENU_OPTION_COUNT   2
+#define PARTY_MENU_DEFAULT_OPTION PARTY_MENU_OPTION_SWSH
+
 #define PC_MON_CHOSEN 0xFE
 #define PARTY_NOTHING_CHOSEN 0xFF
 
