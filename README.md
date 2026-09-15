@@ -17,6 +17,56 @@ Unfortunately, saves from before 2.0 will not be compatible moving forward.
 
 2.0.1 will be the last "official" release of Pokémon Heart and Soul, after which any bug fixes, content updates, or any propogated updates from **`pokeemerald`** or **`pokeemerald-expansion`** will only be available via community forks of the project.
 
+# About this fork: `pokehns-expansion-plus`
+
+This repository is a personal fork of **`pokemonHnS-expansion`** that back-ports a
+set of features from [**Soulgold**](https://eemeliri.github.io/soulgold/), plus a
+few changes of its own. Everything below is additive: no existing HnS feature was
+removed, and the save layout is unchanged, so saves from the upstream release keep
+working.
+
+### Ported from Soulgold
+
+| Feature | Option | Notes |
+| --- | --- | --- |
+| Overworld speed-up | `OW SPEED` 1x–4x | Holding R drops back to 1x. Cutscenes always run at 1x. |
+| Battle speed-up | `BATTLE SPEED` 1x–3x | Runs several software ticks per frame; animations keep their timing. |
+| SwSh party menu | `PARTY MENU` CLASSIC/SWSH | Both menus are built and selected at runtime. |
+| Soulgold bag screen | — | Replaces the bag graphics and layout. |
+| Dark UI | `DARK UI` LIGHT/DARK | Darkens the bag and the whole battle HUD. |
+| Shiny healthbox | — | A shiny Pokémon gets a gold battle box, in both themes. |
+
+### Added here
+
+| Feature | Option | Notes |
+| --- | --- | --- |
+| Pokédex from the party menu | — | New entry in the party menu action list. |
+| Guaranteed capture | `EASY CATCH` OFF/ON | Every Ball catches without fail while it is on. |
+| Nickname prompts | `NICKNAMES` ON/OFF | When off, catches, gift Pokémon and hatched eggs never ask. |
+
+Shop and price changes: Poké Ball 10, Great Ball 15, Ultra Ball 30, Quick Ball 50,
+Ability Patch 100, Ability Capsule 75, and the six vitamins 700. Azalea Town stocks
+the Quick Ball, Violet City the Ability Patch and Capsule, and Goldenrod 4F now also
+sells the six EV-lowering Berries. Town-specific stock is appended to the usual
+badge-scaled inventory rather than replacing it, so those towns keep their normal
+progression.
+
+### Credits for this fork
+
+The ported features are the work of the Soulgold project and the people it credits
+in turn. In particular:
+
+- [**Soulgold**](https://github.com/eemeliri) — the overworld and battle speed-ups,
+  the bag screen, the dark UI and the shiny healthbox all come from there.
+- [**Mont**](https://github.com/montmoguri/pokeemerald-expansion/) — the SwSh party
+  menu, which reached this fork by way of Soulgold.
+- The full Soulgold credits list is worth reading on its own: see the
+  [Soulgold repository](https://eemeliri.github.io/soulgold/).
+
+The upstream chain below — **`pokemonHnS-expansion`**, RHH's
+**`pokeemerald-expansion`**, **`Modern Emerald`** and pret's **`pokeemerald`** —
+applies to this fork unchanged.
+
 # [Features](FEATURES.md)
 
 **`pokemonHnS-expansion`** includes a mix of vanilla Emerald/FRLG features, re/de-made implementations of GSC/HGSS features, custom **`Modern Emerald`** features, and both features from [core series Pokémon games](https://bulbapedia.bulbagarden.net/wiki/Core_series) and popular QOL enhancements made available by **`pokeemerald-expansion`**.  
