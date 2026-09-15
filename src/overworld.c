@@ -1919,9 +1919,34 @@ void CB2_OverworldBasic(void)
     OverworldBasic();
 }
 
+// TRUE while anything scripted is moving on the field. Object event movement is
+// driven by sprite callbacks, so the extra iterations below advance NPCs too:
+// an applymovement would then overshoot its destination, because the script
+// counts steps at one per frame while the NPC takes two, three or four. Both a
+// running script and a held (scripted) movement that outlives its script have
+// to hold the field at 1x. soulgold instead relies on scripts raising
+// FLAG_PREVENT_OVERWORLD_SPEEDUP by hand; there is no such flag here, and a
+// guard that needs no script cooperation cannot be forgotten.
+static bool32 IsScriptedMovementInProgress(void)
+{
+    u32 i;
+
+    if (ScriptContext_IsEnabled() || ArePlayerFieldControlsLocked())
+        return TRUE;
+
+    for (i = 0; i < OBJECT_EVENTS_COUNT; i++)
+    {
+        if (gObjectEvents[i].active
+         && gObjectEvents[i].heldMovementActive
+         && !gObjectEvents[i].heldMovementFinished)
+            return TRUE;
+    }
+
+    return FALSE;
+}
+
 // How many *extra* overworld iterations to run this frame on top of the normal
-// one. Holding R drops back to 1x, and anything that needs real-time pacing
-// (a locked player, a DexNav search) is excluded by the caller or here.
+// one. Holding R drops back to 1x.
 u8 OverworldSpeedup_AdditionalIterations(u16 speed, bool32 overworld)
 {
     if (overworld && JOY_HELD(R_BUTTON))
@@ -1952,10 +1977,10 @@ void CB2_Overworld(void)
         SetVBlankCallback(NULL);
     OverworldBasic();
 
-    // Extra iterations move sprites and the camera only. Script execution and
-    // input live in callback1, so a scripted or locked player stays at 1x and
-    // cutscene timing is unaffected.
-    extraLoops = ArePlayerFieldControlsLocked() ? 0 : OverworldSpeedup_AdditionalIterations(GetOverworldSpeedupSetting(), TRUE);
+    // AnimateSprites() below also steps object event movement, so anything
+    // scripted must run at 1x or it will overshoot. See
+    // IsScriptedMovementInProgress.
+    extraLoops = IsScriptedMovementInProgress() ? 0 : OverworldSpeedup_AdditionalIterations(GetOverworldSpeedupSetting(), TRUE);
     for (loops = 0; loops < extraLoops; loops++)
     {
         AnimateSprites();

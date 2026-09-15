@@ -25,6 +25,9 @@ TEST("Overworld speed-up falls back to 1x for an out-of-range setting")
     EXPECT_EQ(OverworldSpeedup_AdditionalIterations(0xFFFF, TRUE), 0);
 }
 
+// IsScriptedMovementInProgress is static and drives CB2_Overworld, not this
+// function, so it is exercised in game rather than here. What these cover is
+// the mapping itself.
 TEST("Holding R drops the overworld back to 1x")
 {
     gMain.heldKeys = R_BUTTON;
