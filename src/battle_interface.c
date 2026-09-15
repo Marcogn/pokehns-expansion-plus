@@ -487,12 +487,14 @@ static struct CompressedSpriteSheet GetStatusSummaryBarSpriteSheet(void)
         return (struct CompressedSpriteSheet){ gBattleInterface_BallStatusBarGfxGen3, 0x200, TAG_STATUS_SUMMARY_BAR_TILE };
 }
 
+// The bar the party balls slide in on is drawn from the healthbox palette, so it
+// follows the healthbox into the dark theme instead of staying light beside it.
 static struct SpritePalette GetStatusSummaryBarSpritePal(void)
 {
-    if (UseGen4BattleUI())
-        return (struct SpritePalette){ gBattleInterface_BallStatusBarPalGen4, TAG_STATUS_SUMMARY_BAR_PAL };
-    else
-        return (struct SpritePalette){ gBattleInterface_BallStatusBarPalGen3, TAG_STATUS_SUMMARY_BAR_PAL };
+    struct SpritePalette palettes[3];
+
+    GetHealthBoxHealthBarPalettes(palettes);
+    return (struct SpritePalette){ palettes[0].data, TAG_STATUS_SUMMARY_BAR_PAL };
 }
 
 static struct SpritePalette GetStatusSummaryBallsSpritePal(void)
@@ -2679,6 +2681,20 @@ static void SafariTextIntoHealthboxObject(void *dest, u8 *windowTileData, u32 wi
 #define ABILITY_POP_UP_BATTLER_FG_TXTCLR 7
 #define ABILITY_POP_UP_BATTLER_SH_TXTCLR 1
 
+// TAG_ABILITY_POP_UP is shared by the ability pop-up, the last-used-ball tab and
+// the move-info tab, and entry 7 does double duty across them: it is the white
+// panel the ability name sits on, and it is also the R glyph on the ball tab. It
+// cannot go black without erasing that glyph, so in dark mode it becomes a mid
+// grey that works as both, with entry 4 (the inset behind the glyph) pushed
+// darker to keep the contrast. The pop-up's own name text moves off entry 7 onto
+// entry 9, which no artwork on this palette uses.
+#define ABILITY_POP_UP_BATTLER_FG_TXTCLR_DARK 9
+
+static u32 GetAbilityPopUpBattlerFgColor(void)
+{
+    return IsDarkUiEnabled() ? ABILITY_POP_UP_BATTLER_FG_TXTCLR_DARK : ABILITY_POP_UP_BATTLER_FG_TXTCLR;
+}
+
 #define ABILITY_POP_UP_ABILITY_BG_TXTCLR 7
 #define ABILITY_POP_UP_ABILITY_FG_TXTCLR 9
 #define ABILITY_POP_UP_ABILITY_SH_TXTCLR 1
@@ -2721,12 +2737,52 @@ static const struct SpriteSheet sSpriteSheet_AbilityPopUp =
     sAbilityPopUpGfx, sizeof(sAbilityPopUpGfx), TAG_ABILITY_POP_UP
 };
 
+static const u16 sDarkAbilityPopUpPaletteGen3[16] =
+{
+    [ 0] = RGB( 0, 22, 11),
+    [ 1] = RGB( 2,  2,  2),  // was RGB(17, 16, 18) - text shadow, outer border
+    [ 2] = RGB( 3,  3,  3),  // was RGB(12, 11, 13) - inner border
+    [ 3] = RGB( 9,  8, 10),
+    [ 4] = RGB( 2,  1,  2),  // was RGB(7, 3, 10) - inset behind the R glyph, pop-up border
+    [ 5] = RGB( 4,  4,  4),  // was RGB(12, 11, 13) - name strip background
+    [ 6] = RGB( 3,  3,  3),  // was RGB(28, 29, 30) - divider
+    [ 7] = RGB( 9,  9,  9),  // was RGB(31, 31, 31) - ability strip background and the R glyph
+    [ 8] = RGB( 4,  4,  4),  // was RGB(13, 14, 14) - tab body
+    [ 9] = RGB(31, 31, 31),  // was RGB(9, 8, 10) - text foreground (no artwork uses this entry)
+    [10] = RGB( 4,  4,  4),  // was RGB(13, 14, 14) - tab shading
+    [11] = RGB( 9,  8, 10),
+    [12] = RGB( 4,  4,  4),  // was RGB(13, 14, 14) - tab shading
+    [13] = RGB( 8,  8,  8),  // was RGB(26, 26, 25) - tab body
+    [14] = RGB( 5,  5,  5),  // was RGB(16, 17, 17) - tab shading
+    [15] = RGB( 9,  8, 10),
+};
+
+static const u16 sDarkAbilityPopUpPaletteGen4[16] =
+{
+    [ 0] = RGB( 0, 22, 11),
+    [ 1] = RGB( 2,  2,  2),  // was RGB(23, 23, 23) - text shadow, outer border
+    [ 2] = RGB( 3,  3,  3),  // was RGB(18, 18, 18) - inner border
+    [ 3] = RGB( 7,  6,  8),
+    [ 4] = RGB( 2,  2,  2),  // was RGB(8, 8, 8) - inset behind the R glyph, pop-up border
+    [ 5] = RGB( 4,  4,  4),  // was RGB(14, 14, 14) - name strip background
+    [ 6] = RGB( 3,  3,  3),  // was RGB(19, 19, 19) - divider
+    [ 7] = RGB( 9,  9,  9),  // was RGB(31, 31, 31) - ability strip background and the R glyph
+    [ 8] = RGB( 8,  8,  8),  // was RGB(26, 26, 25) - tab body
+    [ 9] = RGB(31, 31, 31),  // was RGB(8, 8, 8) - text foreground (no artwork uses this entry)
+    [10] = RGB( 4,  4,  4),  // was RGB(14, 14, 14) - tab shading
+    [11] = RGB( 8,  8,  8),
+    [12] = RGB( 2,  2,  2),  // was RGB(6, 6, 6) - tab shading
+    [13] = RGB( 7,  7,  7),  // was RGB(23, 23, 23) - tab body
+    [14] = RGB( 6,  6,  6),  // was RGB(19, 19, 19) - tab shading
+    [15] = RGB( 8,  8,  8),
+};
+
 static const u16 *GetAbilityPopUpPal(void)
 {
     if (UseGen4BattleUI())
-        return sAbilityPopUpPaletteGen4;
+        return IsDarkUiEnabled() ? sDarkAbilityPopUpPaletteGen4 : sAbilityPopUpPaletteGen4;
     else
-        return sAbilityPopUpPaletteGen3;
+        return IsDarkUiEnabled() ? sDarkAbilityPopUpPaletteGen3 : sAbilityPopUpPaletteGen3;
 }
 
 static struct SpritePalette GetAbilityPopUpSpritePal(void)
@@ -2855,7 +2911,7 @@ static void PrintBattlerOnAbilityPopUp(enum BattlerId battler, u8 spriteId1, u8 
                         (void *)(OBJ_VRAM0) + TILE_OFFSET_4BPP(gSprites[spriteId1].oam.tileNum),
                         (void *)(OBJ_VRAM0) + TILE_OFFSET_4BPP(gSprites[spriteId2].oam.tileNum),
                         0, 0,
-                        ABILITY_POP_UP_BATTLER_BG_TXTCLR, ABILITY_POP_UP_BATTLER_FG_TXTCLR, ABILITY_POP_UP_BATTLER_SH_TXTCLR,
+                        ABILITY_POP_UP_BATTLER_BG_TXTCLR, GetAbilityPopUpBattlerFgColor(), ABILITY_POP_UP_BATTLER_SH_TXTCLR,
                         TRUE, gSprites[spriteId1].sBattlerId);
 }
 
