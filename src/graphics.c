@@ -1827,6 +1827,8 @@ const u16 gBagPalette[] = INCBIN_U16("graphics/bag/soulgold/bag.gbapal");
 const u16 gBagFemalePalette[] = INCBIN_U16("graphics/bag/soulgold/bag_female.gbapal");
 const u16 gBagScreenMale_Pal[] = INCBIN_U16("graphics/bag/soulgold/menu_male.gbapal");
 const u16 gBagScreenFemale_Pal[] = INCBIN_U16("graphics/bag/soulgold/menu_female.gbapal");
+const u16 gBagScreenDarkMale_Pal[] = INCBIN_U16("graphics/bag/soulgold/menu_male_dark.gbapal");
+const u16 gBagScreenDarkFemale_Pal[] = INCBIN_U16("graphics/bag/soulgold/menu_female_dark.gbapal");
 #elif IS_HNS
 const u32 gBagMaleTiles[] = INCBIN_U32("graphics/bag/hns/bag_male.4bpp.smol");
 const u32 gBagFemaleTiles[] = INCBIN_U32("graphics/bag/hns/bag_female.4bpp.smol");

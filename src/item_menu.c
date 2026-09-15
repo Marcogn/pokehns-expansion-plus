@@ -1,5 +1,6 @@
 #include "global.h"
 #include "item_menu.h"
+#include "load_save.h"
 #include "battle.h"
 #include "challenge_menu.h"
 #include "battle_controllers.h"
@@ -466,6 +467,57 @@ static const u8 sFontColorTable[][3] = {
     [COLORID_TMHM_INFO]   = {TEXT_COLOR_TRANSPARENT, TEXT_DYNAMIC_COLOR_5,  TEXT_DYNAMIC_COLOR_1}
 };
 
+#if BAG_SCREEN_SOULGOLD
+#define DARK_BAG_POCKET_INDICATOR_INACTIVE_PAL 10
+#define DARK_BAG_POCKET_INDICATOR_ACTIVE_PAL   11
+#define DARK_BAG_BG_COLOR RGB(5, 5, 5)
+
+static const u16 sDarkBagStandardMenuPalette[16] =
+{
+    [0] = RGB_WHITE,
+    [1] = DARK_BAG_BG_COLOR,
+    [2] = RGB_WHITE,
+    [3] = RGB(1, 1, 1),
+    [4] = RGB(28, 1, 1),
+    [5] = RGB(31, 23, 14),
+    [6] = RGB(4, 19, 1),
+    [7] = RGB(18, 30, 18),
+    [8] = RGB(6, 10, 25),
+    [9] = RGB(20, 24, 30),
+};
+
+static const u16 sDarkBagMessageBoxColors[] =
+{
+    RGB(8, 9, 11),
+    RGB(7, 8, 10),
+    RGB(6, 7, 9),
+    DARK_BAG_BG_COLOR,
+    RGB(4, 4, 5),
+};
+
+static const u16 sDarkBagTmHmTextAndIconColor = RGB_WHITE;
+static const u16 sDarkBagTmHmTextAndIconShadowColor = RGB(1, 1, 1);
+
+static const u16 sDarkBagPocketArrowPalette[16] =
+{
+    [1] = RGB(31, 31, 25),
+    [2] = RGB(29, 25, 16),
+};
+
+static const u16 sDarkBagPocketIndicatorInactivePalette[16] =
+{
+    [0] = DARK_BAG_BG_COLOR,
+    [9] = RGB(14, 14, 14),
+};
+
+static const u16 sDarkBagPocketIndicatorActivePalette[16] =
+{
+    [0] = DARK_BAG_BG_COLOR,
+    [1] = RGB_WHITE,
+    [9] = RGB(31, 25, 10),
+};
+#endif
+
 static const struct WindowTemplate sDefaultBagWindows[] =
 {
     [WIN_ITEM_LIST] = {
@@ -867,6 +919,12 @@ static bool8 SetupBagMenu(void)
     return FALSE;
 }
 
+// Single accessor for the dark theme, so no screen reads the save bit itself.
+bool8 IsDarkUiEnabled(void)
+{
+    return gSaveblock3.challengeSettings.darkUi;
+}
+
 static void BagMenu_InitBGs(void)
 {
     ResetVramOamAndBgCntRegs();
@@ -916,10 +974,24 @@ static bool8 LoadBagMenu_Graphics(void)
         }
         break;
     case 2:
+#if BAG_SCREEN_SOULGOLD
+        if (!IsWallysBag() && gSaveBlock2Ptr->playerGender != MALE)
+            LoadPalette(IsDarkUiEnabled() ? gBagScreenDarkFemale_Pal : gBagScreenFemale_Pal,
+                        BG_PLTT_ID(0), 2 * PLTT_SIZE_4BPP);
+        else
+            LoadPalette(IsDarkUiEnabled() ? gBagScreenDarkMale_Pal : gBagScreenMale_Pal,
+                        BG_PLTT_ID(0), 2 * PLTT_SIZE_4BPP);
+        if (IsDarkUiEnabled())
+        {
+            LoadPalette(sDarkBagPocketIndicatorInactivePalette, BG_PLTT_ID(DARK_BAG_POCKET_INDICATOR_INACTIVE_PAL), PLTT_SIZE_4BPP);
+            LoadPalette(sDarkBagPocketIndicatorActivePalette, BG_PLTT_ID(DARK_BAG_POCKET_INDICATOR_ACTIVE_PAL), PLTT_SIZE_4BPP);
+        }
+#else
         if (!IsWallysBag() && gSaveBlock2Ptr->playerGender != MALE)
             LoadPalette(gBagScreenFemale_Pal, BG_PLTT_ID(0), 2 * PLTT_SIZE_4BPP);
         else
             LoadPalette(gBagScreenMale_Pal, BG_PLTT_ID(0), 2 * PLTT_SIZE_4BPP);
+#endif
         gBagMenu->graphicsLoadState++;
         break;
     case 3:
@@ -1564,15 +1636,26 @@ static void DrawItemListBgRow(u8 y)
 static void DrawPocketIndicatorSquare(u8 x, bool8 isCurrentPocket)
 {
 #if I_COMBINE_BAG_POCKETS
-    if (!isCurrentPocket)
-        FillBgTilemapBufferRect_Palette0(2, 0x1017, x + 5, 3, 1, 1);
-    else
-        FillBgTilemapBufferRect_Palette0(2, 0x102B, x + 5, 3, 1, 1);
+    // Six pockets, so the row starts a tile further right to stay centred.
+    const u8 xOffset = 5;
 #else
-    if (!isCurrentPocket)
-        FillBgTilemapBufferRect_Palette0(2, 0x1017, x + 4, 3, 1, 1);
-    else
-        FillBgTilemapBufferRect_Palette0(2, 0x102B, x + 4, 3, 1, 1);
+    const u8 xOffset = 4;
+#endif
+
+#if BAG_SCREEN_SOULGOLD
+    // The indicators are tilemap cells, not sprites, so they name tiles by
+    // index into the bag tileset. soulgold's tileset puts them at 0xC and
+    // 0x34; this repo's are at 0x17 and 0x2B, horizontally flipped. Swapping
+    // the artwork without swapping these draws whatever happens to sit at the
+    // old indices.
+    u16 palette = 0;
+
+    if (IsDarkUiEnabled())
+        palette = isCurrentPocket ? DARK_BAG_POCKET_INDICATOR_ACTIVE_PAL : DARK_BAG_POCKET_INDICATOR_INACTIVE_PAL;
+
+    FillBgTilemapBufferRect(2, isCurrentPocket ? 0x34 : 0xC, x + xOffset, 3, 1, 1, palette);
+#else
+    FillBgTilemapBufferRect_Palette0(2, isCurrentPocket ? 0x102B : 0x1017, x + xOffset, 3, 1, 1);
 #endif
     ScheduleBgCopyTilemapToVram(2);
 }

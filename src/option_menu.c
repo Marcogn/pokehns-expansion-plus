@@ -65,6 +65,7 @@ enum {
     ITEM_BATTLE_SPEED,
     ITEM_BATTLE_NEW_BACKGROUNDS,
     ITEM_BATTLE_NEW_BATTLEUI,
+    ITEM_BATTLE_DARK_UI,
     ITEM_BATTLE_BALL_PROMPT,
     ITEM_BATTLE_RUN_TYPE,
     ITEM_BATTLE_LR_RUN,
@@ -247,6 +248,11 @@ static const u8 *const sChoices_Gen3Gen4[] = {
     COMPOUND_STRING("GEN 4"),
 };
 
+static const u8 *const sChoices_LightDark[] = {
+    COMPOUND_STRING("LIGHT"),
+    COMPOUND_STRING("DARK"),
+};
+
 static const u8 *const sChoices_BattleSpeed[] = {
     COMPOUND_STRING("1x"),
     COMPOUND_STRING("2x"),
@@ -371,6 +377,10 @@ static const u8 *const sDesc_NewBackgrounds[] = {
 static const u8 *const sDesc_NewBattleUI[] = {
     COMPOUND_STRING("Original GEN III Battle UI."),
     COMPOUND_STRING("Modernized GEN IV Battle UI."),
+};
+static const u8 *const sDesc_DarkUi[] = {
+    COMPOUND_STRING("Use the normal light interface."),
+    COMPOUND_STRING("Darken the battle and BAG\ninterface."),
 };
 static const u8 *const sDesc_BallPrompt[] = {
     COMPOUND_STRING("Press {R_BUTTON} in battle to use Pokeballs.\nHold {L_BUTTON}/{R_BUTTON} to swap {PKMN}BALLS."),
@@ -530,6 +540,12 @@ static const struct OptionMenuItem sTabItems_Battle[] = {
         .descriptions = sDesc_NewBattleUI,
         .numChoices   = 2,
         .choiceNames  = sChoices_Gen3Gen4,
+    },
+    [ITEM_BATTLE_DARK_UI] = {
+        .name         = COMPOUND_STRING("DARK UI"),
+        .descriptions = sDesc_DarkUi,
+        .numChoices   = 2,
+        .choiceNames  = sChoices_LightDark,
     },
     [ITEM_BATTLE_BALL_PROMPT] = {
         .name         = COMPOUND_STRING("BALL PROMPT"),
@@ -1146,6 +1162,7 @@ static void Task_Save(u8 taskId)
     cs->fastIntro          = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_FAST_INTRO);
     cs->fastBattle         = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_FAST_BATTLES);
     cs->battleSpeed        = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_SPEED);
+    cs->darkUi             = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_DARK_UI);
     cs->newBackgrounds     = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_NEW_BACKGROUNDS);
     cs->newBattleUI        = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_NEW_BATTLEUI);
     cs->ballPrompt         = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_BALL_PROMPT);
@@ -1257,6 +1274,7 @@ void CB2_InitOptionMenu(void)
         *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_FAST_INTRO)      = cs->fastIntro;
         *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_FAST_BATTLES)    = cs->fastBattle;
         *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_SPEED)           = cs->battleSpeed;
+        *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_DARK_UI)         = cs->darkUi;
         *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_NEW_BACKGROUNDS) = cs->newBackgrounds;
         *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_NEW_BATTLEUI)    = cs->newBattleUI;
         *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_BALL_PROMPT)     = cs->ballPrompt;
