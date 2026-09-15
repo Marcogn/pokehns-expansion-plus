@@ -32,6 +32,7 @@
 #include "item_use.h"
 #include "test_runner.h"
 #include "constants/battle_anim.h"
+#include "option_menu.h"
 #include "constants/rgb.h"
 #include "constants/songs.h"
 #include "constants/items.h"
@@ -598,6 +599,39 @@ static const union TextColor sHealthBoxTextColor =
     .accent = 0
 };
 
+// On the Gen 4 skin entry 1 is the box outline, so the dark palette has to keep
+// it dark and the text moves to entry 6, the white the outline highlight uses.
+// The Gen 3 skin needs no variant: its box art never touches entry 1, so its
+// dark palette turns that entry white and sHealthBoxTextColor still works.
+static const union TextColor sDarkHealthBoxTextColorGen4 =
+{
+    .background = 0,
+    .foreground = 6,
+    .shadow = 1,
+    .accent = 0
+};
+
+// The opponent's HP numbers are rendered from sEmptyWhiteText_*, which carries
+// its own {COLOR WHITE} control code: palette entry 1. That is white on the
+// Gen 3 skin's dark palette, but the box outline on the Gen 4 one, so there the
+// foreground has to be moved to entry 6 by hand.
+#define HEALTHBOX_TEXT_COLOR_OFFSET 2
+#define DARK_HEALTHBOX_TEXT_COLOR_GEN4 TEXT_COLOR_GREEN // palette entry 6
+
+static void ApplyHealthboxTextStyle(u8 *text)
+{
+    if (IsDarkUiEnabled() && UseGen4BattleUI())
+        text[HEALTHBOX_TEXT_COLOR_OFFSET] = DARK_HEALTHBOX_TEXT_COLOR_GEN4;
+}
+
+static union TextColor GetHealthBoxTextColor(void)
+{
+    if (IsDarkUiEnabled() && UseGen4BattleUI())
+        return sDarkHealthBoxTextColorGen4;
+
+    return sHealthBoxTextColor;
+}
+
 // Because the healthbox is too large to fit into one sprite, it is divided into two sprites.
 // healthboxLeft  or healthboxMain  is the left part that is used as the 'main' sprite.
 // healthboxRight or healthboxOther is the right part of the healthbox.
@@ -949,12 +983,12 @@ static void UpdateLvlInHealthbox(u8 healthboxSpriteId, u8 lvl)
         if (IsOnPlayerSide(battler))
         {
             FillSpriteRectColor(spriteId, 8, 5, 24, 11, HEALTHBOX_BG_INDEX);
-            AddSpriteTextPrinterParameterized6(spriteId, FONT_SMALL, 32 - width, 3, 0, 0, sHealthBoxTextColor, 0, text);
+            AddSpriteTextPrinterParameterized6(spriteId, FONT_SMALL, 32 - width, 3, 0, 0, GetHealthBoxTextColor(), 0, text);
         }
         else
         {
             FillSpriteRectColor(spriteId, 0, 5, 24, 11, HEALTHBOX_BG_INDEX);
-            AddSpriteTextPrinterParameterized6(spriteId, FONT_SMALL, 24 - width, 3, 0, 0, sHealthBoxTextColor, 0, text);
+            AddSpriteTextPrinterParameterized6(spriteId, FONT_SMALL, 24 - width, 3, 0, 0, GetHealthBoxTextColor(), 0, text);
         }
     }
 }
@@ -1006,9 +1040,9 @@ static void PrintHpOnHealthbox(u32 spriteId, s16 currHp, s16 maxHp, u32 bgColor,
 
         width = GetStringWidth(HP_FONT, text, -1) + GetFontAttribute(HP_FONT, FONTATTR_LETTER_SPACING);
         if (width < 32)
-            AddSpriteTextPrinterParameterized6(spriteId2, HP_FONT, 32 - width, yOffset + 5, 0, 0, sHealthBoxTextColor, 0, text);
+            AddSpriteTextPrinterParameterized6(spriteId2, HP_FONT, 32 - width, yOffset + 5, 0, 0, GetHealthBoxTextColor(), 0, text);
         else
-            AddSpriteTextPrinterParameterized6(spriteId, HP_FONT, 64 - (width - 32), yOffset + 5, 0, 0, sHealthBoxTextColor, 0, text);
+            AddSpriteTextPrinterParameterized6(spriteId, HP_FONT, 64 - (width - 32), yOffset + 5, 0, 0, GetHealthBoxTextColor(), 0, text);
 
         gSprites[spriteId].data[1] = savedValue1;
         gSprites[spriteId2].data[1] = savedValue2;
@@ -1025,6 +1059,7 @@ static void UpdateOpponentHpTextDoubles(u32 healthboxSpriteId, u32 barSpriteId, 
     if (gBattleSpritesDataPtr->battlerData[battler].hpNumbersNoBars) // don't print text if only bars are visible
     {
         memcpy(text, sEmptyWhiteText_TransparentHighlight, sizeof(sEmptyWhiteText_TransparentHighlight));
+        ApplyHealthboxTextStyle(text);
         if (maxOrCurrent == HP_CURRENT)
             var = 0;
         else
@@ -1069,6 +1104,7 @@ static void UpdateOpponentHpTextSingles(u32 healthboxSpriteId, s16 value, u32 ma
     enum BattlerId battler = gSprites[healthboxSpriteId].hMain_Battler;
 
     memcpy(text, sEmptyWhiteText_GrayHighlight, sizeof(sEmptyWhiteText_GrayHighlight));
+    ApplyHealthboxTextStyle(text);
     if (gBattleSpritesDataPtr->battlerData[battler].hpNumbersNoBars) // don't print text if only bars are visible
     {
         if (maxOrCurrent == HP_CURRENT)
@@ -1148,6 +1184,7 @@ static void PrintSafariMonInfo(u8 healthboxSpriteId, struct Pokemon *mon)
     u8 i, var, nature, healthBarSpriteId;
 
     memcpy(text, sEmptyWhiteText_GrayHighlight, sizeof(sEmptyWhiteText_GrayHighlight));
+    ApplyHealthboxTextStyle(text);
     barFontGfx = &gMonSpritesGfxPtr->barFontGfx[0x520 + (GetBattlerPosition(gSprites[healthboxSpriteId].hMain_Battler) * 384)];
     var = 5;
     nature = GetNature(mon);
@@ -1835,12 +1872,12 @@ void UpdateNickInHealthbox(u8 healthboxSpriteId, struct Pokemon *mon)
         if (IsOnPlayerSide(gSprites[healthboxSpriteId].data[6]))
         {
             FillSpriteRectColor(healthboxSpriteId, 16, 5, 55, 11, HEALTHBOX_BG_INDEX);
-            AddSpriteTextPrinterParameterized6(healthboxSpriteId, fontId, 16, 3, 0, 0, sHealthBoxTextColor, 0, gDisplayedStringBattle);
+            AddSpriteTextPrinterParameterized6(healthboxSpriteId, fontId, 16, 3, 0, 0, GetHealthBoxTextColor(), 0, gDisplayedStringBattle);
         }
         else
         {
             FillSpriteRectColor(healthboxSpriteId, 8, 5, 55, 11, HEALTHBOX_BG_INDEX);
-            AddSpriteTextPrinterParameterized6(healthboxSpriteId, fontId, 8, 3, 0, 0, sHealthBoxTextColor, 0, gDisplayedStringBattle);
+            AddSpriteTextPrinterParameterized6(healthboxSpriteId, fontId, 8, 3, 0, 0, GetHealthBoxTextColor(), 0, gDisplayedStringBattle);
         }
 
         gSprites[healthboxSpriteId].data[1] = savedValue1;
@@ -2094,7 +2131,7 @@ static void UpdateSafariBallsTextOnHealthbox(u8 healthboxSpriteId)
         gSprites[healthboxSpriteId].data[1] = healthboxSpriteId2;
         gSprites[healthboxSpriteId2].data[1] = SPRITE_NONE;
 
-        AddSpriteTextPrinterParameterized6(healthboxSpriteId, FONT_SMALL, 16, 3, 0, 0, sHealthBoxTextColor, 0, gText_SafariBalls);
+        AddSpriteTextPrinterParameterized6(healthboxSpriteId, FONT_SMALL, 16, 3, 0, 0, GetHealthBoxTextColor(), 0, gText_SafariBalls);
 
         gSprites[healthboxSpriteId].data[1] = savedValue1;
         gSprites[healthboxSpriteId2].data[1] = savedValue2;
@@ -2130,11 +2167,46 @@ static void UpdateLeftNoOfBallsTextOnHealthbox(u8 healthboxSpriteId)
         gSprites[healthboxSpriteId2].data[1] = SPRITE_NONE;
 
         FillSpriteRectColor(healthboxSpriteId, 55, 19, 31, 12, HEALTHBOX_BG_INDEX);
-        AddSpriteTextPrinterParameterized6(healthboxSpriteId, FONT_SMALL, 55, 19, 0, 0, sHealthBoxTextColor, 0, text);
+        AddSpriteTextPrinterParameterized6(healthboxSpriteId, FONT_SMALL, 55, 19, 0, 0, GetHealthBoxTextColor(), 0, text);
 
         gSprites[healthboxSpriteId].data[1] = savedValue1;
         gSprites[healthboxSpriteId2].data[1] = savedValue2;
     }
+}
+
+// A shiny Pokemon gets the gold healthbox, as in Soulgold. The safari box has
+// no Pokemon behind it, so it always keeps the normal palette.
+static void UpdateHealthboxPalette(u8 healthboxSpriteId, struct Pokemon *mon, u8 elementId)
+{
+    enum BattlerId battler = gSprites[healthboxSpriteId].hMain_Battler;
+    u32 paletteNum;
+
+    if (!((gBattleTypeFlags & BATTLE_TYPE_SAFARI) && IsOnPlayerSide(battler))
+     && elementId != HEALTHBOX_SAFARI_ALL_TEXT
+     && elementId != HEALTHBOX_SAFARI_BALLS_TEXT
+     && IsMonShiny(mon))
+    {
+        // Loaded here rather than alongside the other two, so a battle without a
+        // shiny Pokemon does not spend an OBJ palette slot on it. LoadSpritePalette
+        // is idempotent and returns 0xFF when the table is full, in which case the
+        // box falls back to the normal palette instead of drawing with a stale one.
+        struct SpritePalette palettes[3];
+
+        GetHealthBoxHealthBarPalettes(palettes);
+        paletteNum = LoadSpritePalette(&palettes[2]);
+    }
+    else
+    {
+        paletteNum = IndexOfSpritePaletteTag(TAG_HEALTHBOX_PAL);
+    }
+
+    if (paletteNum == 0xFF)
+        paletteNum = IndexOfSpritePaletteTag(TAG_HEALTHBOX_PAL);
+    if (paletteNum == 0xFF)
+        return;
+
+    gSprites[healthboxSpriteId].oam.paletteNum = paletteNum;
+    gSprites[gSprites[healthboxSpriteId].oam.affineParam].oam.paletteNum = paletteNum;
 }
 
 void UpdateHealthboxAttribute(u8 healthboxSpriteId, struct Pokemon *mon, u8 elementId)
@@ -2142,6 +2214,8 @@ void UpdateHealthboxAttribute(u8 healthboxSpriteId, struct Pokemon *mon, u8 elem
     enum BattlerId battler = gSprites[healthboxSpriteId].hMain_Battler;
     s32 maxHp = GetMonData(mon, MON_DATA_MAX_HP);
     s32 currHp = GetMonData(mon, MON_DATA_HP);
+
+    UpdateHealthboxPalette(healthboxSpriteId, mon, elementId);
 
     if (IsOnPlayerSide(battler))
     {

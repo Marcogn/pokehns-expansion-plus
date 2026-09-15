@@ -20,7 +20,7 @@ void FreeTrainerFrontPicPalette(u16 frontPicId);
 bool8 BattleLoadAllHealthBoxesGfx(u8 state);
 bool8 UseGen4BattleUI(void);
 struct CompressedSpriteSheet GetEnemyShadowSheet(void);
-void GetHealthBoxHealthBarPalettes(struct SpritePalette out[2]);
+void GetHealthBoxHealthBarPalettes(struct SpritePalette out[3]);
 void LoadBattleBarGfx(u8 unused);
 bool8 BattleInitAllSprites(u8 *state1, u8 *battler);
 void ClearSpritesHealthboxAnimData(void);
