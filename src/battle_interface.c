@@ -1887,6 +1887,85 @@ void UpdateNickInHealthbox(u8 healthboxSpriteId, struct Pokemon *mon)
     }
 }
 
+
+// ---------------------------------------------------------------------------
+// Dark theme contrast fixes
+//
+// Two small pieces of artwork are drawn from a palette entry the dark theme has
+// to darken for something else, so they lose their white. Rather than give them
+// palettes of their own, their pixels are moved onto a spare entry the dark
+// palettes keep white - the same trick Soulgold uses for its health bar, just
+// applied to the two places that actually need it here.
+// ---------------------------------------------------------------------------
+
+static u32 RemapPixelIndex(u32 pixels, u32 from, u32 to)
+{
+    u32 remapped = 0;
+
+    for (u32 shift = 0; shift < 32; shift += 4)
+    {
+        u32 index = (pixels >> shift) & 0xF;
+
+        if (index == from)
+            index = to;
+        remapped |= index << shift;
+    }
+
+    return remapped;
+}
+
+// The last-used-ball tab and the move-info tab share the ability pop-up's
+// palette, whose entry 7 must stay dark because it is that pop-up's own panel.
+// Everything those two tabs draw white - the R, the START/MOVE INFO caption and
+// the frame highlights - comes from that entry, so it moves to entry 9, which is
+// already white there and which none of the three sheets uses.
+#define TAB_WHITE_SRC_PAL_INDEX 7
+#define TAB_WHITE_DST_PAL_INDEX 9
+
+static void RecolorTabWhitesForDarkUi(u16 tileTag, u32 size)
+{
+    u16 tileStart = GetSpriteTileStartByTag(tileTag);
+    u32 *vram;
+    u32 i;
+
+    if (!IsDarkUiEnabled() || tileStart == 0xFFFF)
+        return;
+
+    vram = (u32 *)(OBJ_VRAM0 + tileStart * TILE_SIZE_4BPP);
+    for (i = 0; i < size / sizeof(u32); i++)
+        vram[i] = RemapPixelIndex(vram[i], TAB_WHITE_SRC_PAL_INDEX, TAB_WHITE_DST_PAL_INDEX);
+}
+
+// The caught-Pokemon indicator's white half is drawn from health bar palette
+// entry 2, which the dark palettes darken because the HP bar track uses it too.
+// Each skin has a different spare entry, and the dark health bar palettes keep
+// that one white.
+#define BALL_CAUGHT_WHITE_SRC_PAL_INDEX 2
+
+static u32 GetBallCaughtWhiteIndex(void)
+{
+    // Gen 4's artwork never touches entry 9; Gen 3's never touches entry 1.
+    return UseGen4BattleUI() ? 9 : 1;
+}
+
+static void CopyBallCaughtIndicatorGfx(const void *src, void *dest)
+{
+    const u32 *src32 = src;
+    u32 buffer[TILE_SIZE_4BPP / sizeof(u32)];
+    u32 i;
+
+    if (!IsDarkUiEnabled())
+    {
+        CpuCopy32(src, dest, TILE_SIZE_4BPP);
+        return;
+    }
+
+    for (i = 0; i < ARRAY_COUNT(buffer); i++)
+        buffer[i] = RemapPixelIndex(src32[i], BALL_CAUGHT_WHITE_SRC_PAL_INDEX, GetBallCaughtWhiteIndex());
+
+    CpuCopy32(buffer, dest, TILE_SIZE_4BPP);
+}
+
 void TryAddPokeballIconToHealthbox(u8 healthboxSpriteId, bool8 noStatus)
 {
     enum BattlerId battler;
@@ -1935,7 +2014,7 @@ void TryAddPokeballIconToHealthbox(u8 healthboxSpriteId, bool8 noStatus)
     }
 
     if (noStatus)
-        CpuCopy32(GetHealthboxElementGfxPtr(HEALTHBOX_GFX_STATUS_BALL_CAUGHT), (void *)(OBJ_VRAM0 + (gSprites[healthBarSpriteId].oam.tileNum + 8) * TILE_SIZE_4BPP), 32);
+        CopyBallCaughtIndicatorGfx(GetHealthboxElementGfxPtr(HEALTHBOX_GFX_STATUS_BALL_CAUGHT), (void *)(OBJ_VRAM0 + (gSprites[healthBarSpriteId].oam.tileNum + 8) * TILE_SIZE_4BPP));
     else
         CpuFill32(0, (void *)(OBJ_VRAM0 + (gSprites[healthBarSpriteId].oam.tileNum + 8) * TILE_SIZE_4BPP), 32);
 }
@@ -3287,6 +3366,7 @@ void TryAddLastUsedBallItemSprites(void)
     {
         struct SpriteSheet ballSheet = GetLastUsedBallWindowSpriteSheet();
         LoadSpriteSheet(&ballSheet);
+        RecolorTabWhitesForDarkUi(TAG_LAST_BALL_WINDOW, ballSheet.size);
     }
 
     if (gBattleStruct->ballSpriteIds[1] == MAX_SPRITES)
@@ -3328,7 +3408,10 @@ void TryToAddMoveInfoWindow(void)
 
     { struct SpritePalette pal = GetAbilityPopUpSpritePal(); LoadSpritePalette(&pal); }
     if (GetSpriteTileStartByTag(MOVE_INFO_WINDOW_TAG) == 0xFFFF)
+    {
         LoadSpriteSheet(&sSpriteSheet_MoveInfoWindow);
+        RecolorTabWhitesForDarkUi(MOVE_INFO_WINDOW_TAG, sSpriteSheet_MoveInfoWindow.size);
+    }
 
     if (gBattleStruct->moveInfoSpriteId == MAX_SPRITES)
     {

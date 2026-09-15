@@ -208,7 +208,7 @@ static const u16 sDarkShinyHealthboxPalGen3[16] =
 static const u16 sDarkHealthbarPalGen3[16] =
 {
     [ 0] = RGB( 0,  0,  0),
-    [ 1] = RGB( 7,  7,  7),
+    [ 1] = RGB(31, 31, 31),  // white for the caught-Pokemon indicator, see GetBallCaughtWhiteIndex
     [ 2] = RGB( 5,  5,  5),  // was RGB(31, 31, 31)
     [ 3] = RGB( 4,  4,  4),  // was RGB(26, 25, 23)
     [ 4] = RGB( 3,  3,  3),  // was RGB(16, 16, 17)
@@ -304,7 +304,7 @@ static const u16 sDarkHealthbarPalGen4[16] =
     [ 6] = RGB(10, 13, 11),
     [ 7] = RGB( 5,  5,  5),  // was RGB(19, 19, 19)
     [ 8] = RGB(31, 22,  0),
-    [ 9] = RGB(27, 13, 11),
+    [ 9] = RGB(31, 31, 31),  // white for the caught-Pokemon indicator, see GetBallCaughtWhiteIndex
     [10] = RGB( 0, 18,  0),
     [11] = RGB( 3, 24,  4),
     [12] = RGB(31, 22,  0),
