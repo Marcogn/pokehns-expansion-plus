@@ -1818,7 +1818,16 @@ const u32 gSummaryPage_BattleMoves_Tilemap[]  = INCBIN_U32("graphics/summary_scr
 const u32 gSummaryPage_ContestMoves_Tilemap[] = INCBIN_U32("graphics/summary_screen/page_contest_moves.bin.smolTM");
 const u32 gSummaryPage_InfoEgg_Tilemap[]      = INCBIN_U32("graphics/summary_screen/page_info_egg.bin.smolTM");
 
-#if IS_HNS
+#if BAG_SCREEN_SOULGOLD
+// The bag sprite carries its own palette per gender here, unlike the shared
+// one the other skins use.
+const u32 gBagMaleTiles[] = INCBIN_U32("graphics/bag/soulgold/bag_male.4bpp.smol");
+const u32 gBagFemaleTiles[] = INCBIN_U32("graphics/bag/soulgold/bag_female.4bpp.smol");
+const u16 gBagPalette[] = INCBIN_U16("graphics/bag/soulgold/bag.gbapal");
+const u16 gBagFemalePalette[] = INCBIN_U16("graphics/bag/soulgold/bag_female.gbapal");
+const u16 gBagScreenMale_Pal[] = INCBIN_U16("graphics/bag/soulgold/menu_male.gbapal");
+const u16 gBagScreenFemale_Pal[] = INCBIN_U16("graphics/bag/soulgold/menu_female.gbapal");
+#elif IS_HNS
 const u32 gBagMaleTiles[] = INCBIN_U32("graphics/bag/hns/bag_male.4bpp.smol");
 const u32 gBagFemaleTiles[] = INCBIN_U32("graphics/bag/hns/bag_female.4bpp.smol");
 const u16 gBagPalette[] = INCBIN_U16("graphics/bag/hns/bag.gbapal");
@@ -1832,11 +1841,17 @@ const u16 gBagScreenMale_Pal[] = INCBIN_U16("graphics/bag/menu_male.gbapal");
 const u16 gBagScreenFemale_Pal[] = INCBIN_U16("graphics/bag/menu_female.gbapal");
 #endif
 
+#if BAG_SCREEN_SOULGOLD
+const u32 gBagScreen_Gfx[] = INCBIN_U32("graphics/bag/soulgold/menu.4bpp.smol");
+const u32 gBagScreen_GfxTileMap[] = INCBIN_U32("graphics/bag/soulgold/menu.bin.smolTM");
+const u32 gBagScreenScrollingBgTilemap[] = INCBIN_U32("graphics/bag/soulgold/scrolling_bg.bin.smolTM");
+#else
 const u32 gBagScreen_Gfx[] = INCBIN_U32("graphics/bag/menu.4bpp.smol");
 #if I_COMBINE_BAG_POCKETS == TRUE
 const u32 gBagScreen_GfxTileMap[] = INCBIN_U32("graphics/bag/menu_6.bin.smolTM");
 #else
 const u32 gBagScreen_GfxTileMap[] = INCBIN_U32("graphics/bag/menu_8.bin.smolTM");
+#endif
 #endif
 
 const u32 gBattlePyramidBag_Gfx[]          = INCBIN_U32("graphics/bag/bag_pyramid.4bpp.smol");

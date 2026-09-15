@@ -270,6 +270,19 @@ static const struct BgTemplate sBgTemplates_ItemMenu[] =
         .priority = 2,
         .baseTile = 0,
     },
+#if BAG_SCREEN_SOULGOLD
+    {
+        // Scrolling starfield, behind everything else. It shares BG 2's char
+        // base because its tiles come from the same tileset.
+        .bg = 3,
+        .charBaseIndex = 3,
+        .mapBaseIndex = 28,
+        .screenSize = 0,
+        .paletteMode = 0,
+        .priority = 3,
+        .baseTile = 0,
+    },
+#endif
 };
 
 static const struct ListMenuTemplate sItemListMenu =
@@ -860,13 +873,24 @@ static void BagMenu_InitBGs(void)
     memset(gBagMenu->tilemapBuffer, 0, sizeof(gBagMenu->tilemapBuffer));
     ResetBgsAndClearDma3BusyFlags(0);
     InitBgsFromTemplates(0, sBgTemplates_ItemMenu, ARRAY_COUNT(sBgTemplates_ItemMenu));
+#if BAG_SCREEN_SOULGOLD
+    SetBgTilemapBuffer(2, gBagMenu->tilemapBuffer[BAG_MENU_BG_NORMAL]);
+    SetBgTilemapBuffer(3, gBagMenu->tilemapBuffer[BAG_MENU_BG_SCROLLING]);
+#else
     SetBgTilemapBuffer(2, gBagMenu->tilemapBuffer);
+#endif
     ResetAllBgsCoordinates();
     ScheduleBgCopyTilemapToVram(2);
+#if BAG_SCREEN_SOULGOLD
+    ScheduleBgCopyTilemapToVram(3);
+#endif
     SetGpuReg(REG_OFFSET_DISPCNT, DISPCNT_OBJ_ON | DISPCNT_OBJ_1D_MAP);
     ShowBg(0);
     ShowBg(1);
     ShowBg(2);
+#if BAG_SCREEN_SOULGOLD
+    ShowBg(3);
+#endif
     SetGpuReg(REG_OFFSET_BLDCNT, 0);
 }
 
@@ -882,7 +906,12 @@ static bool8 LoadBagMenu_Graphics(void)
     case 1:
         if (FreeTempTileDataBuffersIfPossible() != TRUE)
         {
+#if BAG_SCREEN_SOULGOLD
+            DecompressDataWithHeaderWram(gBagScreen_GfxTileMap, gBagMenu->tilemapBuffer[BAG_MENU_BG_NORMAL]);
+            DecompressDataWithHeaderWram(gBagScreenScrollingBgTilemap, gBagMenu->tilemapBuffer[BAG_MENU_BG_SCROLLING]);
+#else
             DecompressDataWithHeaderWram(gBagScreen_GfxTileMap, gBagMenu->tilemapBuffer);
+#endif
             gBagMenu->graphicsLoadState++;
         }
         break;
@@ -901,7 +930,14 @@ static bool8 LoadBagMenu_Graphics(void)
         gBagMenu->graphicsLoadState++;
         break;
     case 4:
+#if BAG_SCREEN_SOULGOLD
+        if (IsWallysBag() == TRUE || gSaveBlock2Ptr->playerGender == MALE)
+            LoadSpritePalette(&gBagPaletteTable);
+        else
+            LoadSpritePalette(&gBagFemalePaletteTable);
+#else
         LoadSpritePalette(&gBagPaletteTable);
+#endif
         gBagMenu->graphicsLoadState++;
         break;
     default:
@@ -1291,6 +1327,10 @@ static void PrintItemSoldAmount(int windowId, int numSold, int moneyEarned)
 
 static void Task_BagMenu_HandleInput(u8 taskId)
 {
+#if BAG_SCREEN_SOULGOLD
+    // Drift the starfield behind the bag window.
+    ChangeBgY(3, 128, BG_COORD_ADD);
+#endif
     s16 *data = gTasks[taskId].data;
     u16 *scrollPos = &gBagPosition.scrollPosition[gBagPosition.pocket];
     u16 *cursorPos = &gBagPosition.cursorPosition[gBagPosition.pocket];
@@ -1425,6 +1465,10 @@ static void ChangeBagPocketId(u8 *bagPocketId, s8 deltaBagPocketId)
 
 static void SwitchBagPocket(u8 taskId, s16 deltaBagPocketId, bool16 skipEraseList)
 {
+#if BAG_SCREEN_SOULGOLD
+    // Drift the starfield behind the bag window.
+    ChangeBgY(3, 128, BG_COORD_ADD);
+#endif
     s16 *data = gTasks[taskId].data;
     u8 newPocket;
 
@@ -1566,6 +1610,10 @@ static void StartItemSwap(u8 taskId)
 
 static void Task_HandleSwappingItemsInput(u8 taskId)
 {
+#if BAG_SCREEN_SOULGOLD
+    // Drift the starfield behind the bag window.
+    ChangeBgY(3, 128, BG_COORD_ADD);
+#endif
     s16 *data = gTasks[taskId].data;
 
     if (MenuHelpers_ShouldWaitForLinkRecv() != TRUE)
@@ -1826,6 +1874,10 @@ static void Task_ItemContext_Normal(u8 taskId)
 
 static void Task_ItemContext_SingleRow(u8 taskId)
 {
+#if BAG_SCREEN_SOULGOLD
+    // Drift the starfield behind the bag window.
+    ChangeBgY(3, 128, BG_COORD_ADD);
+#endif
     if (MenuHelpers_ShouldWaitForLinkRecv() != TRUE)
     {
         s8 selection = Menu_ProcessInputNoWrap();
@@ -1847,6 +1899,10 @@ static void Task_ItemContext_SingleRow(u8 taskId)
 
 static void Task_ItemContext_MultipleRows(u8 taskId)
 {
+#if BAG_SCREEN_SOULGOLD
+    // Drift the starfield behind the bag window.
+    ChangeBgY(3, 128, BG_COORD_ADD);
+#endif
     if (MenuHelpers_ShouldWaitForLinkRecv() != TRUE)
     {
         s8 cursorPos = Menu_GetCursorPos();

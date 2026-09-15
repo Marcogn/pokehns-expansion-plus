@@ -1966,6 +1966,8 @@ extern const u8 gMenuInfoElements_Gfx[];
 extern const u32 gBagScreen_Gfx[];
 extern const u32 gBagScreen_GfxTileMap[];
 extern const u16 gBagScreenFemale_Pal[];
+extern const u16 gBagFemalePalette[];
+extern const u32 gBagScreenScrollingBgTilemap[];
 extern const u16 gBagScreenMale_Pal[];
 extern const u8 gBagMenuHMIcon_Gfx[];
 

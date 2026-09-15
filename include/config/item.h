@@ -52,6 +52,11 @@
 #define I_ORAS_DOWSING_COLOR_FASTER RGB_RED
 
 // Bag config
+// Use soulgold's bag screen: its own artwork, tilemap, per-gender bag palettes
+// and the scrolling starfield behind the window. Set to FALSE for this repo's
+// own bag screen.
+#define BAG_SCREEN_SOULGOLD         TRUE
+
 #define I_COMBINE_BAG_POCKETS       TRUE
 
 #endif // GUARD_CONFIG_ITEM_H

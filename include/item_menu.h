@@ -2,6 +2,7 @@
 #define GUARD_ITEM_MENU_H
 
 #include "item.h"
+#include "config/item.h"
 #include "main.h"
 #include "menu_helpers.h"
 
@@ -68,10 +69,23 @@ struct BagPosition
 
 extern struct BagPosition gBagPosition;
 
+enum BagBackground
+{
+    BAG_MENU_BG_NORMAL,
+    BAG_MENU_BG_SCROLLING,
+    NUM_BAG_BACKGROUNDS,
+};
+
 struct BagMenu
 {
     MainCallback newScreenCallback;
+#if BAG_SCREEN_SOULGOLD
+    // The soulgold screen keeps a second tilemap for the scrolling starfield
+    // that sits behind the window on its own BG.
+    u8 tilemapBuffer[NUM_BAG_BACKGROUNDS][BG_SCREEN_SIZE];
+#else
     u8 tilemapBuffer[BG_SCREEN_SIZE];
+#endif
     u8 spriteIds[ITEMMENUSPRITE_COUNT];
     u8 windowIds[ITEMWIN_COUNT];
     u8 toSwapPos;

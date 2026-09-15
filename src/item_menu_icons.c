@@ -212,6 +212,15 @@ const struct SpritePalette gBagPaletteTable =
     gBagPalette, TAG_BAG_GFX
 };
 
+#if BAG_SCREEN_SOULGOLD
+// The soulgold bag sprites carry a different palette per gender, so the shared
+// table above only covers the male bag.
+const struct SpritePalette gBagFemalePaletteTable =
+{
+    gBagFemalePalette, TAG_BAG_GFX
+};
+#endif
+
 static const struct SpriteTemplate sBagSpriteTemplate =
 {
     .tileTag = TAG_BAG_GFX,
