@@ -138,6 +138,9 @@ static void LoadBagItemListBuffers(u8);
 static void PrintPocketNames(const u8 *, const u8 *);
 static void CopyPocketNameToWindow(u32);
 static void DrawPocketIndicatorSquare(u8, bool8);
+#if BAG_SCREEN_SOULGOLD
+static void DrawPocketIndicatorSquares(u8);
+#endif
 static void CreatePocketScrollArrowPair(void);
 static void CreatePocketSwitchArrowPair(void);
 static void DestroyPocketSwitchArrowPair(void);
@@ -875,7 +878,11 @@ static bool8 SetupBagMenu(void)
     case 13:
         PrintPocketNames(gPocketNamesStringsTable[gBagPosition.pocket], 0);
         CopyPocketNameToWindow(0);
+#if BAG_SCREEN_SOULGOLD
+        DrawPocketIndicatorSquares(gBagPosition.pocket);
+#else
         DrawPocketIndicatorSquare(gBagPosition.pocket, TRUE);
+#endif
         gMain.state++;
         break;
     case 14:
@@ -1587,7 +1594,14 @@ static void SwitchBagPocket(u8 taskId, s16 deltaBagPocketId, bool16 skipEraseLis
     }
     DrawPocketIndicatorSquare(gBagPosition.pocket, FALSE);
     DrawPocketIndicatorSquare(newPocket, TRUE);
+#if BAG_SCREEN_SOULGOLD
+    // Blank tile in soulgold's tileset. Its tile 11, which this repo uses, is
+    // three transparent columns followed by opaque ones, so erasing with it
+    // left the scrolling BG showing through in vertical bands.
+    FillBgTilemapBufferRect_Palette0(2, 8, 14, 2, 15, 16);
+#else
     FillBgTilemapBufferRect_Palette0(2, 11, 14, 2, 15, 16);
+#endif
     ScheduleBgCopyTilemapToVram(2);
     SetBagVisualPocketId(newPocket, TRUE);
     RemoveBagSprite(ITEMMENUSPRITE_BALL);
@@ -1649,6 +1663,19 @@ static void DrawItemListBgRow(u8 y)
     FillBgTilemapBufferRect_Palette0(2, 17, 14, y + 2, 15, 1);
     ScheduleBgCopyTilemapToVram(2);
 }
+
+#if BAG_SCREEN_SOULGOLD
+// soulgold's tilemap has no indicators baked in, so every pocket's square is
+// drawn from code. This repo's own tilemap carries the inactive ones at row 3,
+// which is why it only ever draws the active one.
+static void DrawPocketIndicatorSquares(u8 currentPocket)
+{
+    u8 i;
+
+    for (i = 0; i < POCKETS_COUNT; i++)
+        DrawPocketIndicatorSquare(i, i == currentPocket);
+}
+#endif
 
 static void DrawPocketIndicatorSquare(u8 x, bool8 isCurrentPocket)
 {
