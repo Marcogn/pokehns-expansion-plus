@@ -1919,30 +1919,22 @@ void CB2_OverworldBasic(void)
     OverworldBasic();
 }
 
-// TRUE while anything scripted is moving on the field. Object event movement is
-// driven by sprite callbacks, so the extra iterations below advance NPCs too:
-// an applymovement would then overshoot its destination, because the script
-// counts steps at one per frame while the NPC takes two, three or four. Both a
-// running script and a held (scripted) movement that outlives its script have
-// to hold the field at 1x. soulgold instead relies on scripts raising
-// FLAG_PREVENT_OVERWORLD_SPEEDUP by hand; there is no such flag here, and a
-// guard that needs no script cooperation cannot be forgotten.
-static bool32 IsScriptedMovementInProgress(void)
+// TRUE while a cutscene is running. Object event movement is driven by sprite
+// callbacks, so the extra iterations below advance NPCs as well as the player,
+// and a scripted sequence has no business running at 4x.
+//
+// Do NOT extend this to "any object event has an unfinished held movement":
+// PlayerSetAnimId routes every ordinary player step through
+// ObjectEventSetHeldMovement, so that test is true whenever the player is
+// walking and silently holds the field at 1x for exactly the case the option
+// exists to speed up.
+//
+// soulgold instead has scripts raise FLAG_PREVENT_OVERWORLD_SPEEDUP by hand.
+// There is no such flag here, and the script context says the same thing
+// without needing every future cutscene to remember it.
+static bool32 IsCutsceneRunning(void)
 {
-    u32 i;
-
-    if (ScriptContext_IsEnabled() || ArePlayerFieldControlsLocked())
-        return TRUE;
-
-    for (i = 0; i < OBJECT_EVENTS_COUNT; i++)
-    {
-        if (gObjectEvents[i].active
-         && gObjectEvents[i].heldMovementActive
-         && !gObjectEvents[i].heldMovementFinished)
-            return TRUE;
-    }
-
-    return FALSE;
+    return ScriptContext_IsEnabled() || ArePlayerFieldControlsLocked();
 }
 
 // How many *extra* overworld iterations to run this frame on top of the normal
@@ -1977,10 +1969,10 @@ void CB2_Overworld(void)
         SetVBlankCallback(NULL);
     OverworldBasic();
 
-    // AnimateSprites() below also steps object event movement, so anything
-    // scripted must run at 1x or it will overshoot. See
-    // IsScriptedMovementInProgress.
-    extraLoops = IsScriptedMovementInProgress() ? 0 : OverworldSpeedup_AdditionalIterations(GetOverworldSpeedupSetting(), TRUE);
+    // AnimateSprites() below also steps object event movement, the player's
+    // included, which is what makes the option work at all. See
+    // IsCutsceneRunning for what it must not speed up.
+    extraLoops = IsCutsceneRunning() ? 0 : OverworldSpeedup_AdditionalIterations(GetOverworldSpeedupSetting(), TRUE);
     for (loops = 0; loops < extraLoops; loops++)
     {
         AnimateSprites();
