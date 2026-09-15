@@ -142,6 +142,7 @@ void SetDefaultChallengeSettings(void)
     gSaveblock3.challengeSettings.battleSpeed = OPTIONS_BATTLE_SPEED_2X;
     gSaveblock3.challengeSettings.partyMenuStyle = PARTY_MENU_DEFAULT_OPTION;
     gSaveblock3.challengeSettings.darkUi = FALSE;
+    gSaveblock3.challengeSettings.guaranteedCatch = FALSE;
 
     // Challenge menu — "RECOMMENDED" defaults
     gSaveblock3.challengeSettings.tx_Mode_Modern_Moves       = 1;

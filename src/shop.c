@@ -28,6 +28,7 @@
 #include "scanline_effect.h"
 #include "script.h"
 #include "shop.h"
+#include "constants/map_groups.h"
 #include "sound.h"
 #include "sprite.h"
 #include "string_util.h"
@@ -984,21 +985,82 @@ static u8 GetNumberOfBadges(void)
 }
 #endif
 
+#if IS_HNS
+// Every ordinary Poke Mart shares one badge-scaled inventory, so a town that is
+// meant to stock something of its own would otherwise have to drop out of the
+// badge progression and carry a fixed list instead. These are appended to the
+// badge list at runtime, which keeps both.
+struct MartExtras
+{
+    u16 map;            // MAP_* constant, i.e. mapNum | (mapGroup << 8)
+    const u16 *items;   // ITEM_NONE terminated
+};
+
+static const u16 sMartExtras_AzaleaTown[] = { ITEM_QUICK_BALL, ITEM_NONE };
+static const u16 sMartExtras_VioletCity[] = { ITEM_ABILITY_PATCH, ITEM_ABILITY_CAPSULE, ITEM_NONE };
+
+static const struct MartExtras sMartExtras[] =
+{
+    { MAP_AZALEA_TOWN_MART_HNS, sMartExtras_AzaleaTown },
+    { MAP_VIOLET_CITY_MART_HNS, sMartExtras_VioletCity },
+};
+
+// The longest badge list is 20 items plus its terminator; the rest is headroom
+// for the extras. Anything past the end is dropped rather than overrun.
+static EWRAM_DATA u16 sBadgeMartItems[40] = {0};
+
+static const u16 *GetMartExtrasForCurrentMap(void)
+{
+    u16 map = gSaveBlock1Ptr->location.mapNum | (gSaveBlock1Ptr->location.mapGroup << 8);
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(sMartExtras); i++)
+    {
+        if (sMartExtras[i].map == map)
+            return sMartExtras[i].items;
+    }
+
+    return NULL;
+}
+
+static const u16 *BuildBadgeMartList(void)
+{
+    u8 badgeCount = GetNumberOfBadges();
+    const u16 *base;
+    const u16 *extras;
+    u32 out = 0;
+    u32 i;
+
+    if (badgeCount >= ARRAY_COUNT(sShopInventories))
+        badgeCount = ARRAY_COUNT(sShopInventories) - 1;
+
+    if (!gSaveBlock3Ptr->challengeSettings.tx_Challenges_PkmnCenter)
+        base = sShopInventories[badgeCount];
+    else
+        base = sShopInventories_PC[badgeCount];
+
+    extras = GetMartExtrasForCurrentMap();
+    if (extras == NULL)
+        return base;
+
+    for (i = 0; base[i] != ITEM_NONE && out < ARRAY_COUNT(sBadgeMartItems) - 1; i++)
+        sBadgeMartItems[out++] = base[i];
+
+    for (i = 0; extras[i] != ITEM_NONE && out < ARRAY_COUNT(sBadgeMartItems) - 1; i++)
+        sBadgeMartItems[out++] = extras[i];
+
+    sBadgeMartItems[out] = ITEM_NONE;
+    return sBadgeMartItems;
+}
+#endif
+
 static void SetShopItemsForSale(const u16 *items)
 {
     u16 i = 0;
 
 #if IS_HNS
     if (items == NULL)
-    {
-        u8 badgeCount = GetNumberOfBadges();
-        if (badgeCount >= ARRAY_COUNT(sShopInventories))
-            badgeCount = ARRAY_COUNT(sShopInventories) - 1;
-        if (!gSaveBlock3Ptr->challengeSettings.tx_Challenges_PkmnCenter)
-            sMartInfo.itemList = sShopInventories[badgeCount];
-        else
-            sMartInfo.itemList = sShopInventories_PC[badgeCount];
-    }
+        sMartInfo.itemList = BuildBadgeMartList();
     else
 #endif
     {

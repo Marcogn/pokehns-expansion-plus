@@ -10891,7 +10891,9 @@ static u32 ComputeCaptureOdds(u32 wildMonBattler, u32 playerBattler)
     struct BallData ball;
     ComputeBallData(wildMonBattler, playerBattler, &ball);
 
-    if (ball.guaranteedCapture)
+    // The EASY CATCH option reuses the Master Ball's own guaranteed path, so it
+    // goes through exactly the same code the game already trusts.
+    if (ball.guaranteedCapture || IsGuaranteedCatchEnabled())
         return CAPTURE_GUARANTEED;
     struct BattlePokemon *battleMon = &gBattleMons[wildMonBattler];
     u32 odds = (battleMon->maxHP * 3 -  battleMon->hp * 2);

@@ -55,6 +55,7 @@ enum {
     ITEM_MAIN_UNIT_TYPE,
     ITEM_MAIN_MATCHCALL,
     ITEM_MAIN_PARTY_MENU,
+    ITEM_MAIN_GUARANTEED_CATCH,
     ITEM_MAIN_FRAMETYPE,
     ITEM_MAIN_COUNT,
 };
@@ -80,7 +81,7 @@ enum {
     ITEM_SOUND_COUNT,
 };
 
-#define MAX_ITEMS_PER_TAB 16
+#define MAX_ITEMS_PER_TAB 20
 #define ITEMS_VISIBLE 5
 #define Y_DIFF 16
 
@@ -248,6 +249,13 @@ static const u8 *const sChoices_Gen3Gen4[] = {
     COMPOUND_STRING("GEN 4"),
 };
 
+// Deliberately OFF first, so that a save created before this option existed -
+// and therefore reads back a zeroed bit - starts with it switched off.
+static const u8 *const sChoices_OffOn[] = {
+    COMPOUND_STRING("OFF"),
+    COMPOUND_STRING("ON"),
+};
+
 static const u8 *const sChoices_LightDark[] = {
     COMPOUND_STRING("LIGHT"),
     COMPOUND_STRING("DARK"),
@@ -311,6 +319,10 @@ static const u8 *const sDesc_ButtonMode[] = {
     COMPOUND_STRING("All buttons work as normal."),
     COMPOUND_STRING("On some screens the L and R buttons\nact as left and right."),
     COMPOUND_STRING("The L button acts as another A\nbutton for one-handed play."),
+};
+static const u8 *const sDesc_GuaranteedCatch[] = {
+    COMPOUND_STRING("Wild {PKMN} are caught at the\nnormal rate."),
+    COMPOUND_STRING("Every Ball catches a wild {PKMN}\nwithout fail."),
 };
 static const u8 *const sDesc_Follower[] = {
     COMPOUND_STRING("Let the first {PKMN} in your\nparty follow you."),
@@ -502,6 +514,12 @@ static const struct OptionMenuItem sTabItems_Main[] = {
         .numChoices   = PARTY_MENU_OPTION_COUNT,
         .choiceNames  = sChoices_PartyMenu,
     },
+    [ITEM_MAIN_GUARANTEED_CATCH] = {
+        .name         = COMPOUND_STRING("EASY CATCH"),
+        .descriptions = sDesc_GuaranteedCatch,
+        .numChoices   = 2,
+        .choiceNames  = sChoices_OffOn,
+    },
     [ITEM_MAIN_FRAMETYPE] = {
         .name         = COMPOUND_STRING("FRAME"),
         .descriptions = sDesc_FrameType,
@@ -604,6 +622,12 @@ struct TabDef
     const struct OptionMenuItem *items;
     u8 count;
 };
+
+// Read by the capture maths. Kept here next to the option it mirrors.
+bool8 IsGuaranteedCatchEnabled(void)
+{
+    return gSaveBlock3Ptr->challengeSettings.guaranteedCatch;
+}
 
 static const struct TabDef sTabs[TAB_COUNT] = {
     [TAB_MAIN]   = { COMPOUND_STRING("OPTIONS"),        sTabItems_Main,   ITEM_MAIN_COUNT },
@@ -1158,6 +1182,7 @@ static void Task_Save(u8 taskId)
         FlagClear(FLAG_EVEN_FASTER_JOY);
     cs->unitSystem         = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_UNIT_TYPE);
     cs->disableMatchCall   = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_MATCHCALL);
+    cs->guaranteedCatch    = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_GUARANTEED_CATCH);
 
     cs->fastIntro          = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_FAST_INTRO);
     cs->fastBattle         = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_FAST_BATTLES);
@@ -1270,6 +1295,7 @@ void CB2_InitOptionMenu(void)
         *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_FASTER_JOY)     = cs->evenFasterJoy;
         *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_UNIT_TYPE)      = cs->unitSystem;
         *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_MATCHCALL)    = cs->disableMatchCall;
+        *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_GUARANTEED_CATCH) = cs->guaranteedCatch;
 
         *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_FAST_INTRO)      = cs->fastIntro;
         *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_FAST_BATTLES)    = cs->fastBattle;
