@@ -234,7 +234,7 @@ CinnabarIsland_PokemonLab_ExperimentRoom_EventScript_NicknameMonParty::
 	waitmessage
 	waitfanfare
 	setvar VAR_MAP_SCENE_CINNABAR_ISLAND_POKEMON_LAB_EXPERIMENT_ROOM_REVIVE_STATE, 0
-	msgbox gText_NicknameThisPokemon, MSGBOX_YESNO
+	asknickname gText_NicknameThisPokemon
 	goto_if_eq VAR_RESULT, NO, CinnabarIsland_PokemonLab_ExperimentRoom_EventScript_EndGiveMon
 	call Common_EventScript_GetGiftMonPartySlot
 	call Common_EventScript_NameReceivedPartyMon
@@ -248,7 +248,7 @@ CinnabarIsland_PokemonLab_ExperimentRoom_EventScript_NicknameMonPC::
 	waitmessage
 	waitfanfare
 	setvar VAR_MAP_SCENE_CINNABAR_ISLAND_POKEMON_LAB_EXPERIMENT_ROOM_REVIVE_STATE, 0
-	msgbox gText_NicknameThisPokemon, MSGBOX_YESNO
+	asknickname gText_NicknameThisPokemon
 	goto_if_eq VAR_RESULT, NO, CinnabarIsland_PokemonLab_ExperimentRoom_EventScript_MonSentToPC
 	call Common_EventScript_NameReceivedBoxMon
 	goto CinnabarIsland_PokemonLab_ExperimentRoom_EventScript_MonSentToPC

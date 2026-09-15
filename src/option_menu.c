@@ -56,6 +56,7 @@ enum {
     ITEM_MAIN_MATCHCALL,
     ITEM_MAIN_PARTY_MENU,
     ITEM_MAIN_GUARANTEED_CATCH,
+    ITEM_MAIN_NICKNAMES,
     ITEM_MAIN_FRAMETYPE,
     ITEM_MAIN_COUNT,
 };
@@ -320,6 +321,10 @@ static const u8 *const sDesc_ButtonMode[] = {
     COMPOUND_STRING("On some screens the L and R buttons\nact as left and right."),
     COMPOUND_STRING("The L button acts as another A\nbutton for one-handed play."),
 };
+static const u8 *const sDesc_Nicknames[] = {
+    COMPOUND_STRING("Ask for a nickname when you catch\nor receive a {PKMN}."),
+    COMPOUND_STRING("Never ask for a nickname."),
+};
 static const u8 *const sDesc_GuaranteedCatch[] = {
     COMPOUND_STRING("Wild {PKMN} are caught at the\nnormal rate."),
     COMPOUND_STRING("Every Ball catches a wild {PKMN}\nwithout fail."),
@@ -520,6 +525,12 @@ static const struct OptionMenuItem sTabItems_Main[] = {
         .numChoices   = 2,
         .choiceNames  = sChoices_OffOn,
     },
+    [ITEM_MAIN_NICKNAMES] = {
+        .name         = COMPOUND_STRING("NICKNAMES"),
+        .descriptions = sDesc_Nicknames,
+        .numChoices   = 2,
+        .choiceNames  = sChoices_OnOff,
+    },
     [ITEM_MAIN_FRAMETYPE] = {
         .name         = COMPOUND_STRING("FRAME"),
         .descriptions = sDesc_FrameType,
@@ -627,6 +638,12 @@ struct TabDef
 bool8 IsGuaranteedCatchEnabled(void)
 {
     return gSaveBlock3Ptr->challengeSettings.guaranteedCatch;
+}
+
+// Read by the capture code, the egg hatch screen and the asknickname macro.
+bool8 ShouldSkipNicknamePrompt(void)
+{
+    return gSaveBlock3Ptr->challengeSettings.skipNicknamePrompt;
 }
 
 static const struct TabDef sTabs[TAB_COUNT] = {
@@ -1183,6 +1200,8 @@ static void Task_Save(u8 taskId)
     cs->unitSystem         = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_UNIT_TYPE);
     cs->disableMatchCall   = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_MATCHCALL);
     cs->guaranteedCatch    = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_GUARANTEED_CATCH);
+    // sChoices_OnOff is ON first, so ON stores 0 and the field reads "skip".
+    cs->skipNicknamePrompt = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_NICKNAMES);
 
     cs->fastIntro          = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_FAST_INTRO);
     cs->fastBattle         = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_FAST_BATTLES);
@@ -1296,6 +1315,7 @@ void CB2_InitOptionMenu(void)
         *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_UNIT_TYPE)      = cs->unitSystem;
         *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_MATCHCALL)    = cs->disableMatchCall;
         *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_GUARANTEED_CATCH) = cs->guaranteedCatch;
+        *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_NICKNAMES)        = cs->skipNicknamePrompt;
 
         *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_FAST_INTRO)      = cs->fastIntro;
         *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_FAST_BATTLES)    = cs->fastBattle;

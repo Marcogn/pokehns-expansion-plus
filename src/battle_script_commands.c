@@ -11415,6 +11415,13 @@ static void Cmd_trygivecaughtmonnick(void)
     switch (gBattleCommunication[MULTIUSE_STATE])
     {
     case 0:
+        // State 4 is the "declined" exit, so with NICKNAMES off the yes/no box is
+        // never even opened.
+        if (ShouldSkipNicknamePrompt())
+        {
+            gBattleCommunication[MULTIUSE_STATE] = 4;
+            break;
+        }
         HandleBattleWindow(YESNOBOX_X_Y, 0);
         if (IsNuzlockeNicknamingActive())
         {

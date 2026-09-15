@@ -346,6 +346,8 @@ struct ChallengeSettings
     u8 partyMenuStyle:2; // PARTY_MENU_OPTION_[CLASSIC/SWSH]
     u8 darkUi:1;         // 0 = light, 1 = dark battle and bag UI
     u8 guaranteedCatch:1; // 1 = every Ball catches, see ComputeCaptureOdds
+    u8 skipNicknamePrompt:1; // 1 = never ask for a nickname. Inverted on purpose,
+                             // so a save written before this option keeps asking.
 };
 
 struct SaveBlock3

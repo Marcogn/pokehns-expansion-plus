@@ -212,7 +212,7 @@ CeladonCity_GameCorner_PrizeRoom_EventScript_ReceivedMonParty::
 	message gText_PlayerObtainedTheMon
 	waitmessage
 	waitfanfare
-	msgbox gText_NicknameThisPokemon, MSGBOX_YESNO
+	asknickname gText_NicknameThisPokemon
 	goto_if_eq VAR_RESULT, YES, CeladonCity_GameCorner_PrizeRoom_EventScript_NicknamePartyMon
 	goto CeladonCity_GameCorner_PrizeRoom_EventScript_EndPrizeExchange
 	end
@@ -225,7 +225,7 @@ CeladonCity_GameCorner_PrizeRoom_EventScript_ReceivedMonPC::
 	message gText_PlayerObtainedTheMon
 	waitmessage
 	waitfanfare
-	msgbox gText_NicknameThisPokemon, MSGBOX_YESNO
+	asknickname gText_NicknameThisPokemon
 	goto_if_eq VAR_RESULT, NO, CeladonCity_GameCorner_PrizeRoom_EventScript_TransferredToPC
 	call Common_EventScript_NameReceivedBoxMon
 	goto CeladonCity_GameCorner_PrizeRoom_EventScript_TransferredToPC

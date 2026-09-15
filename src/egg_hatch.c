@@ -12,6 +12,7 @@
 #include "sound.h"
 #include "constants/songs.h"
 #include "text.h"
+#include "option_menu.h"
 #include "text_window.h"
 #include "string_util.h"
 #include "menu.h"
@@ -708,6 +709,13 @@ static void CB2_EggHatch(void)
             sEggHatchData->state++;
         break;
     case 8:
+        // With NICKNAMES off, skip the prompt, the yes/no box and the naming
+        // screen in one go. State 11 is the fade-out that follows all of them.
+        if (ShouldSkipNicknamePrompt())
+        {
+            sEggHatchData->state = 11;
+            break;
+        }
         // Ready the nickname prompt
         GetMonNickname(&gPlayerParty[sEggHatchData->eggPartyId], gStringVar1);
         if (!IsNuzlockeNicknamingActive())
