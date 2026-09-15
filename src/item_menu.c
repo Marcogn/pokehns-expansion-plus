@@ -1,5 +1,6 @@
 #include "global.h"
 #include "item_menu.h"
+#include "option_menu.h"
 #include "load_save.h"
 #include "battle.h"
 #include "challenge_menu.h"

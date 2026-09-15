@@ -69,7 +69,6 @@ struct BagPosition
 
 extern struct BagPosition gBagPosition;
 
-bool8 IsDarkUiEnabled(void);
 
 enum BagBackground
 {

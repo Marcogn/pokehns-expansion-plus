@@ -4,6 +4,8 @@
 #include "battle_ai_util.h"
 #include "battle_controllers.h"
 #include "battle_message.h"
+#include "option_menu.h"
+#include "battle_bg.h"
 #include "battle_setup.h"
 #include "battle_special.h"
 #include "battle_z_move.h"
@@ -26,6 +28,7 @@
 #include "trainer_slide.h"
 #include "trainer_tower.h"
 #include "window.h"
+#include "constants/rgb.h"
 #include "line_break.h"
 #include "constants/abilities.h"
 #include "constants/battle_dome.h"
@@ -2351,6 +2354,55 @@ static const struct BattleWindowText sTextOnWindowsInfo_Arena[] =
     },
 };
 
+// The command boxes (FIGHT/BAG/POKeMON/RUN, the move list, yes/no, the move
+// description) are drawn on BG palette 5, where the light theme puts the box
+// fill on entry 14 and the text on entry 13. In dark mode the two swap roles
+// and the fill moves to entry 8, which gBattleWindowTextPalette leaves black
+// and which no window colour spec references.
+static const union TextColor sDarkBattleCommandTextColor =
+{
+    .background = BATTLE_WINDOW_DARK_BG_PAL_INDEX,
+    .foreground = BATTLE_WINDOW_DARK_FG_PAL_INDEX,
+    .shadow = BATTLE_WINDOW_DARK_SHADOW_PAL_INDEX,
+    .accent = BATTLE_WINDOW_DARK_BG_PAL_INDEX,
+};
+
+// B_WIN_PP_REMAINING keeps its own foreground and shadow, because
+// SetPpNumbersPaletteInMoveSelection writes the low-PP warning colour into
+// entries 12 and 11 and flattening the window would throw that away.
+static const union TextColor sDarkBattlePpTextColor =
+{
+    .background = BATTLE_WINDOW_DARK_BG_PAL_INDEX,
+    .foreground = 12,
+    .shadow = 11,
+    .accent = BATTLE_WINDOW_DARK_BG_PAL_INDEX,
+};
+
+static bool32 IsDarkBattleCommandWindow(u8 windowId)
+{
+    if (!IsDarkUiEnabled())
+        return FALSE;
+
+    switch (windowId)
+    {
+    case B_WIN_ACTION_MENU:
+    case B_WIN_MOVE_NAME_1:
+    case B_WIN_MOVE_NAME_2:
+    case B_WIN_MOVE_NAME_3:
+    case B_WIN_MOVE_NAME_4:
+    case B_WIN_PP:
+    case B_WIN_DUMMY:
+    case B_WIN_PP_REMAINING:
+    case B_WIN_MOVE_TYPE:
+    case B_WIN_SWITCH_PROMPT:
+    case B_WIN_YESNO:
+    case B_WIN_MOVE_DESCRIPTION:
+        return TRUE;
+    default:
+        return FALSE;
+    }
+}
+
 static const struct BattleWindowText *const sBattleTextOnWindowsInfo[] =
 {
     [B_WIN_TYPE_NORMAL] = sTextOnWindowsInfo_Normal,
@@ -3901,6 +3953,8 @@ void BattlePutTextOnWindow(const u8 *text, u8 windowId)
     struct TextPrinterTemplate printerTemplate;
     u8 speed;
 
+    bool32 darkCommandWindow;
+
     if (windowId & B_WIN_COPYTOVRAM)
     {
         windowId &= ~B_WIN_COPYTOVRAM;
@@ -3908,9 +3962,12 @@ void BattlePutTextOnWindow(const u8 *text, u8 windowId)
     }
     else
     {
-        FillWindowPixelBuffer(windowId, textInfo[windowId].fillValue);
         copyToVram = TRUE;
     }
+
+    darkCommandWindow = IsDarkBattleCommandWindow(windowId);
+    if (copyToVram)
+        FillWindowPixelBuffer(windowId, darkCommandWindow ? PIXEL_FILL(BATTLE_WINDOW_DARK_BG_PAL_INDEX) : textInfo[windowId].fillValue);
 
     printerTemplate.currentChar = text;
     printerTemplate.type = WINDOW_TEXT_PRINTER;
@@ -3922,7 +3979,12 @@ void BattlePutTextOnWindow(const u8 *text, u8 windowId)
     printerTemplate.currentY = printerTemplate.y;
     printerTemplate.letterSpacing = textInfo[windowId].letterSpacing;
     printerTemplate.lineSpacing = textInfo[windowId].lineSpacing;
-    printerTemplate.color = textInfo[windowId].color;
+    if (!darkCommandWindow)
+        printerTemplate.color = textInfo[windowId].color;
+    else if (windowId == B_WIN_PP_REMAINING)
+        printerTemplate.color = sDarkBattlePpTextColor;
+    else
+        printerTemplate.color = sDarkBattleCommandTextColor;
 
     if (B_WIN_MOVE_NAME_1 <= windowId && windowId <= B_WIN_MOVE_NAME_4)
     {
@@ -3978,10 +4040,21 @@ void BattlePutTextOnWindow(const u8 *text, u8 windowId)
     }
 }
 
+// gPPTextPalette's healthy-PP pair is dark text on a light shadow, which
+// vanishes once the move boxes go dark, so the dark theme swaps that pair round
+// and darkens the shadows of the three low-PP warning colours.
+static const u16 sDarkPPTextPalette[] =
+{
+    RGB(26, 24,  0), RGB(10,  9,  0),  // [0] lowest
+    RGB(31, 16,  0), RGB(12,  6,  0),  // [1]
+    RGB(28,  3,  0), RGB(11,  1,  0),  // [2]
+    RGB(27, 27, 27), RGB( 9,  9,  9),  // [3] full PP
+};
+
 void SetPpNumbersPaletteInMoveSelection(enum BattlerId battler)
 {
     struct ChooseMoveStruct *chooseMoveStruct = (struct ChooseMoveStruct *)(&gBattleResources->bufferA[battler][4]);
-    const u16 *palPtr = gPPTextPalette;
+    const u16 *palPtr = IsDarkUiEnabled() ? sDarkPPTextPalette : gPPTextPalette;
     u8 var;
 
     if (!gBattleStruct->zmove.viewing)
