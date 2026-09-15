@@ -180,14 +180,16 @@ static const u16 sDarkHealthboxPalGen3[16] =
     [15] = RGB(13, 18, 31),
 };
 
-// Shiny healthbox under the dark theme: the same gold, dimmed to sit on a dark screen.
+// Shiny healthbox under the dark theme. Only slightly darker than the light
+// theme's gold: dimming it further turns the hue to brown and the box stops
+// reading as gold at all, which is the whole point of it.
 static const u16 sDarkShinyHealthboxPalGen3[16] =
 {
     [ 0] = RGB( 0,  0,  0),
     [ 1] = RGB(31, 31, 31),  // was RGB(8, 8, 8)
-    [ 2] = RGB( 9,  7,  0),  // was RGB(31, 31, 31)
-    [ 3] = RGB( 2,  2,  2),  // was RGB(27, 26, 27)
-    [ 4] = RGB( 6,  5,  0),  // was RGB(23, 23, 23)
+    [ 2] = RGB(25, 21,  1),  // was RGB(31, 31, 31)
+    [ 3] = RGB( 2,  2,  2),  // was RGB(27, 26, 27) - stays dark, it is the text shadow
+    [ 4] = RGB(19, 15,  0),  // was RGB(23, 23, 23)
     [ 5] = RGB(15, 18, 16),
     [ 6] = RGB(10, 13, 12),
     [ 7] = RGB( 4,  7,  0),
@@ -266,14 +268,16 @@ static const u16 sDarkHealthboxPalGen4[16] =
     [15] = RGB(13, 18, 31),
 };
 
-// Shiny healthbox under the dark theme: the same gold, dimmed to sit on a dark screen.
+// Shiny healthbox under the dark theme. Only slightly darker than the light
+// theme's gold: dimming it further turns the hue to brown and the box stops
+// reading as gold at all, which is the whole point of it.
 static const u16 sDarkShinyHealthboxPalGen4[16] =
 {
     [ 0] = RGB( 0,  0,  0),
     [ 1] = RGB( 2,  2,  2),  // was RGB(8, 8, 8)
-    [ 2] = RGB( 9,  7,  0),  // was RGB(28, 28, 28)
-    [ 3] = RGB( 7,  5,  0),  // was RGB(23, 23, 23)
-    [ 4] = RGB( 6,  5,  0),  // was RGB(19, 19, 19)
+    [ 2] = RGB(25, 21,  1),  // was RGB(28, 28, 28)
+    [ 3] = RGB(22, 18,  0),  // was RGB(23, 23, 23)
+    [ 4] = RGB(19, 15,  0),  // was RGB(19, 19, 19)
     [ 5] = RGB(15, 18, 16),
     [ 6] = RGB(31, 31, 31),
     [ 7] = RGB(14, 14, 14),
