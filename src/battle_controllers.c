@@ -18,6 +18,8 @@
 #include "link_rfu.h"
 #include "m4a.h"
 #include "overworld.h"
+#include "load_save.h"
+#include "battle_main.h"
 #include "palette.h"
 #include "party_menu.h"
 #include "pokemon_animation.h"
@@ -3324,3 +3326,39 @@ enum BattleTrainer GetBattlerTrainer(enum BattlerId battler)
         return B_TRAINER_1;
     }
 }
+
+// How many logical battle ticks BattleMainCB2 runs per rendered frame.
+// Adapted from soulgold's Rogue_GetBattleSpeedScale, which it took from
+// pokeemerald-rogue; the dead forHealthbar parameter is dropped, and the
+// setting comes from ChallengeSettings rather than a var, because HnS keeps
+// BATTLE SCENE as its own separate on/off option.
+u32 GetBattleSpeedScale(void)
+{
+    if (JOY_HELD(L_BUTTON))
+        return 1;
+
+    // Latch as soon as the player is first asked to act, so the intro still
+    // runs accelerated but everything the player reads afterwards does not.
+    if (InBattleChoosingMoves())
+        gBattleStruct->hasBattleInputStarted = TRUE;
+
+    if (gBattleStruct->hasBattleInputStarted)
+    {
+        if (InBattleChoosingMoves())
+            return 1;
+
+        // With animations off there is nothing to watch, only text to read, so
+        // running the actions faster would just make it harder to follow.
+        if (gSaveBlock2Ptr->optionsBattleSceneOff && InBattleRunningActions())
+            return 1;
+    }
+
+    switch (gSaveblock3.challengeSettings.battleSpeed)
+    {
+    case OPTIONS_BATTLE_SPEED_3X: return 3;
+    case OPTIONS_BATTLE_SPEED_2X: return 2;
+    case OPTIONS_BATTLE_SPEED_1X:
+    default:                      return 1;
+    }
+}
+

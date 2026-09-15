@@ -215,6 +215,13 @@ enum Gender
 #define OPTIONS_TEXT_SPEED_FAST 2
 #define OPTIONS_TEXT_SPEED_INSTANT 3
 
+// Battle speed-up. The value is the number of logical battle ticks run per
+// rendered frame, so it doubles as the multiplier.
+#define OPTIONS_BATTLE_SPEED_1X 0
+#define OPTIONS_BATTLE_SPEED_2X 1
+#define OPTIONS_BATTLE_SPEED_3X 2
+#define OPTIONS_BATTLE_SPEED_COUNT 3
+
 #define OPTIONS_SOUND_MONO 0
 #define OPTIONS_SOUND_STEREO 1
 

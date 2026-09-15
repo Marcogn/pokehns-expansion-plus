@@ -342,6 +342,7 @@ struct ChallengeSettings
     // its bit offset, so existing saves still read correctly. See the
     // ChallengeSettingsLayoutPinned assert in src/save.c before adding more.
     u8 overworldSpeed:2; // OPTIONS_OVERWORLD_SPEED_[1X/2X/3X/4X]
+    u8 battleSpeed:2;    // OPTIONS_BATTLE_SPEED_[1X/2X/3X]
 };
 
 struct SaveBlock3

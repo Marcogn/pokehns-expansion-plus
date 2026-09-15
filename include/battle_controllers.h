@@ -519,4 +519,6 @@ void OakOldManHandleInputChooseMove(enum BattlerId battler);
 void BtlCtrl_DrawVoiceoverMessageFrame(void);
 void BtlCtrl_RemoveVoiceoverMessageFrame(void);
 
+u32 GetBattleSpeedScale(void);
+
 #endif // GUARD_BATTLE_CONTROLLERS_H
