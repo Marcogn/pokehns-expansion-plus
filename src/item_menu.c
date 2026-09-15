@@ -966,14 +966,23 @@ static bool8 LoadBagMenu_Graphics(void)
         {
 #if BAG_SCREEN_SOULGOLD
             DecompressDataWithHeaderWram(gBagScreen_GfxTileMap, gBagMenu->tilemapBuffer[BAG_MENU_BG_NORMAL]);
-            DecompressDataWithHeaderWram(gBagScreenScrollingBgTilemap, gBagMenu->tilemapBuffer[BAG_MENU_BG_SCROLLING]);
 #else
             DecompressDataWithHeaderWram(gBagScreen_GfxTileMap, gBagMenu->tilemapBuffer);
 #endif
             gBagMenu->graphicsLoadState++;
         }
         break;
+#if BAG_SCREEN_SOULGOLD
     case 2:
+        // Its own step, as in soulgold: decompressing both tilemaps in one
+        // pass shares a temp buffer between them.
+        DecompressDataWithHeaderVram(gBagScreenScrollingBgTilemap, gBagMenu->tilemapBuffer[BAG_MENU_BG_SCROLLING]);
+        gBagMenu->graphicsLoadState++;
+        break;
+    case 3:
+#else
+    case 2:
+#endif
 #if BAG_SCREEN_SOULGOLD
         if (!IsWallysBag() && gSaveBlock2Ptr->playerGender != MALE)
             LoadPalette(IsDarkUiEnabled() ? gBagScreenDarkFemale_Pal : gBagScreenFemale_Pal,
@@ -994,14 +1003,22 @@ static bool8 LoadBagMenu_Graphics(void)
 #endif
         gBagMenu->graphicsLoadState++;
         break;
+#if BAG_SCREEN_SOULGOLD
+    case 4:
+#else
     case 3:
+#endif
         if (IsWallysBag() == TRUE || gSaveBlock2Ptr->playerGender == MALE)
             LoadCompressedSpriteSheet(&gBagMaleSpriteSheet);
         else
             LoadCompressedSpriteSheet(&gBagFemaleSpriteSheet);
         gBagMenu->graphicsLoadState++;
         break;
+#if BAG_SCREEN_SOULGOLD
+    case 5:
+#else
     case 4:
+#endif
 #if BAG_SCREEN_SOULGOLD
         if (IsWallysBag() == TRUE || gSaveBlock2Ptr->playerGender == MALE)
             LoadSpritePalette(&gBagPaletteTable);
