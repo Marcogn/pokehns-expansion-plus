@@ -1492,6 +1492,7 @@ extern const u8 gText_DontHave[];
 extern const u8 gText_Cancel2[];
 extern const u8 gText_Register[];
 extern const u8 gText_NotPkmnOtherTrainerWants[];
+extern const u8 gText_ItemCantBeTossed[];
 extern const u8 gText_ThatIsntAnEgg[];
 extern const u8 gText_OtherTrainersPkmnCantBeTraded[];
 extern const u8 gText_OtherTrainerCantAcceptPkmn[];
