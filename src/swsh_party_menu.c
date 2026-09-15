@@ -316,6 +316,7 @@ static EWRAM_DATA u8 sSelectedMonHeldItemInfoWindowId = 0;
 static EWRAM_DATA u16 sMonAnimTimer = 0;
 static EWRAM_DATA u8 sMoveTypeSpriteIds[MAX_MON_MOVES];
 // Saved party menu state for reopening after opening the PC Move Pokémon UI
+#if SWSH_PARTY_MENU_PC_ACCESS
 static EWRAM_DATA u8 sSavedPartyMenuType = 0;
 static EWRAM_DATA u8 sSavedPartyLayout = 0;
 static EWRAM_DATA u8 sSavedPartyAction = 0;
@@ -323,6 +324,7 @@ static EWRAM_DATA u8 sSavedPartyMessageId = 0;
 static EWRAM_DATA TaskFunc sSavedPartyTask = NULL;
 static EWRAM_DATA MainCallback sSavedPartyExitCallback = NULL;
 static EWRAM_DATA u8 sSavedPartySlotId = 0;
+#endif
 
 
 // IWRAM common
@@ -636,13 +638,14 @@ static void Task_HandleWhichMoveInput(u8 taskId);
 static u8 IsFusionMon(u16 species);
 static void Task_HideFollowerNPCForTeleport(u8);
 static void FieldCallback_RockClimb(void);
+#if SWSH_PARTY_MENU_PC_ACCESS
 static void SavePartyMenuStateForPC(void);
 static void CB2_ReopenPartyMenuFromPC(void);
+#endif
 // Multiuse item code from Kasen
 static void DisplayGiveHowManyMessage(void);
 static bool8 DoesItemIncreaseEV(u8 itemType);
 static bool32 CanItemBeTossed(enum Item);
-static bool8 DoesItemReduceIV(u8 itemType);
 static bool8 ShouldLevelUpItemUseLevelCap(void);
 static u16 GetMaxLevelUpItemQuantity(struct Pokemon *mon, u8 holdEffectParam, u16 quantityInBag);
 static void ClearHowManyItemsWindow(u8 taskId);
@@ -1934,6 +1937,7 @@ static void Task_ClosePartyMenuAndSetCB2(u8 taskId)
 }
 
 // Save states to recreate the party menu when exiting PC storage
+#if SWSH_PARTY_MENU_PC_ACCESS
 static void SavePartyMenuStateForPC(void)
 {
     sSavedPartyMenuType = gPartyMenu.menuType;
@@ -1944,7 +1948,9 @@ static void SavePartyMenuStateForPC(void)
     sSavedPartyTask = Task_HandleChooseMonInput;
     sSavedPartyExitCallback = gPartyMenu.exitCallback;
 }
+#endif
 
+#if SWSH_PARTY_MENU_PC_ACCESS
 static void CB2_ReopenPartyMenuFromPC(void)
 {
     if (sSavedPartyTask == NULL)
@@ -1957,6 +1963,7 @@ static void CB2_ReopenPartyMenuFromPC(void)
 
     InitPartyMenu(sSavedPartyMenuType, sSavedPartyLayout, sSavedPartyAction, TRUE, sSavedPartyMessageId, sSavedPartyTask, sSavedPartyExitCallback);
 }
+#endif
 
 u8 GetCursorSelectionMonId(void)
 {
@@ -11109,11 +11116,7 @@ static bool32 CanItemBeTossed(enum Item itemId)
     return itemId != ITEM_NONE && !GetItemImportance(itemId);
 }
 
-static bool8 DoesItemReduceIV(u8 itemType)
-{
-    // soulgold's IV-lowering herbs do not exist here, so nothing reduces IVs.
-    return FALSE;
-}
+
 
 static bool8 ShouldLevelUpItemUseLevelCap(void)
 {

@@ -1,4 +1,10 @@
 #include "global.h"
+#include "constants/party_menu.h"
+#if PARTY_MENU_STYLE_OPTION
+#define PARTY_MENU_VARIANT_CLASSIC
+#include "party_menu_variant.h"
+#endif
+
 #include "malloc.h"
 #include "battle.h"
 #include "challenge_menu.h"
@@ -226,23 +232,33 @@ struct PartyMenuBox
 
 // EWRAM vars
 static EWRAM_DATA struct PartyMenuInternal *sPartyMenuInternal = NULL;
+#if !PARTY_MENU_STYLE_OPTION
 EWRAM_DATA struct PartyMenu gPartyMenu = {0};
+#endif
 static EWRAM_DATA struct PartyMenuBox *sPartyMenuBoxes = NULL;
 static EWRAM_DATA u8 *sPartyBgGfxTilemap = NULL;
 static EWRAM_DATA u8 *sPartyBgTilemapBuffer = NULL;
+#if !PARTY_MENU_STYLE_OPTION
 EWRAM_DATA bool8 gPartyMenuUseExitCallback = 0;
 EWRAM_DATA u8 gSelectedMonPartyId = 0;
 EWRAM_DATA MainCallback gPostMenuFieldCallback = NULL;
+#endif
 static EWRAM_DATA u16 *sSlot1TilemapBuffer = 0; // for switching party slots
 static EWRAM_DATA u16 *sSlot2TilemapBuffer = 0; //
+#if !PARTY_MENU_STYLE_OPTION
 EWRAM_DATA u8 gSelectedOrderFromParty[MAX_FRONTIER_PARTY_SIZE] = {0};
+#endif
 static EWRAM_DATA u16 sPartyMenuItemId = 0;
+#if !PARTY_MENU_STYLE_OPTION
 EWRAM_DATA u8 gBattlePartyCurrentOrder[PARTY_SIZE / 2] = {0}; // bits 0-3 are the current pos of Slot 1, 4-7 are Slot 2, and so on
+#endif
 static EWRAM_DATA u8 sInitialLevel = 0;
 static EWRAM_DATA u8 sFinalLevel = 0;
 
 // IWRAM common
+#if !PARTY_MENU_STYLE_OPTION
 COMMON_DATA void (*gItemUseCB)(u8, TaskFunc) = NULL;
+#endif
 
 static void ResetPartyMenu(void);
 static void CB2_InitPartyMenu(void);

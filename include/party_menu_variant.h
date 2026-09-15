@@ -4,12 +4,12 @@
 // The runtime party-menu option builds both implementations. Give each a
 // private API; party_menu_dispatch.c owns the public API and selects a variant.
 //
-// The list below is every symbol with external linkage that party_menu.c
-// defines, minus the shared state the dispatcher owns. It is derived from the
-// object file, so regenerate it with
-//   arm-none-eabi-nm --defined-only build/hns/src/party_menu.o
-// after adding or removing a non-static definition there, or the two variants
-// will collide at link time.
+// The lists below are every symbol with external linkage that party_menu.c
+// defines, minus the shared state the dispatcher owns and minus IsFusionMon,
+// which is a fusion-table helper rather than menu API (the SwSh menu has its
+// own static copy). Regenerate both this file and party_menu_dispatch.c with
+// tools/gen_party_menu_variant.py after adding or removing a non-static
+// definition in party_menu.c, or the two variants will collide at link time.
 #define PARTY_MENU_VARIANT_JOIN_INNER(prefix, name) prefix ## name
 #define PARTY_MENU_VARIANT_JOIN(prefix, name) PARTY_MENU_VARIANT_JOIN_INNER(prefix, name)
 
@@ -62,7 +62,6 @@
 #define GetPartyIdFromBattlePartyId PARTY_MENU_VARIANT_NAME(GetPartyIdFromBattlePartyId)
 #define GetPartyMenuType PARTY_MENU_VARIANT_NAME(GetPartyMenuType)
 #define InitChooseHalfPartyForBattle PARTY_MENU_VARIANT_NAME(InitChooseHalfPartyForBattle)
-#define IsFusionMon PARTY_MENU_VARIANT_NAME(IsFusionMon)
 #define IsLastMonThatKnowsSurf PARTY_MENU_VARIANT_NAME(IsLastMonThatKnowsSurf)
 #define IsMultiBattle PARTY_MENU_VARIANT_NAME(IsMultiBattle)
 #define IsPartyMenuTextPrinterActive PARTY_MENU_VARIANT_NAME(IsPartyMenuTextPrinterActive)
@@ -113,8 +112,15 @@
 #define TryItemUseFormChange PARTY_MENU_VARIANT_NAME(TryItemUseFormChange)
 #define TryItemUseFusionChange PARTY_MENU_VARIANT_NAME(TryItemUseFusionChange)
 #define TryMultichoiceFormChange PARTY_MENU_VARIANT_NAME(TryMultichoiceFormChange)
+
+// Shared assets, not menu API: DexNav reads gHeldItemPalette and
+// gSpriteSheet_HeldItem, and battle_debug.c reads gSpriteTemplate_StatusIcons.
+// They keep their public names on the classic variant, whose graphics those
+// callers expect, so only the SwSh copy is renamed.
+#if defined(PARTY_MENU_VARIANT_SWSH)
 #define gHeldItemPalette PARTY_MENU_VARIANT_NAME(gHeldItemPalette)
 #define gSpriteSheet_HeldItem PARTY_MENU_VARIANT_NAME(gSpriteSheet_HeldItem)
 #define gSpriteTemplate_StatusIcons PARTY_MENU_VARIANT_NAME(gSpriteTemplate_StatusIcons)
+#endif
 
 #endif // GUARD_PARTY_MENU_VARIANT_H
