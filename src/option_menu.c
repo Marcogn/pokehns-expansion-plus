@@ -6,6 +6,7 @@
 #include "list_menu.h"
 #include "main.h"
 #include "overworld.h"
+#include "constants/party_menu.h"
 #include "malloc.h"
 #include "menu.h"
 #include "palette.h"
@@ -53,6 +54,7 @@ enum {
     ITEM_MAIN_FASTER_JOY,
     ITEM_MAIN_UNIT_TYPE,
     ITEM_MAIN_MATCHCALL,
+    ITEM_MAIN_PARTY_MENU,
     ITEM_MAIN_FRAMETYPE,
     ITEM_MAIN_COUNT,
 };
@@ -251,6 +253,11 @@ static const u8 *const sChoices_BattleSpeed[] = {
     COMPOUND_STRING("3x"),
 };
 
+static const u8 *const sChoices_PartyMenu[] = {
+    COMPOUND_STRING("CLASSIC"),
+    COMPOUND_STRING("SWSH"),
+};
+
 static const u8 *const sChoices_OwSpeed[] = {
     COMPOUND_STRING("1x"),
     COMPOUND_STRING("2x"),
@@ -336,6 +343,10 @@ static const u8 *const sDesc_UnitType[] = {
 static const u8 *const sDesc_MatchCall[] = {
     COMPOUND_STRING("TRAINERs will be able to call you,\noffering rematches and info."),
     COMPOUND_STRING("You will not receive calls.\nSpecial events will still occur."),
+};
+static const u8 *const sDesc_PartyMenu[] = {
+    COMPOUND_STRING("Use the classic party screen."),
+    COMPOUND_STRING("Use the SWORD/SHIELD-style party\nscreen."),
 };
 static const u8 *const sDesc_FrameType[] = {
     COMPOUND_STRING("Choose the frame surrounding the\nwindows."),
@@ -474,6 +485,12 @@ static const struct OptionMenuItem sTabItems_Main[] = {
         .descriptions = sDesc_MatchCall,
         .numChoices   = 2,
         .choiceNames  = sChoices_OnOff,
+    },
+    [ITEM_MAIN_PARTY_MENU] = {
+        .name         = COMPOUND_STRING("PARTY MENU"),
+        .descriptions = sDesc_PartyMenu,
+        .numChoices   = PARTY_MENU_OPTION_COUNT,
+        .choiceNames  = sChoices_PartyMenu,
     },
     [ITEM_MAIN_FRAMETYPE] = {
         .name         = COMPOUND_STRING("FRAME"),
@@ -1116,6 +1133,7 @@ static void Task_Save(u8 taskId)
     cs->autoRun            = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_AUTORUN);
     cs->autorunSurf        = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_AUTORUN_SURF);
     cs->overworldSpeed     = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_OW_SPEED);
+    cs->partyMenuStyle     = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_PARTY_MENU);
     cs->fishing            = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_FISHING);
     cs->evenFasterJoy      = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_FASTER_JOY);
     if (cs->evenFasterJoy == 0)
@@ -1230,6 +1248,7 @@ void CB2_InitOptionMenu(void)
         *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_AUTORUN)        = cs->autoRun;
         *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_AUTORUN_SURF)   = cs->autorunSurf;
         *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_OW_SPEED)       = cs->overworldSpeed;
+        *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_PARTY_MENU)     = cs->partyMenuStyle;
         *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_FISHING)        = cs->fishing;
         *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_FASTER_JOY)     = cs->evenFasterJoy;
         *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_UNIT_TYPE)      = cs->unitSystem;
