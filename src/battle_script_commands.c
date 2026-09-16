@@ -2,6 +2,8 @@
 #include "battle.h"
 #include "battle_hold_effects.h"
 #include "battle_message.h"
+#include "option_menu.h"
+#include "battle_bg.h"
 #include "battle_anim.h"
 #include "battle_anim_scripts.h"
 #include "battle_ai_main.h"
@@ -6728,12 +6730,23 @@ static void Cmd_drawlvlupbox(void)
     }
 }
 
+// Light mode's TEXT_DYNAMIC_COLOR_5/4/6 are entries 14/13/15 of BG palette 5:
+// a white fill with dark text. Dark mode uses the same three slots the command
+// windows do, so the level-up box follows them.
+static const u8 sLevelUpWindowTextColors[][3] =
+{
+    [FALSE] = {TEXT_DYNAMIC_COLOR_5, TEXT_DYNAMIC_COLOR_4, TEXT_DYNAMIC_COLOR_6},
+    [TRUE]  = {BATTLE_WINDOW_DARK_BG_PAL_INDEX, BATTLE_WINDOW_DARK_FG_PAL_INDEX, BATTLE_WINDOW_DARK_SHADOW_PAL_INDEX},
+};
+
 static void DrawLevelUpWindow1(void)
 {
     u16 currStats[NUM_STATS];
 
     GetMonLevelUpWindowStats(&gPlayerParty[gBattleStruct->expGetterMonId], currStats);
-    DrawLevelUpWindowPg1(B_WIN_LEVEL_UP_BOX, gBattleResources->beforeLvlUp->stats, currStats, TEXT_DYNAMIC_COLOR_5, TEXT_DYNAMIC_COLOR_4, TEXT_DYNAMIC_COLOR_6);
+    const u8 *colors = sLevelUpWindowTextColors[IsDarkUiEnabled()];
+
+    DrawLevelUpWindowPg1(B_WIN_LEVEL_UP_BOX, gBattleResources->beforeLvlUp->stats, currStats, colors[0], colors[1], colors[2]);
 }
 
 static void DrawLevelUpWindow2(void)
@@ -6741,7 +6754,9 @@ static void DrawLevelUpWindow2(void)
     u16 currStats[NUM_STATS];
 
     GetMonLevelUpWindowStats(&gPlayerParty[gBattleStruct->expGetterMonId], currStats);
-    DrawLevelUpWindowPg2(B_WIN_LEVEL_UP_BOX, currStats, TEXT_DYNAMIC_COLOR_5, TEXT_DYNAMIC_COLOR_4, TEXT_DYNAMIC_COLOR_6);
+    const u8 *colors = sLevelUpWindowTextColors[IsDarkUiEnabled()];
+
+    DrawLevelUpWindowPg2(B_WIN_LEVEL_UP_BOX, currStats, colors[0], colors[1], colors[2]);
 }
 
 static void InitLevelUpBanner(void)
@@ -10876,7 +10891,9 @@ static u32 ComputeCaptureOdds(u32 wildMonBattler, u32 playerBattler)
     struct BallData ball;
     ComputeBallData(wildMonBattler, playerBattler, &ball);
 
-    if (ball.guaranteedCapture)
+    // The EASY CATCH option reuses the Master Ball's own guaranteed path, so it
+    // goes through exactly the same code the game already trusts.
+    if (ball.guaranteedCapture || IsGuaranteedCatchEnabled())
         return CAPTURE_GUARANTEED;
     struct BattlePokemon *battleMon = &gBattleMons[wildMonBattler];
     u32 odds = (battleMon->maxHP * 3 -  battleMon->hp * 2);
@@ -11371,6 +11388,12 @@ void BattleCreateYesNoCursorAt(u8 cursorPosition)
     src[0] = 1;
     src[1] = 2;
 
+    if (IsDarkUiEnabled())
+    {
+        src[0] |= BATTLE_COMMAND_PAL_NUM << 12;
+        src[1] |= BATTLE_COMMAND_PAL_NUM << 12;
+    }
+
     CopyToBgTilemapBufferRect_ChangePalette(0, src, 0x19, 9 + (2 * cursorPosition), 1, 2, 0x11);
     CopyBgTilemapBufferToVram(0);
 }
@@ -11392,6 +11415,13 @@ static void Cmd_trygivecaughtmonnick(void)
     switch (gBattleCommunication[MULTIUSE_STATE])
     {
     case 0:
+        // State 4 is the "declined" exit, so with NICKNAMES off the yes/no box is
+        // never even opened.
+        if (ShouldSkipNicknamePrompt())
+        {
+            gBattleCommunication[MULTIUSE_STATE] = 4;
+            break;
+        }
         HandleBattleWindow(YESNOBOX_X_Y, 0);
         if (IsNuzlockeNicknamingActive())
         {

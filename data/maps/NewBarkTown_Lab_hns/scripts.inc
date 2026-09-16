@@ -248,7 +248,7 @@ NewBarkTown_Lab_EventScript_ChoseStarter::
 	waitfanfare
 	specialvar VAR_RESULT, IsNuzlockeNicknamingActive
 	goto_if_eq VAR_RESULT, TRUE, NewBarkTown_Lab_EventScript_ChoseStarter_NicknameStarter_Nuzlocke
-	msgbox NewBarkTown_Lab_Text_Nickname, MSGBOX_YESNO
+	asknickname NewBarkTown_Lab_Text_Nickname
 	goto_if_eq VAR_RESULT, YES, NewBarkTown_Lab_EventScript_NicknameStarter
 	callnative UpdateFollowingPokemon
 	release

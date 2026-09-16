@@ -26,6 +26,7 @@
 #include "coins.h"
 #include "text.h"
 #include "overworld.h"
+#include "constants/party_menu.h"
 #include "mail.h"
 #include "battle_records.h"
 #include "item.h"
@@ -137,6 +138,12 @@ void SetDefaultChallengeSettings(void)
     gSaveblock3.challengeSettings.newBattleUI = 0;
     gSaveblock3.challengeSettings.musicOnOff = 0;
     gSaveblock3.challengeSettings.runType = 0;
+    gSaveblock3.challengeSettings.overworldSpeed = OPTIONS_OVERWORLD_SPEED_1X;
+    gSaveblock3.challengeSettings.battleSpeed = OPTIONS_BATTLE_SPEED_2X;
+    gSaveblock3.challengeSettings.partyMenuStyle = PARTY_MENU_DEFAULT_OPTION;
+    gSaveblock3.challengeSettings.darkUi = FALSE;
+    gSaveblock3.challengeSettings.guaranteedCatch = FALSE;
+    gSaveblock3.challengeSettings.skipNicknamePrompt = FALSE;
 
     // Challenge menu — "RECOMMENDED" defaults
     gSaveblock3.challengeSettings.tx_Mode_Modern_Moves       = 1;

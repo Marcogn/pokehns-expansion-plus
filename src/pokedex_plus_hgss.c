@@ -18,6 +18,7 @@
 #include "main.h"
 #include "malloc.h"
 #include "menu.h"
+#include "menu_helpers.h"
 #include "m4a.h"
 #include "overworld.h"
 #include "palette.h"
@@ -4104,7 +4105,18 @@ void OpenPokedexInfoScreen(u16 species, void (*returnCallback)(void))
     sPokedexView->dexMode = gSaveBlock2Ptr->pokedex.mode;
 
     m4aMPlayVolumeControl(&gMPlayInfo_BGM, TRACKS_ALL, 0x80);
-    
+
+    // Take over the caller's VBlank handler, the way CB2_OpenPokedexPlusHGSS
+    // does. Without this the previous screen's handler keeps running under the
+    // Pokedex: the SwSh party menu's scrolls BG 3 on every VBlank, which drags
+    // every Pokedex page's background diagonally while the windows stay put.
+    SetVBlankCallback(VBlankCB_Pokedex);
+
+    // The Pokedex draws on BG 3 but never zeroes the scroll offsets, so a
+    // caller that left BG 3 scrolled (again, the SwSh party menu) would
+    // otherwise shift it by however far it had got.
+    ResetAllBgsCoordinates();
+
     SetMainCallback2(CB2_Pokedex);
 }
 

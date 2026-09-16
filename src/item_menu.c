@@ -1,5 +1,7 @@
 #include "global.h"
 #include "item_menu.h"
+#include "option_menu.h"
+#include "load_save.h"
 #include "battle.h"
 #include "challenge_menu.h"
 #include "battle_controllers.h"
@@ -137,6 +139,9 @@ static void LoadBagItemListBuffers(u8);
 static void PrintPocketNames(const u8 *, const u8 *);
 static void CopyPocketNameToWindow(u32);
 static void DrawPocketIndicatorSquare(u8, bool8);
+#if BAG_SCREEN_SOULGOLD
+static void DrawPocketIndicatorSquares(u8);
+#endif
 static void CreatePocketScrollArrowPair(void);
 static void CreatePocketSwitchArrowPair(void);
 static void DestroyPocketSwitchArrowPair(void);
@@ -270,6 +275,19 @@ static const struct BgTemplate sBgTemplates_ItemMenu[] =
         .priority = 2,
         .baseTile = 0,
     },
+#if BAG_SCREEN_SOULGOLD
+    {
+        // Scrolling starfield, behind everything else. It shares BG 2's char
+        // base because its tiles come from the same tileset.
+        .bg = 3,
+        .charBaseIndex = 3,
+        .mapBaseIndex = 28,
+        .screenSize = 0,
+        .paletteMode = 0,
+        .priority = 3,
+        .baseTile = 0,
+    },
+#endif
 };
 
 static const struct ListMenuTemplate sItemListMenu =
@@ -452,6 +470,57 @@ static const u8 sFontColorTable[][3] = {
     [COLORID_UNUSED]      = {TEXT_COLOR_DARK_GRAY,   TEXT_COLOR_WHITE,      TEXT_COLOR_LIGHT_GRAY},
     [COLORID_TMHM_INFO]   = {TEXT_COLOR_TRANSPARENT, TEXT_DYNAMIC_COLOR_5,  TEXT_DYNAMIC_COLOR_1}
 };
+
+#if BAG_SCREEN_SOULGOLD
+#define DARK_BAG_POCKET_INDICATOR_INACTIVE_PAL 10
+#define DARK_BAG_POCKET_INDICATOR_ACTIVE_PAL   11
+#define DARK_BAG_BG_COLOR RGB(5, 5, 5)
+
+static const u16 sDarkBagStandardMenuPalette[16] =
+{
+    [0] = RGB_WHITE,
+    [1] = DARK_BAG_BG_COLOR,
+    [2] = RGB_WHITE,
+    [3] = RGB(1, 1, 1),
+    [4] = RGB(28, 1, 1),
+    [5] = RGB(31, 23, 14),
+    [6] = RGB(4, 19, 1),
+    [7] = RGB(18, 30, 18),
+    [8] = RGB(6, 10, 25),
+    [9] = RGB(20, 24, 30),
+};
+
+static const u16 sDarkBagMessageBoxColors[] =
+{
+    RGB(8, 9, 11),
+    RGB(7, 8, 10),
+    RGB(6, 7, 9),
+    DARK_BAG_BG_COLOR,
+    RGB(4, 4, 5),
+};
+
+static const u16 sDarkBagTmHmTextAndIconColor = RGB_WHITE;
+static const u16 sDarkBagTmHmTextAndIconShadowColor = RGB(1, 1, 1);
+
+static const u16 sDarkBagPocketArrowPalette[16] =
+{
+    [1] = RGB(31, 31, 25),
+    [2] = RGB(29, 25, 16),
+};
+
+static const u16 sDarkBagPocketIndicatorInactivePalette[16] =
+{
+    [0] = DARK_BAG_BG_COLOR,
+    [9] = RGB(14, 14, 14),
+};
+
+static const u16 sDarkBagPocketIndicatorActivePalette[16] =
+{
+    [0] = DARK_BAG_BG_COLOR,
+    [1] = RGB_WHITE,
+    [9] = RGB(31, 25, 10),
+};
+#endif
 
 static const struct WindowTemplate sDefaultBagWindows[] =
 {
@@ -810,7 +879,11 @@ static bool8 SetupBagMenu(void)
     case 13:
         PrintPocketNames(gPocketNamesStringsTable[gBagPosition.pocket], 0);
         CopyPocketNameToWindow(0);
+#if BAG_SCREEN_SOULGOLD
+        DrawPocketIndicatorSquares(gBagPosition.pocket);
+#else
         DrawPocketIndicatorSquare(gBagPosition.pocket, TRUE);
+#endif
         gMain.state++;
         break;
     case 14:
@@ -854,19 +927,36 @@ static bool8 SetupBagMenu(void)
     return FALSE;
 }
 
+// Single accessor for the dark theme, so no screen reads the save bit itself.
+bool8 IsDarkUiEnabled(void)
+{
+    return gSaveblock3.challengeSettings.darkUi;
+}
+
 static void BagMenu_InitBGs(void)
 {
     ResetVramOamAndBgCntRegs();
     memset(gBagMenu->tilemapBuffer, 0, sizeof(gBagMenu->tilemapBuffer));
     ResetBgsAndClearDma3BusyFlags(0);
     InitBgsFromTemplates(0, sBgTemplates_ItemMenu, ARRAY_COUNT(sBgTemplates_ItemMenu));
+#if BAG_SCREEN_SOULGOLD
+    SetBgTilemapBuffer(2, gBagMenu->tilemapBuffer[BAG_MENU_BG_NORMAL]);
+    SetBgTilemapBuffer(3, gBagMenu->tilemapBuffer[BAG_MENU_BG_SCROLLING]);
+#else
     SetBgTilemapBuffer(2, gBagMenu->tilemapBuffer);
+#endif
     ResetAllBgsCoordinates();
     ScheduleBgCopyTilemapToVram(2);
+#if BAG_SCREEN_SOULGOLD
+    ScheduleBgCopyTilemapToVram(3);
+#endif
     SetGpuReg(REG_OFFSET_DISPCNT, DISPCNT_OBJ_ON | DISPCNT_OBJ_1D_MAP);
     ShowBg(0);
     ShowBg(1);
     ShowBg(2);
+#if BAG_SCREEN_SOULGOLD
+    ShowBg(3);
+#endif
     SetGpuReg(REG_OFFSET_BLDCNT, 0);
 }
 
@@ -882,26 +972,69 @@ static bool8 LoadBagMenu_Graphics(void)
     case 1:
         if (FreeTempTileDataBuffersIfPossible() != TRUE)
         {
+#if BAG_SCREEN_SOULGOLD
+            DecompressDataWithHeaderWram(gBagScreen_GfxTileMap, gBagMenu->tilemapBuffer[BAG_MENU_BG_NORMAL]);
+#else
             DecompressDataWithHeaderWram(gBagScreen_GfxTileMap, gBagMenu->tilemapBuffer);
+#endif
             gBagMenu->graphicsLoadState++;
         }
         break;
+#if BAG_SCREEN_SOULGOLD
     case 2:
+        // Its own step, as in soulgold: decompressing both tilemaps in one
+        // pass shares a temp buffer between them.
+        DecompressDataWithHeaderVram(gBagScreenScrollingBgTilemap, gBagMenu->tilemapBuffer[BAG_MENU_BG_SCROLLING]);
+        gBagMenu->graphicsLoadState++;
+        break;
+    case 3:
+#else
+    case 2:
+#endif
+#if BAG_SCREEN_SOULGOLD
+        if (!IsWallysBag() && gSaveBlock2Ptr->playerGender != MALE)
+            LoadPalette(IsDarkUiEnabled() ? gBagScreenDarkFemale_Pal : gBagScreenFemale_Pal,
+                        BG_PLTT_ID(0), 2 * PLTT_SIZE_4BPP);
+        else
+            LoadPalette(IsDarkUiEnabled() ? gBagScreenDarkMale_Pal : gBagScreenMale_Pal,
+                        BG_PLTT_ID(0), 2 * PLTT_SIZE_4BPP);
+        if (IsDarkUiEnabled())
+        {
+            LoadPalette(sDarkBagPocketIndicatorInactivePalette, BG_PLTT_ID(DARK_BAG_POCKET_INDICATOR_INACTIVE_PAL), PLTT_SIZE_4BPP);
+            LoadPalette(sDarkBagPocketIndicatorActivePalette, BG_PLTT_ID(DARK_BAG_POCKET_INDICATOR_ACTIVE_PAL), PLTT_SIZE_4BPP);
+        }
+#else
         if (!IsWallysBag() && gSaveBlock2Ptr->playerGender != MALE)
             LoadPalette(gBagScreenFemale_Pal, BG_PLTT_ID(0), 2 * PLTT_SIZE_4BPP);
         else
             LoadPalette(gBagScreenMale_Pal, BG_PLTT_ID(0), 2 * PLTT_SIZE_4BPP);
+#endif
         gBagMenu->graphicsLoadState++;
         break;
+#if BAG_SCREEN_SOULGOLD
+    case 4:
+#else
     case 3:
+#endif
         if (IsWallysBag() == TRUE || gSaveBlock2Ptr->playerGender == MALE)
             LoadCompressedSpriteSheet(&gBagMaleSpriteSheet);
         else
             LoadCompressedSpriteSheet(&gBagFemaleSpriteSheet);
         gBagMenu->graphicsLoadState++;
         break;
+#if BAG_SCREEN_SOULGOLD
+    case 5:
+#else
     case 4:
+#endif
+#if BAG_SCREEN_SOULGOLD
+        if (IsWallysBag() == TRUE || gSaveBlock2Ptr->playerGender == MALE)
+            LoadSpritePalette(&gBagPaletteTable);
+        else
+            LoadSpritePalette(&gBagFemalePaletteTable);
+#else
         LoadSpritePalette(&gBagPaletteTable);
+#endif
         gBagMenu->graphicsLoadState++;
         break;
     default:
@@ -1291,6 +1424,10 @@ static void PrintItemSoldAmount(int windowId, int numSold, int moneyEarned)
 
 static void Task_BagMenu_HandleInput(u8 taskId)
 {
+#if BAG_SCREEN_SOULGOLD
+    // Drift the starfield behind the bag window.
+    ChangeBgY(3, 128, BG_COORD_ADD);
+#endif
     s16 *data = gTasks[taskId].data;
     u16 *scrollPos = &gBagPosition.scrollPosition[gBagPosition.pocket];
     u16 *cursorPos = &gBagPosition.cursorPosition[gBagPosition.pocket];
@@ -1425,6 +1562,10 @@ static void ChangeBagPocketId(u8 *bagPocketId, s8 deltaBagPocketId)
 
 static void SwitchBagPocket(u8 taskId, s16 deltaBagPocketId, bool16 skipEraseList)
 {
+#if BAG_SCREEN_SOULGOLD
+    // Drift the starfield behind the bag window.
+    ChangeBgY(3, 128, BG_COORD_ADD);
+#endif
     s16 *data = gTasks[taskId].data;
     u8 newPocket;
 
@@ -1454,7 +1595,14 @@ static void SwitchBagPocket(u8 taskId, s16 deltaBagPocketId, bool16 skipEraseLis
     }
     DrawPocketIndicatorSquare(gBagPosition.pocket, FALSE);
     DrawPocketIndicatorSquare(newPocket, TRUE);
+#if BAG_SCREEN_SOULGOLD
+    // Blank tile in soulgold's tileset. Its tile 11, which this repo uses, is
+    // three transparent columns followed by opaque ones, so erasing with it
+    // left the scrolling BG showing through in vertical bands.
+    FillBgTilemapBufferRect_Palette0(2, 8, 14, 2, 15, 16);
+#else
     FillBgTilemapBufferRect_Palette0(2, 11, 14, 2, 15, 16);
+#endif
     ScheduleBgCopyTilemapToVram(2);
     SetBagVisualPocketId(newPocket, TRUE);
     RemoveBagSprite(ITEMMENUSPRITE_BALL);
@@ -1517,18 +1665,42 @@ static void DrawItemListBgRow(u8 y)
     ScheduleBgCopyTilemapToVram(2);
 }
 
+#if BAG_SCREEN_SOULGOLD
+// soulgold's tilemap has no indicators baked in, so every pocket's square is
+// drawn from code. This repo's own tilemap carries the inactive ones at row 3,
+// which is why it only ever draws the active one.
+static void DrawPocketIndicatorSquares(u8 currentPocket)
+{
+    u8 i;
+
+    for (i = 0; i < POCKETS_COUNT; i++)
+        DrawPocketIndicatorSquare(i, i == currentPocket);
+}
+#endif
+
 static void DrawPocketIndicatorSquare(u8 x, bool8 isCurrentPocket)
 {
 #if I_COMBINE_BAG_POCKETS
-    if (!isCurrentPocket)
-        FillBgTilemapBufferRect_Palette0(2, 0x1017, x + 5, 3, 1, 1);
-    else
-        FillBgTilemapBufferRect_Palette0(2, 0x102B, x + 5, 3, 1, 1);
+    // Six pockets, so the row starts a tile further right to stay centred.
+    const u8 xOffset = 5;
 #else
-    if (!isCurrentPocket)
-        FillBgTilemapBufferRect_Palette0(2, 0x1017, x + 4, 3, 1, 1);
-    else
-        FillBgTilemapBufferRect_Palette0(2, 0x102B, x + 4, 3, 1, 1);
+    const u8 xOffset = 4;
+#endif
+
+#if BAG_SCREEN_SOULGOLD
+    // The indicators are tilemap cells, not sprites, so they name tiles by
+    // index into the bag tileset. soulgold's tileset puts them at 0xC and
+    // 0x34; this repo's are at 0x17 and 0x2B, horizontally flipped. Swapping
+    // the artwork without swapping these draws whatever happens to sit at the
+    // old indices.
+    u16 palette = 0;
+
+    if (IsDarkUiEnabled())
+        palette = isCurrentPocket ? DARK_BAG_POCKET_INDICATOR_ACTIVE_PAL : DARK_BAG_POCKET_INDICATOR_INACTIVE_PAL;
+
+    FillBgTilemapBufferRect(2, isCurrentPocket ? 0x34 : 0xC, x + xOffset, 3, 1, 1, palette);
+#else
+    FillBgTilemapBufferRect_Palette0(2, isCurrentPocket ? 0x102B : 0x1017, x + xOffset, 3, 1, 1);
 #endif
     ScheduleBgCopyTilemapToVram(2);
 }
@@ -1566,6 +1738,10 @@ static void StartItemSwap(u8 taskId)
 
 static void Task_HandleSwappingItemsInput(u8 taskId)
 {
+#if BAG_SCREEN_SOULGOLD
+    // Drift the starfield behind the bag window.
+    ChangeBgY(3, 128, BG_COORD_ADD);
+#endif
     s16 *data = gTasks[taskId].data;
 
     if (MenuHelpers_ShouldWaitForLinkRecv() != TRUE)
@@ -1826,6 +2002,10 @@ static void Task_ItemContext_Normal(u8 taskId)
 
 static void Task_ItemContext_SingleRow(u8 taskId)
 {
+#if BAG_SCREEN_SOULGOLD
+    // Drift the starfield behind the bag window.
+    ChangeBgY(3, 128, BG_COORD_ADD);
+#endif
     if (MenuHelpers_ShouldWaitForLinkRecv() != TRUE)
     {
         s8 selection = Menu_ProcessInputNoWrap();
@@ -1847,6 +2027,10 @@ static void Task_ItemContext_SingleRow(u8 taskId)
 
 static void Task_ItemContext_MultipleRows(u8 taskId)
 {
+#if BAG_SCREEN_SOULGOLD
+    // Drift the starfield behind the bag window.
+    ChangeBgY(3, 128, BG_COORD_ADD);
+#endif
     if (MenuHelpers_ShouldWaitForLinkRecv() != TRUE)
     {
         s8 cursorPos = Menu_GetCursorPos();

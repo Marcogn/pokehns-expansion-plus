@@ -1,4 +1,10 @@
 #include "global.h"
+#include "constants/party_menu.h"
+#if PARTY_MENU_STYLE_OPTION
+#define PARTY_MENU_VARIANT_CLASSIC
+#include "party_menu_variant.h"
+#endif
+
 #include "malloc.h"
 #include "battle.h"
 #include "challenge_menu.h"
@@ -53,6 +59,8 @@
 #include "pokemon_icon.h"
 #include "pokemon_jump.h"
 #include "pokemon_storage_system.h"
+#include "pokedex.h"
+#include "pokedex_plus_hgss.h"
 #include "pokemon_summary_screen.h"
 #include "pokerus.h"
 #include "region_map.h"
@@ -84,6 +92,7 @@
 
 enum {
     MENU_SUMMARY,
+    MENU_POKEDEX,
     MENU_SWITCH,
     MENU_CANCEL1,
     MENU_ITEM,
@@ -193,7 +202,14 @@ struct PartyMenuInternal
     u32 spriteIdCancelPokeball:7;
     u32 messageId:14;
     u8 windowId[3];
-    u8 actions[8];
+    // AppendToList does not bounds-check, and numActions sits right behind this
+    // array, so the field menu's worst case has to fit exactly. That case is
+    // SUMMARY + 4 field moves + SWITCH + POKEDEX + ITEM/MAIL + CANCEL, or the
+    // same with one fewer field move and PKMN FOLLOWER on the follower's slot:
+    // 9 either way. 9 is also the display limit, since the selection window is
+    // placed at tilemapTop 19 - numActions * 2. Raising P_PARTY_MOVE_RELEARNER
+    // to TRUE would add a tenth and overflow both.
+    u8 actions[9];
     u8 numActions;
     // In vanilla Emerald, only the first 0xB0 hwords (0x160 bytes) are actually used.
     // However, a full 0x100 hwords (0x200 bytes) are allocated.
@@ -216,23 +232,33 @@ struct PartyMenuBox
 
 // EWRAM vars
 static EWRAM_DATA struct PartyMenuInternal *sPartyMenuInternal = NULL;
+#if !PARTY_MENU_STYLE_OPTION
 EWRAM_DATA struct PartyMenu gPartyMenu = {0};
+#endif
 static EWRAM_DATA struct PartyMenuBox *sPartyMenuBoxes = NULL;
 static EWRAM_DATA u8 *sPartyBgGfxTilemap = NULL;
 static EWRAM_DATA u8 *sPartyBgTilemapBuffer = NULL;
+#if !PARTY_MENU_STYLE_OPTION
 EWRAM_DATA bool8 gPartyMenuUseExitCallback = 0;
 EWRAM_DATA u8 gSelectedMonPartyId = 0;
 EWRAM_DATA MainCallback gPostMenuFieldCallback = NULL;
+#endif
 static EWRAM_DATA u16 *sSlot1TilemapBuffer = 0; // for switching party slots
 static EWRAM_DATA u16 *sSlot2TilemapBuffer = 0; //
+#if !PARTY_MENU_STYLE_OPTION
 EWRAM_DATA u8 gSelectedOrderFromParty[MAX_FRONTIER_PARTY_SIZE] = {0};
+#endif
 static EWRAM_DATA u16 sPartyMenuItemId = 0;
+#if !PARTY_MENU_STYLE_OPTION
 EWRAM_DATA u8 gBattlePartyCurrentOrder[PARTY_SIZE / 2] = {0}; // bits 0-3 are the current pos of Slot 1, 4-7 are Slot 2, and so on
+#endif
 static EWRAM_DATA u8 sInitialLevel = 0;
 static EWRAM_DATA u8 sFinalLevel = 0;
 
 // IWRAM common
+#if !PARTY_MENU_STYLE_OPTION
 COMMON_DATA void (*gItemUseCB)(u8, TaskFunc) = NULL;
+#endif
 
 static void ResetPartyMenu(void);
 static void CB2_InitPartyMenu(void);
@@ -337,6 +363,7 @@ static bool16 IsMonAllowedInDodrioBerryPicking(struct Pokemon *);
 static void Task_CancelParticipationYesNo(u8);
 static void Task_HandleCancelParticipationYesNoInput(u8);
 static bool8 ShouldUseChooseMonText(void);
+static bool8 CanShowPokedexForPartyMon(struct Pokemon *);
 static void SetPartyMonFieldSelectionActions(struct Pokemon *, u8);
 static void SetPartyMonLearnMoveSelectionActions(struct Pokemon*, u8);
 static u8 GetPartyMenuActionsTypeInBattle(struct Pokemon *);
@@ -462,6 +489,9 @@ static void ShiftMoveSlot(struct BoxPokemon *, u8, u8);
 static void BlitBitmapToPartyWindow_LeftColumn(u8, u8, u8, u8, u8, bool8);
 static void BlitBitmapToPartyWindow_RightColumn(u8, u8, u8, u8, u8, bool8);
 static void CursorCb_Summary(u8);
+static void CursorCb_Pokedex(u8);
+static void CB2_OpenPartyPokedex(void);
+static void CB2_ReturnToPartyMenuFromPokedex(void);
 static void CursorCb_Switch(u8);
 static void CursorCb_Cancel1(u8);
 static void CursorCb_Item(u8);
@@ -2913,6 +2943,18 @@ static void SetPartyMonSelectionActions(struct Pokemon *mons, u8 slotId, u8 acti
     }
 }
 
+// Mirrors the gate the summary screen uses for its own Pokédex button, plus a
+// seen check: an egg has no entry to show, and neither does a species the
+// player has not registered.
+static bool8 CanShowPokedexForPartyMon(struct Pokemon *mon)
+{
+    if (!FlagGet(FLAG_SYS_POKEDEX_GET))
+        return FALSE;
+    if (GetMonData(mon, MON_DATA_IS_EGG))
+        return FALSE;
+    return GetSetPokedexFlag(SpeciesToNationalPokedexNum(GetMonData(mon, MON_DATA_SPECIES)), FLAG_GET_SEEN);
+}
+
 static void SetPartyMonFieldSelectionActions(struct Pokemon *mons, u8 slotId)
 {
     u8 i, j;
@@ -2997,6 +3039,8 @@ static void SetPartyMonFieldSelectionActions(struct Pokemon *mons, u8 slotId)
     {
         if (GetMonData(&mons[1], MON_DATA_SPECIES) != SPECIES_NONE)
             AppendToList(sPartyMenuInternal->actions, &sPartyMenuInternal->numActions, MENU_SWITCH);
+        if (CanShowPokedexForPartyMon(&mons[slotId]))
+            AppendToList(sPartyMenuInternal->actions, &sPartyMenuInternal->numActions, MENU_POKEDEX);
         if (ItemIsMail(GetMonData(&mons[slotId], MON_DATA_HELD_ITEM)))
             AppendToList(sPartyMenuInternal->actions, &sPartyMenuInternal->numActions, MENU_MAIL);
         else
@@ -3194,6 +3238,28 @@ void CB2_ReturnToPartyMenuFromSummaryScreen(void)
 {
     gPaletteFade.bufferTransferDisabled = TRUE;
     gPartyMenu.slotId = gLastViewedMonIndex;
+    InitPartyMenu(gPartyMenu.menuType, KEEP_PARTY_LAYOUT, gPartyMenu.action, TRUE, PARTY_MSG_DO_WHAT_WITH_MON, Task_TryCreateSelectionWindow, gPartyMenu.exitCallback);
+}
+
+static void CursorCb_Pokedex(u8 taskId)
+{
+    PlaySE(SE_SELECT);
+    sPartyMenuInternal->exitCallback = CB2_OpenPartyPokedex;
+    Task_ClosePartyMenu(taskId);
+}
+
+static void CB2_OpenPartyPokedex(void)
+{
+    u16 species = GetMonData(&gPlayerParty[gPartyMenu.slotId], MON_DATA_SPECIES);
+
+    // Same entry point the summary screen uses for its Pokédex button, so both
+    // routes land on the same info screen and return the same way.
+    OpenPokedexInfoScreen(species, CB2_ReturnToPartyMenuFromPokedex);
+}
+
+static void CB2_ReturnToPartyMenuFromPokedex(void)
+{
+    gPaletteFade.bufferTransferDisabled = TRUE;
     InitPartyMenu(gPartyMenu.menuType, KEEP_PARTY_LAYOUT, gPartyMenu.action, TRUE, PARTY_MSG_DO_WHAT_WITH_MON, Task_TryCreateSelectionWindow, gPartyMenu.exitCallback);
 }
 

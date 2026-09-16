@@ -215,6 +215,18 @@ enum Gender
 #define OPTIONS_TEXT_SPEED_FAST 2
 #define OPTIONS_TEXT_SPEED_INSTANT 3
 
+// Battle speed-up. The value is the number of logical battle ticks run per
+// rendered frame, so it doubles as the multiplier.
+// Held item slots a Pokemon can carry. soulgold generalised its party menu
+// over this and then shipped it at 1, so the loops run exactly once, matching
+// this repo's single held item.
+#define MAX_MON_ITEMS 1
+
+#define OPTIONS_BATTLE_SPEED_1X 0
+#define OPTIONS_BATTLE_SPEED_2X 1
+#define OPTIONS_BATTLE_SPEED_3X 2
+#define OPTIONS_BATTLE_SPEED_COUNT 3
+
 #define OPTIONS_SOUND_MONO 0
 #define OPTIONS_SOUND_STEREO 1
 

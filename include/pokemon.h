@@ -932,6 +932,7 @@ u16 MonTryLearningNewMoveEvolution(struct Pokemon *mon, bool8 firstMove);
 void RemoveIVIndexFromList(u8 *ivs, u8 selectedIv);
 void TrySpecialOverworldEvo(void);
 bool32 SpeciesHasGenderDifferences(u16 species);
+u32 GetFormChangeTargetSpecies(struct Pokemon *mon, enum FormChanges method);
 bool32 TryFormChange(struct Pokemon *mon, enum FormChanges method);
 bool32 TryBoxMonFormChange(struct BoxPokemon *boxMon, enum FormChanges method);
 void TryToSetBattleFormChangeMoves(struct Pokemon *mon, enum FormChanges method);

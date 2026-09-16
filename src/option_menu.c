@@ -5,6 +5,8 @@
 #include "international_string_util.h"
 #include "list_menu.h"
 #include "main.h"
+#include "overworld.h"
+#include "constants/party_menu.h"
 #include "malloc.h"
 #include "menu.h"
 #include "palette.h"
@@ -47,10 +49,14 @@ enum {
     ITEM_MAIN_LARGE_FOLLOWER,
     ITEM_MAIN_AUTORUN,
     ITEM_MAIN_AUTORUN_SURF,
+    ITEM_MAIN_OW_SPEED,
     ITEM_MAIN_FISHING,
     ITEM_MAIN_FASTER_JOY,
     ITEM_MAIN_UNIT_TYPE,
     ITEM_MAIN_MATCHCALL,
+    ITEM_MAIN_PARTY_MENU,
+    ITEM_MAIN_GUARANTEED_CATCH,
+    ITEM_MAIN_NICKNAMES,
     ITEM_MAIN_FRAMETYPE,
     ITEM_MAIN_COUNT,
 };
@@ -58,8 +64,10 @@ enum {
 enum {
     ITEM_BATTLE_FAST_INTRO,
     ITEM_BATTLE_FAST_BATTLES,
+    ITEM_BATTLE_SPEED,
     ITEM_BATTLE_NEW_BACKGROUNDS,
     ITEM_BATTLE_NEW_BATTLEUI,
+    ITEM_BATTLE_DARK_UI,
     ITEM_BATTLE_BALL_PROMPT,
     ITEM_BATTLE_RUN_TYPE,
     ITEM_BATTLE_LR_RUN,
@@ -74,7 +82,7 @@ enum {
     ITEM_SOUND_COUNT,
 };
 
-#define MAX_ITEMS_PER_TAB 16
+#define MAX_ITEMS_PER_TAB 20
 #define ITEMS_VISIBLE 5
 #define Y_DIFF 16
 
@@ -242,6 +250,36 @@ static const u8 *const sChoices_Gen3Gen4[] = {
     COMPOUND_STRING("GEN 4"),
 };
 
+// Deliberately OFF first, so that a save created before this option existed -
+// and therefore reads back a zeroed bit - starts with it switched off.
+static const u8 *const sChoices_OffOn[] = {
+    COMPOUND_STRING("OFF"),
+    COMPOUND_STRING("ON"),
+};
+
+static const u8 *const sChoices_LightDark[] = {
+    COMPOUND_STRING("LIGHT"),
+    COMPOUND_STRING("DARK"),
+};
+
+static const u8 *const sChoices_BattleSpeed[] = {
+    COMPOUND_STRING("1x"),
+    COMPOUND_STRING("2x"),
+    COMPOUND_STRING("3x"),
+};
+
+static const u8 *const sChoices_PartyMenu[] = {
+    COMPOUND_STRING("CLASSIC"),
+    COMPOUND_STRING("SWSH"),
+};
+
+static const u8 *const sChoices_OwSpeed[] = {
+    COMPOUND_STRING("1x"),
+    COMPOUND_STRING("2x"),
+    COMPOUND_STRING("3x"),
+    COMPOUND_STRING("4x"),
+};
+
 static const u8 *const sChoices_RunType[] = {
     COMPOUND_STRING("NO"),
     COMPOUND_STRING("L+R+A"),
@@ -283,6 +321,14 @@ static const u8 *const sDesc_ButtonMode[] = {
     COMPOUND_STRING("On some screens the L and R buttons\nact as left and right."),
     COMPOUND_STRING("The L button acts as another A\nbutton for one-handed play."),
 };
+static const u8 *const sDesc_Nicknames[] = {
+    COMPOUND_STRING("Ask for a nickname when you catch\nor receive a {PKMN}."),
+    COMPOUND_STRING("Never ask for a nickname."),
+};
+static const u8 *const sDesc_GuaranteedCatch[] = {
+    COMPOUND_STRING("Wild {PKMN} are caught at the\nnormal rate."),
+    COMPOUND_STRING("Every Ball catches a wild {PKMN}\nwithout fail."),
+};
 static const u8 *const sDesc_Follower[] = {
     COMPOUND_STRING("Let the first {PKMN} in your\nparty follow you."),
     COMPOUND_STRING("Walk alone."),
@@ -298,6 +344,12 @@ static const u8 *const sDesc_Autorun[] = {
 static const u8 *const sDesc_AutorunSurf[] = {
     COMPOUND_STRING("Surf faster without pressing B."),
     COMPOUND_STRING("Press and hold B to surf faster."),
+};
+static const u8 *const sDesc_OwSpeed[] = {
+    COMPOUND_STRING("Move at the normal speed."),
+    COMPOUND_STRING("Move at double speed.\nHold {R_BUTTON} for normal speed."),
+    COMPOUND_STRING("Move at triple speed.\nHold {R_BUTTON} for normal speed."),
+    COMPOUND_STRING("Move at quadruple speed.\nHold {R_BUTTON} for normal speed."),
 };
 static const u8 *const sDesc_Fishing[] = {
     COMPOUND_STRING("Automatically reel while fishing."),
@@ -315,6 +367,10 @@ static const u8 *const sDesc_MatchCall[] = {
     COMPOUND_STRING("TRAINERs will be able to call you,\noffering rematches and info."),
     COMPOUND_STRING("You will not receive calls.\nSpecial events will still occur."),
 };
+static const u8 *const sDesc_PartyMenu[] = {
+    COMPOUND_STRING("Use the classic party screen."),
+    COMPOUND_STRING("Use the SWORD/SHIELD-style party\nscreen."),
+};
 static const u8 *const sDesc_FrameType[] = {
     COMPOUND_STRING("Choose the frame surrounding the\nwindows."),
 };
@@ -326,6 +382,11 @@ static const u8 *const sDesc_FastBattles[] = {
     COMPOUND_STRING("Skips all delays in battles, which\nmakes them faster."),
     COMPOUND_STRING("Manual delay skipping. You can\npress A or B to skip delays."),
 };
+static const u8 *const sDesc_BattleSpeed[] = {
+    COMPOUND_STRING("Play battles at the normal speed."),
+    COMPOUND_STRING("Play battles at double speed.\nHold {L_BUTTON} for normal speed."),
+    COMPOUND_STRING("Play battles at triple speed.\nHold {L_BUTTON} for normal speed."),
+};
 static const u8 *const sDesc_NewBackgrounds[] = {
     COMPOUND_STRING("Original battle terrain backgrounds."),
     COMPOUND_STRING("Modernized battle terrain\nbackgrounds, from HnS."),
@@ -333,6 +394,10 @@ static const u8 *const sDesc_NewBackgrounds[] = {
 static const u8 *const sDesc_NewBattleUI[] = {
     COMPOUND_STRING("Original GEN III Battle UI."),
     COMPOUND_STRING("Modernized GEN IV Battle UI."),
+};
+static const u8 *const sDesc_DarkUi[] = {
+    COMPOUND_STRING("Use the normal light interface."),
+    COMPOUND_STRING("Darken the battle and BAG\ninterface."),
 };
 static const u8 *const sDesc_BallPrompt[] = {
     COMPOUND_STRING("Press {R_BUTTON} in battle to use Pokeballs.\nHold {L_BUTTON}/{R_BUTTON} to swap {PKMN}BALLS."),
@@ -418,6 +483,12 @@ static const struct OptionMenuItem sTabItems_Main[] = {
         .numChoices   = 2,
         .choiceNames  = sChoices_OnOff,
     },
+    [ITEM_MAIN_OW_SPEED] = {
+        .name         = COMPOUND_STRING("OW SPEED"),
+        .descriptions = sDesc_OwSpeed,
+        .numChoices   = OPTIONS_OVERWORLD_SPEED_COUNT,
+        .choiceNames  = sChoices_OwSpeed,
+    },
     [ITEM_MAIN_FISHING] = {
         .name         = COMPOUND_STRING("EASIER FISHING"),
         .descriptions = sDesc_Fishing,
@@ -442,6 +513,24 @@ static const struct OptionMenuItem sTabItems_Main[] = {
         .numChoices   = 2,
         .choiceNames  = sChoices_OnOff,
     },
+    [ITEM_MAIN_PARTY_MENU] = {
+        .name         = COMPOUND_STRING("PARTY MENU"),
+        .descriptions = sDesc_PartyMenu,
+        .numChoices   = PARTY_MENU_OPTION_COUNT,
+        .choiceNames  = sChoices_PartyMenu,
+    },
+    [ITEM_MAIN_GUARANTEED_CATCH] = {
+        .name         = COMPOUND_STRING("EASY CATCH"),
+        .descriptions = sDesc_GuaranteedCatch,
+        .numChoices   = 2,
+        .choiceNames  = sChoices_OffOn,
+    },
+    [ITEM_MAIN_NICKNAMES] = {
+        .name         = COMPOUND_STRING("NICKNAMES"),
+        .descriptions = sDesc_Nicknames,
+        .numChoices   = 2,
+        .choiceNames  = sChoices_OnOff,
+    },
     [ITEM_MAIN_FRAMETYPE] = {
         .name         = COMPOUND_STRING("FRAME"),
         .descriptions = sDesc_FrameType,
@@ -463,6 +552,12 @@ static const struct OptionMenuItem sTabItems_Battle[] = {
         .numChoices   = 2,
         .choiceNames  = sChoices_OnOff,
     },
+    [ITEM_BATTLE_SPEED] = {
+        .name         = COMPOUND_STRING("BATTLE SPEED"),
+        .descriptions = sDesc_BattleSpeed,
+        .numChoices   = OPTIONS_BATTLE_SPEED_COUNT,
+        .choiceNames  = sChoices_BattleSpeed,
+    },
     [ITEM_BATTLE_NEW_BACKGROUNDS] = {
         .name         = COMPOUND_STRING("BATTLE TERRAIN"),
         .descriptions = sDesc_NewBackgrounds,
@@ -474,6 +569,12 @@ static const struct OptionMenuItem sTabItems_Battle[] = {
         .descriptions = sDesc_NewBattleUI,
         .numChoices   = 2,
         .choiceNames  = sChoices_Gen3Gen4,
+    },
+    [ITEM_BATTLE_DARK_UI] = {
+        .name         = COMPOUND_STRING("DARK UI"),
+        .descriptions = sDesc_DarkUi,
+        .numChoices   = 2,
+        .choiceNames  = sChoices_LightDark,
     },
     [ITEM_BATTLE_BALL_PROMPT] = {
         .name         = COMPOUND_STRING("BALL PROMPT"),
@@ -532,6 +633,18 @@ struct TabDef
     const struct OptionMenuItem *items;
     u8 count;
 };
+
+// Read by the capture maths. Kept here next to the option it mirrors.
+bool8 IsGuaranteedCatchEnabled(void)
+{
+    return gSaveBlock3Ptr->challengeSettings.guaranteedCatch;
+}
+
+// Read by the capture code, the egg hatch screen and the asknickname macro.
+bool8 ShouldSkipNicknamePrompt(void)
+{
+    return gSaveBlock3Ptr->challengeSettings.skipNicknamePrompt;
+}
 
 static const struct TabDef sTabs[TAB_COUNT] = {
     [TAB_MAIN]   = { COMPOUND_STRING("OPTIONS"),        sTabItems_Main,   ITEM_MAIN_COUNT },
@@ -1076,6 +1189,8 @@ static void Task_Save(u8 taskId)
     cs->followerLargeEnable= *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_LARGE_FOLLOWER);
     cs->autoRun            = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_AUTORUN);
     cs->autorunSurf        = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_AUTORUN_SURF);
+    cs->overworldSpeed     = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_OW_SPEED);
+    cs->partyMenuStyle     = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_PARTY_MENU);
     cs->fishing            = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_FISHING);
     cs->evenFasterJoy      = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_FASTER_JOY);
     if (cs->evenFasterJoy == 0)
@@ -1084,9 +1199,14 @@ static void Task_Save(u8 taskId)
         FlagClear(FLAG_EVEN_FASTER_JOY);
     cs->unitSystem         = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_UNIT_TYPE);
     cs->disableMatchCall   = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_MATCHCALL);
+    cs->guaranteedCatch    = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_GUARANTEED_CATCH);
+    // sChoices_OnOff is ON first, so ON stores 0 and the field reads "skip".
+    cs->skipNicknamePrompt = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_NICKNAMES);
 
     cs->fastIntro          = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_FAST_INTRO);
     cs->fastBattle         = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_FAST_BATTLES);
+    cs->battleSpeed        = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_SPEED);
+    cs->darkUi             = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_DARK_UI);
     cs->newBackgrounds     = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_NEW_BACKGROUNDS);
     cs->newBattleUI        = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_NEW_BATTLEUI);
     cs->ballPrompt         = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_BALL_PROMPT);
@@ -1188,13 +1308,19 @@ void CB2_InitOptionMenu(void)
         *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_LARGE_FOLLOWER) = cs->followerLargeEnable;
         *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_AUTORUN)        = cs->autoRun;
         *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_AUTORUN_SURF)   = cs->autorunSurf;
+        *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_OW_SPEED)       = cs->overworldSpeed;
+        *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_PARTY_MENU)     = cs->partyMenuStyle;
         *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_FISHING)        = cs->fishing;
         *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_FASTER_JOY)     = cs->evenFasterJoy;
         *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_UNIT_TYPE)      = cs->unitSystem;
         *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_MATCHCALL)    = cs->disableMatchCall;
+        *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_GUARANTEED_CATCH) = cs->guaranteedCatch;
+        *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_NICKNAMES)        = cs->skipNicknamePrompt;
 
         *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_FAST_INTRO)      = cs->fastIntro;
         *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_FAST_BATTLES)    = cs->fastBattle;
+        *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_SPEED)           = cs->battleSpeed;
+        *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_DARK_UI)         = cs->darkUi;
         *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_NEW_BACKGROUNDS) = cs->newBackgrounds;
         *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_NEW_BATTLEUI)    = cs->newBattleUI;
         *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_BALL_PROMPT)     = cs->ballPrompt;

@@ -1919,12 +1919,67 @@ void CB2_OverworldBasic(void)
     OverworldBasic();
 }
 
+// TRUE while a cutscene is running. Object event movement is driven by sprite
+// callbacks, so the extra iterations below advance NPCs as well as the player,
+// and a scripted sequence has no business running at 4x.
+//
+// Do NOT extend this to "any object event has an unfinished held movement":
+// PlayerSetAnimId routes every ordinary player step through
+// ObjectEventSetHeldMovement, so that test is true whenever the player is
+// walking and silently holds the field at 1x for exactly the case the option
+// exists to speed up.
+//
+// soulgold instead has scripts raise FLAG_PREVENT_OVERWORLD_SPEEDUP by hand.
+// There is no such flag here, and the script context says the same thing
+// without needing every future cutscene to remember it.
+static bool32 IsCutsceneRunning(void)
+{
+    return ScriptContext_IsEnabled() || ArePlayerFieldControlsLocked();
+}
+
+// How many *extra* overworld iterations to run this frame on top of the normal
+// one. Holding R drops back to 1x.
+u8 OverworldSpeedup_AdditionalIterations(u16 speed, bool32 overworld)
+{
+    if (overworld && JOY_HELD(R_BUTTON))
+        return OPTIONS_OVERWORLD_SPEED_1X_EXTRA_ITERATIONS;
+
+    switch (speed)
+    {
+    case OPTIONS_OVERWORLD_SPEED_4X: return OPTIONS_OVERWORLD_SPEED_4X_EXTRA_ITERATIONS;
+    case OPTIONS_OVERWORLD_SPEED_3X: return OPTIONS_OVERWORLD_SPEED_3X_EXTRA_ITERATIONS;
+    case OPTIONS_OVERWORLD_SPEED_2X: return OPTIONS_OVERWORLD_SPEED_2X_EXTRA_ITERATIONS;
+    case OPTIONS_OVERWORLD_SPEED_1X: return OPTIONS_OVERWORLD_SPEED_1X_EXTRA_ITERATIONS;
+    default:                         return OPTIONS_OVERWORLD_SPEED_1X_EXTRA_ITERATIONS;
+    }
+}
+
+u8 GetOverworldSpeedupSetting(void)
+{
+    return gSaveblock3.challengeSettings.overworldSpeed;
+}
+
 void CB2_Overworld(void)
 {
     bool32 fading = (gPaletteFade.active != 0);
+    u8 loops;
+    u8 extraLoops;
+
     if (fading)
         SetVBlankCallback(NULL);
     OverworldBasic();
+
+    // AnimateSprites() below also steps object event movement, the player's
+    // included, which is what makes the option work at all. See
+    // IsCutsceneRunning for what it must not speed up.
+    extraLoops = IsCutsceneRunning() ? 0 : OverworldSpeedup_AdditionalIterations(GetOverworldSpeedupSetting(), TRUE);
+    for (loops = 0; loops < extraLoops; loops++)
+    {
+        AnimateSprites();
+        CameraUpdate();
+        UpdateCameraPanning();
+    }
+
     if (fading)
     {
         SetFieldVBlankCallback();

@@ -165,7 +165,7 @@ GoldenrodCity_GameCorner_PrizeRoom_EventScript_ReceivedMonParty::
 	waitfanfare
 	specialvar VAR_RESULT, IsNuzlockeNicknamingActive
 	goto_if_eq VAR_RESULT, TRUE, GoldenrodCity_GameCorner_PrizeRoom_EventScript_ReceivedMonParty_Nickname_Nuzlocke
-	msgbox GoldenrodGamecorner_Text_GiveNicknameToThisMon, MSGBOX_YESNO
+	asknickname GoldenrodGamecorner_Text_GiveNicknameToThisMon
 	goto_if_eq VAR_RESULT, YES, GoldenrodCity_GameCorner_PrizeRoom_EventScript_NicknamePartyMon
 	goto GoldenrodCity_GameCorner_PrizeRoom_EventScript_EndPrizeExchange
 	end
@@ -193,7 +193,7 @@ GoldenrodCity_GameCorner_PrizeRoom_EventScript_PartyMon::
 	end
 	
 GoldenrodCity_GameCorner_PrizeRoom_EventScript_PcMon::
-	msgbox gText_NicknameThisPokemon, MSGBOX_YESNO
+	asknickname gText_NicknameThisPokemon
 	goto_if_eq VAR_RESULT, NO, GoldenrodCity_GameCorner_EventScript_SendMon
 	call Common_EventScript_NameReceivedBoxMon
 	goto GoldenrodCity_GameCorner_EventScript_SendMon

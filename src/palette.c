@@ -100,6 +100,13 @@ u32 UpdatePaletteFade(void)
     return result;
 }
 
+// The battle speed-up must not run an extra tick while a fade still owes the
+// hardware a transfer.
+bool32 IsPaletteFadeTransferPending(void)
+{
+    return sPlttBufferTransferPending != 0;
+}
+
 void ResetPaletteFade(void)
 {
     ResetPaletteFadeControl();

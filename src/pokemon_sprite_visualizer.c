@@ -920,7 +920,7 @@ static void LoadAndCreateEnemyShadowSpriteCustom(struct PokemonSpriteVisualizer 
             LoadCompressedSpriteSheet(&sizedSheet);
         }
         {
-            struct SpritePalette palettes[2];
+            struct SpritePalette palettes[3];
             GetHealthBoxHealthBarPalettes(palettes);
             LoadSpritePalette(&palettes[0]);
         }
@@ -960,7 +960,7 @@ static void LoadAndCreateEnemyShadowSpriteCustom(struct PokemonSpriteVisualizer 
             LoadCompressedSpriteSheet(&shadowSheet);
         }
         {
-            struct SpritePalette palettes[2];
+            struct SpritePalette palettes[3];
             GetHealthBoxHealthBarPalettes(palettes);
             LoadSpritePalette(&palettes[0]);
         }

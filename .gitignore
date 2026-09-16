@@ -3,6 +3,7 @@
 *.i
 *.elf
 *.gba
+*.zip
 !data/*.gba
 *.sgm
 *.sa1

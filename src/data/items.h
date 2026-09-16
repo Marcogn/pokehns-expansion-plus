@@ -195,7 +195,7 @@ const struct ItemInfo gItemsInfo[] =
     [ITEM_POKE_BALL] =
     {
         .name = ITEM_NAME("POKé BALL"),
-        .price = 100,
+        .price = 10, // HnS: Balls are cheap on purpose
         .description = COMPOUND_STRING(
             "A tool used for\n"
             "catching wild\n"
@@ -212,7 +212,7 @@ const struct ItemInfo gItemsInfo[] =
     [ITEM_GREAT_BALL] =
     {
         .name = ITEM_NAME("GREAT BALL"),
-        .price = 400,
+        .price = 15, // HnS: Balls are cheap on purpose
         .description = COMPOUND_STRING(
             "A good Ball with a\n"
             "higher catch rate\n"
@@ -230,7 +230,7 @@ const struct ItemInfo gItemsInfo[] =
     {
         .name = ITEM_NAME("ULTRA BALL"),
         //.price = (I_PRICE >= GEN_7) ? 800 : 1200,
-        .price = 800,
+        .price = 30, // HnS: Balls are cheap on purpose
         .description = COMPOUND_STRING(
             "A better Ball with\n"
             "a higher catch rate\n"
@@ -383,7 +383,7 @@ const struct ItemInfo gItemsInfo[] =
     [ITEM_QUICK_BALL] =
     {
         .name = ITEM_NAME("QUICK BALL"),
-        .price = 1000,
+        .price = 50, // HnS: sold in Azalea Town
         .description = COMPOUND_STRING(
             "Works well if\n"
             "used on the\n"
@@ -1402,7 +1402,7 @@ const struct ItemInfo gItemsInfo[] =
     [ITEM_HP_UP] =
     {
         .name = ITEM_NAME("HP UP"),
-        .price = (I_PRICE >= GEN_7) ? 10000 : 9800,
+        .price = 700, // HnS: EV items are capped at 700
         .description = COMPOUND_STRING(
             "Raises the base HP\n"
             "of one Pokémon."),
@@ -1419,7 +1419,7 @@ const struct ItemInfo gItemsInfo[] =
     [ITEM_PROTEIN] =
     {
         .name = ITEM_NAME("PROTEIN"),
-        .price = (I_PRICE >= GEN_7) ? 10000 : 9800,
+        .price = 700, // HnS: EV items are capped at 700
         .description = COMPOUND_STRING(
             "Raises the base\n"
             "Attack stat of one\n"
@@ -1437,7 +1437,7 @@ const struct ItemInfo gItemsInfo[] =
     [ITEM_IRON] =
     {
         .name = ITEM_NAME("IRON"),
-        .price = (I_PRICE >= GEN_7) ? 10000 : 9800,
+        .price = 700, // HnS: EV items are capped at 700
         .description = COMPOUND_STRING(
             "Raises the base\n"
             "Defense stat of\n"
@@ -1455,7 +1455,7 @@ const struct ItemInfo gItemsInfo[] =
     [ITEM_CALCIUM] =
     {
         .name = ITEM_NAME("CALCIUM"),
-        .price = (I_PRICE >= GEN_7) ? 10000 : 9800,
+        .price = 700, // HnS: EV items are capped at 700
         .description = COMPOUND_STRING(
             "Raises the base\n"
             "Sp. Atk stat of one\n"
@@ -1473,7 +1473,7 @@ const struct ItemInfo gItemsInfo[] =
     [ITEM_ZINC] =
     {
         .name = ITEM_NAME("ZINC"),
-        .price = (I_PRICE >= GEN_7) ? 10000 : 9800,
+        .price = 700, // HnS: EV items are capped at 700
         .description = COMPOUND_STRING(
             "Raises the base\n"
             "Sp. Def stat of one\n"
@@ -1492,7 +1492,7 @@ const struct ItemInfo gItemsInfo[] =
     {
         .name = ITEM_NAME("CARBOS"),
         .pluralName = ITEM_PLURAL_NAME("Carbos"),
-        .price = (I_PRICE >= GEN_7) ? 10000 : 9800,
+        .price = 700, // HnS: EV items are capped at 700
         .description = COMPOUND_STRING(
             "Raises the base\n"
             "Speed stat of one\n"
@@ -1648,7 +1648,7 @@ const struct ItemInfo gItemsInfo[] =
     {
         .name = ITEM_NAME("ABILITY CAPSULE"),
     #if I_PRICE >= GEN_9
-        .price = 100000,
+        .price = 75, // HnS: sold in Violet City
     #elif I_PRICE >= GEN_7
         .price = 10000,
     #else
@@ -1670,7 +1670,7 @@ const struct ItemInfo gItemsInfo[] =
     {
         .name = ITEM_NAME("ABILITY PATCH"),
         .pluralName = ITEM_PLURAL_NAME("Ability Patches"),
-        .price = (I_PRICE >= GEN_9) ? 250000 : 20,
+        .price = 100, // HnS: sold in Violet City
         .holdEffectParam = 0,
         .description = COMPOUND_STRING(
             "Turns the ability\n"

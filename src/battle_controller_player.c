@@ -6,6 +6,8 @@
 #include "battle_dome.h"
 #include "battle_interface.h"
 #include "battle_message.h"
+#include "option_menu.h"
+#include "battle_bg.h"
 #include "battle_setup.h"
 #include "battle_tv.h"
 #include "battle_z_move.h"
@@ -1772,6 +1774,7 @@ static void MoveSelectionDisplayMoveDescription(enum BattlerId battler)
     u8 pwr_start[] = _("{CLEAR_TO 0x38}");
     u8 acc_start[] = _("{CLEAR_TO 0x6C}");
     LoadMessageBoxAndBorderGfx();
+    LoadDarkBattleStdWindowPalette();
     DrawStdWindowFrame(B_WIN_MOVE_DESCRIPTION, FALSE);
     if (pwr < 2)
         StringCopy(pwr_num, gText_BattleSwitchWhich5);
@@ -1807,6 +1810,12 @@ void MoveSelectionCreateCursorAt(u8 cursorPosition, u8 baseTileNum)
     src[0] = baseTileNum + 1;
     src[1] = baseTileNum + 2;
 
+    if (IsDarkUiEnabled())
+    {
+        src[0] |= BATTLE_COMMAND_PAL_NUM << 12;
+        src[1] |= BATTLE_COMMAND_PAL_NUM << 12;
+    }
+
     CopyToBgTilemapBufferRect_ChangePalette(0, src, 9 * (cursorPosition & 1) + 1, 55 + (cursorPosition & 2), 1, 2, 0x11);
     CopyBgTilemapBufferToVram(0);
 }
@@ -1826,6 +1835,12 @@ void ActionSelectionCreateCursorAt(u8 cursorPosition, u8 baseTileNum)
     u16 src[2];
     src[0] = 1;
     src[1] = 2;
+
+    if (IsDarkUiEnabled())
+    {
+        src[0] |= BATTLE_COMMAND_PAL_NUM << 12;
+        src[1] |= BATTLE_COMMAND_PAL_NUM << 12;
+    }
 
     CopyToBgTilemapBufferRect_ChangePalette(0, src, 7 * (cursorPosition & 1) + 16, 35 + (cursorPosition & 2), 1, 2, 0x11);
     CopyBgTilemapBufferToVram(0);

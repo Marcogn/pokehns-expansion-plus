@@ -2121,6 +2121,7 @@
 #define FLAG_NO_ROOM_FOR_TM42_AT_MEMORIAL_PILLAR         0
 #define FLAG_LEARNED_YES_NAH_CHANSEY                     0
 #define FLAG_GOT_NEST_BALL_FROM_WATER_PATH_HOUSE_1       0
+#define FLAG_RECEIVED_TOGEPI_EGG                         0 // HnS only; shared code reads it, id 0 always reads FALSE
 #define FLAG_GOT_TOGEPI_EGG                              0
 #define FLAG_NO_ROOM_FOR_TOGEPI_EGG                      0
 #define FLAG_RECOVERED_SAPPHIRE                          0

@@ -1,6 +1,20 @@
 #ifndef GUARD_CONSTANTS_PARTY_MENU_H
 #define GUARD_CONSTANTS_PARTY_MENU_H
 
+// Party menu style. CLASSIC is this repo's own screen; SWSH is the screen
+// ported from soulgold. Both are compiled and the player picks at runtime.
+#define SWSH_PARTY_MENU                   TRUE // The SwSh variant is always compiled here; its own data tables gate on this
+#define PARTY_MENU_STYLE_OPTION           TRUE
+#define SWSH_PARTY_MENU_PC_ACCESS         FALSE
+#define SWSH_PARTY_BATTLE_DETAILS         FALSE // Show moves and ability instead of the selected Pokemon in battle
+#define SWSH_PARTY_MON_IDLE_ANIMS         TRUE
+#define SWSH_PARTY_MON_IDLE_ANIMS_FRAMES  300 // Number of frames before mon animation loops
+
+#define PARTY_MENU_OPTION_CLASSIC 0
+#define PARTY_MENU_OPTION_SWSH    1
+#define PARTY_MENU_OPTION_COUNT   2
+#define PARTY_MENU_DEFAULT_OPTION PARTY_MENU_OPTION_SWSH
+
 #define PC_MON_CHOSEN 0xFE
 #define PARTY_NOTHING_CHOSEN 0xFF
 
@@ -51,6 +65,12 @@
 #define PARTY_ACTION_MINIGAME           13
 #define PARTY_ACTION_SEND_MON_TO_BOX    14
 #define PARTY_ACTION_CHOOSE_FAINTED_MON 15
+// Modes the SwSh variant drives. gPartyMenu.action is only ever read by the
+// variant that is running, and the classic screen expresses the same two modes
+// differently (PARTY_ACTION_SWITCH plus slotId2 for moving a held item), so
+// these are additions rather than a change to existing behaviour.
+#define PARTY_ACTION_MOVE_ITEM          16
+#define PARTY_ACTION_FUSION             17
 
 // IDs for DisplayPartyMenuStdMessage, to display the message at the bottom of the party menu
 #define PARTY_MSG_CHOOSE_MON                0
@@ -85,6 +105,7 @@
 #define PARTY_MSG_NO_POKEMON                29
 #define PARTY_MSG_CHOOSE_MON_FOR_BOX        30
 #define PARTY_MSG_MOVE_ITEM_WHERE           31
+#define PARTY_MSG_SEND_MON_TO_BOX           32
 
 #define PARTY_MSG_NONE                      127
 

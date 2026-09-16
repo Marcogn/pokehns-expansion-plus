@@ -32,6 +32,7 @@
 #include "item_use.h"
 #include "test_runner.h"
 #include "constants/battle_anim.h"
+#include "option_menu.h"
 #include "constants/rgb.h"
 #include "constants/songs.h"
 #include "constants/items.h"
@@ -486,12 +487,14 @@ static struct CompressedSpriteSheet GetStatusSummaryBarSpriteSheet(void)
         return (struct CompressedSpriteSheet){ gBattleInterface_BallStatusBarGfxGen3, 0x200, TAG_STATUS_SUMMARY_BAR_TILE };
 }
 
+// The bar the party balls slide in on is drawn from the healthbox palette, so it
+// follows the healthbox into the dark theme instead of staying light beside it.
 static struct SpritePalette GetStatusSummaryBarSpritePal(void)
 {
-    if (UseGen4BattleUI())
-        return (struct SpritePalette){ gBattleInterface_BallStatusBarPalGen4, TAG_STATUS_SUMMARY_BAR_PAL };
-    else
-        return (struct SpritePalette){ gBattleInterface_BallStatusBarPalGen3, TAG_STATUS_SUMMARY_BAR_PAL };
+    struct SpritePalette palettes[3];
+
+    GetHealthBoxHealthBarPalettes(palettes);
+    return (struct SpritePalette){ palettes[0].data, TAG_STATUS_SUMMARY_BAR_PAL };
 }
 
 static struct SpritePalette GetStatusSummaryBallsSpritePal(void)
@@ -597,6 +600,39 @@ static const union TextColor sHealthBoxTextColor =
     .shadow = 3,
     .accent = 0
 };
+
+// On the Gen 4 skin entry 1 is the box outline, so the dark palette has to keep
+// it dark and the text moves to entry 6, the white the outline highlight uses.
+// The Gen 3 skin needs no variant: its box art never touches entry 1, so its
+// dark palette turns that entry white and sHealthBoxTextColor still works.
+static const union TextColor sDarkHealthBoxTextColorGen4 =
+{
+    .background = 0,
+    .foreground = 6,
+    .shadow = 1,
+    .accent = 0
+};
+
+// The opponent's HP numbers are rendered from sEmptyWhiteText_*, which carries
+// its own {COLOR WHITE} control code: palette entry 1. That is white on the
+// Gen 3 skin's dark palette, but the box outline on the Gen 4 one, so there the
+// foreground has to be moved to entry 6 by hand.
+#define HEALTHBOX_TEXT_COLOR_OFFSET 2
+#define DARK_HEALTHBOX_TEXT_COLOR_GEN4 TEXT_COLOR_GREEN // palette entry 6
+
+static void ApplyHealthboxTextStyle(u8 *text)
+{
+    if (IsDarkUiEnabled() && UseGen4BattleUI())
+        text[HEALTHBOX_TEXT_COLOR_OFFSET] = DARK_HEALTHBOX_TEXT_COLOR_GEN4;
+}
+
+static union TextColor GetHealthBoxTextColor(void)
+{
+    if (IsDarkUiEnabled() && UseGen4BattleUI())
+        return sDarkHealthBoxTextColorGen4;
+
+    return sHealthBoxTextColor;
+}
 
 // Because the healthbox is too large to fit into one sprite, it is divided into two sprites.
 // healthboxLeft  or healthboxMain  is the left part that is used as the 'main' sprite.
@@ -949,12 +985,12 @@ static void UpdateLvlInHealthbox(u8 healthboxSpriteId, u8 lvl)
         if (IsOnPlayerSide(battler))
         {
             FillSpriteRectColor(spriteId, 8, 5, 24, 11, HEALTHBOX_BG_INDEX);
-            AddSpriteTextPrinterParameterized6(spriteId, FONT_SMALL, 32 - width, 3, 0, 0, sHealthBoxTextColor, 0, text);
+            AddSpriteTextPrinterParameterized6(spriteId, FONT_SMALL, 32 - width, 3, 0, 0, GetHealthBoxTextColor(), 0, text);
         }
         else
         {
             FillSpriteRectColor(spriteId, 0, 5, 24, 11, HEALTHBOX_BG_INDEX);
-            AddSpriteTextPrinterParameterized6(spriteId, FONT_SMALL, 24 - width, 3, 0, 0, sHealthBoxTextColor, 0, text);
+            AddSpriteTextPrinterParameterized6(spriteId, FONT_SMALL, 24 - width, 3, 0, 0, GetHealthBoxTextColor(), 0, text);
         }
     }
 }
@@ -1006,9 +1042,9 @@ static void PrintHpOnHealthbox(u32 spriteId, s16 currHp, s16 maxHp, u32 bgColor,
 
         width = GetStringWidth(HP_FONT, text, -1) + GetFontAttribute(HP_FONT, FONTATTR_LETTER_SPACING);
         if (width < 32)
-            AddSpriteTextPrinterParameterized6(spriteId2, HP_FONT, 32 - width, yOffset + 5, 0, 0, sHealthBoxTextColor, 0, text);
+            AddSpriteTextPrinterParameterized6(spriteId2, HP_FONT, 32 - width, yOffset + 5, 0, 0, GetHealthBoxTextColor(), 0, text);
         else
-            AddSpriteTextPrinterParameterized6(spriteId, HP_FONT, 64 - (width - 32), yOffset + 5, 0, 0, sHealthBoxTextColor, 0, text);
+            AddSpriteTextPrinterParameterized6(spriteId, HP_FONT, 64 - (width - 32), yOffset + 5, 0, 0, GetHealthBoxTextColor(), 0, text);
 
         gSprites[spriteId].data[1] = savedValue1;
         gSprites[spriteId2].data[1] = savedValue2;
@@ -1025,6 +1061,7 @@ static void UpdateOpponentHpTextDoubles(u32 healthboxSpriteId, u32 barSpriteId, 
     if (gBattleSpritesDataPtr->battlerData[battler].hpNumbersNoBars) // don't print text if only bars are visible
     {
         memcpy(text, sEmptyWhiteText_TransparentHighlight, sizeof(sEmptyWhiteText_TransparentHighlight));
+        ApplyHealthboxTextStyle(text);
         if (maxOrCurrent == HP_CURRENT)
             var = 0;
         else
@@ -1069,6 +1106,7 @@ static void UpdateOpponentHpTextSingles(u32 healthboxSpriteId, s16 value, u32 ma
     enum BattlerId battler = gSprites[healthboxSpriteId].hMain_Battler;
 
     memcpy(text, sEmptyWhiteText_GrayHighlight, sizeof(sEmptyWhiteText_GrayHighlight));
+    ApplyHealthboxTextStyle(text);
     if (gBattleSpritesDataPtr->battlerData[battler].hpNumbersNoBars) // don't print text if only bars are visible
     {
         if (maxOrCurrent == HP_CURRENT)
@@ -1148,6 +1186,7 @@ static void PrintSafariMonInfo(u8 healthboxSpriteId, struct Pokemon *mon)
     u8 i, var, nature, healthBarSpriteId;
 
     memcpy(text, sEmptyWhiteText_GrayHighlight, sizeof(sEmptyWhiteText_GrayHighlight));
+    ApplyHealthboxTextStyle(text);
     barFontGfx = &gMonSpritesGfxPtr->barFontGfx[0x520 + (GetBattlerPosition(gSprites[healthboxSpriteId].hMain_Battler) * 384)];
     var = 5;
     nature = GetNature(mon);
@@ -1835,17 +1874,110 @@ void UpdateNickInHealthbox(u8 healthboxSpriteId, struct Pokemon *mon)
         if (IsOnPlayerSide(gSprites[healthboxSpriteId].data[6]))
         {
             FillSpriteRectColor(healthboxSpriteId, 16, 5, 55, 11, HEALTHBOX_BG_INDEX);
-            AddSpriteTextPrinterParameterized6(healthboxSpriteId, fontId, 16, 3, 0, 0, sHealthBoxTextColor, 0, gDisplayedStringBattle);
+            AddSpriteTextPrinterParameterized6(healthboxSpriteId, fontId, 16, 3, 0, 0, GetHealthBoxTextColor(), 0, gDisplayedStringBattle);
         }
         else
         {
             FillSpriteRectColor(healthboxSpriteId, 8, 5, 55, 11, HEALTHBOX_BG_INDEX);
-            AddSpriteTextPrinterParameterized6(healthboxSpriteId, fontId, 8, 3, 0, 0, sHealthBoxTextColor, 0, gDisplayedStringBattle);
+            AddSpriteTextPrinterParameterized6(healthboxSpriteId, fontId, 8, 3, 0, 0, GetHealthBoxTextColor(), 0, gDisplayedStringBattle);
         }
 
         gSprites[healthboxSpriteId].data[1] = savedValue1;
         gSprites[healthboxSpriteId2].data[1] = savedValue2;
     }
+}
+
+
+// ---------------------------------------------------------------------------
+// Dark theme contrast fixes
+//
+// Two small pieces of artwork are drawn from a palette entry the dark theme has
+// to darken for something else, so they lose their white. Rather than give them
+// palettes of their own, their pixels are moved onto a spare entry the dark
+// palettes keep white - the same trick Soulgold uses for its health bar, just
+// applied to the two places that actually need it here.
+// ---------------------------------------------------------------------------
+
+static u32 RemapPixelIndex(u32 pixels, u32 from, u32 to)
+{
+    u32 remapped = 0;
+
+    for (u32 shift = 0; shift < 32; shift += 4)
+    {
+        u32 index = (pixels >> shift) & 0xF;
+
+        if (index == from)
+            index = to;
+        remapped |= index << shift;
+    }
+
+    return remapped;
+}
+
+// The last-used-ball tab and the move-info tab share the ability pop-up's
+// palette, and the entries they draw with have to stay dark there because the
+// pop-up needs them: entry 7 is its ability panel, entry 5 its name strip. Both
+// tabs therefore lose their contrast, and they move onto entry 9, which is
+// already white on that palette and which none of the three sheets uses.
+//
+// Which entries to move differs per sheet, because entry 5 does not mean the
+// same thing in both: on the ball tab it is the R itself, which has to stay
+// dark against the badge that entry 7 draws, while on the move-info tab it is
+// the MOVE INFO caption sitting on the tab body and so has to go white.
+#define TAB_WHITE_DST_PAL_INDEX 9
+
+static const u8 sTabWhites_LastUsedBall[] = { 7 };
+static const u8 sTabWhites_MoveInfo[] = { 5, 7 };
+
+static void RecolorTabWhitesForDarkUi(u16 tileTag, u32 size, const u8 *srcIndexes, u32 srcCount)
+{
+    u16 tileStart = GetSpriteTileStartByTag(tileTag);
+    u32 *vram;
+    u32 i;
+
+    if (!IsDarkUiEnabled() || tileStart == 0xFFFF)
+        return;
+
+    vram = (u32 *)(OBJ_VRAM0 + tileStart * TILE_SIZE_4BPP);
+    for (i = 0; i < size / sizeof(u32); i++)
+    {
+        u32 pixels = vram[i];
+        u32 j;
+
+        for (j = 0; j < srcCount; j++)
+            pixels = RemapPixelIndex(pixels, srcIndexes[j], TAB_WHITE_DST_PAL_INDEX);
+        vram[i] = pixels;
+    }
+}
+
+// The caught-Pokemon indicator's white half is drawn from health bar palette
+// entry 2, which the dark palettes darken because the HP bar track uses it too.
+// Each skin has a different spare entry, and the dark health bar palettes keep
+// that one white.
+#define BALL_CAUGHT_WHITE_SRC_PAL_INDEX 2
+
+static u32 GetBallCaughtWhiteIndex(void)
+{
+    // Gen 4's artwork never touches entry 9; Gen 3's never touches entry 1.
+    return UseGen4BattleUI() ? 9 : 1;
+}
+
+static void CopyBallCaughtIndicatorGfx(const void *src, void *dest)
+{
+    const u32 *src32 = src;
+    u32 buffer[TILE_SIZE_4BPP / sizeof(u32)];
+    u32 i;
+
+    if (!IsDarkUiEnabled())
+    {
+        CpuCopy32(src, dest, TILE_SIZE_4BPP);
+        return;
+    }
+
+    for (i = 0; i < ARRAY_COUNT(buffer); i++)
+        buffer[i] = RemapPixelIndex(src32[i], BALL_CAUGHT_WHITE_SRC_PAL_INDEX, GetBallCaughtWhiteIndex());
+
+    CpuCopy32(buffer, dest, TILE_SIZE_4BPP);
 }
 
 void TryAddPokeballIconToHealthbox(u8 healthboxSpriteId, bool8 noStatus)
@@ -1896,7 +2028,7 @@ void TryAddPokeballIconToHealthbox(u8 healthboxSpriteId, bool8 noStatus)
     }
 
     if (noStatus)
-        CpuCopy32(GetHealthboxElementGfxPtr(HEALTHBOX_GFX_STATUS_BALL_CAUGHT), (void *)(OBJ_VRAM0 + (gSprites[healthBarSpriteId].oam.tileNum + 8) * TILE_SIZE_4BPP), 32);
+        CopyBallCaughtIndicatorGfx(GetHealthboxElementGfxPtr(HEALTHBOX_GFX_STATUS_BALL_CAUGHT), (void *)(OBJ_VRAM0 + (gSprites[healthBarSpriteId].oam.tileNum + 8) * TILE_SIZE_4BPP));
     else
         CpuFill32(0, (void *)(OBJ_VRAM0 + (gSprites[healthBarSpriteId].oam.tileNum + 8) * TILE_SIZE_4BPP), 32);
 }
@@ -2094,7 +2226,7 @@ static void UpdateSafariBallsTextOnHealthbox(u8 healthboxSpriteId)
         gSprites[healthboxSpriteId].data[1] = healthboxSpriteId2;
         gSprites[healthboxSpriteId2].data[1] = SPRITE_NONE;
 
-        AddSpriteTextPrinterParameterized6(healthboxSpriteId, FONT_SMALL, 16, 3, 0, 0, sHealthBoxTextColor, 0, gText_SafariBalls);
+        AddSpriteTextPrinterParameterized6(healthboxSpriteId, FONT_SMALL, 16, 3, 0, 0, GetHealthBoxTextColor(), 0, gText_SafariBalls);
 
         gSprites[healthboxSpriteId].data[1] = savedValue1;
         gSprites[healthboxSpriteId2].data[1] = savedValue2;
@@ -2130,11 +2262,46 @@ static void UpdateLeftNoOfBallsTextOnHealthbox(u8 healthboxSpriteId)
         gSprites[healthboxSpriteId2].data[1] = SPRITE_NONE;
 
         FillSpriteRectColor(healthboxSpriteId, 55, 19, 31, 12, HEALTHBOX_BG_INDEX);
-        AddSpriteTextPrinterParameterized6(healthboxSpriteId, FONT_SMALL, 55, 19, 0, 0, sHealthBoxTextColor, 0, text);
+        AddSpriteTextPrinterParameterized6(healthboxSpriteId, FONT_SMALL, 55, 19, 0, 0, GetHealthBoxTextColor(), 0, text);
 
         gSprites[healthboxSpriteId].data[1] = savedValue1;
         gSprites[healthboxSpriteId2].data[1] = savedValue2;
     }
+}
+
+// A shiny Pokemon gets the gold healthbox, as in Soulgold. The safari box has
+// no Pokemon behind it, so it always keeps the normal palette.
+static void UpdateHealthboxPalette(u8 healthboxSpriteId, struct Pokemon *mon, u8 elementId)
+{
+    enum BattlerId battler = gSprites[healthboxSpriteId].hMain_Battler;
+    u32 paletteNum;
+
+    if (!((gBattleTypeFlags & BATTLE_TYPE_SAFARI) && IsOnPlayerSide(battler))
+     && elementId != HEALTHBOX_SAFARI_ALL_TEXT
+     && elementId != HEALTHBOX_SAFARI_BALLS_TEXT
+     && IsMonShiny(mon))
+    {
+        // Loaded here rather than alongside the other two, so a battle without a
+        // shiny Pokemon does not spend an OBJ palette slot on it. LoadSpritePalette
+        // is idempotent and returns 0xFF when the table is full, in which case the
+        // box falls back to the normal palette instead of drawing with a stale one.
+        struct SpritePalette palettes[3];
+
+        GetHealthBoxHealthBarPalettes(palettes);
+        paletteNum = LoadSpritePalette(&palettes[2]);
+    }
+    else
+    {
+        paletteNum = IndexOfSpritePaletteTag(TAG_HEALTHBOX_PAL);
+    }
+
+    if (paletteNum == 0xFF)
+        paletteNum = IndexOfSpritePaletteTag(TAG_HEALTHBOX_PAL);
+    if (paletteNum == 0xFF)
+        return;
+
+    gSprites[healthboxSpriteId].oam.paletteNum = paletteNum;
+    gSprites[gSprites[healthboxSpriteId].oam.affineParam].oam.paletteNum = paletteNum;
 }
 
 void UpdateHealthboxAttribute(u8 healthboxSpriteId, struct Pokemon *mon, u8 elementId)
@@ -2142,6 +2309,8 @@ void UpdateHealthboxAttribute(u8 healthboxSpriteId, struct Pokemon *mon, u8 elem
     enum BattlerId battler = gSprites[healthboxSpriteId].hMain_Battler;
     s32 maxHp = GetMonData(mon, MON_DATA_MAX_HP);
     s32 currHp = GetMonData(mon, MON_DATA_HP);
+
+    UpdateHealthboxPalette(healthboxSpriteId, mon, elementId);
 
     if (IsOnPlayerSide(battler))
     {
@@ -2528,12 +2697,23 @@ static u8 *AddTextPrinterAndCreateWindowOnHealthboxWithFont(const u8 *str, u32 x
     u8 color[3];
     struct WindowTemplate winTemplate = sHealthboxWindowTemplate;
 
+    union TextColor textColor = GetHealthBoxTextColor();
+
     winId = AddWindow(&winTemplate);
     FillWindowPixelBuffer(winId, PIXEL_FILL(bgColor));
 
+    // The nickname, the level and the HP numbers are drawn through this window
+    // rather than straight onto the sprite, so they need the same colours as the
+    // rest of the healthbox text instead of the hardcoded light-theme pair.
     color[0] = bgColor;
-    color[1] = 1;
-    color[2] = isHP ? 4 : 3;
+    color[1] = textColor.foreground;
+    color[2] = textColor.shadow;
+
+    // The light theme shades the HP numbers one step darker than the rest of the
+    // text. Only it has the room for that: on a dark palette entries 3 and 4 are
+    // both nearly black, so the distinction would be invisible anyway.
+    if (isHP && textColor.foreground == sHealthBoxTextColor.foreground)
+        color[2] = 4;
 
     AddTextPrinterParameterized4(winId, fontId, x, y, 0, 0, color, TEXT_SKIP_DRAW, str);
 
@@ -2605,6 +2785,20 @@ static void SafariTextIntoHealthboxObject(void *dest, u8 *windowTileData, u32 wi
 #define ABILITY_POP_UP_BATTLER_FG_TXTCLR 7
 #define ABILITY_POP_UP_BATTLER_SH_TXTCLR 1
 
+// TAG_ABILITY_POP_UP is shared by the ability pop-up, the last-used-ball tab and
+// the move-info tab, and entry 7 does double duty across them: it is the white
+// panel the ability name sits on, and it is also the R glyph on the ball tab. It
+// cannot go black without erasing that glyph, so in dark mode it becomes a mid
+// grey that works as both, with entry 4 (the inset behind the glyph) pushed
+// darker to keep the contrast. The pop-up's own name text moves off entry 7 onto
+// entry 9, which no artwork on this palette uses.
+#define ABILITY_POP_UP_BATTLER_FG_TXTCLR_DARK 9
+
+static u32 GetAbilityPopUpBattlerFgColor(void)
+{
+    return IsDarkUiEnabled() ? ABILITY_POP_UP_BATTLER_FG_TXTCLR_DARK : ABILITY_POP_UP_BATTLER_FG_TXTCLR;
+}
+
 #define ABILITY_POP_UP_ABILITY_BG_TXTCLR 7
 #define ABILITY_POP_UP_ABILITY_FG_TXTCLR 9
 #define ABILITY_POP_UP_ABILITY_SH_TXTCLR 1
@@ -2647,12 +2841,52 @@ static const struct SpriteSheet sSpriteSheet_AbilityPopUp =
     sAbilityPopUpGfx, sizeof(sAbilityPopUpGfx), TAG_ABILITY_POP_UP
 };
 
+static const u16 sDarkAbilityPopUpPaletteGen3[16] =
+{
+    [ 0] = RGB( 0, 22, 11),
+    [ 1] = RGB( 2,  2,  2),  // was RGB(17, 16, 18) - text shadow, outer border
+    [ 2] = RGB( 3,  3,  3),  // was RGB(12, 11, 13) - inner border
+    [ 3] = RGB( 9,  8, 10),
+    [ 4] = RGB( 2,  1,  2),  // was RGB(7, 3, 10) - inset behind the R glyph, pop-up border
+    [ 5] = RGB( 4,  4,  4),  // was RGB(12, 11, 13) - name strip background
+    [ 6] = RGB( 3,  3,  3),  // was RGB(28, 29, 30) - divider
+    [ 7] = RGB( 9,  9,  9),  // was RGB(31, 31, 31) - ability strip background and the R glyph
+    [ 8] = RGB( 4,  4,  4),  // was RGB(13, 14, 14) - tab body
+    [ 9] = RGB(31, 31, 31),  // was RGB(9, 8, 10) - text foreground (no artwork uses this entry)
+    [10] = RGB( 4,  4,  4),  // was RGB(13, 14, 14) - tab shading
+    [11] = RGB( 9,  8, 10),
+    [12] = RGB( 4,  4,  4),  // was RGB(13, 14, 14) - tab shading
+    [13] = RGB( 8,  8,  8),  // was RGB(26, 26, 25) - tab body
+    [14] = RGB( 5,  5,  5),  // was RGB(16, 17, 17) - tab shading
+    [15] = RGB( 9,  8, 10),
+};
+
+static const u16 sDarkAbilityPopUpPaletteGen4[16] =
+{
+    [ 0] = RGB( 0, 22, 11),
+    [ 1] = RGB( 2,  2,  2),  // was RGB(23, 23, 23) - text shadow, outer border
+    [ 2] = RGB( 3,  3,  3),  // was RGB(18, 18, 18) - inner border
+    [ 3] = RGB( 7,  6,  8),
+    [ 4] = RGB( 2,  2,  2),  // was RGB(8, 8, 8) - inset behind the R glyph, pop-up border
+    [ 5] = RGB( 4,  4,  4),  // was RGB(14, 14, 14) - name strip background
+    [ 6] = RGB( 3,  3,  3),  // was RGB(19, 19, 19) - divider
+    [ 7] = RGB( 9,  9,  9),  // was RGB(31, 31, 31) - ability strip background and the R glyph
+    [ 8] = RGB( 8,  8,  8),  // was RGB(26, 26, 25) - tab body
+    [ 9] = RGB(31, 31, 31),  // was RGB(8, 8, 8) - text foreground (no artwork uses this entry)
+    [10] = RGB( 4,  4,  4),  // was RGB(14, 14, 14) - tab shading
+    [11] = RGB( 8,  8,  8),
+    [12] = RGB( 2,  2,  2),  // was RGB(6, 6, 6) - tab shading
+    [13] = RGB( 7,  7,  7),  // was RGB(23, 23, 23) - tab body
+    [14] = RGB( 6,  6,  6),  // was RGB(19, 19, 19) - tab shading
+    [15] = RGB( 8,  8,  8),
+};
+
 static const u16 *GetAbilityPopUpPal(void)
 {
     if (UseGen4BattleUI())
-        return sAbilityPopUpPaletteGen4;
+        return IsDarkUiEnabled() ? sDarkAbilityPopUpPaletteGen4 : sAbilityPopUpPaletteGen4;
     else
-        return sAbilityPopUpPaletteGen3;
+        return IsDarkUiEnabled() ? sDarkAbilityPopUpPaletteGen3 : sAbilityPopUpPaletteGen3;
 }
 
 static struct SpritePalette GetAbilityPopUpSpritePal(void)
@@ -2781,7 +3015,7 @@ static void PrintBattlerOnAbilityPopUp(enum BattlerId battler, u8 spriteId1, u8 
                         (void *)(OBJ_VRAM0) + TILE_OFFSET_4BPP(gSprites[spriteId1].oam.tileNum),
                         (void *)(OBJ_VRAM0) + TILE_OFFSET_4BPP(gSprites[spriteId2].oam.tileNum),
                         0, 0,
-                        ABILITY_POP_UP_BATTLER_BG_TXTCLR, ABILITY_POP_UP_BATTLER_FG_TXTCLR, ABILITY_POP_UP_BATTLER_SH_TXTCLR,
+                        ABILITY_POP_UP_BATTLER_BG_TXTCLR, GetAbilityPopUpBattlerFgColor(), ABILITY_POP_UP_BATTLER_SH_TXTCLR,
                         TRUE, gSprites[spriteId1].sBattlerId);
 }
 
@@ -3146,6 +3380,7 @@ void TryAddLastUsedBallItemSprites(void)
     {
         struct SpriteSheet ballSheet = GetLastUsedBallWindowSpriteSheet();
         LoadSpriteSheet(&ballSheet);
+        RecolorTabWhitesForDarkUi(TAG_LAST_BALL_WINDOW, ballSheet.size, sTabWhites_LastUsedBall, ARRAY_COUNT(sTabWhites_LastUsedBall));
     }
 
     if (gBattleStruct->ballSpriteIds[1] == MAX_SPRITES)
@@ -3187,7 +3422,10 @@ void TryToAddMoveInfoWindow(void)
 
     { struct SpritePalette pal = GetAbilityPopUpSpritePal(); LoadSpritePalette(&pal); }
     if (GetSpriteTileStartByTag(MOVE_INFO_WINDOW_TAG) == 0xFFFF)
+    {
         LoadSpriteSheet(&sSpriteSheet_MoveInfoWindow);
+        RecolorTabWhitesForDarkUi(MOVE_INFO_WINDOW_TAG, sSpriteSheet_MoveInfoWindow.size, sTabWhites_MoveInfo, ARRAY_COUNT(sTabWhites_MoveInfo));
+    }
 
     if (gBattleStruct->moveInfoSpriteId == MAX_SPRITES)
     {

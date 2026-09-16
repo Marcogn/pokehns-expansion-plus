@@ -603,7 +603,8 @@ struct BattleStruct
     u8 isSkyBattle:1;
     u8 unableToUseMove:1; // for the current action only, to check if the battler failed to act at end turn use the DisableStruct member
     u8 triAttackBurn:1;
-    u8 unused:3;
+    u8 hasBattleInputStarted:1; // Latched once the player is first asked to act; battle speed-up
+    u8 unused:2;
     void (*savedCallback)(void);
     u16 chosenItem[MAX_BATTLERS_COUNT];
     u16 choicedMove[MAX_BATTLERS_COUNT];
@@ -865,7 +866,7 @@ struct BattleAnimationInfo
     u8 introAnimActive:1;
     u8 wildMonInvisible:1;
     u8 field_9_x1C:3;
-    u8 field_9_x20:1;
+    u8 captureSuccessAnimActive:1;
     u8 field_9_x40:1;
     u8 field_9_x80:1;
     u8 numBallParticles;

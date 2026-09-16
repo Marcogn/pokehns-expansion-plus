@@ -27,6 +27,7 @@
 #include "contest.h"
 #include "trainer_pokemon_sprites.h"
 #include "constants/songs.h"
+#include "option_menu.h"
 #include "constants/rgb.h"
 #include "constants/battle_palace.h"
 #include "constants/battle_move_effects.h"
@@ -115,17 +116,218 @@ static const struct CompressedSpriteSheet sSpriteSheets_HealthBar[MAX_BATTLERS_C
     {gBlankGfxCompressed, 0x0120, TAG_HEALTHBAR_OPPONENT2_TILE}
 };
 
-void GetHealthBoxHealthBarPalettes(struct SpritePalette out[2])
+// ---------------------------------------------------------------------------
+// Healthbox palettes
+//
+// Each battle UI skin gets four: the normal box, the gold box a shiny Pokemon
+// gets, and a dimmed version of each for the DARK UI option. The health bar is
+// a separate sprite with its own palette, so it gets a dark variant too.
+//
+// Every entry below was read out of the skin's own ball_status_bar.gbapal and
+// ball_display.gbapal; only the entries the artwork actually uses for the box
+// body, its outline and the bar track are changed, and the original value of
+// each of those is kept in a comment. The HP colours and the exp bar are left
+// alone in all four.
+//
+// Unlike Soulgold, which keeps a shiny box light even in dark mode and then has
+// to rewrite the health bar's pixels per sprite to match, every box here goes
+// dark together, so the bar palette can simply be swapped and no sprite needs
+// its VRAM patched.
+// ---------------------------------------------------------------------------
+
+// Shiny healthbox: the box body turns gold, everything else is the normal palette.
+static const u16 sShinyHealthboxPalGen3[16] =
 {
+    [ 0] = RGB( 0,  0,  0),
+    [ 1] = RGB( 8,  8,  8),
+    [ 2] = RGB(29, 25,  2),  // was RGB(31, 31, 31)
+    [ 3] = RGB(27, 22,  0),  // was RGB(27, 26, 27)
+    [ 4] = RGB(24, 19,  0),  // was RGB(23, 23, 23)
+    [ 5] = RGB(15, 18, 16),
+    [ 6] = RGB(10, 13, 12),
+    [ 7] = RGB( 4,  7,  0),
+    [ 8] = RGB( 7, 10,  8),
+    [ 9] = RGB(31, 28,  0),
+    [10] = RGB(31, 19, 18),
+    [11] = RGB( 8, 25, 31),
+    [12] = RGB( 0,  0, 31),
+    [13] = RGB( 0, 31,  0),
+    [14] = RGB(31,  0,  0),
+    [15] = RGB(13, 18, 31),
+};
+
+// Gen 3 skin. Entries 2..4 are the box body; 5..8 are its green border and stay
+// as they are. The box art never uses entry 1, only sHealthBoxTextColor does, so
+// entry 1 becomes the white text foreground and entry 3 (body + text shadow) goes
+// dark: the text colour spec needs no dark variant on this skin.
+static const u16 sDarkHealthboxPalGen3[16] =
+{
+    [ 0] = RGB( 0,  0,  0),
+    [ 1] = RGB(31, 31, 31),  // was RGB(8, 8, 8)
+    [ 2] = RGB( 5,  5,  5),  // was RGB(31, 31, 31)
+    [ 3] = RGB( 2,  2,  2),  // was RGB(27, 26, 27)
+    [ 4] = RGB( 3,  3,  3),  // was RGB(23, 23, 23)
+    [ 5] = RGB(15, 18, 16),
+    [ 6] = RGB(10, 13, 12),
+    [ 7] = RGB( 4,  7,  0),
+    [ 8] = RGB( 7, 10,  8),
+    [ 9] = RGB(31, 28,  0),
+    [10] = RGB(31, 19, 18),
+    [11] = RGB( 8, 25, 31),
+    [12] = RGB( 0,  0, 31),
+    [13] = RGB( 0, 31,  0),
+    [14] = RGB(31,  0,  0),
+    [15] = RGB(13, 18, 31),
+};
+
+// Shiny healthbox under the dark theme. Only slightly darker than the light
+// theme's gold: dimming it further turns the hue to brown and the box stops
+// reading as gold at all, which is the whole point of it.
+static const u16 sDarkShinyHealthboxPalGen3[16] =
+{
+    [ 0] = RGB( 0,  0,  0),
+    [ 1] = RGB(31, 31, 31),  // was RGB(8, 8, 8)
+    [ 2] = RGB(25, 21,  1),  // was RGB(31, 31, 31)
+    [ 3] = RGB( 2,  2,  2),  // was RGB(27, 26, 27) - stays dark, it is the text shadow
+    [ 4] = RGB(19, 15,  0),  // was RGB(23, 23, 23)
+    [ 5] = RGB(15, 18, 16),
+    [ 6] = RGB(10, 13, 12),
+    [ 7] = RGB( 4,  7,  0),
+    [ 8] = RGB( 7, 10,  8),
+    [ 9] = RGB(31, 28,  0),
+    [10] = RGB(31, 19, 18),
+    [11] = RGB( 8, 25, 31),
+    [12] = RGB( 0,  0, 31),
+    [13] = RGB( 0, 31,  0),
+    [14] = RGB(31,  0,  0),
+    [15] = RGB(13, 18, 31),
+};
+
+// Health bar under the dark theme. Only the bar track and its frame are darkened;
+// entries 8..15 are the HP colours and the damage flash and must not move.
+static const u16 sDarkHealthbarPalGen3[16] =
+{
+    [ 0] = RGB( 0,  0,  0),
+    [ 1] = RGB(31, 31, 31),  // white for the caught-Pokemon indicator, see GetBallCaughtWhiteIndex
+    [ 2] = RGB( 5,  5,  5),  // was RGB(31, 31, 31)
+    [ 3] = RGB( 4,  4,  4),  // was RGB(26, 25, 23)
+    [ 4] = RGB( 3,  3,  3),  // was RGB(16, 16, 17)
+    [ 5] = RGB( 9,  8, 11),
+    [ 6] = RGB(10, 13, 11),
+    [ 7] = RGB(31, 22, 15),
+    [ 8] = RGB(30, 18, 14),
+    [ 9] = RGB(27, 13, 11),
+    [10] = RGB(14, 31, 21),
+    [11] = RGB(11, 26, 16),
+    [12] = RGB(31, 28,  7),
+    [13] = RGB(25, 21,  1),
+    [14] = RGB(31, 11,  7),
+    [15] = RGB(21,  8,  9),
+};
+
+// Shiny healthbox: the box body turns gold, everything else is the normal palette.
+static const u16 sShinyHealthboxPalGen4[16] =
+{
+    [ 0] = RGB( 0,  0,  0),
+    [ 1] = RGB( 8,  8,  8),
+    [ 2] = RGB(29, 25,  2),  // was RGB(28, 28, 28)
+    [ 3] = RGB(27, 22,  0),  // was RGB(23, 23, 23)
+    [ 4] = RGB(24, 19,  0),  // was RGB(19, 19, 19)
+    [ 5] = RGB(15, 18, 16),
+    [ 6] = RGB(31, 31, 31),
+    [ 7] = RGB(14, 14, 14),
+    [ 8] = RGB( 6, 12, 27),
+    [ 9] = RGB( 9, 18, 31),
+    [10] = RGB(31, 19, 18),
+    [11] = RGB( 8, 25, 31),
+    [12] = RGB( 0,  0, 31),
+    [13] = RGB( 0, 31,  0),
+    [14] = RGB(31,  0,  0),
+    [15] = RGB(13, 18, 31),
+};
+
+// Gen 4 skin. Entry 1 is the box outline and entries 2..4 its body; entry 6 is the
+// white the outline highlight and the dark text are drawn from.
+static const u16 sDarkHealthboxPalGen4[16] =
+{
+    [ 0] = RGB( 0,  0,  0),
+    [ 1] = RGB( 2,  2,  2),  // was RGB(8, 8, 8)
+    [ 2] = RGB( 5,  5,  5),  // was RGB(28, 28, 28)
+    [ 3] = RGB( 4,  4,  4),  // was RGB(23, 23, 23)
+    [ 4] = RGB( 3,  3,  3),  // was RGB(19, 19, 19)
+    [ 5] = RGB(15, 18, 16),
+    [ 6] = RGB(31, 31, 31),
+    [ 7] = RGB(14, 14, 14),
+    [ 8] = RGB( 6, 12, 27),
+    [ 9] = RGB( 9, 18, 31),
+    [10] = RGB(31, 19, 18),
+    [11] = RGB( 8, 25, 31),
+    [12] = RGB( 0,  0, 31),
+    [13] = RGB( 0, 31,  0),
+    [14] = RGB(31,  0,  0),
+    [15] = RGB(13, 18, 31),
+};
+
+// Shiny healthbox under the dark theme. Only slightly darker than the light
+// theme's gold: dimming it further turns the hue to brown and the box stops
+// reading as gold at all, which is the whole point of it.
+static const u16 sDarkShinyHealthboxPalGen4[16] =
+{
+    [ 0] = RGB( 0,  0,  0),
+    [ 1] = RGB( 2,  2,  2),  // was RGB(8, 8, 8)
+    [ 2] = RGB(25, 21,  1),  // was RGB(28, 28, 28)
+    [ 3] = RGB(22, 18,  0),  // was RGB(23, 23, 23)
+    [ 4] = RGB(19, 15,  0),  // was RGB(19, 19, 19)
+    [ 5] = RGB(15, 18, 16),
+    [ 6] = RGB(31, 31, 31),
+    [ 7] = RGB(14, 14, 14),
+    [ 8] = RGB( 6, 12, 27),
+    [ 9] = RGB( 9, 18, 31),
+    [10] = RGB(31, 19, 18),
+    [11] = RGB( 8, 25, 31),
+    [12] = RGB( 0,  0, 31),
+    [13] = RGB( 0, 31,  0),
+    [14] = RGB(31,  0,  0),
+    [15] = RGB(13, 18, 31),
+};
+
+// Health bar under the dark theme. Only the bar track and its frame are darkened;
+// entries 8..15 are the HP colours and the damage flash and must not move.
+static const u16 sDarkHealthbarPalGen4[16] =
+{
+    [ 0] = RGB( 0,  0,  0),
+    [ 1] = RGB( 2,  2,  2),  // was RGB(8, 8, 8)
+    [ 2] = RGB( 6,  6,  6),  // was RGB(31, 31, 31)
+    [ 3] = RGB( 5,  5,  5),  // was RGB(19, 19, 19)
+    [ 4] = RGB( 4,  4,  4),  // was RGB(16, 16, 17)
+    [ 5] = RGB( 9,  8, 11),
+    [ 6] = RGB(10, 13, 11),
+    [ 7] = RGB( 5,  5,  5),  // was RGB(19, 19, 19)
+    [ 8] = RGB(31, 22,  0),
+    [ 9] = RGB(31, 31, 31),  // white for the caught-Pokemon indicator, see GetBallCaughtWhiteIndex
+    [10] = RGB( 0, 18,  0),
+    [11] = RGB( 3, 24,  4),
+    [12] = RGB(31, 22,  0),
+    [13] = RGB(22, 13,  1),
+    [14] = RGB(31, 11,  5),
+    [15] = RGB(21,  6,  7),
+};
+
+void GetHealthBoxHealthBarPalettes(struct SpritePalette out[3])
+{
+    bool8 dark = IsDarkUiEnabled();
+
     if (UseGen4BattleUI())
     {
-        out[0] = (struct SpritePalette){ gBattleInterface_BallStatusBarPalGen4, TAG_HEALTHBOX_PAL };
-        out[1] = (struct SpritePalette){ gBattleInterface_BallDisplayPalGen4, TAG_HEALTHBAR_PAL };
+        out[0] = (struct SpritePalette){ dark ? sDarkHealthboxPalGen4 : gBattleInterface_BallStatusBarPalGen4, TAG_HEALTHBOX_PAL };
+        out[1] = (struct SpritePalette){ dark ? sDarkHealthbarPalGen4 : gBattleInterface_BallDisplayPalGen4, TAG_HEALTHBAR_PAL };
+        out[2] = (struct SpritePalette){ dark ? sDarkShinyHealthboxPalGen4 : sShinyHealthboxPalGen4, TAG_HEALTHBOX_SHINY_PAL };
     }
     else
     {
-        out[0] = (struct SpritePalette){ gBattleInterface_BallStatusBarPalGen3, TAG_HEALTHBOX_PAL };
-        out[1] = (struct SpritePalette){ gBattleInterface_BallDisplayPalGen3, TAG_HEALTHBAR_PAL };
+        out[0] = (struct SpritePalette){ dark ? sDarkHealthboxPalGen3 : gBattleInterface_BallStatusBarPalGen3, TAG_HEALTHBOX_PAL };
+        out[1] = (struct SpritePalette){ dark ? sDarkHealthbarPalGen3 : gBattleInterface_BallDisplayPalGen3, TAG_HEALTHBAR_PAL };
+        out[2] = (struct SpritePalette){ dark ? sDarkShinyHealthboxPalGen3 : sShinyHealthboxPalGen3, TAG_HEALTHBOX_SHINY_PAL };
     }
 }
 
@@ -766,7 +968,7 @@ void BattleLoadAllHealthBoxesGfxAtOnce(void)
 {
     u8 numberOfBattlers = 0;
     u8 i;
-    struct SpritePalette palettes[2];
+    struct SpritePalette palettes[3];
     struct CompressedSpriteSheet sheet;
 
     GetHealthBoxHealthBarPalettes(palettes);
@@ -800,7 +1002,7 @@ bool8 BattleLoadAllHealthBoxesGfx(u8 state)
     bool8 retVal = FALSE;
     struct CompressedSpriteSheet sheet;
     struct CompressedSpriteSheet doublesSheets[2];
-    struct SpritePalette palettes[2];
+    struct SpritePalette palettes[3];
 
     if (state != 0)
     {
@@ -809,7 +1011,7 @@ bool8 BattleLoadAllHealthBoxesGfx(u8 state)
             GetHealthBoxHealthBarPalettes(palettes);
             LoadSpritePalette(&palettes[0]);
             LoadSpritePalette(&palettes[1]);
-            CategoryIcons_LoadSpritesGfx();
+                    CategoryIcons_LoadSpritesGfx();
         }
         else if (!IsDoubleBattle())
         {

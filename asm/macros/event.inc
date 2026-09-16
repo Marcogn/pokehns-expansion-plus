@@ -2041,6 +2041,20 @@
 	trycompare goto_if, 0, \a, \b, \c
 	.endm
 
+	@ Asks whether to nickname the Pokemon that was just received. With the
+	@ NICKNAMES option switched off nothing is shown at all and VAR_RESULT is
+	@ left as NO, so the call_if_eq that follows every use of this simply does
+	@ not fire.
+	.macro asknickname text:req
+	specialvar VAR_RESULT, ShouldSkipNicknamePrompt
+	goto_if_eq VAR_RESULT, TRUE, .Lasknickname_\@_skip
+	msgbox \text, MSGBOX_YESNO
+	goto .Lasknickname_\@_done
+.Lasknickname_\@_skip:
+	setvar VAR_RESULT, 0
+.Lasknickname_\@_done:
+	.endm
+
 	.macro goto_if_eq a:req, b, c @ EQUAL
 	trycompare goto_if, 1, \a, \b, \c
 	.endm

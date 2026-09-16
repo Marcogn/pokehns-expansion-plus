@@ -1861,13 +1861,97 @@ static void CB2_HandleStartMultiBattle(void)
     }
 }
 
-void BattleMainCB2(void)
+static void RunBattleSoftwareTick(void)
 {
+    // Preserve the original order for every logical tick. BuildOamBuffer only
+    // creates the software snapshot; the last snapshot is uploaded at VBlank.
     AnimateSprites();
     BuildOamBuffer();
     RunTextPrinters();
     UpdatePaletteFade();
     RunTasks();
+}
+
+static void AdvanceBattleFrameRng(void)
+{
+    // Ordinary battles historically advanced the primary RNG twice after each
+    // frame: once in VBlankCB_Battle and once in the global VBlank handler.
+    // Burn those values at the logical frame boundary instead, so waiting at a
+    // battle menu still changes future outcomes while accelerated animations
+    // consume the same RNG sequence at every speed.
+    if (!gTestRunnerEnabled
+     && !(gBattleTypeFlags & (BATTLE_TYPE_LINK | BATTLE_TYPE_FRONTIER | BATTLE_TYPE_RECORDED)))
+    {
+        AdvanceRandom();
+        AdvanceRandom();
+    }
+}
+
+static bool32 CanRunExtraBattleTick(void)
+{
+    // Link, audio, and receive services advance on physical frames. Keep link
+    // battles at 1x until accelerated link pacing is designed and tested.
+    if (gBattleTypeFlags & BATTLE_TYPE_LINK)
+        return FALSE;
+
+    if (!gMain.inBattle
+     || gMain.callback1 != BattleMainCB1
+     || gMain.callback2 != BattleMainCB2)
+        return FALSE;
+
+    if (InBattleChoosingMoves())
+        return FALSE;
+
+    // Palette fades require a transfer between updates. A fade can begin in
+    // callback1 or RunTasks, so this is checked before every extra tick.
+    if (gPaletteFade.active || IsPaletteFadeTransferPending())
+        return FALSE;
+
+    // Capture stars toggle on logical sprite frames and alias when several
+    // states are sampled into one rendered frame.
+    if (gBattleSpritesDataPtr->animationData->captureSuccessAnimActive
+     || gBattleResults.caughtMonSpecies)
+        return FALSE;
+
+    return TRUE;
+}
+
+void BattleMainCB2(void)
+{
+    u32 speedScale = GetBattleSpeedScale();
+    u32 tick;
+
+    if (!CanRunExtraBattleTick())
+        speedScale = 1;
+
+    // callback1 has already run once in CallCallbacks. Each pass here completes
+    // that logical battle tick using the original software update order. Only
+    // the real VBlank interrupt is allowed to upload the final state to hardware.
+    for (tick = 0; tick < speedScale; tick++)
+    {
+        RunBattleSoftwareTick();
+
+        // A task can leave the battle or replace either callback. Do not touch
+        // battle-owned state after that transition.
+        if (!gMain.inBattle
+         || gMain.callback1 != BattleMainCB1
+         || gMain.callback2 != BattleMainCB2)
+            return;
+
+        AdvanceBattleFrameRng();
+
+        if (tick + 1 >= speedScale || !CanRunExtraBattleTick())
+            break;
+
+        // Start the next logical tick. Call BattleMainCB1 explicitly so a task
+        // cannot make us invoke an unrelated callback from inside BattleMainCB2.
+        BattleMainCB1();
+
+        if (!gMain.inBattle
+         || gMain.callback1 != BattleMainCB1
+         || gMain.callback2 != BattleMainCB2)
+            return;
+    }
 
     if (JOY_HELD(B_BUTTON) && gBattleTypeFlags & BATTLE_TYPE_RECORDED && RecordedBattle_CanStopPlayback())
     {
@@ -3155,6 +3239,16 @@ void BeginBattleIntro(void)
     gBattleCommunication[1] = 0;
     gBattleStruct->eventState.battleIntro = 0;
     gBattleMainFunc = DoBattleIntro;
+}
+
+bool32 InBattleChoosingMoves(void)
+{
+    return gBattleMainFunc == HandleTurnActionSelectionState;
+}
+
+bool32 InBattleRunningActions(void)
+{
+    return gBattleMainFunc == RunTurnActionsFunctions;
 }
 
 static void BattleMainCB1(void)

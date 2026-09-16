@@ -31,9 +31,87 @@
 #include "rtc.h"
 #include "constants/battle_partner.h"
 #include "rtc.h"
+#include "option_menu.h"
 #include "data/battle_environment.h"
 
 // .rodata
+
+// ---------------------------------------------------------------------------
+// Dark battle UI
+//
+// These values are derived from HnS's own battle graphics, not copied over from
+// Soulgold: the two ROMs happen to share the palette *layout* here, but not the
+// artwork, so every entry below was read back out of the files it recolours.
+//
+//  - BG palette 1 is the user-selected window frame, and it paints the
+//    FIGHT/BAG/POKeMON/RUN box, the four move boxes and the yes/no box. All 20
+//    frames in graphics/text_window/ fill their interior from entry 14 and in
+//    all 20 that entry is pure white, so recolouring that one entry darkens
+//    every command box whatever frame the player chose.
+//  - BG palette 5 is gBattleWindowTextPalette, the text inside those boxes.
+//  - BG palette 0 is graphics/battle_interface/hns/textbox.gbapal. In
+//    textbox_map.bin its entries only ever paint the message box (rows 14..19)
+//    and the action prompt (rows 34..39, left half): entry 15 is their
+//    interior, entry 6 their text shadow, entries 7 and 9..14 their border.
+//  - The selection cursor is textbox tiles 1 and 2, whose own background pixels
+//    use entry 1 and whose arrow uses entries 9 and 7. Those tiles are drawn
+//    with palette 0, which has to keep entry 1 white for the message text, so
+//    in dark mode the cursor is drawn from BATTLE_COMMAND_PAL_NUM instead.
+//    The cursor *eraser* needs no such treatment here: it is tile 0x16 under
+//    palette 1, i.e. the frame's own interior tile, which is already dark.
+// ---------------------------------------------------------------------------
+
+#define DARK_BATTLE_UI_BG_COLOR RGB(5, 5, 5)
+
+struct DarkPaletteEntry
+{
+    u8 index;
+    u16 color;
+};
+
+// BG palette 0, the battle textbox.
+static const struct DarkPaletteEntry sDarkBattleTextboxColors[] =
+{
+    {  6, RGB(1, 1, 1)             },  // message text shadow
+    {  7, RGB(11, 11, 11)          },  // border, lightest
+    {  9, RGB(2, 2, 2)             },  // border, darkest
+    { 10, RGB(7, 7, 7)             },
+    { 11, RGB(6, 6, 6)             },
+    { 12, RGB(8, 8, 8)             },
+    { 13, RGB(9, 9, 9)             },
+    { 14, RGB(8, 8, 8)             },
+    { 15, DARK_BATTLE_UI_BG_COLOR  },  // message box and action prompt interior
+};
+
+// BATTLE_COMMAND_PAL_NUM, used only to redraw the selection cursor.
+static const u16 sDarkBattleCursorPalette[16] =
+{
+    [1] = DARK_BATTLE_UI_BG_COLOR,  // the cursor tiles' own background
+    [7] = RGB(20, 20, 20),          // arrow edge
+    [9] = RGB_WHITE,                // arrow body
+};
+
+static const u16 sDarkBattleUiBgColor = DARK_BATTLE_UI_BG_COLOR;
+
+static void ApplyDarkBattleUiPalettes(void)
+{
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(sDarkBattleTextboxColors); i++)
+        LoadPalette(&sDarkBattleTextboxColors[i].color, BG_PLTT_ID(0) + sDarkBattleTextboxColors[i].index, PLTT_SIZEOF(1));
+
+    LoadPalette(&sDarkBattleUiBgColor, BG_PLTT_ID(1) + USER_WINDOW_FRAME_FILL_PAL_INDEX, PLTT_SIZEOF(1));
+    LoadPalette(&sDarkBattleUiBgColor, BG_PLTT_ID(5) + BATTLE_WINDOW_DARK_BG_PAL_INDEX, PLTT_SIZEOF(1));
+    LoadPalette(sDarkBattleCursorPalette, BG_PLTT_ID(BATTLE_COMMAND_PAL_NUM), PLTT_SIZE_4BPP);
+}
+
+// The move description window draws its frame with the standard window palette
+// rather than with the battle ones, so it is darkened at its own call site.
+void LoadDarkBattleStdWindowPalette(void)
+{
+    if (IsDarkUiEnabled())
+        LoadPalette(&sDarkBattleUiBgColor, BG_PLTT_ID(STD_WINDOW_PALETTE_NUM) + USER_WINDOW_FRAME_FILL_PAL_INDEX, PLTT_SIZEOF(1));
+}
 
 static const struct OamData sVsLetter_V_OamData =
 {
@@ -1040,6 +1118,11 @@ void LoadBattleMenuWindowGfx(void)
     LoadUserWindowBorderGfx(2, 0x12, BG_PLTT_ID(1));
     LoadUserWindowBorderGfx(2, 0x22, BG_PLTT_ID(1));
     LoadPalette(gBattleWindowTextPalette, BG_PLTT_ID(5), PLTT_SIZE_4BPP);
+
+    // Every site that reloads gBattleTextboxPalette into BG palette 0 calls
+    // this function straight afterwards, so the overrides only need to live here.
+    if (IsDarkUiEnabled())
+        ApplyDarkBattleUiPalettes();
 
     if ((gBattleTypeFlags & (BATTLE_TYPE_ARENA | BATTLE_TYPE_POKEDUDE))
     || (IS_FRLG && (gBattleTypeFlags & BATTLE_TYPE_FIRST_BATTLE)))
