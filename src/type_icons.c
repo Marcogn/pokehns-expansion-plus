@@ -44,15 +44,17 @@ const struct Coords16 sTypeIconPositions[][2] =
     },
     [B_POSITION_OPPONENT_LEFT] =
     {
-        // Derived, not copied: sHealthBar_Subsprites_* and the healthbox
-        // subsprite tables are byte-identical to Soulgold's, so the icon sits
-        // at the same offset from the healthbox origin in both repos and only
-        // the origin differs. sBattlerHealthboxCoords puts the opponent at
-        // x 44 here against Soulgold's 34 in singles (+10) and at 44/32
-        // against 45/33 in doubles (-1), so its 93/101/89 become 103/100/88.
-        // The y values already agreed, which is the cross-check.
-        [FALSE] = {103, 26}, // was {20, 26}, the upstream expansion default
-        [TRUE] = {100, 14},  // was {97, 14}
+        // Measured, not derived. The healthbox is created with subpriority 1
+        // and these icons with 255, so anything overlapping the box is drawn
+        // behind it and simply never appears. Sampling a real frame of this
+        // repo's Gen 4 opponent healthbox puts its right edge at x 106
+        // (x 103 is still its white outline, x 110 is already background).
+        // The slide-in below walks the sprite 10px left of the value stored
+        // here, so the resting x is 114 and its left edge lands at 110, clear
+        // of the box. Soulgold's 93 and upstream's 20 are both inside this
+        // repo's box; Soulgold's healthbox art is narrower than the one here.
+        [FALSE] = {124, 26}, // was {20, 26}, the upstream expansion default
+        [TRUE] = {100, 14},  // was {97, 14}; doubles not measured yet
     },
     // Dead entries: LoadTypeIconsPerBattler() returns before it reaches the
     // player's side, exactly as Soulgold's does. Left at the upstream values
@@ -63,7 +65,7 @@ const struct Coords16 sTypeIconPositions[][2] =
     },
     [B_POSITION_OPPONENT_RIGHT] =
     {
-        [TRUE] = {88, 39},   // was {85, 39}
+        [TRUE] = {88, 39},   // was {85, 39}; doubles not measured yet
     },
 };
 
