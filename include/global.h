@@ -348,6 +348,8 @@ struct ChallengeSettings
     u8 guaranteedCatch:1; // 1 = every Ball catches, see ComputeCaptureOdds
     u8 skipNicknamePrompt:1; // 1 = never ask for a nickname. Inverted on purpose,
                              // so a save written before this option keeps asking.
+    u8 noWildEncounters:1;   // 1 = a repel that never runs out. Zero means
+                             // encounters happen, which is what an older save reads.
 };
 
 struct SaveBlock3

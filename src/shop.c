@@ -998,11 +998,13 @@ struct MartExtras
 
 static const u16 sMartExtras_AzaleaTown[] = { ITEM_QUICK_BALL, ITEM_NONE };
 static const u16 sMartExtras_VioletCity[] = { ITEM_ABILITY_PATCH, ITEM_ABILITY_CAPSULE, ITEM_NONE };
+static const u16 sMartExtras_ViridianCity[] = { ITEM_SHIN_GENOME, ITEM_NONE };
 
 static const struct MartExtras sMartExtras[] =
 {
     { MAP_AZALEA_TOWN_MART_HNS, sMartExtras_AzaleaTown },
     { MAP_VIOLET_CITY_MART_HNS, sMartExtras_VioletCity },
+    { MAP_VIRIDIAN_CITY_MART_HNS, sMartExtras_ViridianCity },
 };
 
 // The longest badge list is 20 items plus its terminator; the rest is headroom

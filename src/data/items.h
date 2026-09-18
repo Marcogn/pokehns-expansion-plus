@@ -1684,6 +1684,25 @@ const struct ItemInfo gItemsInfo[] =
         .iconPalette = gItemIconPalette_AbilityPatch,
     },
 
+    [ITEM_SHIN_GENOME] =
+    {
+        .name = ITEM_NAME("SHINY GENOME"),
+        .pluralName = ITEM_PLURAL_NAME("Shiny Genomes"),
+        .price = 1000, // HnS: sold in Viridian City
+        .description = COMPOUND_STRING(
+            "A genome capable\n"
+            "of turning Pokémon\n"
+            "shiny."),
+        .pocket = POCKET_ITEMS,
+        .sortType = ITEM_TYPE_FIELD_USE,
+        .type = ITEM_USE_PARTY_MENU,
+        .fieldUseFunc = ItemUseOutOfBattle_ShinGenome,
+        .flingPower = 30,
+        // Soulgold borrows the Ability Patch art rather than drawing its own.
+        .iconPic = gItemIcon_AbilityPatch,
+        .iconPalette = gItemIconPalette_AbilityPatch,
+    },
+
 // Mints
 
     [ITEM_LONELY_MINT] =
