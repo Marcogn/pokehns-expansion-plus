@@ -783,11 +783,17 @@ static const TaskFunc sTextPrinterTasks[] =
     [PSS_PAGE_CONTEST_MOVES] = Task_PrintContestMoves
 };
 
+// The L and R glyphs are here because nothing else tells you the category can
+// be changed. Soulgold leaves the prompt as START only and has an NPC explain
+// the two buttons instead; there is no such NPC here.
+// "RELEARN" is dropped to make room: the window is 11 tiles and the old
+// "{START} RELEARN TUTOR" already filled most of it. The relearner screen
+// still spells it out ("Teach which tutor move to ...?").
 static const u8 sText_Relearn[] = _("{START_BUTTON} RELEARN"); // future note: don't decap this, because it mimics the summary screen BG graphics which will not get decapped
-static const u8 sText_Relearn_LevelUp[] = _("{START_BUTTON} RELEARN LEVEL");
-static const u8 sText_Relearn_Egg[] = _("{START_BUTTON} RELEARN EGG");
-static const u8 sText_Relearn_TM[] = _("{START_BUTTON} RELEARN TM");
-static const u8 sText_Relearn_Tutor[] = _("{START_BUTTON} RELEARN TUTOR");
+static const u8 sText_Relearn_LevelUp[] = _("{L_BUTTON}{R_BUTTON} LEVEL {START_BUTTON}");
+static const u8 sText_Relearn_Egg[] = _("{L_BUTTON}{R_BUTTON} EGG {START_BUTTON}");
+static const u8 sText_Relearn_TM[] = _("{L_BUTTON}{R_BUTTON} TM {START_BUTTON}");
+static const u8 sText_Relearn_Tutor[] = _("{L_BUTTON}{R_BUTTON} TUTOR {START_BUTTON}");
 
 static const u8 sMemoNatureTextColor[] = _("{COLOR LIGHT_RED}{SHADOW GREEN}");
 static const u8 sMemoHiddenNatureTextColor[] = _(" ({COLOR BLUE}{SHADOW DARK_GRAY}");
@@ -2021,16 +2027,18 @@ static void Task_HandleInput(u8 taskId)
     }
 }
 
-// The prompt is drawn on both move pages, so both open the relearner. It stays
-// out of battle and out of the move-selection modes, where the screen is a
-// chooser and leaving it would strand the caller.
+// Battle moves page only, as in Soulgold. Opening the relearner from the
+// contest page puts it in RELEARN_MODE_PSS_PAGE_CONTEST_MOVES, which swaps the
+// info panel for the contest one - Soulgold never reaches that state and
+// hardcodes showContestInfo to FALSE. It also stays out of battle and out of
+// the move-selection modes, where the screen is a chooser and leaving it would
+// strand the caller.
 static bool32 IsOnRelearnerMovesPage(void)
 {
     return (P_SUMMARY_SCREEN_MOVE_RELEARNER
          && !gMain.inBattle
          && sMonSummaryScreen->mode != SUMMARY_MODE_SELECT_MOVE
-         && (sMonSummaryScreen->currPageIndex == PSS_PAGE_BATTLE_MOVES
-          || sMonSummaryScreen->currPageIndex == PSS_PAGE_CONTEST_MOVES));
+         && sMonSummaryScreen->currPageIndex == PSS_PAGE_BATTLE_MOVES);
 }
 
 // RELEARN_MODE_PSS_PAGE_BATTLE_MOVES and _CONTEST_MOVES are deliberately 2 and
@@ -2038,22 +2046,18 @@ static bool32 IsOnRelearnerMovesPage(void)
 // box variants are separate values, so they are mapped rather than offset.
 static void OpenMoveRelearnerFromSummary(u8 taskId)
 {
-    bool32 contest = sMonSummaryScreen->currPageIndex == PSS_PAGE_CONTEST_MOVES;
-
     sMonSummaryScreen->callback = CB2_InitLearnMove;
 
     if (sMonSummaryScreen->isBoxMon)
     {
-        gRelearnMode = contest ? RELEARN_MODE_BOX_PSS_PAGE_CONTEST_MOVES
-                               : RELEARN_MODE_BOX_PSS_PAGE_BATTLE_MOVES;
+        gRelearnMode = RELEARN_MODE_BOX_PSS_PAGE_BATTLE_MOVES;
         gSpecialVar_0x8004 = PC_MON_CHOSEN;
         gSpecialVar_MonBoxPos = sMonSummaryScreen->curMonIndex;
         gSpecialVar_MonBoxId = StorageGetCurrentBox();
     }
     else
     {
-        gRelearnMode = contest ? RELEARN_MODE_PSS_PAGE_CONTEST_MOVES
-                               : RELEARN_MODE_PSS_PAGE_BATTLE_MOVES;
+        gRelearnMode = RELEARN_MODE_PSS_PAGE_BATTLE_MOVES;
         gSpecialVar_0x8004 = sMonSummaryScreen->curMonIndex;
         gSpecialVar_MonBoxPos = sMonSummaryScreen->curMonIndex;
     }
@@ -5127,14 +5131,21 @@ static void ShowRelearnPrompt(void)
 {
     u32 currPage = sMonSummaryScreen->currPageIndex;
 
-    if (!ShouldShowMoveRelearner() || !(currPage >= PSS_PAGE_BATTLE_MOVES))
+    // Battle moves page only: START does nothing on the contest page now, so
+    // the prompt must not appear there either. Soulgold is the same.
+    if (!ShouldShowMoveRelearner() || currPage != PSS_PAGE_BATTLE_MOVES)
     {
         ClearWindowTilemap(PSS_LABEL_WINDOW_PROMPT_RELEARN);
         return;
     }
 
+    // Upstream returns here without clearing, which leaves the previous
+    // Pokemon's prompt on screen. Soulgold clears it; so does this.
     if (!HasCachedRelearnableMoves(gMoveRelearnerState))
+    {
+        ClearWindowTilemap(PSS_LABEL_WINDOW_PROMPT_RELEARN);
         return;
+    }
 
     const u8 *relearnText;
     int relearnTextXPos;

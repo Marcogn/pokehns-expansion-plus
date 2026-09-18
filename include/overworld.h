@@ -41,7 +41,7 @@
 #define OPTIONS_OVERWORLD_SPEED_3X_EXTRA_ITERATIONS         2
 #define OPTIONS_OVERWORLD_SPEED_4X_EXTRA_ITERATIONS         3
 
-u8 OverworldSpeedup_AdditionalIterations(u16 speed, bool32 overworld);
+u8 OverworldSpeedup_AdditionalIterations(u16 speed);
 u8 GetOverworldSpeedupSetting(void);
 
 // trigger a time-of-day blend once

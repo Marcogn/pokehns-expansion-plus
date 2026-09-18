@@ -254,6 +254,10 @@ int ProcessPlayerFieldInput(struct FieldInput *input)
         return TRUE;
 
 #if IS_HNS
+    // R does double duty here: on a bike it swaps mach/acro, and everywhere
+    // else it starts a DexNav search. Upstream HnS only had the bike half and
+    // left the DexNav call in the #else branch, so the search was never
+    // compiled into this target at all and R did nothing on foot.
     if (input->pressedRButton && TestPlayerAvatarFlags(PLAYER_AVATAR_FLAG_MACH_BIKE | PLAYER_AVATAR_FLAG_ACRO_BIKE))
     {
         if (gPlayerAvatar.flags & PLAYER_AVATAR_FLAG_MACH_BIKE)
@@ -269,6 +273,10 @@ int ProcessPlayerFieldInput(struct FieldInput *input)
             SetPlayerAvatarTransitionFlags(PLAYER_AVATAR_FLAG_MACH_BIKE);
         }
         PlaySE(SE_BIKE_BELL);
+    }
+    else if (input->pressedRButton && TryStartDexNavSearch())
+    {
+        return TRUE;
     }
 #else
     if (input->pressedRButton && TryStartDexNavSearch())

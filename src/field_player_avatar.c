@@ -929,6 +929,21 @@ static void PlayerNotOnBikeMoving(enum Direction direction, u16 heldKeys)
         return;
     }
 
+    // Creeping for the DexNav has to be tested before the running block below,
+    // not in its else-if. That block returns unconditionally, and with AUTORUN
+    // on (autoRun == 0) its guard is true whether or not B is held, so the
+    // else-if was unreachable: holding A did nothing and every DexNav target
+    // fled the moment the player came within CREEPING_PROXIMITY. The surfing
+    // branch above already tests it first; this matches it.
+    if (!(gPlayerAvatar.flags & PLAYER_AVATAR_FLAG_UNDERWATER)
+     && FlagGet(DN_FLAG_SEARCHING)
+     && (heldKeys & A_BUTTON))
+    {
+        gPlayerAvatar.creeping = TRUE;
+        PlayerWalkSlow(direction);
+        return;
+    }
+
     if (!(gPlayerAvatar.flags & PLAYER_AVATAR_FLAG_UNDERWATER)
      && (gSaveBlock3Ptr->challengeSettings.autoRun == 0 || (heldKeys & B_BUTTON))
      && FlagGet(FLAG_SYS_B_DASH)

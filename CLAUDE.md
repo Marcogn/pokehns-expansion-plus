@@ -85,9 +85,23 @@ DISPLAY=:99 SDL_AUDIODRIVER=dummy /usr/games/mgba pokehns.gba &   # in backgroun
 risalire alle entry (`#292929` → `RGB(5,5,5)`) ha risolto in un colpo un problema su
 cui l'analisi statica girava a vuoto da un'ora.
 
-Limite noto: non sono ancora riuscito a raggiungere una **lotta selvatica** (il Volo
-del debug non accetta le rotte, e l'erba vicino a Violet sono alberi). Se serve,
-partire da un salvataggio già su una rotta.
+Con un salvataggio dell'utente già su una rotta con erba la lotta selvatica si
+raggiunge camminando avanti e indietro (~15-20 passi). Attenzione: se l'opzione
+`WILD BATTLES` è su OFF non succede niente e sembra un bug dell'emulatore.
+
+Due accorgimenti che fanno risparmiare molto tempo:
+
+- avvia `Xvfb` e `mgba` con `setsid nohup ... &`, altrimenti muoiono con la shell
+  e ci si ritrova senza display a metà sessione;
+- dopo **ogni** passaggio di menu fai uno screenshot e guardalo prima del passo
+  successivo. Contare i `Down` alla cieca porta ad aprire le opzioni dal *title
+  screen* invece che dal gioco, e te ne accorgi tre schermate dopo.
+
+**ROM strumentata**: quando una feature non si vede e l'analisi statica non
+conclude, la via più rapida è una build usa-e-getta con una condizione forzata
+(es. `return FALSE;` in cima a `ShouldHideTypeIcon`) o una posizione forzata al
+centro schermo. Due build da tre minuti hanno chiuso un problema su cui il
+ragionamento girava a vuoto da un'ora. Ricordati di `cp` del file prima.
 
 ---
 
@@ -153,9 +167,63 @@ Vale più di qualunque stima. Cose date per mancanti che invece c'erano, spente:
   `data/scripts/dexnav.inc` e la voce `MENU_ACTION_DEXNAV` nel menu Start ci sono
   già. `DEXNAV_ENABLED` è `FALSE` e i cinque flag/var sono a 0.
 - **Ricorda mosse dal riassunto**: è una feature di expansion 1.15.2
-  (`P_ENABLE_MOVE_RELEARNERS`), non di Soulgold.
+  (`P_ENABLE_MOVE_RELEARNERS`), non di Soulgold. Hasep ne aveva però solo metà:
+  `ShowRelearnPrompt()` disegnava il prompt e **nessuno gestiva START**.
+  Come lo configura Soulgold, verificato: `P_TM_MOVES_RELEARNER` **FALSE** (MT
+  mai disponibili), mosse uovo dietro `FLAG_EGG_MOVES_UNLOCKED` (Egg Move Master,
+  Blackthorn City House 3, ¥88.888) e tutor dietro `FLAG_TUTOR_MOVES_UNLOCKED`
+  (Tutor Move Master, Olivine City House 4, ¥44.444). È per questo che lì un
+  Pokémon di livello basso non vede mosse fuori scala: qui quei due cancelli non
+  ci sono per scelta.
+  Soulgold apre il relearner **solo dalla pagina Battle Moves** e forza
+  `showContestInfo` a FALSE.
+  Attenzione prima di gridare al bug sulla categoria LEVEL: `P_LVL_UP_LEARNSETS`
+  qui è **GEN_7**, e con "modern moves" attivo il gioco usa quel learnset, non
+  il gen 3 di `gLevelUpLearnsets_Gen3`. Le due tabelle non coincidono: Cyndaquil
+  impara SMOKESCREEN a 6 in gen 1-6/8-9 ma EMBER a **8** in gen 7. Un Cyndaquil
+  Lv6 che conosce solo Tackle e Leer quindi non ha davvero niente da ricordare,
+  e `HasRelearnerLevelUpMoves` risponde giusto. Verificato con una build
+  strumentata che stampava cache, specie, numero di voci del learnset e livello
+  (`0101 0 155 18 1 6`): 18 voci = gen 7.
 - **Icone dei tipi in lotta**: `src/type_icons.c` c'è, `B_SHOW_TYPES` era
   `SHOW_TYPES_NEVER`.
+- **DexNav su R**: `TryStartDexNavSearch()` c'era, ma nel ramo `#else` di un
+  `#if IS_HNS` in `src/field_control_avatar.c`, dove HnS usa R per scambiare
+  mach/acro bike. Nella build `hns` la chiamata non veniva quindi **mai
+  compilata** e R a piedi non faceva nulla. Morale: in questo repo un
+  `#if IS_HNS / #else` non è un dettaglio di piattaforma, è spesso il posto in
+  cui una feature è spenta senza che nessun flag lo dica.
+- **Creeping del DexNav**: `gPlayerAvatar.creeping` si alza solo tenendo **A**
+  mentre si cammina, e senza di esso il Pokémon fugge appena si entro nei 2
+  tile (`CREEPING_PROXIMITY`). In `PlayerNotOnBikeMoving` il controllo stava
+  nell'`else if` **dopo** il blocco della corsa, che però fa `return` sempre e
+  con AUTORUN attivo (`autoRun == 0`) ha la guardia vera anche senza B: il ramo
+  era irraggiungibile e ogni ricerca finiva con "si è mosso troppo in fretta".
+  Ora è **prima** del blocco corsa, come già faceva il ramo surf. Soulgold ha
+  lo stesso ordine sbagliato, ma lì `ShouldPlayerRun` è uno XOR, quindi tenendo
+  B+A si riesce comunque: qui no.
+- **Toggle del follower nel menu squadra**: esisteva solo in `party_menu.c`
+  (`MENU_PKMN_FOLLOWER`, `CursorCb_PkmnFollower`, `followerEnable`). In
+  `swsh_party_menu.c` non c'era **niente**: svista, non scelta. Portato. Il
+  codice di disegno delle voci è identico fra i due file, quindi il port è una
+  copia di cinque pezzi: enum (prima di `MENU_FIELD_MOVES`, che indicizza le
+  mosse campo come `MENU_FIELD_MOVES + j`), voce in `sCursorOptions`, colore
+  nel loop di disegno, append in `SetPartyMonFieldSelectionActions`, e copie
+  `static` di `GetFirstLiveMonIndex` e `CursorCb_PkmnFollower` (static, quindi
+  nessuna collisione di link con la variante classica).
+- **Learnset e relearner, da dove pesca**: `GetSpeciesLevelUpLearnset()` sceglie
+  fra `gLevelUpLearnsets_Gen3` e `gSpeciesInfo[].levelUpLearnset` (gen 7) in base
+  a `tx_Mode_Modern_Moves`, che si imposta **solo a inizio partita** — il
+  challenge menu è raggiungibile unicamente da `oak_speech_hns.c`. Creazione e
+  relearner passano entrambi da lì, senza bypass: dentro una stessa partita non
+  possono divergere. Verificato in emulatore: un Pidgey Lv7 creato ora nasce con
+  TACKLE + PECK + SAND ATTACK, cioè il gen 7.
+  Da ricordare: **le mosse di livello 1 arrivano solo alla creazione**.
+  `MonTryLearningNewMoveAtLevel` cerca solo entry con `level ==` il livello
+  appena guadagnato, quindi un livello 1 non è mai raggiungibile salendo. E
+  `GiveBoxMonInitialMoveset` tiene le **ultime quattro** mosse disponibili al
+  livello di cattura, scartando le prime: per un selvatico di livello alto è
+  normale che il relearner offra mosse che non ha mai avuto.
 - **Mente**: tutte e 21 già in vendita al negozio di fiori di Goldenrod, dietro
   medaglia 3 e dietro il toggle `MODE_MINTS` del challenge menu.
 - **`swsh_party_menu.c`** si è portato dietro roba di Soulgold mai agganciata
@@ -165,9 +233,63 @@ Vale più di qualunque stima. Cose date per mancanti che invece c'erano, spente:
 
 Corollario sulle coordinate: quando una feature è sempre stata spenta, i suoi
 dati posizionali sono i default di expansion, non valori tarati su questo repo.
-`sTypeIconPositions` era così. Si ricavano confrontando
-`sBattlerHealthboxCoords` fra i due repo (la geometria dei sotto-sprite è
-identica, quindi si sposta solo l'origine), non si copiano.
+`sTypeIconPositions` era così.
+
+La healthbox è creata con subpriority **1**, le icone dei tipi con **255**:
+tutto ciò che si sovrappone alla box viene disegnato *dietro* e non si vede mai.
+
+**Errore mio da non ripetere.** Dalla segnalazione «compare per un secondo e poi
+sparisce, esce e rientra dalla hpbox» avevo concluso che la posizione di partenza
+(`{20, 26}`, il default di expansion) finisse dentro la box, e avevo spostato le
+icone a **destra** della healthbox. Sbagliato: quel default mette l'icona a
+**sinistra** della box, dove c'è spazio libero, e «esce e rientra dalla hpbox»
+descriveva l'animazione che funzionava. L'unico vero bug era
+`tHideIconTimer` che non si azzerava mai. La frase dell'utente conteneva già la
+risposta: **leggere la segnalazione come una misura, non come un sintomo**.
+
+**Come si misura davvero.** `import` + `convert -sample 240x160!` dà il
+framebuffer 1:1, e `convert ... txt:-` ne stampa i pixel: da lì i bordi si leggono
+senza interpretare. In singola il bordo **sinistro** della box è una linea
+verticale a **x 12** su tutte le righe, quello destro sta a **x 101** sulla riga
+del nome. Restano quindi 12 px liberi a sinistra; lo sprite è largo 8 e la x
+memorizzata è il **centro**, quindi riposo 7 = icona su x 3..10.
+
+**Disposizione attuale:** singola a **sinistra** della box (`{17, 26}`, la slide
+toglie 10), doppia a **destra** come Soulgold (offset +66 dall'origine della box
+su entrambi i lati, identico a SG). La scaletta di 4 px della seconda icona vale
+solo dove le icone stanno a destra, quindi è attiva solo in doppia: in singola i
+12 px non bastano e 4 px in un verso o nell'altro tagliano il bordo schermo o
+nascondono mezzo glifo dietro la box.
+
+**Tre differenze di comportamento (non di coordinate) trovate rispetto a SG,
+tutte allineate a SG:**
+
+- l'arte in `graphics/types/battle_icons*.png` è **identica** a quella di SG ed è
+  **asimmetrica**. `ShouldFlipTypeIcon` di expansion sceglieva il lato giocatore
+  in singola e quello avversario in doppia — non possono essere giusti entrambi:
+  qui le icone avversarie uscivano specchiate in singola e non in doppia. SG
+  specchia sempre sul lato avversario;
+- SG indenta di **4 px** la seconda icona di un doppio tipo sul lato avversario
+  (`SetTypeIconXY`), la scaletta in stile HGSS. Expansion le impila a filo. Qui
+  la scaletta è attiva solo in doppia, per lo spazio (vedi sopra);
+- le direzioni di `GetTypeIconSlideMovement` e `GetTypeIconHideMovement` in
+  singola sono speculari a quelle di SG, ed è corretto così: qui l'icona sta
+  dall'altro lato della box, quindi esce verso sinistra e si ritrae verso destra,
+  rientrando sotto la healthbox. Il segno del riposo è `x - 10`, per questo la
+  entry vale 17 e non 7. Il ramo doppie è identico a SG.
+
+Per farlo funzionare serve anche `tHorizontalPosition` (`data[4]`) in
+`include/type_icons.h`: la slide deve agganciarsi alla x di riposo **del singolo
+sprite**, non alla entry di tabella condivisa, altrimenti l'indent di 4 px viene
+riassorbito. Oggi `src/type_icons.c` differisce da quello di SG solo per la
+tabella delle coordinate e per il `sprite->tHideIconTimer = 0;`.
+
+Trappola di metodo, costata un'ora: avevo "verificato" che la geometria dei
+sotto-sprite fosse identica fra i due repo con
+`diff <(awk "/nome/,/^};/" a.c) <(awk "/nome/,/^};/" b.c)`. Il nome non esisteva
+in **nessuno** dei due file, quindi awk non stampava nulla da entrambe le parti e
+il diff tornava vuoto: l'ho letto come "identici". **Un diff vuoto fra due estratti
+vuoti non è una verifica.** Controlla sempre che l'estratto non sia vuoto.
 
 ---
 
@@ -189,6 +311,17 @@ identica, quindi si sposta solo l'origine), non si copiano.
 - **VBlank**: aprire una schermata senza installare il proprio `SetVBlankCallback`
   eredita quello del chiamante. È così che il Pokédex aperto dal menu SwSh scorreva
   in diagonale.
+- **Aprire una schermata full-callback dall'interno di una lotta**: si può, e il
+  giro è già pronto. `OpenPokedexInfoScreen(species, returnCallback)` prende il
+  main callback; come `returnCallback` si passa `ReshowBattleScreenAfterMenu`
+  (`include/reshow_battle_screen.h`), la stessa strada di borsa e menu squadra,
+  che ricostruisce tutta la lotta e finisce su `BattleMainCB2`. Lo script di
+  cattura in `battle_script_commands.c` aspetta esattamente
+  `gMain.callback2 == BattleMainCB2` e il task morto, quindi riprende da solo.
+  Attenzione a liberare finestre e buffer dei BG 2/3 **prima** di cedere il
+  controllo: `LoadInfoScreen` ne installa di propri e i puntatori vecchi si
+  perdono. `battle_controllers.h` non è includibile da `pokedex_plus_hgss.c`
+  (tira dentro `battle.h`), da cui la chiamata diretta alla funzione di reshow.
 
 ---
 

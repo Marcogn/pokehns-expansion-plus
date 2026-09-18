@@ -352,9 +352,9 @@ static const u8 *const sDesc_AutorunSurf[] = {
 };
 static const u8 *const sDesc_OwSpeed[] = {
     COMPOUND_STRING("Move at the normal speed."),
-    COMPOUND_STRING("Move at double speed.\nHold {R_BUTTON} for normal speed."),
-    COMPOUND_STRING("Move at triple speed.\nHold {R_BUTTON} for normal speed."),
-    COMPOUND_STRING("Move at quadruple speed.\nHold {R_BUTTON} for normal speed."),
+    COMPOUND_STRING("Move at double speed."),
+    COMPOUND_STRING("Move at triple speed."),
+    COMPOUND_STRING("Move at quadruple speed."),
 };
 static const u8 *const sDesc_Fishing[] = {
     COMPOUND_STRING("Automatically reel while fishing."),

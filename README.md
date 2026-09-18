@@ -29,12 +29,14 @@ working.
 
 | Feature | Option | Notes |
 | --- | --- | --- |
-| Overworld speed-up | `OW SPEED` 1x–4x | Holding R drops back to 1x. Cutscenes always run at 1x. |
+| Overworld speed-up | `OW SPEED` 1x–4x | Cutscenes always run at 1x. R is reserved for the DexNav. |
 | Battle speed-up | `BATTLE SPEED` 1x–3x | Runs several software ticks per frame; animations keep their timing. |
 | SwSh party menu | `PARTY MENU` CLASSIC/SWSH | Both menus are built and selected at runtime. |
 | Soulgold bag screen | — | Replaces the bag graphics and layout. |
 | Dark UI | `DARK UI` LIGHT/DARK | Darkens the bag and the whole battle HUD. |
 | Shiny healthbox | — | A shiny Pokémon gets a gold battle box, in both themes. |
+| Shiny Genome | — | Turns a Pokémon shiny. Sold at the Viridian City Mart for 1000. |
+| Compact start menu | — | The menu window grows with the number of entries, so nine fit. |
 
 ### Added here
 
@@ -43,6 +45,15 @@ working.
 | Pokédex from the party menu | — | New entry in the party menu action list. |
 | Guaranteed capture | `EASY CATCH` OFF/ON | Every Ball catches without fail while it is on. |
 | Nickname prompts | `NICKNAMES` ON/OFF | When off, catches, gift Pokémon and hatched eggs never ask. |
+| Wild encounters | `WILD BATTLES` ON/OFF | When off, grass, surfing, Rock Smash, Sweet Scent and fishing never trigger a wild battle. |
+| DexNav | — | Entry in the start menu; R starts a search for the registered species. Hold A to creep within two tiles or the target flees. |
+| Move relearner from the summary | — | START on the Battle Moves page. L and R cycle level-up, egg, tutor and TM moves; a category only appears when something is available. TM moves need the machine in the bag. |
+| Types shown in battle | — | The opposing Pokémon's types appear beside its healthbox once the species has been seen. |
+| Browsable Pokédex after a capture | — | On the new-entry page, A opens the full entry; B returns to the battle. |
+| Follower toggle in both party menus | — | The classic menu already had it; the SwSh menu now does too. |
+
+Nature Mints cost 100 each. They were already stocked at the Goldenrod flower shop,
+behind the third badge and the challenge menu's `MINTS` toggle.
 
 Shop and price changes: Poké Ball 10, Great Ball 15, Ultra Ball 30, Quick Ball 50,
 Ability Patch 100, Ability Capsule 75, and the six vitamins 700. Azalea Town stocks

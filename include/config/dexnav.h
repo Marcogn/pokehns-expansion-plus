@@ -1,15 +1,29 @@
 #ifndef GUARD_CONFIG_DEXNAV_H
 #define GUARD_CONFIG_DEXNAV_H
 
-#define DEXNAV_ENABLED                FALSE  // Whether or not DexNav is enabled. If TRUE, flags/vars below must all be non-zero
+#define DEXNAV_ENABLED                TRUE  // Whether or not DexNav is enabled. If TRUE, flags/vars below must all be non-zero
+
+// Leave this FALSE. It inserts dexNavSearchLevels[NUM_SPECIES] into SaveBlock3
+// ahead of challengeSettings, which moves every field after it and breaks every
+// existing save. dexNavChain itself is already in SaveBlock3, so nothing else
+// about the save layout changes by switching the DexNav on.
 #define USE_DEXNAV_SEARCH_LEVELS      FALSE  /* WARNING: POSSIBLY EXCEEDS SAVEBLOCK SPACE! REQUIRES 1 BYTE PER SPECIES */
 
 // Flag/var defines
-#define DN_FLAG_SEARCHING             0 // Searching for mon
-#define DN_FLAG_DEXNAV_GET            0 // DexNav shows in start menu
-#define DN_FLAG_DETECTOR_MODE         0 // Allow player to find hidden mons
-#define DN_VAR_SPECIES                0 // Registered DexNav species
-#define DN_VAR_STEP_COUNTER           0 // Steps for finding hidden pokemon
+#define DN_FLAG_SEARCHING             FLAG_DEXNAV_SEARCHING // Searching for mon
+// Soulgold hands the DexNav out with the Pokedex at Mr Pokemon's house and
+// gates the menu entry on a flag of its own. Reusing FLAG_SYS_POKEDEX_GET
+// reaches the same place without touching a map script, and it also works on a
+// save that is already past that scene.
+#define DN_FLAG_DEXNAV_GET            FLAG_SYS_POKEDEX_GET // DexNav shows in start menu
+// Assigned but never set, exactly as in Soulgold, where no script sets its
+// equivalent either. dexnav.c asserts it is non-zero, so it needs a real flag;
+// setting it turns the hidden-Pokemon step search on.
+#define DN_FLAG_DETECTOR_MODE         FLAG_DN_HIDDEN_MODE // Allow player to find hidden mons
+#define DN_VAR_SPECIES                VAR_DEXNAV_SPECIES // Registered DexNav species
+// Soulgold reuses its VAR_STEP_COUNTER at 0x40BC; that address is
+// VAR_BRAVO_TRAINER_BATTLE_TOWER_ON here, so the DexNav gets its own var.
+#define DN_VAR_STEP_COUNTER           VAR_DEXNAV_STEP_COUNTER // Steps for finding hidden pokemon
 
 // Search parameters
 #define DEXNAV_TIMEOUT                  15  // 15 seconds is the time out. Max of 1092 seconds allowed

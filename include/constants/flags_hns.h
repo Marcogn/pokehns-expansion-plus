@@ -1184,7 +1184,16 @@
 #define FLAG_MELEMELE_HIDDEN_ITEM                   (HNS_EXTENDED_CONTENT_START + 299)
 #define HNS_EXTENDED_CONTENT_COUNT                  300
 #define HNS_EXTENDED_CONTENT_END                    (HNS_EXTENDED_CONTENT_START + HNS_EXTENDED_CONTENT_COUNT - 1)
-// 0x496–0x4FF remaining reserved for future expansion
+
+// DexNav. Taken from the reserved window below rather than from the 0x308-0x30F
+// gap, which is the only headroom the HnS content block has left. Soulgold puts
+// these at 0x2A4/0x2A6, but those are hidden-item flags here.
+// The "you have a DexNav" flag is not one of these: DN_FLAG_DEXNAV_GET in
+// include/config/dexnav.h reuses FLAG_SYS_POKEDEX_GET.
+#define FLAG_DEXNAV_SEARCHING                       0x496 // A DexNav search is running
+#define FLAG_DN_HIDDEN_MODE                         0x497 // Allow searching for hidden Pokemon
+
+// 0x498–0x4FF remaining reserved for future expansion
 
 // Trainer registered (match call) flags — one per rematchable trainer
 #define TRAINER_REGISTERED_FLAGS_START               0x310
