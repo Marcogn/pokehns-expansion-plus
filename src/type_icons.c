@@ -49,15 +49,24 @@ const struct Coords16 sTypeIconPositions[][2] =
         // behind it and simply never appears. Sampling a real frame of this
         // repo's Gen 4 opponent healthbox puts its right edge at x 106
         // (x 103 is still its white outline, x 110 is already background).
-        // The slide below walks the sprite 10px right of the value stored here,
-        // so the resting x is 114 and its left edge lands at 110, clear of the
-        // box. Soulgold's 93 and upstream's 20 are both inside this repo's box;
-        // Soulgold's healthbox art is narrower than the one here.
+        // Singles: the icon sits to the LEFT of the healthbox, which is where
+        // upstream expansion put it and where the entry animation makes sense -
+        // it emerges from under the box and retracts back under it. Soulgold
+        // puts it on the right instead, but its healthbox art is much narrower.
         //
-        // Offset from the healthbox origin is what carries across repos:
-        // 114 - 44 here against Soulgold's 103 - 34, i.e. +70 against +69. The
-        // doubles entries work out at +66 on both sides in both repos.
-        [FALSE] = {104, 26}, // was {20, 26}, the upstream expansion default
+        // Measured off a real frame (mGBA, 1:1 sample of the framebuffer): the
+        // box's left outline is a vertical edge at x 12 on every row, so the
+        // free strip is x 0..11, twelve pixels. The sprite is 8 wide and its
+        // stored x is the centre, so the resting x of 7 lands it on x 3..10:
+        // three pixels off the screen edge, one clear of the box.
+        //
+        // The slide below walks the sprite 10px left of the value stored here,
+        // hence 17. It starts at x 13..20, i.e. behind the box, which is what
+        // makes it look like it slides out of the healthbox.
+        [FALSE] = {17, 26},  // was {20, 26}, the upstream expansion default
+        // Doubles keeps Soulgold's placement, to the right of the box: at this
+        // size there is no room on the left. Offset from the healthbox origin
+        // is +66 on both sides here and in Soulgold.
         [TRUE] = {100, 14},  // was {97, 14}
     },
     // Dead entries: LoadTypeIconsPerBattler() returns before it reaches the
@@ -412,10 +421,14 @@ static void SetTypeIconXY(s32* x, s32* y, u32 position, bool32 useDoubleBattleCo
     *x = sTypeIconPositions[position][useDoubleBattleCoords].x;
     *y = sTypeIconPositions[position][useDoubleBattleCoords].y + (11 * typeNum);
 
-    // The two icons of a dual type are stacked 11px apart; on the opposing side
-    // Soulgold also steps the lower one 4px across, which is the HGSS look.
-    // Upstream expansion stacks them flush and the pair reads as one block.
-    if (typeNum != 0 && GetBattlerSide(GetBattlerAtPosition(position)) == B_SIDE_OPPONENT)
+    // The two icons of a dual type are stacked 11px apart; Soulgold also steps
+    // the lower one 4px right, which is the HGSS look. That only works where
+    // the pair sits to the right of the healthbox, so it is kept for doubles
+    // and dropped in singles: there the icons are in the 12px strip left of the
+    // box, and 4px either way would clip the screen edge or hide half the glyph
+    // behind the box.
+    if (typeNum != 0 && useDoubleBattleCoords
+     && GetBattlerSide(GetBattlerAtPosition(position)) == B_SIDE_OPPONENT)
         *x += 4;
 }
 
@@ -566,13 +579,12 @@ static s32 GetTypeIconHideMovement(bool32 useDoubleBattleCoords, u32 position)
             return -1;
     }
 
-    // Singles used to be the mirror of this, which meant the opposing icon
-    // retracted away from the healthbox and out into the field instead of
-    // tucking back under it. The doubles branch above was already Soulgold's.
+    // Singles is the mirror of Soulgold's because the icon is on the other side
+    // of the box here: it retracts to the right, back under the healthbox.
     if (position == B_POSITION_PLAYER_LEFT)
-        return 1;
-    else
         return -1;
+    else
+        return 1;
 }
 
 static s32 GetTypeIconSlideMovement(bool32 useDoubleBattleCoords, u32 position, s32 xPos, s32 originalX)
@@ -596,18 +608,18 @@ static s32 GetTypeIconSlideMovement(bool32 useDoubleBattleCoords, u32 position, 
         return 0;
     }
 
-    // Same mirror as in GetTypeIconHideMovement: the opposing icon now slides
-    // out to the right of its stored x, away from the healthbox, so the resting
-    // position is stored x + 10 and the retract above walks it straight back.
+    // Same mirror as in GetTypeIconHideMovement: in singles the opposing icon
+    // slides out to the LEFT of its stored x, away from the healthbox, so the
+    // resting position is stored x - 10 and the retract above walks it back.
     if (position == B_POSITION_PLAYER_LEFT)
-    {
-        if (xPos > originalX - 10)
-            return -1;
-    }
-    else
     {
         if (xPos < originalX + 10)
             return 1;
+    }
+    else
+    {
+        if (xPos > originalX - 10)
+            return -1;
     }
     return 0;
 }

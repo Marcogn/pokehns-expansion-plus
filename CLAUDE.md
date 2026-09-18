@@ -204,19 +204,31 @@ Corollario sulle coordinate: quando una feature è sempre stata spenta, i suoi
 dati posizionali sono i default di expansion, non valori tarati su questo repo.
 `sTypeIconPositions` era così.
 
-**Non si ricavano per differenza dalle coordinate di Soulgold.** Ci ho provato e
-ho sbagliato due volte. La healthbox è creata con subpriority **1**, le icone dei
-tipi con **255**: tutto ciò che si sovrappone alla box viene disegnato *dietro* e
-non si vede mai. L'arte della healthbox di Soulgold è più stretta di quella di
-Hasep, quindi il suo x=93 qui cade dentro la box (bordo destro misurato a
-**x=106**: a 103 c'è ancora il contorno bianco, a 110 c'è già lo sfondo). Il
-valore giusto si **misura campionando i pixel di un frame vero**, non si deriva.
+La healthbox è creata con subpriority **1**, le icone dei tipi con **255**:
+tutto ciò che si sovrappone alla box viene disegnato *dietro* e non si vede mai.
 
-**Quello che invece si trasferisce è l'offset dalla healthbox.** Confrontando
-`sTypeIconPositions` con `sBattlerHealthboxCoords` nei due repo, la distanza fra
-l'origine della box e la posizione di riposo dell'icona è la stessa: +70 qui
-contro +69 su SG in singola, +66 su entrambi i lati in doppia in tutti e due i
-repo. È il numero da controllare quando si tocca una coordinata.
+**Errore mio da non ripetere.** Dalla segnalazione «compare per un secondo e poi
+sparisce, esce e rientra dalla hpbox» avevo concluso che la posizione di partenza
+(`{20, 26}`, il default di expansion) finisse dentro la box, e avevo spostato le
+icone a **destra** della healthbox. Sbagliato: quel default mette l'icona a
+**sinistra** della box, dove c'è spazio libero, e «esce e rientra dalla hpbox»
+descriveva l'animazione che funzionava. L'unico vero bug era
+`tHideIconTimer` che non si azzerava mai. La frase dell'utente conteneva già la
+risposta: **leggere la segnalazione come una misura, non come un sintomo**.
+
+**Come si misura davvero.** `import` + `convert -sample 240x160!` dà il
+framebuffer 1:1, e `convert ... txt:-` ne stampa i pixel: da lì i bordi si leggono
+senza interpretare. In singola il bordo **sinistro** della box è una linea
+verticale a **x 12** su tutte le righe, quello destro sta a **x 101** sulla riga
+del nome. Restano quindi 12 px liberi a sinistra; lo sprite è largo 8 e la x
+memorizzata è il **centro**, quindi riposo 7 = icona su x 3..10.
+
+**Disposizione attuale:** singola a **sinistra** della box (`{17, 26}`, la slide
+toglie 10), doppia a **destra** come Soulgold (offset +66 dall'origine della box
+su entrambi i lati, identico a SG). La scaletta di 4 px della seconda icona vale
+solo dove le icone stanno a destra, quindi è attiva solo in doppia: in singola i
+12 px non bastano e 4 px in un verso o nell'altro tagliano il bordo schermo o
+nascondono mezzo glifo dietro la box.
 
 **Tre differenze di comportamento (non di coordinate) trovate rispetto a SG,
 tutte allineate a SG:**
@@ -227,12 +239,13 @@ tutte allineate a SG:**
   qui le icone avversarie uscivano specchiate in singola e non in doppia. SG
   specchia sempre sul lato avversario;
 - SG indenta di **4 px** la seconda icona di un doppio tipo sul lato avversario
-  (`SetTypeIconXY`), la scaletta in stile HGSS. Expansion le impila a filo;
-- in **singola** le direzioni di `GetTypeIconSlideMovement` e
-  `GetTypeIconHideMovement` erano speculari a quelle di SG: l'icona avversaria si
-  ritraeva *allontanandosi* dalla box invece di rientrarci sotto. Il ramo doppie
-  era già quello di SG. Invertendo la singola cambia anche il segno del riposo
-  (`x + 10` invece di `x - 10`), quindi la entry va ricalcolata: 124 → **104**.
+  (`SetTypeIconXY`), la scaletta in stile HGSS. Expansion le impila a filo. Qui
+  la scaletta è attiva solo in doppia, per lo spazio (vedi sopra);
+- le direzioni di `GetTypeIconSlideMovement` e `GetTypeIconHideMovement` in
+  singola sono speculari a quelle di SG, ed è corretto così: qui l'icona sta
+  dall'altro lato della box, quindi esce verso sinistra e si ritrae verso destra,
+  rientrando sotto la healthbox. Il segno del riposo è `x - 10`, per questo la
+  entry vale 17 e non 7. Il ramo doppie è identico a SG.
 
 Per farlo funzionare serve anche `tHorizontalPosition` (`data[4]`) in
 `include/type_icons.h`: la slide deve agganciarsi alla x di riposo **del singolo
