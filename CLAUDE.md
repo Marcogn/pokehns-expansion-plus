@@ -212,6 +212,34 @@ Hasep, quindi il suo x=93 qui cade dentro la box (bordo destro misurato a
 **x=106**: a 103 c'è ancora il contorno bianco, a 110 c'è già lo sfondo). Il
 valore giusto si **misura campionando i pixel di un frame vero**, non si deriva.
 
+**Quello che invece si trasferisce è l'offset dalla healthbox.** Confrontando
+`sTypeIconPositions` con `sBattlerHealthboxCoords` nei due repo, la distanza fra
+l'origine della box e la posizione di riposo dell'icona è la stessa: +70 qui
+contro +69 su SG in singola, +66 su entrambi i lati in doppia in tutti e due i
+repo. È il numero da controllare quando si tocca una coordinata.
+
+**Tre differenze di comportamento (non di coordinate) trovate rispetto a SG,
+tutte allineate a SG:**
+
+- l'arte in `graphics/types/battle_icons*.png` è **identica** a quella di SG ed è
+  **asimmetrica**. `ShouldFlipTypeIcon` di expansion sceglieva il lato giocatore
+  in singola e quello avversario in doppia — non possono essere giusti entrambi:
+  qui le icone avversarie uscivano specchiate in singola e non in doppia. SG
+  specchia sempre sul lato avversario;
+- SG indenta di **4 px** la seconda icona di un doppio tipo sul lato avversario
+  (`SetTypeIconXY`), la scaletta in stile HGSS. Expansion le impila a filo;
+- in **singola** le direzioni di `GetTypeIconSlideMovement` e
+  `GetTypeIconHideMovement` erano speculari a quelle di SG: l'icona avversaria si
+  ritraeva *allontanandosi* dalla box invece di rientrarci sotto. Il ramo doppie
+  era già quello di SG. Invertendo la singola cambia anche il segno del riposo
+  (`x + 10` invece di `x - 10`), quindi la entry va ricalcolata: 124 → **104**.
+
+Per farlo funzionare serve anche `tHorizontalPosition` (`data[4]`) in
+`include/type_icons.h`: la slide deve agganciarsi alla x di riposo **del singolo
+sprite**, non alla entry di tabella condivisa, altrimenti l'indent di 4 px viene
+riassorbito. Oggi `src/type_icons.c` differisce da quello di SG solo per la
+tabella delle coordinate e per il `sprite->tHideIconTimer = 0;`.
+
 Trappola di metodo, costata un'ora: avevo "verificato" che la geometria dei
 sotto-sprite fosse identica fra i due repo con
 `diff <(awk "/nome/,/^};/" a.c) <(awk "/nome/,/^};/" b.c)`. Il nome non esisteva
@@ -239,6 +267,17 @@ vuoti non è una verifica.** Controlla sempre che l'estratto non sia vuoto.
 - **VBlank**: aprire una schermata senza installare il proprio `SetVBlankCallback`
   eredita quello del chiamante. È così che il Pokédex aperto dal menu SwSh scorreva
   in diagonale.
+- **Aprire una schermata full-callback dall'interno di una lotta**: si può, e il
+  giro è già pronto. `OpenPokedexInfoScreen(species, returnCallback)` prende il
+  main callback; come `returnCallback` si passa `ReshowBattleScreenAfterMenu`
+  (`include/reshow_battle_screen.h`), la stessa strada di borsa e menu squadra,
+  che ricostruisce tutta la lotta e finisce su `BattleMainCB2`. Lo script di
+  cattura in `battle_script_commands.c` aspetta esattamente
+  `gMain.callback2 == BattleMainCB2` e il task morto, quindi riprende da solo.
+  Attenzione a liberare finestre e buffer dei BG 2/3 **prima** di cedere il
+  controllo: `LoadInfoScreen` ne installa di propri e i puntatori vecchi si
+  perdono. `battle_controllers.h` non è includibile da `pokedex_plus_hgss.c`
+  (tira dentro `battle.h`), da cui la chiamata diretta alla funzione di reshow.
 
 ---
 
