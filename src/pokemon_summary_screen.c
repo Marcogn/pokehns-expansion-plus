@@ -186,6 +186,10 @@ static EWRAM_DATA struct PokemonSummaryScreenData
     bool8 lockMovesFlag; // This is used to prevent the player from changing position of moves in a battle or when trading.
     u8 bgDisplayOrder; // Determines the order page backgrounds are loaded while scrolling between them
     bool8 hasRelearnableMoves;
+    // Filled once per loaded mon by UpdateRelearnAvailability(). Recomputing it
+    // per page flip means a CheckBagHasItem() for every machine, four times
+    // over, which is what made the pages crawl. Ported from Soulgold.
+    bool8 hasRelearnableMovesByState[MOVE_RELEARNER_COUNT];
     u8 windowIds[8];
     u8 spriteIds[SPRITE_ARR_ID_COUNT];
     s16 switchCounter; // Used for various switch statement cases that decompress/load graphics or Pokémon data
@@ -346,6 +350,10 @@ static u8 AddWindowFromTemplateList(const struct WindowTemplate *template, u8 te
 u32 GetAdjustedIvData(struct Pokemon *mon, u32 stat);
 static void TryUpdateRelearnType(enum IncrDecrUpdateValues delta);
 static void ShowRelearnPrompt(void);
+static void UpdateRelearnAvailability(void);
+static bool32 IsOnRelearnerMovesPage(void);
+static void OpenMoveRelearnerFromSummary(u8 taskId);
+static bool32 HasCachedRelearnableMoves(enum MoveRelearnerStates state);
 static struct BoxPokemon *GetCurrentBoxmon(void);
 
 static const struct BgTemplate sBgTemplates[] =
@@ -1453,6 +1461,7 @@ static bool8 LoadGraphics(void)
             gMain.state++;
         break;
     case 11:
+        UpdateRelearnAvailability();
         PrintMonInfo();
         gMain.state++;
         break;
@@ -1972,6 +1981,10 @@ static void Task_HandleInput(u8 taskId)
                 sMonSummaryScreen->skillsPageMode = SUMMARY_SKILLS_MODE_STATS;
                 PlaySE(SE_SELECT);
             }
+            else if (IsOnRelearnerMovesPage() && ShouldShowMoveRelearner())
+            {
+                OpenMoveRelearnerFromSummary(taskId);
+            }
         }
         else if (JOY_NEW(R_BUTTON))
         {
@@ -1980,6 +1993,13 @@ static void Task_HandleInput(u8 taskId)
                 ShowMonSkillsInfo(taskId, SUMMARY_SKILLS_MODE_IVS);
                 sMonSummaryScreen->skillsPageMode = SUMMARY_SKILLS_MODE_IVS;
                 PlaySE(SE_SELECT);
+            }
+            else if (IsOnRelearnerMovesPage())
+            {
+                // R means increase. Level -> Tutor -> Egg -> TM
+                TryUpdateRelearnType(TRY_INCREMENT);
+                PlaySE(SE_SELECT);
+                ShowRelearnPrompt();
             }
         }
         else if (JOY_NEW(L_BUTTON))
@@ -1990,8 +2010,57 @@ static void Task_HandleInput(u8 taskId)
                 sMonSummaryScreen->skillsPageMode = SUMMARY_SKILLS_MODE_EVS;
                 PlaySE(SE_SELECT);
             }
+            else if (IsOnRelearnerMovesPage())
+            {
+                // L means decrease. Level <- Egg <- TM <- Tutor
+                TryUpdateRelearnType(TRY_DECREMENT);
+                PlaySE(SE_SELECT);
+                ShowRelearnPrompt();
+            }
         }
     }
+}
+
+// The prompt is drawn on both move pages, so both open the relearner. It stays
+// out of battle and out of the move-selection modes, where the screen is a
+// chooser and leaving it would strand the caller.
+static bool32 IsOnRelearnerMovesPage(void)
+{
+    return (P_SUMMARY_SCREEN_MOVE_RELEARNER
+         && !gMain.inBattle
+         && sMonSummaryScreen->mode != SUMMARY_MODE_SELECT_MOVE
+         && (sMonSummaryScreen->currPageIndex == PSS_PAGE_BATTLE_MOVES
+          || sMonSummaryScreen->currPageIndex == PSS_PAGE_CONTEST_MOVES));
+}
+
+// RELEARN_MODE_PSS_PAGE_BATTLE_MOVES and _CONTEST_MOVES are deliberately 2 and
+// 3 so they line up with the page indices; see constants/move_relearner.h. The
+// box variants are separate values, so they are mapped rather than offset.
+static void OpenMoveRelearnerFromSummary(u8 taskId)
+{
+    bool32 contest = sMonSummaryScreen->currPageIndex == PSS_PAGE_CONTEST_MOVES;
+
+    sMonSummaryScreen->callback = CB2_InitLearnMove;
+
+    if (sMonSummaryScreen->isBoxMon)
+    {
+        gRelearnMode = contest ? RELEARN_MODE_BOX_PSS_PAGE_CONTEST_MOVES
+                               : RELEARN_MODE_BOX_PSS_PAGE_BATTLE_MOVES;
+        gSpecialVar_0x8004 = PC_MON_CHOSEN;
+        gSpecialVar_MonBoxPos = sMonSummaryScreen->curMonIndex;
+        gSpecialVar_MonBoxId = StorageGetCurrentBox();
+    }
+    else
+    {
+        gRelearnMode = contest ? RELEARN_MODE_PSS_PAGE_CONTEST_MOVES
+                               : RELEARN_MODE_PSS_PAGE_BATTLE_MOVES;
+        gSpecialVar_0x8004 = sMonSummaryScreen->curMonIndex;
+        gSpecialVar_MonBoxPos = sMonSummaryScreen->curMonIndex;
+    }
+
+    StopPokemonAnimations();
+    PlaySE(SE_SELECT);
+    BeginCloseSummaryScreen(taskId);
 }
 
 static void ShowMonSkillsInfo(u8 taskId, s16 mode)
@@ -2062,16 +2131,68 @@ bool32 HasAnyRelearnableMoves(enum MoveRelearnerStates state)
     return CanBoxMonRelearnMoves(GetCurrentBoxmon(), state);
 }
 
-bool32 NoMovesAvailableToRelearn(void)
+// Called once whenever a mon is loaded into the screen. Everything else reads
+// the cache, because HasAnyRelearnableMoves() for the machine state walks every
+// TM and asks the bag about each one. Ported from Soulgold.
+static void UpdateRelearnAvailability(void)
 {
-    u32 zeroCounter = 0;
+    for (enum MoveRelearnerStates state = MOVE_RELEARNER_LEVEL_UP_MOVES; state < MOVE_RELEARNER_COUNT; state++)
+        sMonSummaryScreen->hasRelearnableMovesByState[state] = FALSE;
+
+    sMonSummaryScreen->hasRelearnableMoves = FALSE;
+
+    if (!P_SUMMARY_SCREEN_MOVE_RELEARNER
+        || sMonSummaryScreen->lockMovesFlag
+        || sMonSummaryScreen->mode == SUMMARY_MODE_BOX_CURSOR
+        || InBattleFactory()
+        || InSlateportBattleTent())
+        return;
+
     for (enum MoveRelearnerStates state = MOVE_RELEARNER_LEVEL_UP_MOVES; state < MOVE_RELEARNER_COUNT; state++)
     {
-        if (!HasAnyRelearnableMoves(state))
-            zeroCounter++;
+        if (!CheckRelearnerStateFlag(state))
+            continue;
+
+        sMonSummaryScreen->hasRelearnableMovesByState[state] = HasAnyRelearnableMoves(state);
+        if (sMonSummaryScreen->hasRelearnableMovesByState[state])
+            sMonSummaryScreen->hasRelearnableMoves = TRUE;
+    }
+}
+
+static bool32 HasCachedRelearnableMoves(enum MoveRelearnerStates state)
+{
+    if (state >= MOVE_RELEARNER_COUNT)
+        return FALSE;
+
+    return sMonSummaryScreen->hasRelearnableMovesByState[state];
+}
+
+// The order L and R walk through on the moves page.
+static const enum MoveRelearnerStates sRelearnerStateCycle[] =
+{
+    MOVE_RELEARNER_LEVEL_UP_MOVES,
+    MOVE_RELEARNER_TUTOR_MOVES,
+    MOVE_RELEARNER_EGG_MOVES,
+    MOVE_RELEARNER_TM_MOVES,
+};
+
+static enum MoveRelearnerStates GetNextRelearnerState(enum MoveRelearnerStates state, enum IncrDecrUpdateValues delta)
+{
+    u32 currentIndex = 0;
+
+    for (u32 i = 0; i < ARRAY_COUNT(sRelearnerStateCycle); i++)
+    {
+        if (sRelearnerStateCycle[i] == state)
+        {
+            currentIndex = i;
+            break;
+        }
     }
 
-    return zeroCounter == MOVE_RELEARNER_COUNT;
+    if (delta == TRY_DECREMENT)
+        return sRelearnerStateCycle[(currentIndex + ARRAY_COUNT(sRelearnerStateCycle) - 1) % ARRAY_COUNT(sRelearnerStateCycle)];
+
+    return sRelearnerStateCycle[(currentIndex + 1) % ARRAY_COUNT(sRelearnerStateCycle)];
 }
 
 bool32 CheckRelearnerStateFlag(enum MoveRelearnerStates state)
@@ -2097,8 +2218,8 @@ bool32 CheckRelearnerStateFlag(enum MoveRelearnerStates state)
 static void TryUpdateRelearnType(enum IncrDecrUpdateValues delta)
 {
     bool32 hasRelearnableMoves = FALSE;
-    u32 zeroCounter = 0;
     enum MoveRelearnerStates state = gMoveRelearnerState;
+    u32 i;
 
     // just in case everything is off, default to level up moves
     if ((!P_ENABLE_MOVE_RELEARNERS
@@ -2106,50 +2227,36 @@ static void TryUpdateRelearnType(enum IncrDecrUpdateValues delta)
         && !FlagGet(P_FLAG_EGG_MOVES)
         && !FlagGet(P_FLAG_TUTOR_MOVES)))
     {
-        sMonSummaryScreen->hasRelearnableMoves = HasAnyRelearnableMoves(MOVE_RELEARNER_LEVEL_UP_MOVES);
+        gMoveRelearnerState = MOVE_RELEARNER_LEVEL_UP_MOVES;
+        sMonSummaryScreen->hasRelearnableMoves = HasCachedRelearnableMoves(MOVE_RELEARNER_LEVEL_UP_MOVES);
         return;
     }
 
-    do
+    if (delta == TRY_SET_UPDATE && HasCachedRelearnableMoves(gMoveRelearnerState))
     {
-        switch (delta)
-        {
-        default:
-        case TRY_SET_UPDATE:
-            hasRelearnableMoves = HasAnyRelearnableMoves(gMoveRelearnerState);
-            if (!hasRelearnableMoves)
-            {
-                delta = TRY_INCREMENT;
-                continue;
-            }
-            else
-            {
-                sMonSummaryScreen->hasRelearnableMoves = hasRelearnableMoves;
-                return;
-            }
-            // should never reach this, but just in case
-            break;
-        case TRY_INCREMENT:
-            state = state >= MOVE_RELEARNER_TUTOR_MOVES ? MOVE_RELEARNER_LEVEL_UP_MOVES : state + 1;
-            break;
-        case TRY_DECREMENT:
-            state = state == MOVE_RELEARNER_LEVEL_UP_MOVES ? MOVE_RELEARNER_TUTOR_MOVES : state - 1;
-            break;
-        }
+        sMonSummaryScreen->hasRelearnableMoves = TRUE;
+        return;
+    }
 
+    if (delta == TRY_SET_UPDATE)
+        delta = TRY_INCREMENT;
+
+    for (i = 0; i < ARRAY_COUNT(sRelearnerStateCycle); i++)
+    {
+        state = GetNextRelearnerState(state, delta);
         if (!CheckRelearnerStateFlag(state))
             continue;
 
-        hasRelearnableMoves = HasAnyRelearnableMoves(state);
+        hasRelearnableMoves = HasCachedRelearnableMoves(state);
         if (hasRelearnableMoves)
         {
             gMoveRelearnerState = state;
             sMonSummaryScreen->hasRelearnableMoves = hasRelearnableMoves;
             return;
         }
-        zeroCounter++;
+    }
 
-    } while (zeroCounter <= MOVE_RELEARNER_COUNT && !hasRelearnableMoves);
+    sMonSummaryScreen->hasRelearnableMoves = FALSE;
 }
 
 static void ChangeSummaryPokemon(u8 taskId, s8 delta)
@@ -2225,6 +2332,8 @@ static void Task_ChangeSummaryMon(u8 taskId)
     case 4:
         if (ExtractMonDataToSummaryStruct(&sMonSummaryScreen->currentMon) == FALSE)
             return;
+
+        UpdateRelearnAvailability();
 
         if (sMonSummaryScreen->currPageIndex == PSS_PAGE_SKILLS)
             sMonSummaryScreen->skillsPageMode = SUMMARY_SKILLS_MODE_STATS;
@@ -4973,8 +5082,7 @@ static inline bool32 ShouldShowMoveRelearner(void)
          && sMonSummaryScreen->mode != SUMMARY_MODE_BOX_CURSOR
          && sMonSummaryScreen->hasRelearnableMoves
          && !InBattleFactory()
-         && !InSlateportBattleTent()
-         && !NoMovesAvailableToRelearn());
+         && !InSlateportBattleTent());
 }
 
 static inline void ShowUtilityPrompt(s16 mode)
@@ -5025,7 +5133,7 @@ static void ShowRelearnPrompt(void)
         return;
     }
 
-    if (!HasAnyRelearnableMoves(gMoveRelearnerState))
+    if (!HasCachedRelearnableMoves(gMoveRelearnerState))
         return;
 
     const u8 *relearnText;

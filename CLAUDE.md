@@ -97,7 +97,7 @@ partire da un salvataggio già su una rotta.
 `STATIC_ASSERT(..., ChallengeSettingsLayoutPinned)` in `src/save.c`.
 
 - Aggiungi campi **solo in fondo**, così nessun campo esistente cambia offset.
-- Bit liberi nell'ultimo byte: dopo `skipNicknamePrompt` ne restano **3**.
+- Bit liberi nell'ultimo byte: dopo `noWildEncounters` ne restano **2**.
 - Dopo ogni aggiunta verifica che compili: l'assert fallisce da sola se sfori.
 
 **Polarità dei bit.** Un salvataggio scritto prima che l'opzione esistesse legge il
@@ -105,7 +105,13 @@ bit a **zero**. Quindi se il default deve essere "come prima", memorizza il camp
 modo che zero significhi il comportamento vecchio — anche se il nome viene brutto.
 `skipNicknamePrompt` è memorizzato invertito proprio per questo, e la lista di scelte
 è ordinata di conseguenza (`sChoices_OnOff` = ON per primo, `sChoices_OffOn` = OFF
-per primo).
+per primo). La regola in una riga: **l'etichetta del valore zero deve venire prima**.
+`noWildEncounters` segue la stessa logica (0 = incontri attivi = "ON").
+
+Le opzioni impostate prima di iniziare una partita passano da
+`src/oak_speech_hns.c`, che azzera tutta la struct e poi ricopia a mano i campi
+del menu opzioni. **Ogni campo nuovo va aggiunto anche a quella lista**, altrimenti
+la scelta fatta dal titolo viene persa in silenzio.
 
 ---
 
@@ -121,6 +127,7 @@ Per non ri-scoprirla. Accessore unico: `IsDarkUiEnabled()` (`include/option_menu
 | Cursore ▶ | BG pal 13 (`BATTLE_COMMAND_PAL_NUM`) | i tile 1 e 2 del textbox hanno lo sfondo sulla entry 1, che deve restare bianca per il testo |
 | Healthbox / barra HP / shiny | palette sprite in `battle_gfx_sfx_util.c` | 4 palette per skin: normale, shiny, scura, shiny scura |
 | Popup abilità + tab R e MOVE INFO | `sDarkAbilityPopUpPalette*` in `battle_interface.c` | palette condivisa fra tre disegni: attenzione |
+| Simboli di efficacia accanto ai PP | stringhe in `MoveSelectionDisplayMoveEffectiveness` (`battle_controller_player.c`) | hanno il colore incorporato: solo l'highlight va da 14 a 8 |
 
 Tutti i punti che ricaricano `gBattleTextboxPalette` su BG pal 0 chiamano subito dopo
 `LoadBattleMenuWindowGfx()`, quindi gli override vivono solo lì dentro.
@@ -138,7 +145,33 @@ sono testo puro. Se una finestra resta chiara pur essendo nella lista di
 
 ---
 
-## 6. Altre cose da sapere
+## 6. Prima di portare qualcosa: controlla se c'è già
+
+Vale più di qualunque stima. Cose date per mancanti che invece c'erano, spente:
+
+- **DexNav**: `src/dexnav.c` (2691 righe), `include/config/dexnav.h`, le 12 grafiche,
+  `data/scripts/dexnav.inc` e la voce `MENU_ACTION_DEXNAV` nel menu Start ci sono
+  già. `DEXNAV_ENABLED` è `FALSE` e i cinque flag/var sono a 0.
+- **Ricorda mosse dal riassunto**: è una feature di expansion 1.15.2
+  (`P_ENABLE_MOVE_RELEARNERS`), non di Soulgold.
+- **Icone dei tipi in lotta**: `src/type_icons.c` c'è, `B_SHOW_TYPES` era
+  `SHOW_TYPES_NEVER`.
+- **Mente**: tutte e 21 già in vendita al negozio di fiori di Goldenrod, dietro
+  medaglia 3 e dietro il toggle `MODE_MINTS` del challenge menu.
+- **`swsh_party_menu.c`** si è portato dietro roba di Soulgold mai agganciata
+  (`Task_ShinGenome` era già lì). Controlla con
+  `nm --defined-only build/hns/src/swsh_party_menu.o` prima di scrivere un doppione:
+  un simbolo senza prefisso di variante è una collisione di link che aspetta.
+
+Corollario sulle coordinate: quando una feature è sempre stata spenta, i suoi
+dati posizionali sono i default di expansion, non valori tarati su questo repo.
+`sTypeIconPositions` era così. Si ricavano confrontando
+`sBattlerHealthboxCoords` fra i due repo (la geometria dei sotto-sprite è
+identica, quindi si sposta solo l'origine), non si copiano.
+
+---
+
+## 7. Altre cose da sapere
 
 - **Menu squadra SwSh**: due varianti compilate insieme. `tools/gen_party_menu_variant.py`
   rigenera `include/party_menu_variant.h` e `src/party_menu_dispatch.c`. Lo script è
@@ -159,7 +192,7 @@ sono testo puro. Se una finestra resta chiara pur essendo nella lista di
 
 ---
 
-## 7. Rotture preesistenti (non tue)
+## 8. Rotture preesistenti (non tue)
 
 Verificate su `master` pulito, **prima** di qualunque modifica:
 
@@ -171,11 +204,11 @@ Se qualcuno chiede di sistemare la CI, il lavoro utile è restringerla a `hns`.
 
 ---
 
-## 8. Stile
+## 9. Stile
 
 - Commenti e messaggi di commit **in inglese**, conversazione con l'utente in italiano.
 - Commenti che spiegano **perché**, non cosa: soprattutto quando un valore è stato
   derivato, di' da dove. Nelle palette è d'obbligo tenere il valore originale a
   fianco (`// was RGB(...)`).
 - Commit descrittivi: cosa è rotto, perché, come si è verificato.
-- Branch di sviluppo: `claude/funny-wright-b4baba`. Non pushare altrove senza permesso.
+- Branch di sviluppo: quello assegnato dalla sessione. Non pushare altrove senza permesso.

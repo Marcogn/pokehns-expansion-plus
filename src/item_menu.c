@@ -456,6 +456,7 @@ static const u8 sRegisteredSelectHold_Gfx[] = INCBIN_U8("graphics/bag/select_but
 
 enum {
     COLORID_NORMAL,
+    COLORID_NORMAL_DARK,
     COLORID_POCKET_NAME,
     COLORID_GRAY_CURSOR,
     COLORID_UNUSED,
@@ -465,6 +466,9 @@ enum {
 static const u8 sFontColorTable[][3] = {
                             // bgColor, textColor, shadowColor
     [COLORID_NORMAL]      = {TEXT_COLOR_TRANSPARENT, TEXT_COLOR_WHITE,      TEXT_COLOR_LIGHT_GRAY},
+    // The light grey shadow reads as a halo against the dark bag background,
+    // so the dark theme drops it. Ported from Soulgold 1.1.4.
+    [COLORID_NORMAL_DARK] = {TEXT_COLOR_TRANSPARENT, TEXT_COLOR_WHITE,      TEXT_COLOR_TRANSPARENT},
     [COLORID_POCKET_NAME] = {TEXT_COLOR_TRANSPARENT, TEXT_COLOR_WHITE,      TEXT_COLOR_RED},
     [COLORID_GRAY_CURSOR] = {TEXT_COLOR_TRANSPARENT, TEXT_COLOR_LIGHT_GRAY, TEXT_COLOR_GREEN},
     [COLORID_UNUSED]      = {TEXT_COLOR_DARK_GRAY,   TEXT_COLOR_WHITE,      TEXT_COLOR_LIGHT_GRAY},
@@ -1094,6 +1098,10 @@ static void LoadBagItemListBuffers(u8 pocketId)
     gMultiuseListMenuTemplate.totalItems = gBagMenu->numItemStacks[pocketId];
     gMultiuseListMenuTemplate.items = sListBuffer1->subBuffers;
     gMultiuseListMenuTemplate.maxShowed = gBagMenu->numShownItems[pocketId];
+    // Same reason as COLORID_NORMAL_DARK: the list cursor's shadow is a light
+    // grey that only works over the light bag. Ported from Soulgold 1.1.4.
+    if (IsDarkUiEnabled())
+        gMultiuseListMenuTemplate.cursorShadowPal = TEXT_COLOR_TRANSPARENT;
 }
 
 static void GetItemNameFromPocket(u8 *dest, enum Item itemId)
@@ -2891,6 +2899,9 @@ static void LoadBagMenuTextWindows(void)
 
 static void BagMenu_Print(u8 windowId, u8 fontId, const u8 *str, u8 left, u8 top, u8 letterSpacing, u8 lineSpacing, u8 speed, u8 colorIndex)
 {
+    if (IsDarkUiEnabled() && colorIndex == COLORID_NORMAL)
+        colorIndex = COLORID_NORMAL_DARK;
+
     AddTextPrinterParameterized4(windowId, fontId, left, top, letterSpacing, lineSpacing, sFontColorTable[colorIndex], speed, str);
 }
 

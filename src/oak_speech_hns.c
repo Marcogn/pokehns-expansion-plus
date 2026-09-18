@@ -638,6 +638,12 @@ static void Task_NewGameHnsSpeech_FadeOutToChallengeMenu(u8 taskId)
         gSaveBlock3Ptr->challengeSettings.musicOnOff         = savedOptions.musicOnOff;
         gSaveBlock3Ptr->challengeSettings.bikeMusic          = savedOptions.bikeMusic;
         gSaveBlock3Ptr->challengeSettings.surfMusic          = savedOptions.surfMusic;
+        // These three are options-menu fields too. The first two were missing
+        // from this list, so choosing them on the title screen was silently
+        // undone by SetDefaultChallengeSettings() below.
+        gSaveBlock3Ptr->challengeSettings.guaranteedCatch    = savedOptions.guaranteedCatch;
+        gSaveBlock3Ptr->challengeSettings.skipNicknamePrompt = savedOptions.skipNicknamePrompt;
+        gSaveBlock3Ptr->challengeSettings.noWildEncounters   = savedOptions.noWildEncounters;
         ChallengeMenu_SetInitialSetup(TRUE);
         gMain.savedCallback = CB2_NewGameHnsSpeech_ReturnFromChallengeMenu;
         SetMainCallback2(CB2_InitChallengeMenu);

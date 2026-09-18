@@ -9,6 +9,7 @@
 #include "random.h"
 #include "field_player_avatar.h"
 #include "link.h"
+#include "load_save.h"
 #include "metatile_behavior.h"
 #include "overworld.h"
 #include "ow_synchronize.h"
@@ -87,6 +88,13 @@ static const u16 sRoute119WaterTileData[] =
 void DisableWildEncounters(bool8 disabled)
 {
     sWildEncountersDisabled = disabled;
+}
+
+// The WILD BATTLES option: a repel that never runs out. sWildEncountersDisabled
+// above is the scripted, EWRAM-only switch and is untouched by this.
+bool32 AreWildEncountersDisabledByOption(void)
+{
+    return gSaveblock3.challengeSettings.noWildEncounters;
 }
 
 // Each fishing spot on Route 119 is given a number between 1 and NUM_FISHING_SPOTS inclusive.
@@ -785,7 +793,7 @@ bool8 StandardWildEncounter(u16 curMetatileBehavior, u16 prevMetatileBehavior)
     enum TimeOfDay timeOfDay;
     struct Roamer *roamer;
 
-    if (sWildEncountersDisabled == TRUE)
+    if (sWildEncountersDisabled == TRUE || AreWildEncountersDisabledByOption())
         return FALSE;
 
     headerId = GetCurrentMapWildMonHeaderId();
@@ -930,6 +938,12 @@ void RockSmashWildEncounter(void)
     u32 headerId = GetCurrentMapWildMonHeaderId();
     enum TimeOfDay timeOfDay;
 
+    if (AreWildEncountersDisabledByOption())
+    {
+        gSpecialVar_Result = FALSE;
+        return;
+    }
+
     if (headerId != HEADER_NONE)
     {
         timeOfDay = GetTimeOfDayForEncounters(headerId, WILD_AREA_ROCKS);
@@ -972,6 +986,9 @@ bool8 SweetScentWildEncounter(void)
     s16 x, y;
     u32 headerId;
     enum TimeOfDay timeOfDay;
+
+    if (AreWildEncountersDisabledByOption())
+        return FALSE;
 
     PlayerGetDestCoords(&x, &y);
     headerId = GetCurrentMapWildMonHeaderId();
@@ -1051,7 +1068,14 @@ bool8 SweetScentWildEncounter(void)
 
 bool8 DoesCurrentMapHaveFishingMons(void)
 {
-    u32 headerId = GetCurrentMapWildMonHeaderId();
+    u32 headerId;
+
+    // Checked here and not in FishingWildEncounter() so the rod ends in
+    // FISHING_NOT_EVEN_NIBBLE, rather than getting a bite that goes nowhere.
+    if (AreWildEncountersDisabledByOption())
+        return FALSE;
+
+    headerId = GetCurrentMapWildMonHeaderId();
     enum TimeOfDay timeOfDay = GetTimeOfDayForEncounters(headerId, WILD_AREA_FISHING);
 
     if (headerId != HEADER_NONE && gWildMonHeaders[headerId].encounterTypes[timeOfDay].fishingMonsInfo != NULL)
