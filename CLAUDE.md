@@ -85,9 +85,23 @@ DISPLAY=:99 SDL_AUDIODRIVER=dummy /usr/games/mgba pokehns.gba &   # in backgroun
 risalire alle entry (`#292929` → `RGB(5,5,5)`) ha risolto in un colpo un problema su
 cui l'analisi statica girava a vuoto da un'ora.
 
-Limite noto: non sono ancora riuscito a raggiungere una **lotta selvatica** (il Volo
-del debug non accetta le rotte, e l'erba vicino a Violet sono alberi). Se serve,
-partire da un salvataggio già su una rotta.
+Con un salvataggio dell'utente già su una rotta con erba la lotta selvatica si
+raggiunge camminando avanti e indietro (~15-20 passi). Attenzione: se l'opzione
+`WILD BATTLES` è su OFF non succede niente e sembra un bug dell'emulatore.
+
+Due accorgimenti che fanno risparmiare molto tempo:
+
+- avvia `Xvfb` e `mgba` con `setsid nohup ... &`, altrimenti muoiono con la shell
+  e ci si ritrova senza display a metà sessione;
+- dopo **ogni** passaggio di menu fai uno screenshot e guardalo prima del passo
+  successivo. Contare i `Down` alla cieca porta ad aprire le opzioni dal *title
+  screen* invece che dal gioco, e te ne accorgi tre schermate dopo.
+
+**ROM strumentata**: quando una feature non si vede e l'analisi statica non
+conclude, la via più rapida è una build usa-e-getta con una condizione forzata
+(es. `return FALSE;` in cima a `ShouldHideTypeIcon`) o una posizione forzata al
+centro schermo. Due build da tre minuti hanno chiuso un problema su cui il
+ragionamento girava a vuoto da un'ora. Ricordati di `cp` del file prima.
 
 ---
 
@@ -153,7 +167,16 @@ Vale più di qualunque stima. Cose date per mancanti che invece c'erano, spente:
   `data/scripts/dexnav.inc` e la voce `MENU_ACTION_DEXNAV` nel menu Start ci sono
   già. `DEXNAV_ENABLED` è `FALSE` e i cinque flag/var sono a 0.
 - **Ricorda mosse dal riassunto**: è una feature di expansion 1.15.2
-  (`P_ENABLE_MOVE_RELEARNERS`), non di Soulgold.
+  (`P_ENABLE_MOVE_RELEARNERS`), non di Soulgold. Hasep ne aveva però solo metà:
+  `ShowRelearnPrompt()` disegnava il prompt e **nessuno gestiva START**.
+  Come lo configura Soulgold, verificato: `P_TM_MOVES_RELEARNER` **FALSE** (MT
+  mai disponibili), mosse uovo dietro `FLAG_EGG_MOVES_UNLOCKED` (Egg Move Master,
+  Blackthorn City House 3, ¥88.888) e tutor dietro `FLAG_TUTOR_MOVES_UNLOCKED`
+  (Tutor Move Master, Olivine City House 4, ¥44.444). È per questo che lì un
+  Pokémon di livello basso non vede mosse fuori scala: qui quei due cancelli non
+  ci sono per scelta.
+  Soulgold apre il relearner **solo dalla pagina Battle Moves** e forza
+  `showContestInfo` a FALSE.
 - **Icone dei tipi in lotta**: `src/type_icons.c` c'è, `B_SHOW_TYPES` era
   `SHOW_TYPES_NEVER`.
 - **Mente**: tutte e 21 già in vendita al negozio di fiori di Goldenrod, dietro
@@ -165,9 +188,22 @@ Vale più di qualunque stima. Cose date per mancanti che invece c'erano, spente:
 
 Corollario sulle coordinate: quando una feature è sempre stata spenta, i suoi
 dati posizionali sono i default di expansion, non valori tarati su questo repo.
-`sTypeIconPositions` era così. Si ricavano confrontando
-`sBattlerHealthboxCoords` fra i due repo (la geometria dei sotto-sprite è
-identica, quindi si sposta solo l'origine), non si copiano.
+`sTypeIconPositions` era così.
+
+**Non si ricavano per differenza dalle coordinate di Soulgold.** Ci ho provato e
+ho sbagliato due volte. La healthbox è creata con subpriority **1**, le icone dei
+tipi con **255**: tutto ciò che si sovrappone alla box viene disegnato *dietro* e
+non si vede mai. L'arte della healthbox di Soulgold è più stretta di quella di
+Hasep, quindi il suo x=93 qui cade dentro la box (bordo destro misurato a
+**x=106**: a 103 c'è ancora il contorno bianco, a 110 c'è già lo sfondo). Il
+valore giusto si **misura campionando i pixel di un frame vero**, non si deriva.
+
+Trappola di metodo, costata un'ora: avevo "verificato" che la geometria dei
+sotto-sprite fosse identica fra i due repo con
+`diff <(awk "/nome/,/^};/" a.c) <(awk "/nome/,/^};/" b.c)`. Il nome non esisteva
+in **nessuno** dei due file, quindi awk non stampava nulla da entrambe le parti e
+il diff tornava vuoto: l'ho letto come "identici". **Un diff vuoto fra due estratti
+vuoti non è una verifica.** Controlla sempre che l'estratto non sia vuoto.
 
 ---
 
