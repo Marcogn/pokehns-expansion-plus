@@ -455,6 +455,17 @@ static void SpriteCB_TypeIcon(struct Sprite *sprite)
         return;
     }
 
+    // tHideIconTimer is the frame counter of the retract animation, so it has
+    // to start over every time the icon is visible again. Upstream only ever
+    // increments it: any frame on which gBattlerControllerFuncs briefly holds
+    // something outside sShowTypesControllerFuncs is banked, and after ten such
+    // frames - spread over as long as it takes - the icon drifts back into the
+    // healthbox and destroys itself in the middle of move selection. Resetting
+    // it makes the retract need ten consecutive frames, which is what the
+    // animation was written for; the slide below then pulls the icon back to
+    // its resting x on its own.
+    sprite->tHideIconTimer = 0;
+
     sprite->x += GetTypeIconSlideMovement(useDoubleBattleCoords,position, sprite->x);
     sprite->y = GetTypeIconBounceMovement(sprite->tVerticalPosition,position);
 }
