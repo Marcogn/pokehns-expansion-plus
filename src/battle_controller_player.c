@@ -2465,9 +2465,20 @@ static void MoveSelectionDisplayMoveEffectiveness(u32 foeEffectiveness, enum Bat
 {
     static const u8 noIcon[] =  _("");
     static const u8 effectiveIcon[] =  _("{CIRCLE_HOLLOW}");
+    // The highlight index in these three is the window's background, and 14 is
+    // the white of gBattleWindowTextPalette: under the dark theme that paints a
+    // white block behind the icon, because an embedded colour code overrides
+    // the colours BattlePutTextOnWindow picked. The dark variants only move the
+    // highlight to BATTLE_WINDOW_DARK_BG_PAL_INDEX, which is the one entry of
+    // BG palette 5 that ApplyDarkBattleUiPalettes rewrites; the foreground and
+    // shadow entries are untouched by the dark theme and stay readable.
     static const u8 superEffectiveIcon[] =  _("{COLOR_HIGHLIGHT_SHADOW 6 14 0}{CIRCLE_DOT}");
     static const u8 notVeryEffectiveIcon[] =  _("{COLOR_HIGHLIGHT_SHADOW 3 14 4}{TRIANGLE}");
     static const u8 immuneIcon[] =  _("{COLOR_HIGHLIGHT_SHADOW 1 14 2}{BIG_MULT_X}");
+    static const u8 superEffectiveIconDark[] =  _("{COLOR_HIGHLIGHT_SHADOW 6 8 0}{CIRCLE_DOT}");
+    static const u8 notVeryEffectiveIconDark[] =  _("{COLOR_HIGHLIGHT_SHADOW 3 8 4}{TRIANGLE}");
+    static const u8 immuneIconDark[] =  _("{COLOR_HIGHLIGHT_SHADOW 1 8 2}{BIG_MULT_X}");
+    bool32 dark = IsDarkUiEnabled();
     struct ChooseMoveStruct *moveInfo = (struct ChooseMoveStruct *)(&gBattleResources->bufferA[battler][4]);
     u8 *txtPtr;
 
@@ -2478,13 +2489,13 @@ static void MoveSelectionDisplayMoveEffectiveness(u32 foeEffectiveness, enum Bat
         switch (foeEffectiveness)
         {
         case EFFECTIVENESS_SUPER_EFFECTIVE:
-            StringCopy(txtPtr, superEffectiveIcon);
+            StringCopy(txtPtr, dark ? superEffectiveIconDark : superEffectiveIcon);
             break;
         case EFFECTIVENESS_NOT_VERY_EFFECTIVE:
-            StringCopy(txtPtr, notVeryEffectiveIcon);
+            StringCopy(txtPtr, dark ? notVeryEffectiveIconDark : notVeryEffectiveIcon);
             break;
         case EFFECTIVENESS_NO_EFFECT:
-            StringCopy(txtPtr, immuneIcon);
+            StringCopy(txtPtr, dark ? immuneIconDark : immuneIcon);
             break;
         case EFFECTIVENESS_NORMAL:
             StringCopy(txtPtr, effectiveIcon);
