@@ -393,7 +393,10 @@ void DisplayYesNoMenuWithDefault(u8 initialCursorPos)
 u8 AddStartMenuWindow(u8 numActions)
 {
     if (sStartMenuWindowId == WINDOW_NONE)
-        sStartMenuWindowId = AddWindowParameterized(0, 22, 1, 7, (numActions * 2) + 2, 15, 0x139);
+        // Capped so a long menu cannot run off the bottom of the screen; the
+        // rows are drawn closer together to compensate, see PrintStartMenuActions.
+        // Ported from Soulgold 1.1.4.
+        sStartMenuWindowId = AddWindowParameterized(0, 22, 1, 7, min((numActions * 2) + 2, 18), 15, 0x139);
     return sStartMenuWindowId;
 }
 
