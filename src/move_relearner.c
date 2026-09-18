@@ -531,7 +531,12 @@ static void RemoveRelearnerTMFromBag(enum Move move)
 {
     enum Item item = GetTMHMItemIdFromMoveId(move);
 
-    if (!I_REUSABLE_TMS && !P_ENABLE_ALL_TM_MOVES
+    // GetItemImportance() reports every TM as important while the INFINITE TMS
+    // mode is on, which is what keeps Task_LearnedMove from consuming one when
+    // a TM is taught the normal way (src/party_menu.c). RemoveBagItem() does
+    // not check importance itself, so without this the relearner would eat TMs
+    // that teaching them does not.
+    if (!I_REUSABLE_TMS && !P_ENABLE_ALL_TM_MOVES && !GetItemImportance(item)
      && gMoveRelearnerState == MOVE_RELEARNER_TM_MOVES && GetItemTMHMIndex(item) <= NUM_TECHNICAL_MACHINES)
     {
         RemoveBagItem(item, 1);

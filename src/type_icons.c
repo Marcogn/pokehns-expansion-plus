@@ -44,16 +44,26 @@ const struct Coords16 sTypeIconPositions[][2] =
     },
     [B_POSITION_OPPONENT_LEFT] =
     {
-        [FALSE] = {20, 26},
-        [TRUE] = {97, 14},
+        // Derived, not copied: sHealthBar_Subsprites_* and the healthbox
+        // subsprite tables are byte-identical to Soulgold's, so the icon sits
+        // at the same offset from the healthbox origin in both repos and only
+        // the origin differs. sBattlerHealthboxCoords puts the opponent at
+        // x 44 here against Soulgold's 34 in singles (+10) and at 44/32
+        // against 45/33 in doubles (-1), so its 93/101/89 become 103/100/88.
+        // The y values already agreed, which is the cross-check.
+        [FALSE] = {103, 26}, // was {20, 26}, the upstream expansion default
+        [TRUE] = {100, 14},  // was {97, 14}
     },
+    // Dead entries: LoadTypeIconsPerBattler() returns before it reaches the
+    // player's side, exactly as Soulgold's does. Left at the upstream values
+    // rather than guessed at, so nothing untested can reach the screen.
     [B_POSITION_PLAYER_RIGHT] =
     {
         [TRUE] = {156, 96},
     },
     [B_POSITION_OPPONENT_RIGHT] =
     {
-        [TRUE] = {85, 39},
+        [TRUE] = {88, 39},   // was {85, 39}
     },
 };
 
@@ -267,7 +277,10 @@ static void LoadTypeIconsPerBattler(enum BattlerId battler, u32 position)
     enum BattlerId battlerId = GetBattlerAtPosition(position);
     bool32 useDoubleBattleCoords = UseDoubleBattleCoords(battlerId);
 
-    if (!IsBattlerAlive(battlerId))
+    // Only the opposing side gets icons, as in Soulgold. Your own Pokemon's
+    // types are never a question, and the player-side coordinates below are
+    // the untested upstream defaults.
+    if (IsOnPlayerSide(battlerId) || !IsBattlerAlive(battlerId))
         return;
 
     for (typeNum = 0; typeNum < 2; ++typeNum)
@@ -302,7 +315,10 @@ static enum Type GetMonPublicType(enum BattlerId battlerId, u32 typeNum)
         return TYPE_MYSTERY;
 
     monIllusion = GetIllusionMonPtr(battlerId);
-    illusionSpecies = GetMonData(monIllusion,MON_DATA_SPECIES,NULL);
+    // GetIllusionMonPtr() returns NULL whenever no Illusion is up, which is the
+    // common case. Both helpers below already guard for it; this read did not.
+    // Ported from Soulgold.
+    illusionSpecies = monIllusion != NULL ? GetMonData(monIllusion, MON_DATA_SPECIES) : SPECIES_NONE;
 
     if (GetActiveGimmick(battlerId) == GIMMICK_TERA)
         return GetMonDefensiveTeraType(mon,monIllusion,battlerId,typeNum,illusionSpecies,monSpecies);
