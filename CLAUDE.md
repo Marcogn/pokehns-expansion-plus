@@ -193,6 +193,37 @@ Vale più di qualunque stima. Cose date per mancanti che invece c'erano, spente:
   compilata** e R a piedi non faceva nulla. Morale: in questo repo un
   `#if IS_HNS / #else` non è un dettaglio di piattaforma, è spesso il posto in
   cui una feature è spenta senza che nessun flag lo dica.
+- **Creeping del DexNav**: `gPlayerAvatar.creeping` si alza solo tenendo **A**
+  mentre si cammina, e senza di esso il Pokémon fugge appena si entro nei 2
+  tile (`CREEPING_PROXIMITY`). In `PlayerNotOnBikeMoving` il controllo stava
+  nell'`else if` **dopo** il blocco della corsa, che però fa `return` sempre e
+  con AUTORUN attivo (`autoRun == 0`) ha la guardia vera anche senza B: il ramo
+  era irraggiungibile e ogni ricerca finiva con "si è mosso troppo in fretta".
+  Ora è **prima** del blocco corsa, come già faceva il ramo surf. Soulgold ha
+  lo stesso ordine sbagliato, ma lì `ShouldPlayerRun` è uno XOR, quindi tenendo
+  B+A si riesce comunque: qui no.
+- **Toggle del follower nel menu squadra**: esisteva solo in `party_menu.c`
+  (`MENU_PKMN_FOLLOWER`, `CursorCb_PkmnFollower`, `followerEnable`). In
+  `swsh_party_menu.c` non c'era **niente**: svista, non scelta. Portato. Il
+  codice di disegno delle voci è identico fra i due file, quindi il port è una
+  copia di cinque pezzi: enum (prima di `MENU_FIELD_MOVES`, che indicizza le
+  mosse campo come `MENU_FIELD_MOVES + j`), voce in `sCursorOptions`, colore
+  nel loop di disegno, append in `SetPartyMonFieldSelectionActions`, e copie
+  `static` di `GetFirstLiveMonIndex` e `CursorCb_PkmnFollower` (static, quindi
+  nessuna collisione di link con la variante classica).
+- **Learnset e relearner, da dove pesca**: `GetSpeciesLevelUpLearnset()` sceglie
+  fra `gLevelUpLearnsets_Gen3` e `gSpeciesInfo[].levelUpLearnset` (gen 7) in base
+  a `tx_Mode_Modern_Moves`, che si imposta **solo a inizio partita** — il
+  challenge menu è raggiungibile unicamente da `oak_speech_hns.c`. Creazione e
+  relearner passano entrambi da lì, senza bypass: dentro una stessa partita non
+  possono divergere. Verificato in emulatore: un Pidgey Lv7 creato ora nasce con
+  TACKLE + PECK + SAND ATTACK, cioè il gen 7.
+  Da ricordare: **le mosse di livello 1 arrivano solo alla creazione**.
+  `MonTryLearningNewMoveAtLevel` cerca solo entry con `level ==` il livello
+  appena guadagnato, quindi un livello 1 non è mai raggiungibile salendo. E
+  `GiveBoxMonInitialMoveset` tiene le **ultime quattro** mosse disponibili al
+  livello di cattura, scartando le prime: per un selvatico di livello alto è
+  normale che il relearner offra mosse che non ha mai avuto.
 - **Mente**: tutte e 21 già in vendita al negozio di fiori di Goldenrod, dietro
   medaglia 3 e dietro il toggle `MODE_MINTS` del challenge menu.
 - **`swsh_party_menu.c`** si è portato dietro roba di Soulgold mai agganciata
