@@ -1938,12 +1938,14 @@ static bool32 IsCutsceneRunning(void)
 }
 
 // How many *extra* overworld iterations to run this frame on top of the normal
-// one. Holding R drops back to 1x.
-u8 OverworldSpeedup_AdditionalIterations(u16 speed, bool32 overworld)
+// one.
+//
+// R used to be a "hold for 1x" override here. It cannot be: R also starts a
+// DexNav search (field_control_avatar.c), so with any speed above 1x the
+// override fired on every DexNav attempt and vice versa. R belongs to the
+// DexNav; the speed is the option's value alone.
+u8 OverworldSpeedup_AdditionalIterations(u16 speed)
 {
-    if (overworld && JOY_HELD(R_BUTTON))
-        return OPTIONS_OVERWORLD_SPEED_1X_EXTRA_ITERATIONS;
-
     switch (speed)
     {
     case OPTIONS_OVERWORLD_SPEED_4X: return OPTIONS_OVERWORLD_SPEED_4X_EXTRA_ITERATIONS;
@@ -1972,7 +1974,7 @@ void CB2_Overworld(void)
     // AnimateSprites() below also steps object event movement, the player's
     // included, which is what makes the option work at all. See
     // IsCutsceneRunning for what it must not speed up.
-    extraLoops = IsCutsceneRunning() ? 0 : OverworldSpeedup_AdditionalIterations(GetOverworldSpeedupSetting(), TRUE);
+    extraLoops = IsCutsceneRunning() ? 0 : OverworldSpeedup_AdditionalIterations(GetOverworldSpeedupSetting());
     for (loops = 0; loops < extraLoops; loops++)
     {
         AnimateSprites();

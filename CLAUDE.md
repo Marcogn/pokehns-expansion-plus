@@ -177,8 +177,22 @@ Vale più di qualunque stima. Cose date per mancanti che invece c'erano, spente:
   ci sono per scelta.
   Soulgold apre il relearner **solo dalla pagina Battle Moves** e forza
   `showContestInfo` a FALSE.
+  Attenzione prima di gridare al bug sulla categoria LEVEL: `P_LVL_UP_LEARNSETS`
+  qui è **GEN_7**, e con "modern moves" attivo il gioco usa quel learnset, non
+  il gen 3 di `gLevelUpLearnsets_Gen3`. Le due tabelle non coincidono: Cyndaquil
+  impara SMOKESCREEN a 6 in gen 1-6/8-9 ma EMBER a **8** in gen 7. Un Cyndaquil
+  Lv6 che conosce solo Tackle e Leer quindi non ha davvero niente da ricordare,
+  e `HasRelearnerLevelUpMoves` risponde giusto. Verificato con una build
+  strumentata che stampava cache, specie, numero di voci del learnset e livello
+  (`0101 0 155 18 1 6`): 18 voci = gen 7.
 - **Icone dei tipi in lotta**: `src/type_icons.c` c'è, `B_SHOW_TYPES` era
   `SHOW_TYPES_NEVER`.
+- **DexNav su R**: `TryStartDexNavSearch()` c'era, ma nel ramo `#else` di un
+  `#if IS_HNS` in `src/field_control_avatar.c`, dove HnS usa R per scambiare
+  mach/acro bike. Nella build `hns` la chiamata non veniva quindi **mai
+  compilata** e R a piedi non faceva nulla. Morale: in questo repo un
+  `#if IS_HNS / #else` non è un dettaglio di piattaforma, è spesso il posto in
+  cui una feature è spenta senza che nessun flag lo dica.
 - **Mente**: tutte e 21 già in vendita al negozio di fiori di Goldenrod, dietro
   medaglia 3 e dietro il toggle `MODE_MINTS` del challenge menu.
 - **`swsh_party_menu.c`** si è portato dietro roba di Soulgold mai agganciata

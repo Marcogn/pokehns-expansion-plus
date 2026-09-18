@@ -300,7 +300,7 @@ EWRAM_DATA static struct TransitionData *sTransitionData = NULL;
 // state func may finish the transition and destroy the task.
 static u8 GetBattleTransitionSpeedScale(void)
 {
-    return 1 + OverworldSpeedup_AdditionalIterations(GetOverworldSpeedupSetting(), TRUE);
+    return 1 + OverworldSpeedup_AdditionalIterations(GetOverworldSpeedupSetting());
 }
 
 static void RunBattleTransitionStateFuncs(u8 taskId, const TransitionStateFunc *funcs)
