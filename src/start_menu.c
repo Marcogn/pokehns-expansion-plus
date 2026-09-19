@@ -732,9 +732,15 @@ static bool8 HandleStartMenuInput(void)
             if (GetNationalPokedexCount(FLAG_GET_SEEN) == 0)
                 return FALSE;
         }
-        if (sCurrentStartMenuActions[sStartMenuCursorPos] == MENU_ACTION_DEXNAV
-          && MapHasNoEncounterData())
-            return FALSE;
+        // The DexNav used to refuse to open on a map with no wild encounter data,
+        // by swallowing the A press with no sound and no message - indoors the
+        // entry read as a broken button, and was reported as one. It opens now:
+        // every read of the encounter header in dexnav.c already guards
+        // HEADER_NONE, and PrintRowProgress prints nothing when a row is empty,
+        // so the screen simply shows the map name over empty rows. Soulgold keeps
+        // the silent return; this is a deliberate divergence, and it is the one
+        // that survives moving the DexNav out of this menu, because the
+        // behaviour lives in the DexNav screen rather than here.
 
         gMenuCallback = sStartMenuItems[sCurrentStartMenuActions[sStartMenuCursorPos]].func.u8_void;
 
