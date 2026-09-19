@@ -481,9 +481,9 @@ static bool32 DexNavShowsUnseen(void)
 //    block.
 //
 // Off by default, and off is what an older save reads back.
-static bool32 DexNavCaveFixEnabled(void)
+static bool32 DexNavSoulgoldSearch(void)
 {
-    return gSaveBlock3Ptr->challengeSettings.dexNavCaveFix != 0;
+    return gSaveBlock3Ptr->challengeSettings.dexNavSoulgold != 0;
 }
 
 static s16 GetSearchWindowY(void)
@@ -782,7 +782,7 @@ static bool8 DexNavPickTile(enum EncounterType environment, u8 areaX, u8 areaY, 
                 {
                     // Soulgold also counts plain indoor maps as caves here, so
                     // places like Sprout Tower behave the same way.
-                    if (DexNavCaveFixEnabled())
+                    if (DexNavSoulgoldSearch())
                     {
                         if ((currMapType == MAP_TYPE_UNDERGROUND || currMapType == MAP_TYPE_INDOOR)
                          && IsElevationMismatchAt(gObjectEvents[gPlayerAvatar.objectEventId].currentElevation, topX, topY))
@@ -819,7 +819,7 @@ static bool8 DexNavPickTile(enum EncounterType environment, u8 areaX, u8 areaY, 
                     if (IsElevationMismatchAt(gObjectEvents[gPlayerAvatar.objectEventId].currentElevation, topX, topY))
                         break;
 
-                    if (DexNavCaveFixEnabled())
+                    if (DexNavSoulgoldSearch())
                         weight = !MapGridGetCollisionAt(topX, topY);
                     else
                         weight = (Random() % scale <= 1) && !MapGridGetCollisionAt(topX, topY);
@@ -1248,11 +1248,19 @@ bool32 OnStep_DexNavSearch(void)
     }
 
     u32 frameCount = gMain.vblankCounter1 - sDexNavSearchDataPtr->startingTime;
+    // Soulgold puts every bail-out below behind hiddenSearch, with the comment
+    // that a search the player started "stays active until completed, canceled,
+    // or left behind". HnS applies all four to player searches too: out of
+    // range, not creeping within two tiles, running within four, and a fifteen
+    // second clock. In a cave, where the target starts far away and creeping is
+    // half speed, they are what makes it flee before you arrive.
+    bool32 lenient = DexNavSoulgoldSearch() && !sDexNavSearchDataPtr->hiddenSearch;
+
     DexNavProximityUpdate();
     if (!sDexNavSearchDataPtr->hiddenSearch)    //update search window info only if revealed mon
         DexNavUpdateSearchWindow(sDexNavSearchDataPtr->proximity, sDexNavSearchDataPtr->searchLevel);
 
-    if (sDexNavSearchDataPtr->proximity > MAX_PROXIMITY)
+    if (!lenient && sDexNavSearchDataPtr->proximity > MAX_PROXIMITY)
     { // out of range
         if (sDexNavSearchDataPtr->hiddenSearch)
         {
@@ -1266,7 +1274,7 @@ bool32 OnStep_DexNavSearch(void)
         }
     }
 
-    if (sDexNavSearchDataPtr->proximity <= CREEPING_PROXIMITY && !gPlayerAvatar.creeping && frameCount > 60)
+    if (!lenient && sDexNavSearchDataPtr->proximity <= CREEPING_PROXIMITY && !gPlayerAvatar.creeping && frameCount > 60)
     { //should be creeping but player walks normally
         if (sDexNavSearchDataPtr->hiddenSearch)
         {
@@ -1280,14 +1288,14 @@ bool32 OnStep_DexNavSearch(void)
         }
     }
 
-    if (sDexNavSearchDataPtr->proximity <= SNEAKING_PROXIMITY && TestPlayerAvatarFlags(PLAYER_AVATAR_FLAG_DASH | PLAYER_AVATAR_FLAG_BIKE))
+    if (!lenient && sDexNavSearchDataPtr->proximity <= SNEAKING_PROXIMITY && TestPlayerAvatarFlags(PLAYER_AVATAR_FLAG_DASH | PLAYER_AVATAR_FLAG_BIKE))
     { // running/biking too close
         //always do event script, even if player hasn't revealed a hidden mon. It's assumed they would be creeping towards it
         EndDexNavSearchSetupScript(EventScript_MovedTooFast);
         return TRUE;
     }
 
-    if (frameCount > DEXNAV_TIMEOUT * 60)
+    if (!lenient && frameCount > DEXNAV_TIMEOUT * 60)
     { // player took too long
         if (sDexNavSearchDataPtr->hiddenSearch)
         {
@@ -1322,7 +1330,7 @@ bool32 OnStep_DexNavSearch(void)
     }
 
     //Caves and water the pokemon moves around
-    if (!DexNavCaveFixEnabled()
+    if (!DexNavSoulgoldSearch()
         && (sDexNavSearchDataPtr->environment == ENCOUNTER_TYPE_WATER || GetCurrentMapType() == MAP_TYPE_UNDERGROUND)
         && sDexNavSearchDataPtr->proximity < GetMovementProximityBySearchLevel() && sDexNavSearchDataPtr->movementCount < 2
         && !sDexNavSearchDataPtr->hiddenSearch)

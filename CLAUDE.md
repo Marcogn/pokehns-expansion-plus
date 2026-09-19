@@ -287,10 +287,23 @@ Vale più di qualunque stima. Cose date per mancanti che invece c'erano, spente:
   mappa invece che alla distanza, che è già un termine a parte.
   Misurato sul salvataggio dell'utente a Burned Tower B1F, stesso punto:
   **0 ricerche avviate su 7** con il comportamento HnS, **5 su 5** con quello di
-  SG. Dietro l'opzione `DEXNAV CAVE FIX`, spenta di default.
-  Non verificato: arrivare fino alla lotta. Il timeout è di 15 s
-  (`DEXNAV_TIMEOUT`) e sotto Xvfb con input da script non si fa in tempo; il
-  fallimento che resta è quello, non più la rilocalizzazione.
+  SG. Dietro l'opzione `DEXNAV SOULGOLD`, spenta di default.
+  **Le fughe sono la seconda metà, ed è la più grossa.** SG mette *ogni*
+  uscita per fallimento dietro `hiddenSearch`, con tanto di commento: una
+  ricerca avviata dal giocatore «stays active until completed, canceled, or
+  left behind». HnS le applica anche alle tue: fuori raggio (`LostSignal`),
+  non stai strisciando entro 2 caselle, corri o sei in bici entro 4, e un
+  timer di 15 s. In grotta quelle quattro ti mangiano vivo, perché il
+  bersaglio nasce lontano e strisciare è metà velocità.
+  **`gPlayerAvatar.creeping`: in SG ha ZERO lettori.** Lo scrivono in quattro
+  punti (`field_player_avatar.c`, `dexnav.c`) e non lo legge nessuno. In HnS
+  l'unico lettore è il controllo di fuga. Quindi appena si allinea a SG il
+  creeping diventa un flag morto: tenere A rallenta e basta. È così anche in
+  Soulgold, non è una svista del port.
+  Con l'opzione accesa, verificato end-to-end sul salvataggio dell'utente:
+  ricerca avviata, avvicinamento **di corsa** senza tenere A, bersaglio fermo,
+  "You encountered a wild MAGMAR!". Senza opzione, stesso punto, non ci si
+  arriva.
 - **Mente**: tutte e 21 già in vendita al negozio di fiori di Goldenrod, dietro
   medaglia 3 e dietro il toggle `MODE_MINTS` del challenge menu.
 - **`swsh_party_menu.c`** si è portato dietro roba di Soulgold mai agganciata

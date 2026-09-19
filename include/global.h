@@ -352,9 +352,11 @@ struct ChallengeSettings
                              // encounters happen, which is what an older save reads.
     u8 dexNavShowAll:1;      // 1 = the DexNav lists species you have not seen.
                              // Zero hides them, which is what an older save reads.
-    u8 dexNavCaveFix:1;      // 1 = Soulgold's tile picking and no relocating
-                             // target. Zero is the behaviour HnS shipped, which
-                             // is what an older save reads.
+    u8 dexNavSoulgold:1;     // 1 = Soulgold's DexNav: its tile picking, no
+                             // relocating target, and none of the stealth
+                             // bail-outs on a search the player started.
+                             // Zero is the behaviour HnS shipped, which is what
+                             // an older save reads. This is the last free bit.
 };
 
 struct SaveBlock3

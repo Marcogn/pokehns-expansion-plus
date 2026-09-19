@@ -645,7 +645,7 @@ static void Task_NewGameHnsSpeech_FadeOutToChallengeMenu(u8 taskId)
         gSaveBlock3Ptr->challengeSettings.skipNicknamePrompt = savedOptions.skipNicknamePrompt;
         gSaveBlock3Ptr->challengeSettings.noWildEncounters   = savedOptions.noWildEncounters;
         gSaveBlock3Ptr->challengeSettings.dexNavShowAll      = savedOptions.dexNavShowAll;
-        gSaveBlock3Ptr->challengeSettings.dexNavCaveFix      = savedOptions.dexNavCaveFix;
+        gSaveBlock3Ptr->challengeSettings.dexNavSoulgold      = savedOptions.dexNavSoulgold;
         ChallengeMenu_SetInitialSetup(TRUE);
         gMain.savedCallback = CB2_NewGameHnsSpeech_ReturnFromChallengeMenu;
         SetMainCallback2(CB2_InitChallengeMenu);

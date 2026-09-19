@@ -146,7 +146,7 @@ void SetDefaultChallengeSettings(void)
     gSaveblock3.challengeSettings.skipNicknamePrompt = FALSE;
     gSaveblock3.challengeSettings.noWildEncounters = FALSE;
     gSaveblock3.challengeSettings.dexNavShowAll = FALSE;
-    gSaveblock3.challengeSettings.dexNavCaveFix = FALSE;
+    gSaveblock3.challengeSettings.dexNavSoulgold = FALSE;
 
     // Challenge menu — "RECOMMENDED" defaults
     gSaveblock3.challengeSettings.tx_Mode_Modern_Moves       = 1;
