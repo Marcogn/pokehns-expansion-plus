@@ -245,6 +245,18 @@ Vale più di qualunque stima. Cose date per mancanti che invece c'erano, spente:
 - **Differenza di design voluta**: SG ha **tolto** la meccanica stealth (niente
   fuga per avvicinamento, niente timeout sulle ricerche avviate dal giocatore).
   Qui si tiene quella di Hasep, in stile HGSS. Scelta dell'utente, non svista.
+- **DEXNAV SHOW ALL, il gate vero**: l'opzione va agganciata a
+  `DexNavGetSpecies()`, non alle singole schermate. Quella funzione risponde
+  `SPECIES_NONE` per una specie non vista, e **R, A e il pannello info passano
+  tutti di lì**: agganciare l'opzione solo a `TryDrawIconInSlot` e
+  `PrintCurrentSpeciesInfo` disegnava l'icona di un Pokémon che poi non si
+  poteva registrare. Un gate a monte batte tre gate a valle.
+  Trappola di verifica, ci sono cascato: avevo "confermato" l'opzione
+  registrando Caterpie, che in quel salvataggio era **già vista** — funzionava
+  anche senza la modifica. Per provare una feature legata al Pokédex serve una
+  specie che con l'opzione OFF mostri il **punto interrogativo**: lì era
+  Ledyba. Verificato in entrambi i sensi sullo stesso slot (OFF rifiuta, ON
+  registra) e la ricerca sul campo parte davvero.
 - **Mente**: tutte e 21 già in vendita al negozio di fiori di Goldenrod, dietro
   medaglia 3 e dietro il toggle `MODE_MINTS` del challenge menu.
 - **`swsh_party_menu.c`** si è portato dietro roba di Soulgold mai agganciata
