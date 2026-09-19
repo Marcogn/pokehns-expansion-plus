@@ -247,10 +247,14 @@ static const struct WindowTemplate sDexNavGuiWindowTemplates[] =
     // x28-150 and x70-105 free before the captured-all symbols at x139, x152
     // and x114. Two tiles tall so the small font's shadow is not clipped; the
     // buffer is filled transparent, so only the glyphs cover the bar.
+    // Right edges chosen against the captured-all symbols, which are 8px wide
+    // and centred on x139 (water), x152 (land) and x114 (hidden): they appear
+    // only once a row is complete, which is exactly when the count reads its
+    // widest, so the two would have collided the first time it mattered.
     [WINDOW_LAND_COUNT] =
     {
         .bg = 0,
-        .tilemapLeft = 15,
+        .tilemapLeft = 14,
         .tilemapTop = 6,
         .width = 4,
         .height = 2,
@@ -260,7 +264,7 @@ static const struct WindowTemplate sDexNavGuiWindowTemplates[] =
     [WINDOW_HIDDEN_COUNT] =
     {
         .bg = 0,
-        .tilemapLeft = 10,
+        .tilemapLeft = 9,
         .tilemapTop = 14,
         .width = 4,
         .height = 3,
@@ -453,6 +457,13 @@ static const struct CompressedSpriteSheet sHiddenMonIconSpriteSheet = {sHiddenMo
 ///////////////////////
 //// DEXNAV SEARCH ////
 ///////////////////////
+// DEXNAV SHOW ALL: list every species in the area whatever the Pokedex knows.
+// Off by default, and off is what an older save reads back.
+static bool32 DexNavShowsUnseen(void)
+{
+    return gSaveBlock3Ptr->challengeSettings.dexNavShowAll != 0;
+}
+
 static s16 GetSearchWindowY(void)
 {
     return (GetWindowAttribute(sDexNavSearchDataPtr->windowId, WINDOW_TILEMAP_TOP) * 8);
@@ -2214,9 +2225,11 @@ static void PrintWaterProgress(void)
     StringAppend(text, COMPOUND_STRING("/"));
     StringAppend(text, gStringVar2);
 
-    // x is relative to the window, which starts at tile 4 (x32); the water bar
-    // is clear between the label and the captured-all symbol at x139.
-    AddTextPrinterParameterized3(WINDOW_REGISTERED, FONT_SMALL, 104 - 32, 11, sFontColor_WhiteNoShadow, 0, text);
+    // x is relative to the window, which starts at tile 4 (x32). Right-aligned
+    // to end at x130, leaving the captured-all symbol at x135-142 clear.
+    AddTextPrinterParameterized3(WINDOW_REGISTERED, FONT_SMALL,
+                                 GetStringRightAlignXOffset(FONT_SMALL, text, 130 - 32),
+                                 11, sFontColor_WhiteNoShadow, 0, text);
     CopyWindowToVram(WINDOW_REGISTERED, COPYWIN_FULL);
 }
 
@@ -2246,7 +2259,7 @@ static void TryDrawIconInSlot(u16 species, s16 x, s16 y)
 {
     if (species == SPECIES_NONE || species > NUM_SPECIES)
         CreateNoDataIcon(x, y);   //'X' in slot
-    else if (!GetSetPokedexFlag(SpeciesToNationalPokedexNum(species), FLAG_GET_SEEN))
+    else if (!DexNavShowsUnseen() && !GetSetPokedexFlag(SpeciesToNationalPokedexNum(species), FLAG_GET_SEEN))
         CreateMonIcon(SPECIES_NONE, SpriteCB_MonIcon, x, y, 0, 0xFFFFFFFF); //question mark
     else
         CreateMonIcon(species, SpriteCB_MonIcon, x, y, 0, 0xFFFFFFFF);
@@ -2369,7 +2382,7 @@ static void PrintCurrentSpeciesInfo(void)
     enum NationalDexOrder dexNum = SpeciesToNationalPokedexNum(species);
     enum Type type1, type2;
 
-    if (!GetSetPokedexFlag(dexNum, FLAG_GET_SEEN))
+    if (!DexNavShowsUnseen() && !GetSetPokedexFlag(dexNum, FLAG_GET_SEEN))
         species = SPECIES_NONE;
 
     // clear windows
@@ -2414,7 +2427,7 @@ static void PrintCurrentSpeciesInfo(void)
     {
         AddTextPrinterParameterized3(WINDOW_INFO, FONT_SMALL, 0, HA_INFO_Y, sFontColor_Black, 0, sText_DexNav_NoInfo);
     }
-    else if (GetSetPokedexFlag(dexNum, FLAG_GET_CAUGHT))
+    else if (DexNavShowsUnseen() || GetSetPokedexFlag(dexNum, FLAG_GET_CAUGHT))
     {
         if (GetSpeciesAbility(species, 2) != ABILITY_NONE)
             AddTextPrinterParameterized3(WINDOW_INFO, FONT_SMALL, 0, HA_INFO_Y, sFontColor_Black, 0, gAbilitiesInfo[GetAbilityBySpecies(species, 2)].name);

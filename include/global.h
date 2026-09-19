@@ -350,6 +350,8 @@ struct ChallengeSettings
                              // so a save written before this option keeps asking.
     u8 noWildEncounters:1;   // 1 = a repel that never runs out. Zero means
                              // encounters happen, which is what an older save reads.
+    u8 dexNavShowAll:1;      // 1 = the DexNav lists species you have not seen.
+                             // Zero hides them, which is what an older save reads.
 };
 
 struct SaveBlock3

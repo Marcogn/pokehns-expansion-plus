@@ -111,7 +111,7 @@ ragionamento girava a vuoto da un'ora. Ricordati di `cp` del file prima.
 `STATIC_ASSERT(..., ChallengeSettingsLayoutPinned)` in `src/save.c`.
 
 - Aggiungi campi **solo in fondo**, così nessun campo esistente cambia offset.
-- Bit liberi nell'ultimo byte: dopo `noWildEncounters` ne restano **2**.
+- Bit liberi nell'ultimo byte: dopo `dexNavShowAll` ne resta **1**.
 - Dopo ogni aggiunta verifica che compili: l'assert fallisce da sola se sfori.
 
 **Polarità dei bit.** Un salvataggio scritto prima che l'opzione esistesse legge il
@@ -120,7 +120,8 @@ modo che zero significhi il comportamento vecchio — anche se il nome viene bru
 `skipNicknamePrompt` è memorizzato invertito proprio per questo, e la lista di scelte
 è ordinata di conseguenza (`sChoices_OnOff` = ON per primo, `sChoices_OffOn` = OFF
 per primo). La regola in una riga: **l'etichetta del valore zero deve venire prima**.
-`noWildEncounters` segue la stessa logica (0 = incontri attivi = "ON").
+`noWildEncounters` segue la stessa logica (0 = incontri attivi = "ON"), e
+`dexNavShowAll` pure (0 = nasconde i non visti, quindi `sChoices_OffOn`).
 
 Le opzioni impostate prima di iniziare una partita passano da
 `src/oak_speech_hns.c`, che azzera tutta la struct e poi ricopia a mano i campi
@@ -339,7 +340,11 @@ vuoti non è una verifica.** Controlla sempre che l'estratto non sia vuoto.
   Le barre delle intestazioni sono **arte del BG** (`gui_tilemap.bin`), non
   finestre: una finestra riempita con `PIXEL_FILL(TEXT_COLOR_TRANSPARENT)` ci
   scrive sopra senza cancellarle. Estensioni misurate: barra acqua y13-22,
-  terra y54-63, nascosti y120-129; simboli "catturati tutti" a x139, x152, x114.
+  terra y54-63, nascosti y120-129. I simboli "catturati tutti" sono sprite 8px
+  **centrati** su x139, x152 e x114, quindi occupano x135-142, x148-155 e
+  x110-117: compaiono solo a riga completata, cioè proprio quando il contatore
+  è al massimo della larghezza, e lì si sovrapporrebbero. I contatori finiscono
+  quindi a x130, x143 e x103.
 - **VBlank**: aprire una schermata senza installare il proprio `SetVBlankCallback`
   eredita quello del chiamante. È così che il Pokédex aperto dal menu SwSh scorreva
   in diagonale.
