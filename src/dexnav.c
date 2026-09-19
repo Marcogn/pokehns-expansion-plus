@@ -2384,6 +2384,12 @@ static void PrintCurrentSpeciesInfo(void)
     u16 species = DexNavGetSpecies();
     enum NationalDexOrder dexNum = SpeciesToNationalPokedexNum(species);
     enum Type type1, type2;
+    // Capturing is what unlocks the details, not seeing. The grid draws the
+    // same icon either way, so without this the panel was the only place the
+    // two states could differ and it did not - worst with DEXNAV SHOW ALL on,
+    // where a species you have never met read like one you owned.
+    bool32 caught = (species != SPECIES_NONE)
+                 && GetSetPokedexFlag(dexNum, FLAG_GET_CAUGHT);
 
     // clear windows
     FillWindowPixelBuffer(WINDOW_INFO, PIXEL_FILL(TEXT_COLOR_TRANSPARENT));
@@ -2397,7 +2403,7 @@ static void PrintCurrentSpeciesInfo(void)
     //type icon(s)
     type1 = GetSpeciesType(species, 0);
     type2 = GetSpeciesType(species, 1);
-    if (species == SPECIES_NONE)
+    if (!caught)
         type1 = type2 = TYPE_MYSTERY;
 
     if (type1 == type2)
@@ -2427,7 +2433,7 @@ static void PrintCurrentSpeciesInfo(void)
     {
         AddTextPrinterParameterized3(WINDOW_INFO, FONT_SMALL, 0, HA_INFO_Y, sFontColor_Black, 0, sText_DexNav_NoInfo);
     }
-    else if (DexNavShowsUnseen() || GetSetPokedexFlag(dexNum, FLAG_GET_CAUGHT))
+    else if (caught)
     {
         if (GetSpeciesAbility(species, 2) != ABILITY_NONE)
             AddTextPrinterParameterized3(WINDOW_INFO, FONT_SMALL, 0, HA_INFO_Y, sFontColor_Black, 0, gAbilitiesInfo[GetAbilityBySpecies(species, 2)].name);

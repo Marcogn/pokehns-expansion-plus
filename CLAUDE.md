@@ -257,6 +257,15 @@ Vale più di qualunque stima. Cose date per mancanti che invece c'erano, spente:
   specie che con l'opzione OFF mostri il **punto interrogativo**: lì era
   Ledyba. Verificato in entrambi i sensi sullo stesso slot (OFF rifiuta, ON
   registra) e la ricerca sul campo parte davvero.
+  **Cosa sblocca cosa**: il dettaglio nel pannello è legato a
+  `FLAG_GET_CAUGHT`, non a `FLAG_GET_SEEN`. Non catturato = tipi `???` e
+  abilità "Capture first!", nome comunque visibile perché serve a sapere cosa
+  stai registrando. È una scelta dell'utente e vale **anche con l'opzione
+  spenta**: prima una specie vista ma non catturata mostrava i suoi tipi.
+  Serviva perché la griglia disegna la stessa icona a colori in entrambi i
+  casi, quindi senza questo il pannello non distingueva posseduto da non
+  posseduto. Nota di verifica: con `DEXNAV_SEARCH_LEVELS_REGISTERED_SPECIES`
+  il search level resta 0 finché non catturi, quindi non aggiunge informazione.
 - **Mente**: tutte e 21 già in vendita al negozio di fiori di Goldenrod, dietro
   medaglia 3 e dietro il toggle `MODE_MINTS` del challenge menu.
 - **`swsh_party_menu.c`** si è portato dietro roba di Soulgold mai agganciata
