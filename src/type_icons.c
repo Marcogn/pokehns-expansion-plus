@@ -457,15 +457,26 @@ static void CreateSpriteAndSetTypeSpriteAttributes(enum Type type, u32 x, u32 y,
 }
 
 // The glyphs in graphics/types/battle_icons*.png are strongly asymmetric, and
-// which way they should face depends on the side of the screen the healthbox is
-// on - not on how many battlers there are. Upstream expansion picked the player
-// side in singles and the opposing side in doubles, which cannot both be right;
-// the effect here was that the opposing icons came out mirrored in singles and
-// not in doubles. Soulgold flips on the opposing side in both, which is what
-// this repo wants.
+// which way they should face depends on which side of the healthbox the icon
+// sits on - not on how many battlers there are. Upstream expansion picked the
+// player side in singles and the opposing side in doubles, which cannot both be
+// right; the effect here was that the opposing icons came out mirrored in
+// singles and not in doubles. Soulgold flips on the opposing side in both,
+// because it always draws the icons to the RIGHT of the box.
+//
+// Singles here does not: this repo's Gen 4 healthbox is much wider, so the icon
+// goes to the LEFT of the box instead, in the 12 free pixels measured there
+// (see sTypeIconPositions). With Soulgold's rule the asymmetric glyph then
+// faced away from the box; unflipped it faces it. Doubles keeps Soulgold's
+// layout, to the right of the box, so it keeps Soulgold's flip.
 static bool32 ShouldFlipTypeIcon(u32 position, enum Type typeId)
 {
-    if (GetBattlerSide(GetBattlerAtPosition(position)) != B_SIDE_OPPONENT)
+    u32 battlerId = GetBattlerAtPosition(position);
+
+    if (GetBattlerSide(battlerId) != B_SIDE_OPPONENT)
+        return FALSE;
+
+    if (!UseDoubleBattleCoords(battlerId))
         return FALSE;
 
     return !gTypesInfo[typeId].isSpecialCaseType;

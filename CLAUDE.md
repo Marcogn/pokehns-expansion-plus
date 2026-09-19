@@ -392,14 +392,21 @@ solo dove le icone stanno a destra, quindi è attiva solo in doppia: in singola 
 12 px non bastano e 4 px in un verso o nell'altro tagliano il bordo schermo o
 nascondono mezzo glifo dietro la box.
 
-**Tre differenze di comportamento (non di coordinate) trovate rispetto a SG,
-tutte allineate a SG:**
+**Tre differenze di comportamento (non di coordinate) trovate rispetto a SG:**
 
 - l'arte in `graphics/types/battle_icons*.png` è **identica** a quella di SG ed è
   **asimmetrica**. `ShouldFlipTypeIcon` di expansion sceglieva il lato giocatore
   in singola e quello avversario in doppia — non possono essere giusti entrambi:
   qui le icone avversarie uscivano specchiate in singola e non in doppia. SG
-  specchia sempre sul lato avversario;
+  specchia sempre sul lato avversario, ma **perché SG disegna sempre a destra
+  della box**. La regola vera non è "lato avversario", è **"da che parte della
+  healthbox sta l'icona"**: qui in singola sta a sinistra, quindi il glifo
+  specchiato guardava via dalla box. Ora `ShouldFlipTypeIcon` specchia solo dove
+  si usa il layout di SG, cioè in doppia (`UseDoubleBattleCoords`); in singola
+  l'arte esce come è disegnata e guarda verso la box. Scelta estetica
+  dell'utente, non un bug di SG. Verificato per misura: il frame di un
+  Misdreavus a schermo coincide con il tile di `battle_icons1.4bpp` reso
+  offline, non con il suo specchio;
 - SG indenta di **4 px** la seconda icona di un doppio tipo sul lato avversario
   (`SetTypeIconXY`), la scaletta in stile HGSS. Expansion le impila a filo. Qui
   la scaletta è attiva solo in doppia, per lo spazio (vedi sopra);
@@ -430,6 +437,17 @@ vuoti non è una verifica.** Controlla sempre che l'estratto non sia vuoto.
   rigenera `include/party_menu_variant.h` e `src/party_menu_dispatch.c`. Lo script è
   idempotente (toglie i prefissi prima di riapplicarli) e verifica che ogni
   sostituzione compaia esattamente una volta.
+- **Blit dentro una finestra: l'indice 0 è trasparente.** Il badge `SEL` della
+  borsa (`graphics/bag/select_button*.png`, `BlitBitmapToWindow` in
+  `item_menu.c`) aveva i 154 pixel di sfondo sull'indice **10**, opaco, e in
+  tema scuro si vedeva un rettangolo bianco attorno alla pillola rossa. In
+  Soulgold quegli stessi 154 pixel stanno sull'indice **0**. `WIN_ITEM_LIST` è
+  riempita con `PIXEL_FILL(0)`, quindi l'indice 0 lascia vedere lo sfondo della
+  borsa e il badge si fonde con la lista. Rimappato 10 → 0 nei due PNG (solo i
+  `.png` sono tracciati, i `.4bpp` li genera la build). Verificato in emulatore
+  in **entrambi** i temi, ed è importante averli provati tutti e due: l'indice 1
+  del badge è il colore del testo del tema, quindi il contorno esce bianco su
+  scuro e nero su chiaro, e in nessuno dei due sparisce.
 - **Negozi**: tutti i Poké Mart normali usano `pokemart 0`, cioè un inventario unico
   scalato sui medaglieri (`sShopInventories` in `src/shop.c`). Per vendere qualcosa
   in una sola città si **appendono** extra a quella lista (`sMartExtras`), non si dà
