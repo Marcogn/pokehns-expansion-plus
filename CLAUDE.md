@@ -111,7 +111,10 @@ ragionamento girava a vuoto da un'ora. Ricordati di `cp` del file prima.
 `STATIC_ASSERT(..., ChallengeSettingsLayoutPinned)` in `src/save.c`.
 
 - Aggiungi campi **solo in fondo**, così nessun campo esistente cambia offset.
-- Bit liberi nell'ultimo byte: dopo `dexNavShowAll` ne resta **1**.
+- Bit liberi nell'ultimo byte: dopo `dexNavCaveFix` ne restano **0**. La struct è
+  piena. Verificato aggiungendo un bit finto: `ChallengeSettingsLayoutPinned`
+  fallisce. Per una nuova opzione bisognerà ingrandire la struct, e quello sposta
+  il layout del salvataggio.
 - Dopo ogni aggiunta verifica che compili: l'assert fallisce da sola se sfori.
 
 **Polarità dei bit.** Un salvataggio scritto prima che l'opzione esistesse legge il
@@ -266,6 +269,28 @@ Vale più di qualunque stima. Cose date per mancanti che invece c'erano, spente:
   casi, quindi senza questo il pannello non distingueva posseduto da non
   posseduto. Nota di verifica: con `DEXNAV_SEARCH_LEVELS_REGISTERED_SPECIES`
   il search level resta 0 finché non catturi, quindi non aggiunge informazione.
+- **DexNav in grotta: la colpa è di HnS, non di Soulgold.** Errore mio da non
+  ripetere: ho detto all'utente che il codice era «identico in Soulgold» senza
+  averlo aperto, e la mia stessa §6 diceva il contrario. Verificato:
+  in `soulgold/src/dexnav.c` **non esiste** né `movementCount` né il blocco
+  "Caves and water the pokemon moves around". Il bersaglio che si sposta è
+  roba di HnS.
+  E la scelta della casella in SG non ha alcun tiro di dado: è
+  `weight = !MapGridGetCollisionAt(topX, topY);` in tutti i rami, grotta, erba e
+  acqua, per cui la ricerca **riesce sempre** se esiste una casella valida. SG
+  tratta anche `MAP_TYPE_INDOOR` come grotta (Sprout Tower).
+  HnS invece pesa con `Random() % scale`, dove in grotta
+  `scale = 440 - dist/2 - 2*(tileX + tileY)`. Due difetti: `scale` è `u8`, quindi
+  tutto oltre 255 si tronca (e a 256 esatti torna la divisione per zero che il
+  `max(1, ...)` non copre, perché il clamp agisce prima dell'assegnazione); e il
+  termine sulle **coordinate assolute** lega la probabilità a dove ti trovi sulla
+  mappa invece che alla distanza, che è già un termine a parte.
+  Misurato sul salvataggio dell'utente a Burned Tower B1F, stesso punto:
+  **0 ricerche avviate su 7** con il comportamento HnS, **5 su 5** con quello di
+  SG. Dietro l'opzione `DEXNAV CAVE FIX`, spenta di default.
+  Non verificato: arrivare fino alla lotta. Il timeout è di 15 s
+  (`DEXNAV_TIMEOUT`) e sotto Xvfb con input da script non si fa in tempo; il
+  fallimento che resta è quello, non più la rilocalizzazione.
 - **Mente**: tutte e 21 già in vendita al negozio di fiori di Goldenrod, dietro
   medaglia 3 e dietro il toggle `MODE_MINTS` del challenge menu.
 - **`swsh_party_menu.c`** si è portato dietro roba di Soulgold mai agganciata

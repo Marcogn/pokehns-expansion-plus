@@ -47,6 +47,7 @@ working.
 | Nickname prompts | `NICKNAMES` ON/OFF | When off, catches, gift Pokémon and hatched eggs never ask. |
 | Wild encounters | `WILD BATTLES` ON/OFF | When off, grass, surfing, Rock Smash, Sweet Scent and fishing never trigger a wild battle. |
 | DexNav: show all | `DEXNAV SHOW ALL` OFF/ON | Lists every species in the area, not only the ones the Pokédex has seen. |
+| DexNav: cave fix | `DEXNAV CAVE FIX` OFF/ON | Uses Soulgold's tile picking in caves, water and indoor maps, so a search always finds a spot, and stops the target relocating as you approach. Off leaves the behaviour HnS ships. |
 | Follower toggle in both party menus | — | The classic menu already had it; the SwSh menu now does too. |
 
 ### Switched on and finished here

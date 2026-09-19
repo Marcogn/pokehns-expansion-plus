@@ -59,6 +59,7 @@ enum {
     ITEM_MAIN_NICKNAMES,
     ITEM_MAIN_NO_ENCOUNTERS,
     ITEM_MAIN_DEXNAV_SHOW_ALL,
+    ITEM_MAIN_DEXNAV_CAVE_FIX,
     ITEM_MAIN_FRAMETYPE,
     ITEM_MAIN_COUNT,
 };
@@ -331,6 +332,11 @@ static const u8 *const sDesc_NoEncounters[] = {
     COMPOUND_STRING("Wild {PKMN} appear as usual."),
     COMPOUND_STRING("No wild {PKMN} at all: grass, caves,\nfishing, Rock Smash and Sweet Scent."),
 };
+static const u8 *const sDesc_DexNavCaveFix[] = {
+    COMPOUND_STRING("Caves as HnS ships them: hard to find,\nand the target moves away."),
+    COMPOUND_STRING("SOULGOLD's search: it always finds one,\nand it stays put."),
+};
+
 static const u8 *const sDesc_DexNavShowAll[] = {
     COMPOUND_STRING("The DEXNAV hides {PKMN} you have\nnever seen."),
     COMPOUND_STRING("The DEXNAV lists every {PKMN} in the\narea, seen or not."),
@@ -556,6 +562,14 @@ static const struct OptionMenuItem sTabItems_Main[] = {
         .numChoices   = 2,
         // OFF first: zero is what an older save reads back, and it has to keep
         // meaning "hide what you have not seen".
+        .choiceNames  = sChoices_OffOn,
+    },
+    [ITEM_MAIN_DEXNAV_CAVE_FIX] = {
+        .name         = COMPOUND_STRING("DEXNAV CAVE FIX"),
+        .descriptions = sDesc_DexNavCaveFix,
+        .numChoices   = 2,
+        // OFF first: zero is what an older save reads back, and it has to keep
+        // meaning the behaviour that shipped.
         .choiceNames  = sChoices_OffOn,
     },
     [ITEM_MAIN_FRAMETYPE] = {
@@ -1231,6 +1245,7 @@ static void Task_Save(u8 taskId)
     cs->skipNicknamePrompt = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_NICKNAMES);
     cs->noWildEncounters = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_NO_ENCOUNTERS);
     cs->dexNavShowAll    = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_DEXNAV_SHOW_ALL);
+    cs->dexNavCaveFix    = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_DEXNAV_CAVE_FIX);
 
     cs->fastIntro          = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_FAST_INTRO);
     cs->fastBattle         = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_FAST_BATTLES);
@@ -1347,6 +1362,7 @@ void CB2_InitOptionMenu(void)
         *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_NICKNAMES)        = cs->skipNicknamePrompt;
         *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_NO_ENCOUNTERS)   = cs->noWildEncounters;
         *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_DEXNAV_SHOW_ALL) = cs->dexNavShowAll;
+        *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_DEXNAV_CAVE_FIX) = cs->dexNavCaveFix;
 
         *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_FAST_INTRO)      = cs->fastIntro;
         *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_FAST_BATTLES)    = cs->fastBattle;

@@ -464,6 +464,28 @@ static bool32 DexNavShowsUnseen(void)
     return gSaveBlock3Ptr->challengeSettings.dexNavShowAll != 0;
 }
 
+// DEXNAV CAVE FIX: take Soulgold's two decisions instead of the ones HnS ships.
+//
+// 1. Tile picking. HnS weights each candidate with a random roll whose scale is
+//    440 - distance/2 - 2 * (tileX + tileY) in a cave. That scale is stored in a
+//    u8, so everything past 255 wraps, and the (tileX + tileY) term makes the
+//    odds depend on where you happen to be on the map rather than on anything
+//    about the search. Measured in Burned Tower it works out around 1% per tile
+//    against roughly 7% for grass, which is why a cave search usually answers
+//    "It couldn't be found nearby". Soulgold has no roll at all: every walkable
+//    tile of the right kind is a candidate, so the search always finds a spot if
+//    the area has one.
+// 2. The target does not move. HnS relocates it up to twice as you close in, and
+//    a relocation that finds no tile ends the search with "The Pokemon got
+//    away!" - with the odds above, that is most of them. Soulgold has no such
+//    block.
+//
+// Off by default, and off is what an older save reads back.
+static bool32 DexNavCaveFixEnabled(void)
+{
+    return gSaveBlock3Ptr->challengeSettings.dexNavCaveFix != 0;
+}
+
 static s16 GetSearchWindowY(void)
 {
     return (GetWindowAttribute(sDexNavSearchDataPtr->windowId, WINDOW_TILEMAP_TOP) * 8);
@@ -758,7 +780,17 @@ static bool8 DexNavPickTile(enum EncounterType environment, u8 areaX, u8 areaY, 
             case ENCOUNTER_TYPE_LAND:
                 if (MetatileBehavior_IsLandWildEncounter(tileBehaviour))
                 {
-                    if (currMapType == MAP_TYPE_UNDERGROUND)
+                    // Soulgold also counts plain indoor maps as caves here, so
+                    // places like Sprout Tower behave the same way.
+                    if (DexNavCaveFixEnabled())
+                    {
+                        if ((currMapType == MAP_TYPE_UNDERGROUND || currMapType == MAP_TYPE_INDOOR)
+                         && IsElevationMismatchAt(gObjectEvents[gPlayerAvatar.objectEventId].currentElevation, topX, topY))
+                            break;
+
+                        weight = !MapGridGetCollisionAt(topX, topY);
+                    }
+                    else if (currMapType == MAP_TYPE_UNDERGROUND)
                     {
                         // inside (cave)
                         if (IsElevationMismatchAt(gObjectEvents[gPlayerAvatar.objectEventId].currentElevation, topX, topY))
@@ -782,11 +814,15 @@ static bool8 DexNavPickTile(enum EncounterType environment, u8 areaX, u8 areaY, 
             case ENCOUNTER_TYPE_WATER:
                 if (MetatileBehavior_IsSurfableWaterOrUnderwater(tileBehaviour))
                 {
+                    // Same u8 truncation as the cave branch: 320 wraps to 64.
                     u8 scale = max(1, 320 - (smallScan * 200) - (GetPlayerDistance(topX, topY) / 2));
                     if (IsElevationMismatchAt(gObjectEvents[gPlayerAvatar.objectEventId].currentElevation, topX, topY))
                         break;
 
-                    weight = (Random() % scale <= 1) && !MapGridGetCollisionAt(topX, topY);
+                    if (DexNavCaveFixEnabled())
+                        weight = !MapGridGetCollisionAt(topX, topY);
+                    else
+                        weight = (Random() % scale <= 1) && !MapGridGetCollisionAt(topX, topY);
                 }
                 break;
             default:
@@ -1286,7 +1322,8 @@ bool32 OnStep_DexNavSearch(void)
     }
 
     //Caves and water the pokemon moves around
-    if ((sDexNavSearchDataPtr->environment == ENCOUNTER_TYPE_WATER || GetCurrentMapType() == MAP_TYPE_UNDERGROUND)
+    if (!DexNavCaveFixEnabled()
+        && (sDexNavSearchDataPtr->environment == ENCOUNTER_TYPE_WATER || GetCurrentMapType() == MAP_TYPE_UNDERGROUND)
         && sDexNavSearchDataPtr->proximity < GetMovementProximityBySearchLevel() && sDexNavSearchDataPtr->movementCount < 2
         && !sDexNavSearchDataPtr->hiddenSearch)
     {
