@@ -111,7 +111,7 @@ ragionamento girava a vuoto da un'ora. Ricordati di `cp` del file prima.
 `STATIC_ASSERT(..., ChallengeSettingsLayoutPinned)` in `src/save.c`.
 
 - Aggiungi campi **solo in fondo**, così nessun campo esistente cambia offset.
-- Bit liberi nell'ultimo byte: dopo `dexNavCaveFix` ne restano **0**. La struct è
+- Bit liberi nell'ultimo byte: dopo `dexNavSoulgold` ne restano **0**. La struct è
   piena. Verificato aggiungendo un bit finto: `ChallengeSettingsLayoutPinned`
   fallisce. Per una nuova opzione bisognerà ingrandire la struct, e quello sposta
   il layout del salvataggio.
@@ -245,9 +245,11 @@ Vale più di qualunque stima. Cose date per mancanti che invece c'erano, spente:
   il layout non si muove. È quella in uso. Offset misurati con i flag veri della
   build hns e ora inchiodati in `save.c`: `dexNavChain` a **12**,
   `challengeSettings` a **16**, `sizeof(struct SaveBlock3)` = 52.
-- **Differenza di design voluta**: SG ha **tolto** la meccanica stealth (niente
-  fuga per avvicinamento, niente timeout sulle ricerche avviate dal giocatore).
-  Qui si tiene quella di Hasep, in stile HGSS. Scelta dell'utente, non svista.
+- **Meccanica stealth: ora è un'opzione, non una scelta fissa.** SG ha **tolto**
+  la fuga per avvicinamento e il timeout dalle ricerche avviate dal giocatore.
+  La scelta iniziale dell'utente era tenere quella di Hasep in stile HGSS; alla
+  prova sul campo in grotta si è rivelata impraticabile (vedi più sotto), e ora
+  convivono: `DEXNAV SOULGOLD` spenta = comportamento Hasep, accesa = SG.
 - **DEXNAV SHOW ALL, il gate vero**: l'opzione va agganciata a
   `DexNavGetSpecies()`, non alle singole schermate. Quella funzione risponde
   `SPECIES_NONE` per una specie non vista, e **R, A e il pannello info passano

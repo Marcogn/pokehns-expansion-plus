@@ -464,7 +464,7 @@ static bool32 DexNavShowsUnseen(void)
     return gSaveBlock3Ptr->challengeSettings.dexNavShowAll != 0;
 }
 
-// DEXNAV CAVE FIX: take Soulgold's two decisions instead of the ones HnS ships.
+// DEXNAV SOULGOLD: take Soulgold's decisions instead of the ones HnS ships.
 //
 // 1. Tile picking. HnS weights each candidate with a random roll whose scale is
 //    440 - distance/2 - 2 * (tileX + tileY) in a cave. That scale is stored in a
