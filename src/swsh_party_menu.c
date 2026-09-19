@@ -7193,7 +7193,7 @@ void ItemUseCB_Medicine(u8 taskId, TaskFunc task)
             if (hp == GetMonData(mon, MON_DATA_MAX_HP))
                 canHeal = FALSE;
         }
-        cannotUse = ExecuteTableBasedItemEffect(mon, item, gPartyMenu.slotId, 0);
+        cannotUse = ExecuteTableBasedItemEffect(mon, item, gPartyMenu.slotId, 0, FALSE, 1);
     }
 
     if (cannotUse != FALSE)
@@ -7239,7 +7239,7 @@ void ItemUseCB_Medicine(u8 taskId, TaskFunc task)
             case ITEM_EFFECT_SPEED_EV:
             case ITEM_EFFECT_SPATK_EV:
             case ITEM_EFFECT_SPDEF_EV:
-                ExecuteTableBasedItemEffect(mon, item, gPartyMenu.slotId, 0);
+                ExecuteTableBasedItemEffect(mon, item, gPartyMenu.slotId, 0, TRUE, 1);
                 break;
             default:
                 break;
@@ -7710,7 +7710,7 @@ void ItemUseCB_ResetEVs(u8 taskId, TaskFunc task)
 {
     struct Pokemon *mon = &gPlayerParty[gPartyMenu.slotId];
     enum Item item = gSpecialVar_ItemId;
-    bool8 cannotUseEffect = ExecuteTableBasedItemEffect(mon, item, gPartyMenu.slotId, 0);
+    bool8 cannotUseEffect = ExecuteTableBasedItemEffect(mon, item, gPartyMenu.slotId, 0, TRUE, 1);
 
     if (cannotUseEffect)
     {
@@ -7920,7 +7920,7 @@ static void TryUseItemOnMove(u8 taskId)
         s16 *moveSlot = &gPartyMenu.data1;
         enum Item item = gSpecialVar_ItemId;
 
-        if (ExecuteTableBasedItemEffect(mon, item, ptr->slotId, *moveSlot))
+        if (ExecuteTableBasedItemEffect(mon, item, ptr->slotId, *moveSlot, TRUE, 1))
         {
             gPartyMenuUseExitCallback = FALSE;
             PlaySE(SE_SELECT);
@@ -8323,7 +8323,7 @@ void ItemUseCB_RareCandy(u8 taskId, TaskFunc task)
     if (tMaxItemQuantity == 0)
         cannotUseEffect = TRUE;
     else
-        cannotUseEffect = ExecuteTableBasedItemEffect(mon, gSpecialVar_ItemId, gPartyMenu.slotId, 0);
+        cannotUseEffect = ExecuteTableBasedItemEffect(mon, gSpecialVar_ItemId, gPartyMenu.slotId, 0, FALSE, 1);
 
     PlaySE(SE_SELECT);
     if (cannotUseEffect)
@@ -8640,7 +8640,7 @@ static void UseSacredAsh(u8 taskId)
     }
 
     hp = GetMonData(mon, MON_DATA_HP);
-    if (ExecuteTableBasedItemEffect(mon, gSpecialVar_ItemId, gPartyMenu.slotId, 0))
+    if (ExecuteTableBasedItemEffect(mon, gSpecialVar_ItemId, gPartyMenu.slotId, 0, TRUE, 1))
     {
         gTasks[taskId].func = Task_SacredAshLoop;
         return;
@@ -8707,7 +8707,7 @@ void ItemUseCB_EvolutionStone(u8 taskId, TaskFunc task)
 {
     PlaySE(SE_SELECT);
     gCB2_AfterEvolution = gPartyMenu.exitCallback;
-    if (ExecuteTableBasedItemEffect(&gPlayerParty[gPartyMenu.slotId], gSpecialVar_ItemId, gPartyMenu.slotId, 0))
+    if (ExecuteTableBasedItemEffect(&gPlayerParty[gPartyMenu.slotId], gSpecialVar_ItemId, gPartyMenu.slotId, 0, TRUE, 1))
     {
         gPartyMenuUseExitCallback = FALSE;
         DisplayPartyMenuMessage(gText_WontHaveEffect, TRUE);
@@ -11337,7 +11337,7 @@ static void ItemUse_ApplyEvReduceBerry(u8 taskId)
     u16 friendship = GetMonData(mon, MON_DATA_FRIENDSHIP);
     u16 ev = ItemEffectToMonEv(mon, tItemEffect);
 
-    ExecuteTableBasedItemEffect(mon, item, gPartyMenu.slotId, 0);
+    ExecuteTableBasedItemEffect(mon, item, gPartyMenu.slotId, 0, TRUE, tItemCount);
     u16 newFriendship = GetMonData(mon, MON_DATA_FRIENDSHIP);
     u16 newEv = ItemEffectToMonEv(mon, tItemEffect);
     gPartyMenuUseExitCallback = TRUE;
@@ -11373,7 +11373,7 @@ static void ItemUse_ApplyEvIncreaseItem(u8 taskId)
     struct Pokemon *mon = &gPlayerParty[gPartyMenu.slotId];
     enum Item item = gSpecialVar_ItemId;
 
-    ExecuteTableBasedItemEffect(mon, item, gPartyMenu.slotId, 0);
+    ExecuteTableBasedItemEffect(mon, item, gPartyMenu.slotId, 0, TRUE, tItemCount);
     gPartyMenuUseExitCallback = TRUE;
     PlaySE(SE_USE_ITEM);
     if (tItemEffect == ITEM_EFFECT_HP_EV)
@@ -11400,7 +11400,7 @@ static void ItemUse_ApplyExpCandy(u8 taskId)
     s16 *arrayPtr = ptr->data;
 
     BufferMonStatsToTaskData(mon, arrayPtr);
-    ExecuteTableBasedItemEffect(mon, gSpecialVar_ItemId, gPartyMenu.slotId, 0);
+    ExecuteTableBasedItemEffect(mon, gSpecialVar_ItemId, gPartyMenu.slotId, 0, TRUE, tItemCount);
     BufferMonStatsToTaskData(mon, &ptr->data[NUM_STATS]);
 
     sFinalLevel = GetMonData(mon, MON_DATA_LEVEL, NULL);
