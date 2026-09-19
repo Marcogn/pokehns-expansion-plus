@@ -191,7 +191,7 @@ static const u32 sHiddenMonIconGfx[] = INCBIN_U32("graphics/dexnav/hidden.4bpp.s
 static const u8 sText_DexNav_NoInfo[] = _("--------");
 static const u8 sText_DexNav_CaptureToSee[] = _("Capture first!");
 static const u8 sText_DexNav_PressRToRegister[] = _("R TO REGISTER!");
-static const u8 sText_DexNav_SearchForRegisteredSpecies[] = _("Search {STR_VAR_1}");
+static const u8 sText_DexNav_UnbindRegisteredSpecies[] = _("{SELECT_BUTTON} Unbind {STR_VAR_1}");
 static const u8 sText_DexNav_NotFoundHere[] = _("This Pokémon cannot be found here!");
 static const u8 sText_ThreeQmarks[] = _("???");
 static const u8 sText_SearchLevel[] = _("SEARCH {LV}. {STR_VAR_1}");
@@ -2321,8 +2321,10 @@ static void PrintSearchableSpecies(u16 species)
     else
     {
         StringCopy(gStringVar1, GetSpeciesName(species));
-        StringExpandPlaceholders(gStringVar4, sText_DexNav_SearchForRegisteredSpecies);
-        AddTextPrinterParameterized3(WINDOW_REGISTERED, FONT_NORMAL, 0, 0, sFontColor_White, TEXT_SKIP_DRAW, gStringVar4);
+        StringExpandPlaceholders(gStringVar4, sText_DexNav_UnbindRegisteredSpecies);
+        // Small font: the button glyph plus a species name does not fit beside
+        // the map name at the normal size.
+        AddTextPrinterParameterized3(WINDOW_REGISTERED, FONT_SMALL, 0, 0, sFontColor_White, TEXT_SKIP_DRAW, gStringVar4);
     }
 
     PrintMapName();
@@ -2589,12 +2591,37 @@ static void Task_DexNavMain(u8 taskId)
 
         if (species != SPECIES_NONE)
         {
-            PrintSearchableSpecies(species);
-            //PlaySE(SE_DEX_SEARCH);
-            PlayCry_Script(species, 0);
-
+#if USE_DEXNAV_SEARCH_LEVELS == DEXNAV_SEARCH_LEVELS_REGISTERED_SPECIES
+            if (!IsRegisteredDexNavSpecies(species))
+                ResetRegisteredDexNavProgress();
+#endif
             // create value to store in a var
             VarSet(DN_VAR_SPECIES, ((sDexNavUiDataPtr->environment << 14) | species));
+            PrintSearchableSpecies(species);
+            // Redraw the panel: the search level belongs to the registered
+            // species, so registering a new one has just changed it.
+            PrintCurrentSpeciesInfo();
+            //PlaySE(SE_DEX_SEARCH);
+            PlayCry_Script(species, 0);
+        }
+        else
+        {
+            PlaySE(SE_FAILURE);
+        }
+    }
+    else if (JOY_NEW(SELECT_BUTTON))
+    {
+        // Unbind the registered species. Without this there is no way to stop
+        // R starting a search, or to clear a chain you no longer want.
+        if ((VarGet(DN_VAR_SPECIES) & DEXNAV_MASK_SPECIES) != SPECIES_NONE)
+        {
+#if USE_DEXNAV_SEARCH_LEVELS == DEXNAV_SEARCH_LEVELS_REGISTERED_SPECIES
+            ResetRegisteredDexNavProgress();
+#endif
+            VarSet(DN_VAR_SPECIES, SPECIES_NONE);
+            PrintSearchableSpecies(SPECIES_NONE);
+            PrintCurrentSpeciesInfo();
+            PlaySE(SE_PC_OFF);
         }
         else
         {
