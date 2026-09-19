@@ -92,6 +92,15 @@ STATIC_ASSERT(sizeof(struct SaveBlock3) <= SAVE_BLOCK_3_CHUNK_SIZE * NUM_SECTORS
 // If this fires, that headroom is gone and the new setting needs a save
 // migration rather than another field.
 STATIC_ASSERT(sizeof(struct ChallengeSettings) == 32, ChallengeSettingsLayoutPinned);
+
+// Where ChallengeSettings sits matters as much as how big it is: anything added
+// to SaveBlock3 ahead of it moves every option in every existing save. The
+// DexNav's per-species search levels are exactly that trap - switching
+// USE_DEXNAV_SEARCH_LEVELS to DEXNAV_SEARCH_LEVELS_PER_SPECIES inserts
+// NUM_SPECIES bytes right here - which is why this repo uses the
+// registered-species mode instead. Soulgold pins dexNavChain the same way.
+STATIC_ASSERT(offsetof(struct SaveBlock3, dexNavChain) == 12, SaveBlock3DexNavChainOffset);
+STATIC_ASSERT(offsetof(struct SaveBlock3, challengeSettings) == 16, SaveBlock3ChallengeSettingsOffset);
 STATIC_ASSERT(sizeof(struct SaveBlock2) <= SECTOR_DATA_SIZE, SaveBlock2FreeSpace);
 STATIC_ASSERT(sizeof(struct SaveBlock1) <= SECTOR_DATA_SIZE * (SECTOR_ID_SAVEBLOCK1_END - SECTOR_ID_SAVEBLOCK1_START + 1), SaveBlock1FreeSpace);
 STATIC_ASSERT(sizeof(struct PokemonStorage) <= SECTOR_DATA_SIZE * (SECTOR_ID_PKMN_STORAGE_END - SECTOR_ID_PKMN_STORAGE_START + 1), PokemonStorageFreeSpace);

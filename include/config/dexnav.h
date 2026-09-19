@@ -3,11 +3,20 @@
 
 #define DEXNAV_ENABLED                TRUE  // Whether or not DexNav is enabled. If TRUE, flags/vars below must all be non-zero
 
-// Leave this FALSE. It inserts dexNavSearchLevels[NUM_SPECIES] into SaveBlock3
-// ahead of challengeSettings, which moves every field after it and breaks every
-// existing save. dexNavChain itself is already in SaveBlock3, so nothing else
-// about the save layout changes by switching the DexNav on.
-#define USE_DEXNAV_SEARCH_LEVELS      FALSE  /* WARNING: POSSIBLY EXCEEDS SAVEBLOCK SPACE! REQUIRES 1 BYTE PER SPECIES */
+// Search level storage modes, ported from Soulgold.
+//
+// PER_SPECIES is the upstream one and must stay off here: it inserts
+// dexNavSearchLevels[NUM_SPECIES] into SaveBlock3 ahead of challengeSettings,
+// which moves every field after it and breaks every existing save.
+// REGISTERED_SPECIES keeps the level for the currently registered species only,
+// in a single var, so the save layout does not move. Changing target resets it,
+// which is the trade Soulgold makes and the only one compatible with the saves
+// already out there.
+#define DEXNAV_SEARCH_LEVELS_DISABLED            FALSE
+#define DEXNAV_SEARCH_LEVELS_PER_SPECIES         TRUE // Requires NUM_SPECIES bytes in SaveBlock3
+#define DEXNAV_SEARCH_LEVELS_REGISTERED_SPECIES  2    // Uses one saved var; changing targets resets the level
+
+#define USE_DEXNAV_SEARCH_LEVELS      DEXNAV_SEARCH_LEVELS_REGISTERED_SPECIES
 
 // Flag/var defines
 #define DN_FLAG_SEARCHING             FLAG_DEXNAV_SEARCHING // Searching for mon
@@ -24,6 +33,7 @@
 // Soulgold reuses its VAR_STEP_COUNTER at 0x40BC; that address is
 // VAR_BRAVO_TRAINER_BATTLE_TOWER_ON here, so the DexNav gets its own var.
 #define DN_VAR_STEP_COUNTER           VAR_DEXNAV_STEP_COUNTER // Steps for finding hidden pokemon
+#define DN_VAR_SEARCH_LEVEL           VAR_DEXNAV_SEARCH_LEVEL // Search level for the registered species
 
 // Search parameters
 #define DEXNAV_TIMEOUT                  15  // 15 seconds is the time out. Max of 1092 seconds allowed
