@@ -402,6 +402,35 @@ vuoti non è una verifica.** Controlla sempre che l'estratto non sia vuoto.
   Nota di metodo: **verifica in emulatore le feature che tocchi, non solo quelle
   che rompi.** Questa era stata consegnata senza una cattura vera di prova.
 
+  **Secondo tentativo, misurato: due muri distinti, uno superato e uno no.**
+  Patch di lavoro in `dex-navigation-wip.patch` (non su branch: l'uscita è rotta).
+  1. *Memoria della schermata info* — **superato.**
+     `sInfoScreen_WindowTemplates` alloca `WIN_CRY_WAVE` (7 168) e
+     `WIN_VU_METER` (2 560) che solo la schermata del verso usa: 9 728 byte
+     sprecati su ogni pagina. Con un secondo array identico ma con quelle due
+     finestre a 1×1 — indici invariati, quindi nessun codice legge fuori
+     tabella — la schermata info si apre dentro una lotta e **INFO, STATS, EVO
+     e FORMS funzionano davvero**: verificato in emulatore su un Pidgey
+     catturato (statistiche base, lista mosse con su/giù, toggle con A, catena
+     evolutiva, "no alternate forms").
+  2. *Schermata AREA* — **non superabile.** Decomprime l'intero tileset della
+     mappa regionale: `out of memory trying to allocate 16384 bytes`, in un
+     blocco solo. Non esiste margine del genere sopra una lotta, con nessun
+     riordino. In modalità ridotta destra da INFO salta quindi su STATS.
+  3. *Uscita verso la lotta* — **rotta, causa ignota.** `B` dalla schermata
+     info (e da FORMS) **resetta il gioco**, cioè si arriva alla schermata
+     GAME FREAK: sintomo tipico di un salto a callback NULL. Il giro è quello
+     documentato sopra (`Task_ExitInfoScreen` distrugge il task →
+     `Task_WaitForExitInfoScreenFromSummary` fa `SetMainCallback2`), e lo
+     stesso giro **funziona dal menu squadra**. Ipotesi scartate leggendo il
+     codice: `ResetTasks()` non è sul percorso; `monSpriteIds` è inizializzato
+     a 0xFFFF quindi `ClearMonSprites` non tocca sprite validi; il comando di
+     cattura in `battle_script_commands.c` aspetta correttamente tutte e tre
+     le condizioni (fade, `BattleMainCB2`, task morto). Da provare la prossima
+     volta: **strumentare, non dedurre** — una build che congela invece di
+     saltare quando `sExternalReturnCallback` è NULL separa in un colpo
+     "callback a zero" da "reshow che crasha".
+
 ---
 
 ## 8. Rotture preesistenti (non tue)
