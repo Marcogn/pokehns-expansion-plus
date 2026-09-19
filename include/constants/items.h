@@ -1081,6 +1081,10 @@ enum __attribute__((packed)) Item
     ITEM_UNUSED_BERRY_3,
     ITEM_AZURE_FLUTE,
     ITEM_SHIN_GENOME,
+    // Appended at the end on purpose: this enum is implicit, so every item id
+    // after an insertion would shift and every save's bag would be rewritten.
+    // (Soulgold can place it mid-list because its enum is explicitly numbered.)
+    ITEM_CANDY_JAR,
 
     ITEMS_COUNT,
     ITEM_FIELD_ARROW = ITEMS_COUNT,

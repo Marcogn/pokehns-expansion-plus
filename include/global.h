@@ -377,6 +377,11 @@ struct SaveBlock3
 #endif
     struct ChallengeSettings challengeSettings;
     u16 registeredItemHold;
+    // Appended, never inserted: everything above keeps its offset, and the
+    // 116-byte chunk means SaveBlock3 still fits in a single sector's tail.
+    // Saves written before this existed carry junk here, which the SAVE_VERSION
+    // 6 migration in LoadGameSave zeroes.
+    u32 candyJarExp;
 }; /* max size 1624 bytes */
 
 extern struct SaveBlock3 *gSaveBlock3Ptr;

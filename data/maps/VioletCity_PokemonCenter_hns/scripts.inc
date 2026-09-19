@@ -58,6 +58,10 @@ VioletCity_PokemonCenter_EventScript_Aide_GiveEgg::
 	setflag FLAG_RECEIVED_TOGEPI_EGG
 	msgbox VioletCity_PokeCenter_Text_ElmsAideGiveItem, MSGBOX_DEFAULT
 	giveitem ITEM_EXP_SHARE_SMALL
+	@ Soulgold hands the CANDY JAR over at this same point, in its own
+	@ VioletPCGiveExpJar script called right after the Egg.
+	msgbox VioletCity_PokeCenter_Text_ElmsAideGiveCandyJar, MSGBOX_DEFAULT
+	giveitem ITEM_CANDY_JAR
 	setflag FLAG_HIDE_VIOLET_CITY_AIDE
 	setvar VAR_VIOLET_CITY_KIMONO_GIRL, 1
 	clearflag FLAG_HIDE_VIOLET_CITY_KIMONO_GIRL
@@ -133,6 +137,10 @@ VioletCity_PokeCenter_Text_ElmsAideGiveEgg:
 
 VioletCity_PokeCenter_Text_ElmsAideGiveItem:
 	.string "Oh, and this might help when it hatches.$"
+
+VioletCity_PokeCenter_Text_ElmsAideGiveCandyJar:
+	.string "You should also take this for raising\n"
+	.string "more POKéMON.$"
 
 VioletCity_PokeCenter_Text_ElmsAideFullParty:
 	.string "Oh, no. You can't carry any more\n"

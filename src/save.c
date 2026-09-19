@@ -3,6 +3,9 @@
 #include "gba/flash_internal.h"
 #include "fieldmap.h"
 #include "save.h"
+#include "candy_jar.h"
+#include "item.h"
+#include "constants/items.h"
 #include "task.h"
 #include "decompress.h"
 #include "load_save.h"
@@ -101,6 +104,12 @@ STATIC_ASSERT(sizeof(struct ChallengeSettings) == 32, ChallengeSettingsLayoutPin
 // registered-species mode instead. Soulgold pins dexNavChain the same way.
 STATIC_ASSERT(offsetof(struct SaveBlock3, dexNavChain) == 12, SaveBlock3DexNavChainOffset);
 STATIC_ASSERT(offsetof(struct SaveBlock3, challengeSettings) == 16, SaveBlock3ChallengeSettingsOffset);
+// The Candy Jar's balance is appended after everything else for the same
+// reason, and the SAVE_VERSION 6 migration that zeroes it in old saves is only
+// correct while it stays at the end: if something is ever inserted before it,
+// old saves would read a field that has moved and the migration would clear the
+// wrong bytes.
+STATIC_ASSERT(offsetof(struct SaveBlock3, candyJarExp) == 52, SaveBlock3CandyJarOffset);
 STATIC_ASSERT(sizeof(struct SaveBlock2) <= SECTOR_DATA_SIZE, SaveBlock2FreeSpace);
 STATIC_ASSERT(sizeof(struct SaveBlock1) <= SECTOR_DATA_SIZE * (SECTOR_ID_SAVEBLOCK1_END - SECTOR_ID_SAVEBLOCK1_START + 1), SaveBlock1FreeSpace);
 STATIC_ASSERT(sizeof(struct PokemonStorage) <= SECTOR_DATA_SIZE * (SECTOR_ID_PKMN_STORAGE_END - SECTOR_ID_PKMN_STORAGE_START + 1), PokemonStorageFreeSpace);
@@ -986,6 +995,25 @@ u8 LoadGameSave(u8 saveType)
         VarSet(VAR_VERMILION_CITY_SAMSON, 0);
         VarSet(VAR_ROUTE28_SCIENTIST, 0);
         gSaveBlock1Ptr->saveVersion = 5;
+    }
+    if (gSaveBlock1Ptr->saveVersion < 6)
+    {
+        // candyJarExp was appended to SaveBlock3, so in a save written before
+        // it existed those four bytes hold whatever was in the sector buffer.
+        // They are read XOR'd with the encryption key, so even a clean zero
+        // decrypts to the key itself - a nine-digit balance that would hand out
+        // 999 of every Exp Candy on the jar's first use. Start every existing
+        // save with an empty jar.
+        SetCandyJarExp(&gSaveBlock3Ptr->candyJarExp, 0);
+
+        // The jar is handed out by Elm's Aide in the Violet City Pokémon
+        // Center, together with the Togepi Egg, the way Soulgold does it. A
+        // save already past that scene would never be offered it again, so
+        // hand it over here instead.
+        if (FlagGet(FLAG_RECEIVED_TOGEPI_EGG) && !CheckBagHasItem(ITEM_CANDY_JAR, 1))
+            AddBagItem(ITEM_CANDY_JAR, 1);
+
+        gSaveBlock1Ptr->saveVersion = 6;
     }
 
     // Add version migration steps here:

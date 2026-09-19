@@ -1,5 +1,6 @@
 #include "global.h"
 #include "new_game.h"
+#include "candy_jar.h"
 #include "random.h"
 #include "config/randomizer.h"
 #include "pokemon.h"
@@ -306,6 +307,7 @@ void NewGameInitData(void)
     SetCurrentDifficultyLevel(DIFFICULTY_NORMAL);
     ResetItemFlags();
     ResetDexNav();
+    SetCandyJarExp(&gSaveBlock3Ptr->candyJarExp, 0);
     ClearFollowerNPCData();
 
     // Sync engine flags from restored challenge settings

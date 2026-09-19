@@ -129,7 +129,37 @@ per primo). La regola in una riga: **l'etichetta del valore zero deve venire pri
 Le opzioni impostate prima di iniziare una partita passano da
 `src/oak_speech_hns.c`, che azzera tutta la struct e poi ricopia a mano i campi
 del menu opzioni. **Ogni campo nuovo va aggiunto anche a quella lista**, altrimenti
-la scelta fatta dal titolo viene persa in silenzio.
+la scelta fatta dal titolo viene persa in silenzio. Nota: quel memset tocca
+**solo** `challengeSettings`, non tutto SaveBlock3, quindi i campi aggiunti fuori
+dalla struct non passano di lì.
+
+### C'è già un sistema di migrazione dei salvataggi: usalo
+
+Scoperto portando il Candy Jar, dopo aver scritto a mano un marker magico che
+non serviva. `LoadGameSave()` in `src/save.c` confronta
+`gSaveBlock1Ptr->saveVersion` con `SAVE_VERSION` (`include/save.h`) e applica in
+sequenza i blocchi `if (saveVersion < N)`. Una partita nuova nasce già a
+`SAVE_VERSION`, quindi i blocchi girano solo sui salvataggi vecchi.
+
+Per aggiungere un campo a SaveBlock3 servono quindi tre cose, non una:
+
+1. il campo **in fondo** alla struct (niente si sposta, e `SAVE_BLOCK_3_CHUNK_SIZE`
+   è 116, quindi finché si sta sotto resta tutto nella coda del sector 0);
+2. un `STATIC_ASSERT` sul suo offset in `save.c`, che inchioda "in fondo";
+3. **un passo di migrazione**, perché in un salvataggio scritto prima quei byte
+   contengono spazzatura del buffer di settore.
+
+Il punto 3 non è teorico. `candyJarExp` è memorizzato in XOR con
+`encryptionKey` come i soldi: leggere anche uno zero pulito restituisce la
+**chiave stessa**, cioè un saldo a nove cifre, e il primo uso del barattolo
+avrebbe consegnato 999 caramelle di ogni taglia. Verificato in emulatore che
+dopo la migrazione il saldo parte da 0.
+
+La migrazione è anche il posto giusto per **regalare un oggetto nuovo a chi è
+già oltre il punto in cui lo si riceve**: il Candy Jar arriva dall'assistente di
+Elm a Violet City, che un salvataggio a 3 medaglie non rivedrà mai più, quindi
+il passo `saveVersion < 6` lo mette in borsa se `FLAG_RECEIVED_TOGEPI_EGG` è
+alzato.
 
 ---
 
@@ -308,6 +338,25 @@ Vale più di qualunque stima. Cose date per mancanti che invece c'erano, spente:
   arriva.
 - **Mente**: tutte e 21 già in vendita al negozio di fiori di Goldenrod, dietro
   medaglia 3 e dietro il toggle `MODE_MINTS` del challenge menu.
+- **Candy Jar**: portato da Soulgold così com'è (`src/candy_jar.c`,
+  `include/candy_jar.h`, `ItemUseOutOfBattle_CandyJar` e i tre helper in
+  `src/item_use.c`, l'aggancio in `src/battle_script_commands.c`). Tre punti
+  dove HnS ha costretto a divergere:
+  - **l'enum degli oggetti di HnS è implicito**, quello di Soulgold è numerato
+    a mano (`ITEM_CANDY_JAR = 887`). Qui una voce inserita a metà lista sposta
+    l'id di ogni oggetto successivo e riscrive la borsa di ogni salvataggio:
+    `ITEM_CANDY_JAR` va **in fondo**, subito prima di `ITEMS_COUNT`;
+  - il campo in SaveBlock3 e la migrazione, vedi §4;
+  - lo script: SG chiama `VioletPCGiveExpJar` subito dopo l'uovo, qui la riga
+    va accanto al `giveitem ITEM_EXP_SHARE_SMALL` che già c'è in
+    `data/maps/VioletCity_PokemonCenter_hns/scripts.inc`.
+  Le caramelle finiscono in `POCKET_MEDICINE`, non fra gli oggetti: per questo
+  `CloseCandyJarMessage` ricostruisce la lista di `GetItemPocket(ITEM_EXP_CANDY_XS)`
+  e non quella a schermo.
+  Verificato in emulatore sul salvataggio 2.0.6 dell'utente: barattolo in borsa
+  grazie alla migrazione, saldo a 0, uno Zubat Lv17 ha versato **107** punti
+  (833/7 = 119, meno il 10%), il barattolo ha prodotto 1 EXP. CANDY XS e ne sono
+  restati 7. L'art è quella del Powder Jar, come in SG.
 - **`swsh_party_menu.c`** si è portato dietro roba di Soulgold mai agganciata
   (`Task_ShinGenome` era già lì). Controlla con
   `nm --defined-only build/hns/src/swsh_party_menu.o` prima di scrivere un doppione:

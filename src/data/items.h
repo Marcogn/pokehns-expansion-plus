@@ -14278,6 +14278,24 @@ const struct ItemInfo gItemsInfo[] =
         .iconPalette = gItemIconPalette_PowderJar,
     },
 
+    // Ported from Soulgold, which also reuses the Powder Jar art rather than
+    // drawing its own.
+    [ITEM_CANDY_JAR] =
+    {
+        .name = ITEM_NAME("CANDY JAR"),
+        .price = 0,
+        .description = COMPOUND_STRING(
+            "Stores extra Exp\n"
+            "and turns it into\n"
+            "candy."),
+        .importance = 1,
+        .pocket = POCKET_KEY_ITEMS,
+        .type = ITEM_USE_BAG_MENU,
+        .fieldUseFunc = ItemUseOutOfBattle_CandyJar,
+        .iconPic = gItemIcon_PowderJar,
+        .iconPalette = gItemIconPalette_PowderJar,
+    },
+
     [ITEM_WAILMER_PAIL] =
     {
         .name = ITEM_NAME("WAILMER PAIL"),

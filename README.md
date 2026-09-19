@@ -22,8 +22,9 @@ Unfortunately, saves from before 2.0 will not be compatible moving forward.
 This repository is a personal fork of **`pokemonHnS-expansion`** that back-ports a
 set of features from [**Soulgold**](https://eemeliri.github.io/soulgold/), plus a
 few changes of its own. Everything below is additive: no existing HnS feature was
-removed, and the save layout is unchanged, so saves from the upstream release keep
-working.
+removed, and saves from the upstream release keep working. Nothing in the save
+ever moves - new fields are only ever appended, and a save written before a field
+existed is migrated on load (`SAVE_VERSION` in `include/save.h`).
 
 ### Ported from Soulgold
 
@@ -37,6 +38,7 @@ working.
 | Shiny healthbox | — | A shiny Pokémon gets a gold battle box, in both themes. |
 | Shiny Genome | — | Turns a Pokémon shiny. Sold at the Viridian City Mart for 1000. |
 | Compact start menu | — | The menu window grows with the number of entries, so nine fit. |
+| Candy Jar | — | A Key Item that skims 90% of the Exp from every battle and turns it into Exp. Candies. Elm's Aide hands it over in the Violet City Pokémon Center along with the Togepi Egg. |
 
 ### Added here
 
@@ -78,7 +80,8 @@ The ported features are the work of the Soulgold project and the people it credi
 in turn. In particular:
 
 - [**Soulgold**](https://github.com/eemeliri) — the overworld and battle speed-ups,
-  the bag screen, the dark UI and the shiny healthbox all come from there.
+  the bag screen, the dark UI, the shiny healthbox and the Candy Jar all come
+  from there.
 - [**Mont**](https://github.com/montmoguri/pokeemerald-expansion/) — the SwSh party
   menu, which reached this fork by way of Soulgold.
 - The full Soulgold credits list is worth reading on its own: see the
