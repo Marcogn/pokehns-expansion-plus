@@ -49,7 +49,6 @@ working.
 | DexNav | — | Entry in the start menu; R starts a search for the registered species. Hold A to creep within two tiles or the target flees. |
 | Move relearner from the summary | — | START on the Battle Moves page. L and R cycle level-up, egg, tutor and TM moves; a category only appears when something is available. TM moves need the machine in the bag. |
 | Types shown in battle | — | The opposing Pokémon's types appear beside its healthbox once the species has been seen. |
-| Browsable Pokédex after a capture | — | On the new-entry page, A opens the full entry; B returns to the battle. |
 | Follower toggle in both party menus | — | The classic menu already had it; the SwSh menu now does too. |
 
 Nature Mints cost 100 each. They were already stocked at the Goldenrod flower shop,
