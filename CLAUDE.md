@@ -224,6 +224,26 @@ Vale più di qualunque stima. Cose date per mancanti che invece c'erano, spente:
   `GiveBoxMonInitialMoveset` tiene le **ultime quattro** mosse disponibili al
   livello di cattura, scartando le prime: per un selvatico di livello alto è
   normale che il relearner offra mosse che non ha mai avuto.
+- **DexNav: la divergenza con Soulgold è a DUE SENSI.** Non è un port. SG ha
+  cose che qui mancano (search level, area progress, unbind con SELECT, una
+  valanga di guardie di robustezza, il level cap, il bug contest) ma **Hasep ha
+  cose che SG non ha**: tutta la riga dei Pokémon **nascosti** (`ROW_HIDDEN`,
+  `hiddenSpecies`, `CapturedAllHiddenMons`, detector mode), il Pokéblock della
+  Safari Zone, il movimento in acqua/grotta (`movementCount`), il confronto per
+  numero di Pokédex in `SpeciesInArray` e le API più recenti
+  (`GetAbilityBySpecies`, `SafeFreeMonIconPalette`). Un "rendilo come Soulgold"
+  alla lettera **cancella feature**. Classificare prima, sempre.
+- **Search level senza rompere i salvataggi**: la modalità per-specie di
+  upstream infila `dexNavSearchLevels[NUM_SPECIES]` in SaveBlock3 **prima** di
+  `challengeSettings` e sposta ogni opzione di ogni salvataggio. SG ha una terza
+  modalità, `DEXNAV_SEARCH_LEVELS_REGISTERED_SPECIES`, che tiene il livello
+  della sola specie registrata in **una var**: cambiando bersaglio si azzera, ma
+  il layout non si muove. È quella in uso. Offset misurati con i flag veri della
+  build hns e ora inchiodati in `save.c`: `dexNavChain` a **12**,
+  `challengeSettings` a **16**, `sizeof(struct SaveBlock3)` = 52.
+- **Differenza di design voluta**: SG ha **tolto** la meccanica stealth (niente
+  fuga per avvicinamento, niente timeout sulle ricerche avviate dal giocatore).
+  Qui si tiene quella di Hasep, in stile HGSS. Scelta dell'utente, non svista.
 - **Mente**: tutte e 21 già in vendita al negozio di fiori di Goldenrod, dietro
   medaglia 3 e dietro il toggle `MODE_MINTS` del challenge menu.
 - **`swsh_party_menu.c`** si è portato dietro roba di Soulgold mai agganciata
@@ -308,6 +328,18 @@ vuoti non è una verifica.** Controlla sempre che l'estratto non sia vuoto.
   macro `asknickname` (`asm/macros/event.inc`) che, con l'opzione spenta, non mostra
   niente e lascia `VAR_RESULT` a NO. I due prompt del *valutatore di nickname* usano
   un testo proprio e non vanno toccati.
+- **Finestre e testo, due trappole misurate sulla schermata DexNav**:
+  1. `FONT_SMALL` mette l'inchiostro **3 righe sotto** la y che gli passi. Per
+     centrare una scritta in una barra alta 10px bisogna chiedere `y_barra - 3`.
+  2. Due finestre che **condividono anche una sola riga di tile** si corrompono
+     a vicenda: mettere un contatore a `tilemapTop 1` mentre `WINDOW_REGISTERED`
+     occupa le righe 0-1 sporcava entrambe. Se la riga serve e la finestra
+     esistente c'è già, **allarga quella** e stampa dentro (è così che il
+     contatore dell'acqua vive dentro `WINDOW_REGISTERED`, alta 3 righe).
+  Le barre delle intestazioni sono **arte del BG** (`gui_tilemap.bin`), non
+  finestre: una finestra riempita con `PIXEL_FILL(TEXT_COLOR_TRANSPARENT)` ci
+  scrive sopra senza cancellarle. Estensioni misurate: barra acqua y13-22,
+  terra y54-63, nascosti y120-129; simboli "catturati tutti" a x139, x152, x114.
 - **VBlank**: aprire una schermata senza installare il proprio `SetVBlankCallback`
   eredita quello del chiamante. È così che il Pokédex aperto dal menu SwSh scorreva
   in diagonale.

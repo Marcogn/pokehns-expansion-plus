@@ -80,6 +80,13 @@ enum WindowIds
 {
     WINDOW_INFO,
     WINDOW_REGISTERED,
+    // Soulgold's area progress is one panel across the bottom of the screen.
+    // That space is the hidden-encounter row here, which Soulgold does not
+    // have, so the same counts go in the free half of each row's header bar
+    // instead - right where the row they describe is, and just left of the
+    // "caught them all" symbol this repo already draws there.
+    WINDOW_LAND_COUNT,
+    WINDOW_HIDDEN_COUNT,
     WINDOW_COUNT,
 };
 
@@ -150,6 +157,8 @@ EWRAM_DATA u16 gDexNavSpecies = SPECIES_NONE;
 static void Task_DexNavWaitFadeIn(u8 taskId);
 static void Task_DexNavMain(u8 taskId);
 static void PrintCurrentSpeciesInfo(void);
+static void PrintAreaProgress(void);
+static void PrintWaterProgress(void);
 // SEARCH
 static bool8 TryStartHiddenMonFieldEffect(enum EncounterType environment, u8 xSize, u8 ySize, bool8 smallScan);
 static void DexNavGenerateMoveset(u16 species, u8 searchLevel, u8 encounterLevel, u16 *moveDst);
@@ -224,10 +233,39 @@ static const struct WindowTemplate sDexNavGuiWindowTemplates[] =
         .bg = 0,
         .tilemapLeft = 4,
         .tilemapTop = 0,
+        // Three rows, not two: the water row's caught count has to be drawn at
+        // y14 to sit inside a bar that runs y13-22, and FONT_SMALL puts its ink
+        // three rows below the requested y. That needs tile row 1, which this
+        // window already owns - a second window sharing the row corrupts both -
+        // so the count is printed in here instead, at the bottom of row 2.
         .width = 26,
-        .height = 2,
+        .height = 3,
         .paletteNum = 15,
         .baseBlock = 200,
+    },
+    // Positions measured off a real frame: the header art leaves x40-135,
+    // x28-150 and x70-105 free before the captured-all symbols at x139, x152
+    // and x114. Two tiles tall so the small font's shadow is not clipped; the
+    // buffer is filled transparent, so only the glyphs cover the bar.
+    [WINDOW_LAND_COUNT] =
+    {
+        .bg = 0,
+        .tilemapLeft = 15,
+        .tilemapTop = 6,
+        .width = 4,
+        .height = 2,
+        .paletteNum = 15,
+        .baseBlock = 280,
+    },
+    [WINDOW_HIDDEN_COUNT] =
+    {
+        .bg = 0,
+        .tilemapLeft = 10,
+        .tilemapTop = 14,
+        .width = 4,
+        .height = 3,
+        .paletteNum = 15,
+        .baseBlock = 288,
     },
     DUMMY_WIN_TEMPLATE
 };
@@ -235,6 +273,9 @@ static const struct WindowTemplate sDexNavGuiWindowTemplates[] =
 //gui font
 static const u8 sFontColor_Black[3] = {TEXT_COLOR_TRANSPARENT, TEXT_COLOR_DARK_GRAY, TEXT_COLOR_LIGHT_GRAY};
 static const u8 sFontColor_White[3] = {TEXT_COLOR_TRANSPARENT, TEXT_COLOR_WHITE, TEXT_COLOR_DARK_GRAY};
+// No shadow: these sit on a flat 10px bar with no room for the extra row, and
+// the bar is dark enough that white needs no outline.
+static const u8 sFontColor_WhiteNoShadow[3] = {TEXT_COLOR_TRANSPARENT, TEXT_COLOR_WHITE, TEXT_COLOR_TRANSPARENT};
 //search window font
 static const u8 sSearchFontColor[3] = {0, 15, 13};
 
@@ -2109,6 +2150,98 @@ static void DexNavLoadEncounterData(void)
     }
 }
 
+static void CountCaughtSpecies(const u16 *species, u32 count, u8 *caught, u8 *total)
+{
+    u32 i;
+
+    *caught = 0;
+    *total = 0;
+    for (i = 0; i < count; i++)
+    {
+        if (species[i] == SPECIES_NONE)
+            continue;
+
+        (*total)++;
+        if (GetSetPokedexFlag(SpeciesToNationalPokedexNum(species[i]), FLAG_GET_CAUGHT))
+            (*caught)++;
+    }
+}
+
+static void PrintRowProgress(u8 windowId, const u16 *species, u32 count, u8 width, u8 y)
+{
+    u8 caught, total;
+    u8 text[8];
+    u8 x;
+
+    FillWindowPixelBuffer(windowId, PIXEL_FILL(TEXT_COLOR_TRANSPARENT));
+    PutWindowTilemap(windowId);
+
+    CountCaughtSpecies(species, count, &caught, &total);
+    if (total == 0)
+    {
+        CopyWindowToVram(windowId, COPYWIN_FULL);
+        return;
+    }
+
+    ConvertIntToDecimalStringN(gStringVar1, caught, STR_CONV_MODE_LEFT_ALIGN, 2);
+    ConvertIntToDecimalStringN(gStringVar2, total, STR_CONV_MODE_LEFT_ALIGN, 2);
+    StringCopy(text, gStringVar1);
+    StringAppend(text, COMPOUND_STRING("/"));
+    StringAppend(text, gStringVar2);
+
+    x = GetStringRightAlignXOffset(FONT_SMALL, text, width * 8);
+    AddTextPrinterParameterized3(windowId, FONT_SMALL, x, y, sFontColor_WhiteNoShadow, 0, text);
+    CopyWindowToVram(windowId, COPYWIN_FULL);
+}
+
+// The water row shares WINDOW_REGISTERED, so it is redrawn from
+// PrintSearchableSpecies too - that clears the whole buffer.
+static void PrintWaterProgress(void)
+{
+    u8 caught, total;
+    u8 text[8];
+
+    if (sDexNavUiDataPtr == NULL)
+        return;
+
+    CountCaughtSpecies(sDexNavUiDataPtr->waterSpecies, WATER_WILD_COUNT, &caught, &total);
+    if (total == 0)
+        return;
+
+    ConvertIntToDecimalStringN(gStringVar1, caught, STR_CONV_MODE_LEFT_ALIGN, 2);
+    ConvertIntToDecimalStringN(gStringVar2, total, STR_CONV_MODE_LEFT_ALIGN, 2);
+    StringCopy(text, gStringVar1);
+    StringAppend(text, COMPOUND_STRING("/"));
+    StringAppend(text, gStringVar2);
+
+    // x is relative to the window, which starts at tile 4 (x32); the water bar
+    // is clear between the label and the captured-all symbol at x139.
+    AddTextPrinterParameterized3(WINDOW_REGISTERED, FONT_SMALL, 104 - 32, 11, sFontColor_WhiteNoShadow, 0, text);
+    CopyWindowToVram(WINDOW_REGISTERED, COPYWIN_FULL);
+}
+
+// How much of each row's encounter table has been caught. The hidden row only
+// says so once the detector is on, since without it the row is question marks.
+static void PrintAreaProgress(void)
+{
+    // Each bar is 10px tall - water y13-22, land y54-63, hidden y120-129,
+    // sampled from a real frame - and FONT_SMALL lands its ink three rows below
+    // the y it is given, so each line is placed to sit inside its own bar.
+    PrintWaterProgress();
+    PrintRowProgress(WINDOW_LAND_COUNT, sDexNavUiDataPtr->landSpecies, LAND_WILD_COUNT, 4, 4);
+
+    if (FlagGet(DN_FLAG_DETECTOR_MODE))
+    {
+        PrintRowProgress(WINDOW_HIDDEN_COUNT, sDexNavUiDataPtr->hiddenSpecies, HIDDEN_WILD_COUNT, 4, 6);
+    }
+    else
+    {
+        FillWindowPixelBuffer(WINDOW_HIDDEN_COUNT, PIXEL_FILL(TEXT_COLOR_TRANSPARENT));
+        PutWindowTilemap(WINDOW_HIDDEN_COUNT);
+        CopyWindowToVram(WINDOW_HIDDEN_COUNT, COPYWIN_FULL);
+    }
+}
+
 static void TryDrawIconInSlot(u16 species, s16 x, s16 y)
 {
     if (species == SPECIES_NONE || species > NUM_SPECIES)
@@ -2328,6 +2461,7 @@ static void PrintSearchableSpecies(u16 species)
     }
 
     PrintMapName();
+    PrintWaterProgress();
 }
 
 static void CreateTypeIconSprites(void)
@@ -2399,6 +2533,7 @@ static bool8 DexNav_DoGfxSetup(void)
     case 7:
         PrintSearchableSpecies(VarGet(DN_VAR_SPECIES) & DEXNAV_MASK_SPECIES);
         DexNavLoadEncounterData();
+        PrintAreaProgress();
         gMain.state++;
         break;
     case 8:
