@@ -111,7 +111,10 @@ ragionamento girava a vuoto da un'ora. Ricordati di `cp` del file prima.
 `STATIC_ASSERT(..., ChallengeSettingsLayoutPinned)` in `src/save.c`.
 
 - Aggiungi campi **solo in fondo**, così nessun campo esistente cambia offset.
-- Bit liberi nell'ultimo byte: dopo `noWildEncounters` ne restano **2**.
+- Bit liberi nell'ultimo byte: dopo `dexNavCaveFix` ne restano **0**. La struct è
+  piena. Verificato aggiungendo un bit finto: `ChallengeSettingsLayoutPinned`
+  fallisce. Per una nuova opzione bisognerà ingrandire la struct, e quello sposta
+  il layout del salvataggio.
 - Dopo ogni aggiunta verifica che compili: l'assert fallisce da sola se sfori.
 
 **Polarità dei bit.** Un salvataggio scritto prima che l'opzione esistesse legge il
@@ -120,7 +123,8 @@ modo che zero significhi il comportamento vecchio — anche se il nome viene bru
 `skipNicknamePrompt` è memorizzato invertito proprio per questo, e la lista di scelte
 è ordinata di conseguenza (`sChoices_OnOff` = ON per primo, `sChoices_OffOn` = OFF
 per primo). La regola in una riga: **l'etichetta del valore zero deve venire prima**.
-`noWildEncounters` segue la stessa logica (0 = incontri attivi = "ON").
+`noWildEncounters` segue la stessa logica (0 = incontri attivi = "ON"), e
+`dexNavShowAll` pure (0 = nasconde i non visti, quindi `sChoices_OffOn`).
 
 Le opzioni impostate prima di iniziare una partita passano da
 `src/oak_speech_hns.c`, che azzera tutta la struct e poi ricopia a mano i campi
@@ -224,6 +228,69 @@ Vale più di qualunque stima. Cose date per mancanti che invece c'erano, spente:
   `GiveBoxMonInitialMoveset` tiene le **ultime quattro** mosse disponibili al
   livello di cattura, scartando le prime: per un selvatico di livello alto è
   normale che il relearner offra mosse che non ha mai avuto.
+- **DexNav: la divergenza con Soulgold è a DUE SENSI.** Non è un port. SG ha
+  cose che qui mancano (search level, area progress, unbind con SELECT, una
+  valanga di guardie di robustezza, il level cap, il bug contest) ma **Hasep ha
+  cose che SG non ha**: tutta la riga dei Pokémon **nascosti** (`ROW_HIDDEN`,
+  `hiddenSpecies`, `CapturedAllHiddenMons`, detector mode), il Pokéblock della
+  Safari Zone, il movimento in acqua/grotta (`movementCount`), il confronto per
+  numero di Pokédex in `SpeciesInArray` e le API più recenti
+  (`GetAbilityBySpecies`, `SafeFreeMonIconPalette`). Un "rendilo come Soulgold"
+  alla lettera **cancella feature**. Classificare prima, sempre.
+- **Search level senza rompere i salvataggi**: la modalità per-specie di
+  upstream infila `dexNavSearchLevels[NUM_SPECIES]` in SaveBlock3 **prima** di
+  `challengeSettings` e sposta ogni opzione di ogni salvataggio. SG ha una terza
+  modalità, `DEXNAV_SEARCH_LEVELS_REGISTERED_SPECIES`, che tiene il livello
+  della sola specie registrata in **una var**: cambiando bersaglio si azzera, ma
+  il layout non si muove. È quella in uso. Offset misurati con i flag veri della
+  build hns e ora inchiodati in `save.c`: `dexNavChain` a **12**,
+  `challengeSettings` a **16**, `sizeof(struct SaveBlock3)` = 52.
+- **Differenza di design voluta**: SG ha **tolto** la meccanica stealth (niente
+  fuga per avvicinamento, niente timeout sulle ricerche avviate dal giocatore).
+  Qui si tiene quella di Hasep, in stile HGSS. Scelta dell'utente, non svista.
+- **DEXNAV SHOW ALL, il gate vero**: l'opzione va agganciata a
+  `DexNavGetSpecies()`, non alle singole schermate. Quella funzione risponde
+  `SPECIES_NONE` per una specie non vista, e **R, A e il pannello info passano
+  tutti di lì**: agganciare l'opzione solo a `TryDrawIconInSlot` e
+  `PrintCurrentSpeciesInfo` disegnava l'icona di un Pokémon che poi non si
+  poteva registrare. Un gate a monte batte tre gate a valle.
+  Trappola di verifica, ci sono cascato: avevo "confermato" l'opzione
+  registrando Caterpie, che in quel salvataggio era **già vista** — funzionava
+  anche senza la modifica. Per provare una feature legata al Pokédex serve una
+  specie che con l'opzione OFF mostri il **punto interrogativo**: lì era
+  Ledyba. Verificato in entrambi i sensi sullo stesso slot (OFF rifiuta, ON
+  registra) e la ricerca sul campo parte davvero.
+  **Cosa sblocca cosa**: il dettaglio nel pannello è legato a
+  `FLAG_GET_CAUGHT`, non a `FLAG_GET_SEEN`. Non catturato = tipi `???` e
+  abilità "Capture first!", nome comunque visibile perché serve a sapere cosa
+  stai registrando. È una scelta dell'utente e vale **anche con l'opzione
+  spenta**: prima una specie vista ma non catturata mostrava i suoi tipi.
+  Serviva perché la griglia disegna la stessa icona a colori in entrambi i
+  casi, quindi senza questo il pannello non distingueva posseduto da non
+  posseduto. Nota di verifica: con `DEXNAV_SEARCH_LEVELS_REGISTERED_SPECIES`
+  il search level resta 0 finché non catturi, quindi non aggiunge informazione.
+- **DexNav in grotta: la colpa è di HnS, non di Soulgold.** Errore mio da non
+  ripetere: ho detto all'utente che il codice era «identico in Soulgold» senza
+  averlo aperto, e la mia stessa §6 diceva il contrario. Verificato:
+  in `soulgold/src/dexnav.c` **non esiste** né `movementCount` né il blocco
+  "Caves and water the pokemon moves around". Il bersaglio che si sposta è
+  roba di HnS.
+  E la scelta della casella in SG non ha alcun tiro di dado: è
+  `weight = !MapGridGetCollisionAt(topX, topY);` in tutti i rami, grotta, erba e
+  acqua, per cui la ricerca **riesce sempre** se esiste una casella valida. SG
+  tratta anche `MAP_TYPE_INDOOR` come grotta (Sprout Tower).
+  HnS invece pesa con `Random() % scale`, dove in grotta
+  `scale = 440 - dist/2 - 2*(tileX + tileY)`. Due difetti: `scale` è `u8`, quindi
+  tutto oltre 255 si tronca (e a 256 esatti torna la divisione per zero che il
+  `max(1, ...)` non copre, perché il clamp agisce prima dell'assegnazione); e il
+  termine sulle **coordinate assolute** lega la probabilità a dove ti trovi sulla
+  mappa invece che alla distanza, che è già un termine a parte.
+  Misurato sul salvataggio dell'utente a Burned Tower B1F, stesso punto:
+  **0 ricerche avviate su 7** con il comportamento HnS, **5 su 5** con quello di
+  SG. Dietro l'opzione `DEXNAV CAVE FIX`, spenta di default.
+  Non verificato: arrivare fino alla lotta. Il timeout è di 15 s
+  (`DEXNAV_TIMEOUT`) e sotto Xvfb con input da script non si fa in tempo; il
+  fallimento che resta è quello, non più la rilocalizzazione.
 - **Mente**: tutte e 21 già in vendita al negozio di fiori di Goldenrod, dietro
   medaglia 3 e dietro il toggle `MODE_MINTS` del challenge menu.
 - **`swsh_party_menu.c`** si è portato dietro roba di Soulgold mai agganciata
@@ -308,20 +375,111 @@ vuoti non è una verifica.** Controlla sempre che l'estratto non sia vuoto.
   macro `asknickname` (`asm/macros/event.inc`) che, con l'opzione spenta, non mostra
   niente e lascia `VAR_RESULT` a NO. I due prompt del *valutatore di nickname* usano
   un testo proprio e non vanno toccati.
+- **Finestre e testo, due trappole misurate sulla schermata DexNav**:
+  1. `FONT_SMALL` mette l'inchiostro **3 righe sotto** la y che gli passi. Per
+     centrare una scritta in una barra alta 10px bisogna chiedere `y_barra - 3`.
+  2. Due finestre che **condividono anche una sola riga di tile** si corrompono
+     a vicenda: mettere un contatore a `tilemapTop 1` mentre `WINDOW_REGISTERED`
+     occupa le righe 0-1 sporcava entrambe. Se la riga serve e la finestra
+     esistente c'è già, **allarga quella** e stampa dentro (è così che il
+     contatore dell'acqua vive dentro `WINDOW_REGISTERED`, alta 3 righe).
+  Le barre delle intestazioni sono **arte del BG** (`gui_tilemap.bin`), non
+  finestre: una finestra riempita con `PIXEL_FILL(TEXT_COLOR_TRANSPARENT)` ci
+  scrive sopra senza cancellarle. Estensioni misurate: barra acqua y13-22,
+  terra y54-63, nascosti y120-129. I simboli "catturati tutti" sono sprite 8px
+  **centrati** su x139, x152 e x114, quindi occupano x135-142, x148-155 e
+  x110-117: compaiono solo a riga completata, cioè proprio quando il contatore
+  è al massimo della larghezza, e lì si sovrapporrebbero. I contatori finiscono
+  quindi a x130, x143 e x103.
 - **VBlank**: aprire una schermata senza installare il proprio `SetVBlankCallback`
   eredita quello del chiamante. È così che il Pokédex aperto dal menu SwSh scorreva
   in diagonale.
-- **Aprire una schermata full-callback dall'interno di una lotta**: si può, e il
-  giro è già pronto. `OpenPokedexInfoScreen(species, returnCallback)` prende il
-  main callback; come `returnCallback` si passa `ReshowBattleScreenAfterMenu`
+- **Aprire una schermata full-callback dall'interno di una lotta**: il
+  *meccanismo* funziona — `OpenPokedexInfoScreen(species, returnCallback)` prende
+  il main callback, e come `returnCallback` si passa `ReshowBattleScreenAfterMenu`
   (`include/reshow_battle_screen.h`), la stessa strada di borsa e menu squadra,
-  che ricostruisce tutta la lotta e finisce su `BattleMainCB2`. Lo script di
-  cattura in `battle_script_commands.c` aspetta esattamente
-  `gMain.callback2 == BattleMainCB2` e il task morto, quindi riprende da solo.
-  Attenzione a liberare finestre e buffer dei BG 2/3 **prima** di cedere il
-  controllo: `LoadInfoScreen` ne installa di propri e i puntatori vecchi si
-  perdono. `battle_controllers.h` non è includibile da `pokedex_plus_hgss.c`
-  (tira dentro `battle.h`), da cui la chiamata diretta alla funzione di reshow.
+  che ricostruisce la lotta e finisce su `BattleMainCB2`, che è esattamente ciò
+  che lo script di cattura in `battle_script_commands.c` aspetta.
+  **Ma per il Pokédex la memoria non basta, ed è una misura, non un'opinione.**
+  Censimento dell'heap fatto in emulatore con la pagina "nuova voce" aperta
+  dentro una lotta (`HeapHead()` percorso a mano, stampato nella finestra):
+  **23 440 byte liberi**, in un unico blocco, su 116 480 totali. La lotta da sola
+  ne tiene **~66 000**. La pagina della cattura ne tiene altri 26 924
+  (20 608 di buffer finestre da `sNewEntryInfoScreen_WindowTemplates`, 4 096 di
+  BG 2/3, 2 220 di `PokedexView`): restituendoli tutti si arriva a 48 144.
+  La schermata info ne chiede **46 464 prima di disegnare qualsiasi cosa**
+  (31 616 di finestre da `sInfoScreen_WindowTemplates` — di cui 7 168 di
+  `WIN_CRY_WAVE` e 2 560 di `WIN_VU_METER`, usate solo dalla schermata del
+  verso — più 8 192 di BG 0-3 e 6 656 per `tileset_menu1.4bpp`), poi lo sprite
+  del Pokémon, poi la sotto-schermata su cui si naviga. Muore sui 6 656 con
+  `out of memory`, e la frammentazione peggiora il conto: i 4 buffer BG occupano
+  la testa del buco grande, `WIN_INFO` (20 480) è costretto in coda, e alla
+  decompressione resta il blocco più grande sotto i 6 656.
+  **Morale: un `out of memory` con un numero preciso va tradotto in un file.**
+  6 656 è esattamente `graphics/pokedex/hgss/tileset_menu1.4bpp`; `ls -l` sui
+  `.4bpp` dice in dieci secondi quale schermata sta fallendo.
+  Anche Soulgold, sulla pagina della cattura, esce e basta: A e B fanno la stessa
+  cosa. Non era un port, era una mia aggiunta, ed è stata tolta.
+  Se un giorno la si rivuole, le due strade sono (a) un set di finestre ridotto
+  quando si apre da una lotta, che recupera i ~9,7 KB della schermata del verso
+  ma la disabilita, oppure (b) aprire la voce **dopo** la lotta, quando l'heap è
+  libero.
+  Nota di metodo: **verifica in emulatore le feature che tocchi, non solo quelle
+  che rompi.** Questa era stata consegnata senza una cattura vera di prova.
+
+  **Secondo tentativo, misurato: due muri distinti, uno superato e uno no.**
+  Patch di lavoro in `dex-navigation-wip.patch` (non su branch: l'uscita è rotta).
+  1. *Memoria della schermata info* — **superato.**
+     `sInfoScreen_WindowTemplates` alloca `WIN_CRY_WAVE` (7 168) e
+     `WIN_VU_METER` (2 560) che solo la schermata del verso usa: 9 728 byte
+     sprecati su ogni pagina. Con un secondo array identico ma con quelle due
+     finestre a 1×1 — indici invariati, quindi nessun codice legge fuori
+     tabella — la schermata info si apre dentro una lotta e **INFO, STATS, EVO
+     e FORMS funzionano davvero**: verificato in emulatore su un Pidgey
+     catturato (statistiche base, lista mosse con su/giù, toggle con A, catena
+     evolutiva, "no alternate forms").
+  2. *Schermata AREA* — **non superabile.** Decomprime l'intero tileset della
+     mappa regionale: `out of memory trying to allocate 16384 bytes`, in un
+     blocco solo. Non esiste margine del genere sopra una lotta, con nessun
+     riordino. In modalità ridotta destra da INFO salta quindi su STATS.
+  3. *Uscita verso la lotta* — **rotta, causa ignota.** `B` dalla schermata
+     info (e da FORMS) **resetta il gioco**, cioè si arriva alla schermata
+     GAME FREAK: sintomo tipico di un salto a callback NULL. Il giro è quello
+     documentato sopra (`Task_ExitInfoScreen` distrugge il task →
+     `Task_WaitForExitInfoScreenFromSummary` fa `SetMainCallback2`), e lo
+     stesso giro **funziona dal menu squadra**. Ipotesi scartate leggendo il
+     codice: `ResetTasks()` non è sul percorso; `monSpriteIds` è inizializzato
+     a 0xFFFF quindi `ClearMonSprites` non tocca sprite validi; il comando di
+     cattura in `battle_script_commands.c` aspetta correttamente tutte e tre
+     le condizioni (fade, `BattleMainCB2`, task morto). Da provare la prossima
+     volta: **strumentare, non dedurre** — una build che congela invece di
+     saltare quando `sExternalReturnCallback` è NULL separa in un colpo
+     "callback a zero" da "reshow che crasha".
+
+---
+
+## 7bis. Megaevoluzioni: misurate, non stimate
+
+`P_MEGA_EVOLUTIONS` (`include/config/species_enabled.h`) è **FALSE** qui e
+**TRUE** in Soulgold. Messo a TRUE la build `hns` **compila**, ma:
+
+| | ROM | % di 32 MB |
+| --- | --- | --- |
+| com'è oggi | 31 799 860 | 94,77% |
+| con le mega | 33 374 804 | **99,46%** |
+
+Costa **1 574 944 byte** e lascia **179 628 byte liberi**, cioè lo 0,54%. Parte
+di quel costo è `P_MODIFIED_MEGA_CRIES`, che nell'expansion è definito uguale a
+`P_MEGA_EVOLUTIONS` e da solo dichiara ~3% di ROM: si può spegnere a mano per
+recuperare spazio, e va provato prima di dire che non ci stanno.
+
+**Compilare non vuol dire funzionare**: questa misura dice solo che la ROM sta
+nei 32 MB. Non è stata provata in emulatore, e comunque la feature non è finita
+finché non ci sono Pietraiuto/Megapietre ottenibili da qualche parte e il
+giocatore ha modo di megaevolvere. Quello è lavoro di script e negozi, non un
+flag.
+
+Per il seguito: dopo le mega qualunque altra aggiunta grossa non entra più.
 
 ---
 

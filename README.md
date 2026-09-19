@@ -46,11 +46,21 @@ working.
 | Guaranteed capture | `EASY CATCH` OFF/ON | Every Ball catches without fail while it is on. |
 | Nickname prompts | `NICKNAMES` ON/OFF | When off, catches, gift Pokémon and hatched eggs never ask. |
 | Wild encounters | `WILD BATTLES` ON/OFF | When off, grass, surfing, Rock Smash, Sweet Scent and fishing never trigger a wild battle. |
-| DexNav | — | Entry in the start menu; R starts a search for the registered species. Hold A to creep within two tiles or the target flees. |
-| Move relearner from the summary | — | START on the Battle Moves page. L and R cycle level-up, egg, tutor and TM moves; a category only appears when something is available. TM moves need the machine in the bag. |
-| Types shown in battle | — | The opposing Pokémon's types appear beside its healthbox once the species has been seen. |
-| Browsable Pokédex after a capture | — | On the new-entry page, A opens the full entry; B returns to the battle. |
+| DexNav: show all | `DEXNAV SHOW ALL` OFF/ON | Lists every species in the area, not only the ones the Pokédex has seen. |
+| DexNav: cave fix | `DEXNAV CAVE FIX` OFF/ON | Uses Soulgold's tile picking in caves, water and indoor maps, so a search always finds a spot, and stops the target relocating as you approach. Off leaves the behaviour HnS ships. |
 | Follower toggle in both party menus | — | The classic menu already had it; the SwSh menu now does too. |
+
+### Switched on and finished here
+
+These were already in the codebase, disabled or half-wired. Nothing below was
+written for this fork; the work was turning it on and making it behave.
+
+| Feature | Where it came from | What was done here |
+| --- | --- | --- |
+| DexNav | `src/dexnav.c`, already present with `DEXNAV_ENABLED FALSE` | Turned on, given R on foot, made the creeping reachable, and reconciled with Soulgold: search levels, SELECT to unbind, per-row caught counts, and a pile of Soulgold's robustness fixes. It opens on maps with no wild encounters instead of silently refusing. |
+| Move relearner from the summary | `P_ENABLE_MOVE_RELEARNERS`, a pokeemerald-expansion feature | HnS drew the prompt but nothing handled START. Wired up, and kept to the Battle Moves page the way Soulgold does. |
+| Types shown in battle | `src/type_icons.c`, with `B_SHOW_TYPES SHOW_TYPES_NEVER` | Turned on and aligned to Soulgold: the art is Soulgold's and is asymmetric, so the mirroring, the 4px stagger and the slide directions all had to match. |
+| HGSS Pokédex | `src/pokedex_plus_hgss.c`, already present | Used as-is. The party-menu entry point above is what was added. |
 
 Nature Mints cost 100 each. They were already stocked at the Goldenrod flower shop,
 behind the third badge and the challenge menu's `MINTS` toggle.
@@ -73,6 +83,11 @@ in turn. In particular:
   menu, which reached this fork by way of Soulgold.
 - The full Soulgold credits list is worth reading on its own: see the
   [Soulgold repository](https://eemeliri.github.io/soulgold/).
+
+The features in *Switched on and finished here* came with the
+**`pokemonHnS-expansion`** / **`pokeemerald-expansion`** codebase and are the
+work of their authors, not of this fork. Their contributors are listed in
+[`CREDITS.md`](CREDITS.md), which is inherited unchanged from upstream.
 
 The upstream chain below — **`pokemonHnS-expansion`**, RHH's
 **`pokeemerald-expansion`**, **`Modern Emerald`** and pret's **`pokeemerald`** —

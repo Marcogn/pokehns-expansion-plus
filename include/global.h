@@ -350,6 +350,11 @@ struct ChallengeSettings
                              // so a save written before this option keeps asking.
     u8 noWildEncounters:1;   // 1 = a repel that never runs out. Zero means
                              // encounters happen, which is what an older save reads.
+    u8 dexNavShowAll:1;      // 1 = the DexNav lists species you have not seen.
+                             // Zero hides them, which is what an older save reads.
+    u8 dexNavCaveFix:1;      // 1 = Soulgold's tile picking and no relocating
+                             // target. Zero is the behaviour HnS shipped, which
+                             // is what an older save reads.
 };
 
 struct SaveBlock3
@@ -361,7 +366,7 @@ struct SaveBlock3
 #if OW_SHOW_ITEM_DESCRIPTIONS == OW_ITEM_DESCRIPTIONS_FIRST_TIME
     u8 itemFlags[ITEM_FLAGS_COUNT];
 #endif
-#if USE_DEXNAV_SEARCH_LEVELS == TRUE
+#if USE_DEXNAV_SEARCH_LEVELS == DEXNAV_SEARCH_LEVELS_PER_SPECIES
     u8 dexNavSearchLevels[NUM_SPECIES];
 #endif
     u8 dexNavChain;

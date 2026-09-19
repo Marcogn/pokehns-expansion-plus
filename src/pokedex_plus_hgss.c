@@ -32,7 +32,6 @@
 #include "region_map.h"
 #include "pokemon.h"
 #include "reset_rtc_screen.h"
-#include "reshow_battle_screen.h"
 #include "rtc.h"
 #include "scanline_effect.h"
 #include "shop.h"
@@ -519,7 +518,6 @@ static void Task_SwitchScreensFromSizeScreen(u8);
 static void LoadScreenSelectBarMain(u16);
 static void HighlightScreenSelectBarItem(u8, u16);
 static void Task_HandleCaughtMonPageInput(u8);
-static void Task_OpenFullDexFromCaughtMonPage(u8);
 static void Task_ExitCaughtMonPage(u8);
 static void SpriteCB_SlideCaughtMonToCenter(struct Sprite *sprite);
 static void PrintMonInfo(u32 num, u32, u32 owned, u32 newEntry);
@@ -4364,18 +4362,19 @@ void Task_DisplayCaughtMonDexPageHGSS(u8 taskId)
     }
 }
 
+// A and B both leave. Opening the full Pokedex entry from here was tried and
+// does not fit: measured inside a battle, the heap has 23440 bytes free while
+// this page is up, and the page itself is holding 26924 more (20608 of window
+// buffers, 4096 of BG 2/3, 2220 of PokedexView). Handing all of that back
+// leaves 48144, and the info screen needs 46464 before it draws anything
+// (31616 of windows, 8192 of BG 0-3, 6656 for tileset_menu1) - then a mon
+// sprite, then whichever sub-screen the player navigates to. It died on the
+// 6656 with "out of memory", and no rearranging of the teardown buys the ~10KB
+// the sub-screens would still need. The battle itself is holding ~66000 bytes;
+// that is the budget, and it is not negotiable from in here.
 static void Task_HandleCaughtMonPageInput(u8 taskId)
 {
-    // A opens the full, navigable entry for the Pokemon just caught; B still
-    // drops straight back into the battle, which is what both used to do.
-    if (JOY_NEW(A_BUTTON))
-    {
-        BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);
-        PlaySE(SE_PIN);
-        gTasks[taskId].func = Task_OpenFullDexFromCaughtMonPage;
-        return;
-    }
-    if (JOY_NEW(B_BUTTON))
+    if (JOY_NEW(A_BUTTON | B_BUTTON))
     {
         BeginNormalPaletteFade(PALETTES_BG, 0, 0, 16, RGB_BLACK);
         SetSpriteInvisibility(0, TRUE);
@@ -4398,40 +4397,6 @@ static void Task_HandleCaughtMonPageInput(u8 taskId)
         else
             LoadPalette(sPokedexPlusHGSS_Default_dark_Pal + 1, BG_PLTT_ID(3) + 1, PLTT_SIZEOF(7));
     }
-}
-
-// The Pokedex runs as a main callback, so handing control to it abandons the
-// battle's. ReshowBattleScreenAfterMenu (the same path the bag and the party
-// menu use from inside a battle) rebuilds the battle wholesale and ends on
-// BattleMainCB2, which is exactly what the capture script waits for before it
-// carries on, so the script resumes where it left off.
-static void Task_OpenFullDexFromCaughtMonPage(u8 taskId)
-{
-    u16 species;
-    void *buffer;
-
-    if (gPaletteFade.active)
-        return;
-
-    species = gTasks[taskId].tSpecies;
-
-    // Plain CreateSprite, not a mon pic sprite: its gfx belong to the battle.
-    DestroySprite(&gSprites[gTasks[taskId].tMonSpriteId]);
-
-    // LoadInfoScreen installs its own window and BG 2/3 buffers, so the ones
-    // this page allocated have to be freed first or their pointers are lost.
-    FreeAllWindowBuffers();
-    buffer = GetBgTilemapBuffer(2);
-    if (buffer)
-        Free(buffer);
-    buffer = GetBgTilemapBuffer(3);
-    if (buffer)
-        Free(buffer);
-
-    // sPokedexView is deliberately left allocated: OpenPokedexInfoScreen reuses
-    // it, and Task_WaitForExitInfoScreenFromSummary frees it on the way out.
-    DestroyTask(taskId);
-    OpenPokedexInfoScreen(species, ReshowBattleScreenAfterMenu);
 }
 
 static void Task_ExitCaughtMonPage(u8 taskId)

@@ -145,6 +145,8 @@ void SetDefaultChallengeSettings(void)
     gSaveblock3.challengeSettings.guaranteedCatch = FALSE;
     gSaveblock3.challengeSettings.skipNicknamePrompt = FALSE;
     gSaveblock3.challengeSettings.noWildEncounters = FALSE;
+    gSaveblock3.challengeSettings.dexNavShowAll = FALSE;
+    gSaveblock3.challengeSettings.dexNavCaveFix = FALSE;
 
     // Challenge menu — "RECOMMENDED" defaults
     gSaveblock3.challengeSettings.tx_Mode_Modern_Moves       = 1;
@@ -335,8 +337,10 @@ static void ResetItemFlags(void)
 
 static void ResetDexNav(void)
 {
-#if USE_DEXNAV_SEARCH_LEVELS == TRUE
+#if USE_DEXNAV_SEARCH_LEVELS == DEXNAV_SEARCH_LEVELS_PER_SPECIES
     memset(gSaveBlock3Ptr->dexNavSearchLevels, 0, sizeof(gSaveBlock3Ptr->dexNavSearchLevels));
+#elif USE_DEXNAV_SEARCH_LEVELS == DEXNAV_SEARCH_LEVELS_REGISTERED_SPECIES
+    VarSet(DN_VAR_SEARCH_LEVEL, 0);
 #endif
     gSaveBlock3Ptr->dexNavChain = 0;
 }
