@@ -58,6 +58,7 @@ enum {
     ITEM_MAIN_GUARANTEED_CATCH,
     ITEM_MAIN_NICKNAMES,
     ITEM_MAIN_NO_ENCOUNTERS,
+    ITEM_MAIN_ENHANCED_DEXNAV,
     ITEM_MAIN_FRAMETYPE,
     ITEM_MAIN_COUNT,
 };
@@ -330,6 +331,15 @@ static const u8 *const sDesc_NoEncounters[] = {
     COMPOUND_STRING("Wild {PKMN} appear as usual."),
     COMPOUND_STRING("No wild {PKMN} at all: grass, caves,\nfishing, Rock Smash and Sweet Scent."),
 };
+// Indexed by choice, and the choices are ON then OFF, so the ON text comes
+// first. One option now covers what DEXNAV SHOW ALL and DEXNAV SOULGOLD used to
+// split. Careful with the wording: the search behaviour is Soulgold's, but
+// listing species the Pokedex has not seen is not - Soulgold hides those too.
+// So Soulgold is named for the search and the listing is simply stated.
+static const u8 *const sDesc_EnhancedDexNav[] = {
+    COMPOUND_STRING("SOULGOLD's search, and every {PKMN}\nin the area is listed, seen or not."),
+    COMPOUND_STRING("HnS's search, and the DEXNAV hides\n{PKMN} you have never seen."),
+};
 static const u8 *const sDesc_GuaranteedCatch[] = {
     COMPOUND_STRING("Wild {PKMN} are caught at the\nnormal rate."),
     COMPOUND_STRING("Every Ball catches a wild {PKMN}\nwithout fail."),
@@ -543,6 +553,15 @@ static const struct OptionMenuItem sTabItems_Main[] = {
         // ON first, because the stored bit is noWildEncounters: zero is what an
         // older save reads back and has to mean "wild battles happen", so the
         // label for zero is the one that must come first.
+        .choiceNames  = sChoices_OnOff,
+    },
+    [ITEM_MAIN_ENHANCED_DEXNAV] = {
+        .name         = COMPOUND_STRING("ENHANCED DEXNAV"),
+        .descriptions = sDesc_EnhancedDexNav,
+        .numChoices   = 2,
+        // ON first, and this is the one option whose default is ON: the field is
+        // stored inverted so that zero - what an older save reads back - is the
+        // ON side, and the label for zero still has to come first.
         .choiceNames  = sChoices_OnOff,
     },
     [ITEM_MAIN_FRAMETYPE] = {
@@ -1217,6 +1236,7 @@ static void Task_Save(u8 taskId)
     // sChoices_OnOff is ON first, so ON stores 0 and the field reads "skip".
     cs->skipNicknamePrompt = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_NICKNAMES);
     cs->noWildEncounters = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_NO_ENCOUNTERS);
+    cs->basicDexNav      = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_ENHANCED_DEXNAV);
 
     cs->fastIntro          = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_FAST_INTRO);
     cs->fastBattle         = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_FAST_BATTLES);
@@ -1332,6 +1352,7 @@ void CB2_InitOptionMenu(void)
         *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_GUARANTEED_CATCH) = cs->guaranteedCatch;
         *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_NICKNAMES)        = cs->skipNicknamePrompt;
         *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_NO_ENCOUNTERS)   = cs->noWildEncounters;
+        *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_ENHANCED_DEXNAV) = cs->basicDexNav;
 
         *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_FAST_INTRO)      = cs->fastIntro;
         *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_FAST_BATTLES)    = cs->fastBattle;

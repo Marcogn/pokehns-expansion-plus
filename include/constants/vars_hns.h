@@ -171,7 +171,7 @@
 
 #define VAR_DEXNAV_SPECIES                               0x40F7 // DexNav: registered species and environment
 #define VAR_DEXNAV_STEP_COUNTER                          0x40F8 // DexNav: steps since the last hidden-Pokemon roll
-#define VAR_UNUSED_HNS_0x40F9                            0x40F9 // Emerald VAR_UNUSED_0x40F9 - no references in any build
+#define VAR_DEXNAV_SEARCH_LEVEL                          0x40F9 // DexNav: search level of the registered species
 #define VAR_UNUSED_HNS_0x40FA                            0x40FA // Emerald VAR_UNUSED_0x40FA - no references in any build
 #define VAR_UNUSED_HNS_0x40FB                            0x40FB // Emerald VAR_UNUSED_0x40FB - no references in any build
 #define VAR_UNUSED_HNS_0x40FC                            0x40FC // Emerald VAR_UNUSED_0x40FC - no references in any build

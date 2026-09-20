@@ -22,8 +22,9 @@ Unfortunately, saves from before 2.0 will not be compatible moving forward.
 This repository is a personal fork of **`pokemonHnS-expansion`** that back-ports a
 set of features from [**Soulgold**](https://eemeliri.github.io/soulgold/), plus a
 few changes of its own. Everything below is additive: no existing HnS feature was
-removed, and the save layout is unchanged, so saves from the upstream release keep
-working.
+removed, and saves from the upstream release keep working. Nothing in the save
+ever moves - new fields are only ever appended, and a save written before a field
+existed is migrated on load (`SAVE_VERSION` in `include/save.h`).
 
 ### Ported from Soulgold
 
@@ -37,6 +38,7 @@ working.
 | Shiny healthbox | — | A shiny Pokémon gets a gold battle box, in both themes. |
 | Shiny Genome | — | Turns a Pokémon shiny. Sold at the Viridian City Mart for 1000. |
 | Compact start menu | — | The menu window grows with the number of entries, so nine fit. |
+| Candy Jar | — | A Key Item that skims 90% of the Exp from every battle and turns it into Exp. Candies. Elm's Aide hands it over in the Violet City Pokémon Center along with the Togepi Egg. |
 
 ### Added here
 
@@ -46,11 +48,21 @@ working.
 | Guaranteed capture | `EASY CATCH` OFF/ON | Every Ball catches without fail while it is on. |
 | Nickname prompts | `NICKNAMES` ON/OFF | When off, catches, gift Pokémon and hatched eggs never ask. |
 | Wild encounters | `WILD BATTLES` ON/OFF | When off, grass, surfing, Rock Smash, Sweet Scent and fishing never trigger a wild battle. |
-| DexNav | — | Entry in the start menu; R starts a search for the registered species. Hold A to creep within two tiles or the target flees. |
-| Move relearner from the summary | — | START on the Battle Moves page. L and R cycle level-up, egg, tutor and TM moves; a category only appears when something is available. TM moves need the machine in the bag. |
-| Types shown in battle | — | The opposing Pokémon's types appear beside its healthbox once the species has been seen. |
-| Browsable Pokédex after a capture | — | On the new-entry page, A opens the full entry; B returns to the battle. |
+| Enhanced DexNav | `ENHANCED DEXNAV` ON/OFF | One switch, **on by default**, over two things that are never wanted apart. The search half is Soulgold's: it always finds a spot, the target neither relocates nor flees, and there is no timer, so creeping stops mattering exactly as it already does in Soulgold. The listing half is not Soulgold's — it gates the area list on the Pokédex the same way HnS does — and shows every species in the area, seen or not. Off leaves the HGSS-style behaviour HnS ships. |
 | Follower toggle in both party menus | — | The classic menu already had it; the SwSh menu now does too. |
+| Bag icons readable in both themes | — | The registered-item `SEL` badge and the HM badge sat on palette entries that flip with the theme, so each came out as a bright box over the dark bag. Both now use entries that mean the same colour in either theme. Not a port: Soulgold's own HM badge has the same problem. |
+
+### Switched on and finished here
+
+These were already in the codebase, disabled or half-wired. Nothing below was
+written for this fork; the work was turning it on and making it behave.
+
+| Feature | Where it came from | What was done here |
+| --- | --- | --- |
+| DexNav | `src/dexnav.c`, already present with `DEXNAV_ENABLED FALSE` | Turned on, given R on foot, made the creeping reachable, and reconciled with Soulgold: search levels, SELECT to unbind, per-row caught counts, and a pile of Soulgold's robustness fixes. It opens on maps with no wild encounters instead of silently refusing. Elm's Aide hands it over with the first five Poké Balls, so it appears in the Start menu only from that scene on — by which point the player already has both the Pokégear and the Pokédex. |
+| Move relearner from the summary | `P_ENABLE_MOVE_RELEARNERS`, a pokeemerald-expansion feature | HnS drew the prompt but nothing handled START. Wired up, and kept to the Battle Moves page the way Soulgold does. |
+| Types shown in battle | `src/type_icons.c`, with `B_SHOW_TYPES SHOW_TYPES_NEVER` | Turned on and aligned to Soulgold: the art is Soulgold's and is asymmetric, so the mirroring, the 4px stagger and the slide directions all had to match. |
+| HGSS Pokédex | `src/pokedex_plus_hgss.c`, already present | Used as-is. The party-menu entry point above is what was added. |
 
 Nature Mints cost 100 each. They were already stocked at the Goldenrod flower shop,
 behind the third badge and the challenge menu's `MINTS` toggle.
@@ -68,11 +80,17 @@ The ported features are the work of the Soulgold project and the people it credi
 in turn. In particular:
 
 - [**Soulgold**](https://github.com/eemeliri) — the overworld and battle speed-ups,
-  the bag screen, the dark UI and the shiny healthbox all come from there.
+  the bag screen, the dark UI, the shiny healthbox and the Candy Jar all come
+  from there.
 - [**Mont**](https://github.com/montmoguri/pokeemerald-expansion/) — the SwSh party
   menu, which reached this fork by way of Soulgold.
 - The full Soulgold credits list is worth reading on its own: see the
   [Soulgold repository](https://eemeliri.github.io/soulgold/).
+
+The features in *Switched on and finished here* came with the
+**`pokemonHnS-expansion`** / **`pokeemerald-expansion`** codebase and are the
+work of their authors, not of this fork. Their contributors are listed in
+[`CREDITS.md`](CREDITS.md), which is inherited unchanged from upstream.
 
 The upstream chain below — **`pokemonHnS-expansion`**, RHH's
 **`pokeemerald-expansion`**, **`Modern Emerald`** and pret's **`pokeemerald`** —

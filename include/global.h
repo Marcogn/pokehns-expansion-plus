@@ -350,6 +350,15 @@ struct ChallengeSettings
                              // so a save written before this option keeps asking.
     u8 noWildEncounters:1;   // 1 = a repel that never runs out. Zero means
                              // encounters happen, which is what an older save reads.
+    u8 basicDexNav:1;        // ENHANCED DEXNAV, stored inverted. The default is
+                             // ON, and an older save reads zero, so zero has to
+                             // be the ON side: 1 means "fall back to the plain
+                             // DexNav HnS shipped". Ugly name, right polarity -
+                             // see the bit polarity rule in CLAUDE.md.
+    u8 unusedDexNavBit:1;    // Freed by merging DEXNAV SHOW ALL and DEXNAV
+                             // SOULGOLD into one option. Kept as padding rather
+                             // than removed so nothing above it shifts; this is
+                             // the only spare bit in the struct.
 };
 
 struct SaveBlock3
@@ -361,7 +370,7 @@ struct SaveBlock3
 #if OW_SHOW_ITEM_DESCRIPTIONS == OW_ITEM_DESCRIPTIONS_FIRST_TIME
     u8 itemFlags[ITEM_FLAGS_COUNT];
 #endif
-#if USE_DEXNAV_SEARCH_LEVELS == TRUE
+#if USE_DEXNAV_SEARCH_LEVELS == DEXNAV_SEARCH_LEVELS_PER_SPECIES
     u8 dexNavSearchLevels[NUM_SPECIES];
 #endif
     u8 dexNavChain;
@@ -370,6 +379,11 @@ struct SaveBlock3
 #endif
     struct ChallengeSettings challengeSettings;
     u16 registeredItemHold;
+    // Appended, never inserted: everything above keeps its offset, and the
+    // 116-byte chunk means SaveBlock3 still fits in a single sector's tail.
+    // Saves written before this existed carry junk here, which the SAVE_VERSION
+    // 6 migration in LoadGameSave zeroes.
+    u32 candyJarExp;
 }; /* max size 1624 bytes */
 
 extern struct SaveBlock3 *gSaveBlock3Ptr;

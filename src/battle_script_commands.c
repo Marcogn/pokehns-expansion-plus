@@ -8,6 +8,7 @@
 #include "battle_anim_scripts.h"
 #include "battle_ai_main.h"
 #include "battle_ai_util.h"
+#include "candy_jar.h"
 #include "battle_scripts.h"
 #include "battle_switch_in.h"
 #include "battle_environment.h"
@@ -4199,6 +4200,12 @@ static void Cmd_getexp(void)
             if (B_TRAINER_EXP_MULTIPLIER <= GEN_7 && gBattleTypeFlags & BATTLE_TYPE_TRAINER)
                 calculatedExp = (calculatedExp * 150) / 100;
 
+            // Soulgold's Candy Jar: it skims 90% of the Exp the fainted mon is
+            // worth into the jar. It does not reduce what the party gets - the
+            // split below still works off the full calculatedExp.
+            if (CheckBagHasItem(ITEM_CANDY_JAR, 1))
+                GiveCandyJarExp(calculatedExp * 9 / 10);
+
             if (UseClassicExpSplit())
             {
                 if (viaExpShare) // at least one mon is getting exp via exp share
@@ -7039,7 +7046,7 @@ static void Cmd_useitemonopponent(void)
     CMD_ARGS();
 
     gBattlerInMenuId = gBattlerAttacker;
-    PokemonUseItemEffects(GetBattlerMon(gBattlerAttacker), gLastUsedItem, gBattlerPartyIndexes[gBattlerAttacker], 0, TRUE);
+    PokemonUseItemEffects(GetBattlerMon(gBattlerAttacker), gLastUsedItem, gBattlerPartyIndexes[gBattlerAttacker], 0, TRUE, TRUE, 1);
     gBattlescriptCurrInstr = cmd->nextInstr;
 }
 

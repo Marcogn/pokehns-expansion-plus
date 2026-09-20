@@ -1,5 +1,6 @@
 #include "global.h"
 #include "new_game.h"
+#include "candy_jar.h"
 #include "random.h"
 #include "config/randomizer.h"
 #include "pokemon.h"
@@ -145,6 +146,9 @@ void SetDefaultChallengeSettings(void)
     gSaveblock3.challengeSettings.guaranteedCatch = FALSE;
     gSaveblock3.challengeSettings.skipNicknamePrompt = FALSE;
     gSaveblock3.challengeSettings.noWildEncounters = FALSE;
+    // ENHANCED DEXNAV is stored inverted and defaults to ON, so the field is
+    // FALSE here for the same reason it is zero in an older save.
+    gSaveblock3.challengeSettings.basicDexNav = FALSE;
 
     // Challenge menu — "RECOMMENDED" defaults
     gSaveblock3.challengeSettings.tx_Mode_Modern_Moves       = 1;
@@ -304,6 +308,7 @@ void NewGameInitData(void)
     SetCurrentDifficultyLevel(DIFFICULTY_NORMAL);
     ResetItemFlags();
     ResetDexNav();
+    SetCandyJarExp(&gSaveBlock3Ptr->candyJarExp, 0);
     ClearFollowerNPCData();
 
     // Sync engine flags from restored challenge settings
@@ -335,8 +340,10 @@ static void ResetItemFlags(void)
 
 static void ResetDexNav(void)
 {
-#if USE_DEXNAV_SEARCH_LEVELS == TRUE
+#if USE_DEXNAV_SEARCH_LEVELS == DEXNAV_SEARCH_LEVELS_PER_SPECIES
     memset(gSaveBlock3Ptr->dexNavSearchLevels, 0, sizeof(gSaveBlock3Ptr->dexNavSearchLevels));
+#elif USE_DEXNAV_SEARCH_LEVELS == DEXNAV_SEARCH_LEVELS_REGISTERED_SPECIES
+    VarSet(DN_VAR_SEARCH_LEVEL, 0);
 #endif
     gSaveBlock3Ptr->dexNavChain = 0;
 }
