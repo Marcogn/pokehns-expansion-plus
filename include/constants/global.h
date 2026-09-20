@@ -124,7 +124,16 @@ enum Language
 #define BAG_POKEBALLS_COUNT 39 // 29 + padding
 #define BAG_TMHM_COUNT 160 // 110 + padding
 #define BAG_BERRIES_COUNT 66 // 46 + padding
-#define BAG_MEDICINE_COUNT (60 + 32) // 40 + padding
+// The combined Medicine pocket used to be 92 slots (60 + 32). Battle Items and
+// Mega Stones are split out of that same 92 rather than added to it, so the bag
+// struct is byte-identical and nothing in SaveBlock1 shifts. Sizes measured
+// against the real item data, not the stale "40 + padding" comment that used to
+// be here: 59 medicines, 12 battle items and 19 stones actually exist.
+#define BAG_MEDICINE_COUNT 60      // 59 exist
+#define BAG_BATTLE_ITEMS_COUNT 12  // 12 exist
+#define BAG_MEGA_STONES_COUNT 20   // 19 exist
+// The three above must keep adding up to the old 92; pinned in save.c, which is
+// where STATIC_ASSERT is available and where the rest of the layout is nailed.
 #else
 #define BAG_ITEMS_COUNT 200
 #define BAG_KEYITEMS_COUNT 60

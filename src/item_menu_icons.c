@@ -165,8 +165,13 @@ static const union AnimCmd *const sBagSpriteAnimTable[] =
     [POCKET_KEY_ITEMS]    = sSpriteAnim_Bag_KeyItems,
     [POCKET_MEDICINE]     = sSpriteAnim_Bag_Medicine,
 #if I_COMBINE_BAG_POCKETS == FALSE
-    [POCKET_BATTLE_ITEMS] = sSpriteAnim_Bag_BattleItems,   
+    [POCKET_BATTLE_ITEMS] = sSpriteAnim_Bag_BattleItems,
     [POCKET_TREASURES]    = sSpriteAnim_Bag_Treasures,
+#else
+    // No new bag art: Battle Items keeps the frame it had while it lived inside
+    // Medicine, and Mega Stones borrows the Items frame exactly as Soulgold does.
+    [POCKET_BATTLE_ITEMS] = sSpriteAnim_Bag_Medicine,
+    [POCKET_MEGA_STONES]  = sSpriteAnim_Bag_Items,
 #endif
     [POCKET_DUMMY]        = sSpriteAnim_Bag_Closed,
 };

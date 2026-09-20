@@ -4,19 +4,23 @@
 #include "config/item.h"
 
 #if I_COMBINE_BAG_POCKETS == TRUE
+// Treasures stays folded into Items, but Battle Items and Mega Stones are real
+// pockets. Order follows Soulgold's, which is where the Mega Stone pocket comes
+// from.
 enum Pocket
 {
     POCKET_ITEMS,
     POCKET_MEDICINE,
+    POCKET_BATTLE_ITEMS,
     POCKET_POKE_BALLS,
     POCKET_TM_HM,
+    POCKET_MEGA_STONES,
     POCKET_BERRIES,
     POCKET_KEY_ITEMS,
     POCKETS_COUNT,
     POCKET_DUMMY = POCKETS_COUNT,
 };
 #define POCKET_TREASURES POCKET_ITEMS
-#define POCKET_BATTLE_ITEMS POCKET_MEDICINE
 #else
 enum Pocket
 {

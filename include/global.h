@@ -1207,10 +1207,14 @@ struct Bag
     struct ItemSlot pokeBalls[BAG_POKEBALLS_COUNT];
     struct ItemSlot TMsHMs[BAG_TMHM_COUNT];
     struct ItemSlot berries[BAG_BERRIES_COUNT];
+    // These three occupy exactly the 92 slots the combined Medicine pocket used
+    // to hold on its own, and they sit in the same place, so the struct's size
+    // and every field after it are unchanged. Saves written before the split
+    // still have battle items inside the medicine run, which the SAVE_VERSION
+    // migration in save.c sorts out.
     struct ItemSlot medicine[BAG_MEDICINE_COUNT];
-#if I_COMBINE_BAG_POCKETS == FALSE
     struct ItemSlot battleItems[BAG_BATTLE_ITEMS_COUNT];
-#endif
+    struct ItemSlot megaStones[BAG_MEGA_STONES_COUNT];
 };
 
 struct MomSavingsData

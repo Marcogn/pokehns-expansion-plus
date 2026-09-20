@@ -110,6 +110,15 @@ STATIC_ASSERT(offsetof(struct SaveBlock3, challengeSettings) == 16, SaveBlock3Ch
 // old saves would read a field that has moved and the migration would clear the
 // wrong bytes.
 STATIC_ASSERT(offsetof(struct SaveBlock3, candyJarExp) == 52, SaveBlock3CandyJarOffset);
+
+// Battle Items and Mega Stones were carved out of the combined Medicine pocket
+// rather than added to the bag, so struct Bag - and therefore everything after
+// it in SaveBlock1 - keeps its size. If this fires, the bag grew and every
+// existing save's fields past the bag have moved.
+#if I_COMBINE_BAG_POCKETS == TRUE
+STATIC_ASSERT(BAG_MEDICINE_COUNT + BAG_BATTLE_ITEMS_COUNT + BAG_MEGA_STONES_COUNT == 92,
+              BagCombinedMedicineBlockUnchanged);
+#endif
 STATIC_ASSERT(sizeof(struct SaveBlock2) <= SECTOR_DATA_SIZE, SaveBlock2FreeSpace);
 STATIC_ASSERT(sizeof(struct SaveBlock1) <= SECTOR_DATA_SIZE * (SECTOR_ID_SAVEBLOCK1_END - SECTOR_ID_SAVEBLOCK1_START + 1), SaveBlock1FreeSpace);
 STATIC_ASSERT(sizeof(struct PokemonStorage) <= SECTOR_DATA_SIZE * (SECTOR_ID_PKMN_STORAGE_END - SECTOR_ID_PKMN_STORAGE_START + 1), PokemonStorageFreeSpace);
@@ -1014,6 +1023,48 @@ u8 LoadGameSave(u8 saveType)
             AddBagItem(ITEM_CANDY_JAR, 1);
 
         gSaveBlock1Ptr->saveVersion = 6;
+    }
+
+    if (gSaveBlock1Ptr->saveVersion < 7)
+    {
+        // Battle Items and Mega Stones used to live inside the Medicine pocket,
+        // which was one run of 92 slots. They are now three adjacent arrays
+        // carved out of those same 92 bytes, so an old save still has its
+        // battle items sitting in what is now the medicine run - and anything
+        // it held past slot 59 now reads as a battle item or a stone.
+        //
+        // Walk the whole run, lift the battle items out, compact the medicines
+        // down, and clear what is left. Only 59 medicines exist in the game and
+        // the medicine array is 60 long, so the compaction can never overflow.
+        // Quantities are XOR'd with a single global key, not with anything
+        // position-dependent, so a slot keeps its meaning wherever it is moved.
+        struct ItemSlot *run = gSaveBlock1Ptr->bag.medicine;
+        struct ItemSlot lifted[BAG_BATTLE_ITEMS_COUNT];
+        u32 slot, liftedCount = 0, kept = 0;
+        const u32 runSize = BAG_MEDICINE_COUNT + BAG_BATTLE_ITEMS_COUNT + BAG_MEGA_STONES_COUNT;
+
+        for (slot = 0; slot < ARRAY_COUNT(lifted); slot++)
+            lifted[slot] = (struct ItemSlot) {0};
+
+        for (slot = 0; slot < runSize; slot++)
+        {
+            if (run[slot].itemId == ITEM_NONE)
+                continue;
+
+            if (GetItemPocket(run[slot].itemId) == POCKET_BATTLE_ITEMS
+             && liftedCount < ARRAY_COUNT(lifted))
+                lifted[liftedCount++] = run[slot];
+            else if (kept < BAG_MEDICINE_COUNT)
+                run[kept++] = run[slot];
+        }
+
+        for (slot = kept; slot < runSize; slot++)
+            run[slot] = (struct ItemSlot) {0};
+
+        for (slot = 0; slot < liftedCount; slot++)
+            gSaveBlock1Ptr->bag.battleItems[slot] = lifted[slot];
+
+        gSaveBlock1Ptr->saveVersion = 7;
     }
 
     // Add version migration steps here:

@@ -14280,6 +14280,69 @@ const struct ItemInfo gItemsInfo[] =
 
     // Ported from Soulgold, which also reuses the Powder Jar art rather than
     // drawing its own.
+// Soulgold's type-based Mega Stones. Every one reuses an existing species Mega
+// Stone icon rather than adding art - the same choice Soulgold made, and all 18
+// icons were already in this repo.
+#define TYPE_MEGA_STONE(itemId, itemName, typeName, iconName) \
+    [itemId] =                                                \
+    {                                                         \
+        .name = ITEM_NAME(itemName),                          \
+        .price = 0,                                           \
+        .notConsumed = TRUE,                                  \
+        .holdEffect = HOLD_EFFECT_MEGA_STONE,                 \
+        .description = COMPOUND_STRING(                       \
+            "Allows certain {PKMN}\n"                         \
+            "to Mega Evolve into\n"                          \
+            typeName "-type form."),                          \
+        .pocket = POCKET_MEGA_STONES,                         \
+        .sortType = ITEM_TYPE_MEGA_STONE,                     \
+        .type = ITEM_USE_BAG_MENU,                            \
+        .fieldUseFunc = ItemUseOutOfBattle_CannotUse,         \
+        .flingPower = 80,                                     \
+        .iconPic = CAT(gItemIcon_, iconName),                 \
+        .iconPalette = CAT(gItemIconPalette_, iconName),      \
+    }
+
+    TYPE_MEGA_STONE(ITEM_NORMALITE, "NORMALITE", "Normal", Pidgeotite),
+    TYPE_MEGA_STONE(ITEM_FIRETITE, "FIRETITE", "Fire", CharizarditeY),
+    TYPE_MEGA_STONE(ITEM_WATERTITE, "WATERTITE", "Water", Blastoisinite),
+    TYPE_MEGA_STONE(ITEM_ELECTRITE, "ELECTRITE", "Electric", Ampharosite),
+    TYPE_MEGA_STONE(ITEM_GRASSTITE, "GRASSTITE", "Grass", Venusaurite),
+    TYPE_MEGA_STONE(ITEM_ICETITE, "ICETITE", "Ice", Glalitite),
+    TYPE_MEGA_STONE(ITEM_FIGHTITE, "FIGHTITE", "Fighting", Medichamite),
+    TYPE_MEGA_STONE(ITEM_POISONTITE, "POISONTITE", "Poison", Dragalgite),
+    TYPE_MEGA_STONE(ITEM_GROUNDITE, "GROUNDITE", "Ground", Garchompite),
+    TYPE_MEGA_STONE(ITEM_FLYINGITE, "FLYINGITE", "Flying", Staraptite),
+    TYPE_MEGA_STONE(ITEM_PSYCHITE, "PSYCHITE", "Psychic", Alakazite),
+    TYPE_MEGA_STONE(ITEM_BUGTITE, "BUGTITE", "Bug", Beedrillite),
+    TYPE_MEGA_STONE(ITEM_ROCKTITE, "ROCKTITE", "Rock", Aerodactylite),
+    TYPE_MEGA_STONE(ITEM_GHOSTITE, "GHOSTITE", "Ghost", Gengarite),
+    TYPE_MEGA_STONE(ITEM_DRAGOTITE, "DRAGOTITE", "Dragon", Dragoninite),
+    TYPE_MEGA_STONE(ITEM_DARKTITE, "DARKTITE", "Dark", Houndoominite),
+    TYPE_MEGA_STONE(ITEM_STEELTITE, "STEELTITE", "Steel", Steelixite),
+    TYPE_MEGA_STONE(ITEM_FAIRYTITE, "FAIRYTITE", "Fairy", Gardevoirite),
+
+#undef TYPE_MEGA_STONE
+
+    [ITEM_BONDSTONE] =
+    {
+        .name = ITEM_NAME("BONDSTONE"),
+        .price = 0,
+        .holdEffect = HOLD_EFFECT_MEGA_STONE,
+        .description = COMPOUND_STRING(
+            "A stone that lets\n"
+            "your partner\n"
+            "Mega Evolve."),
+        .pocket = POCKET_MEGA_STONES,
+        .notConsumed = TRUE,
+        .sortType = ITEM_TYPE_MEGA_STONE,
+        .type = ITEM_USE_BAG_MENU,
+        .fieldUseFunc = ItemUseOutOfBattle_CannotUse,
+        .flingPower = 80,
+        .iconPic = gItemIcon_MegaRing,
+        .iconPalette = gItemIconPalette_MegaRing,
+    },
+
     [ITEM_CANDY_JAR] =
     {
         .name = ITEM_NAME("CANDY JAR"),

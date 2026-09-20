@@ -636,30 +636,86 @@ vuoti non è una verifica.** Controlla sempre che l'estratto non sia vuoto.
 
 ---
 
-## 7bis. Megaevoluzioni: misurate, non stimate
+## 7bis. Megaevoluzioni: la misura giusta
 
-`P_MEGA_EVOLUTIONS` (`include/config/species_enabled.h`) è **FALSE** qui e
-**TRUE** in Soulgold. Messo a TRUE la build `hns` **compila**, ma:
+**Correzione di una misura precedente.** Avevo scritto che le mega costano
+1,57 MB e lasciano lo 0,54% libero. Quel numero era preso con
+`P_MODIFIED_MEGA_CRIES` acceso, perché in questo repo è definito uguale a
+`P_MEGA_EVOLUTIONS`. Soulgold lo mette **FALSE esplicitamente**, ed è quella
+singola riga a cambiare tutto:
 
-| | ROM | % di 32 MB |
-| --- | --- | --- |
-| com'è oggi | 31 799 860 | 94,77% |
-| con le mega | 33 374 804 | **99,46%** |
+| | ROM | % di 32 MB | costo |
+| --- | --- | --- | --- |
+| senza mega | 31 801 636 | 94,78% | — |
+| **mega, versi extra off** | **32 154 468** | **95,83%** | **+345 KB** |
+| mega, versi extra on | 33 374 804 | 99,46% | +1,50 MB |
 
-Costa **1 574 944 byte** e lascia **179 628 byte liberi**, cioè lo 0,54%. Parte
-di quel costo è `P_MODIFIED_MEGA_CRIES`, che nell'expansion è definito uguale a
-`P_MEGA_EVOLUTIONS` e da solo dichiara ~3% di ROM: si può spegnere a mano per
-recuperare spazio, e va provato prima di dire che non ci stanno.
+Le forme mega costano **345 KB**; il resto erano i versi. Restano **1,33 MB**
+liberi, non 180 KB. La frase "dopo le mega niente altro di grosso entra" era
+sbagliata.
 
-**Compilare non vuol dire funzionare**: questa misura dice solo che la ROM sta
-nei 32 MB. Non è stata provata in emulatore, e comunque la feature non è finita
-finché non ci sono Pietraiuto/Megapietre ottenibili da qualche parte e il
-giocatore ha modo di megaevolvere. Quello è lavoro di script e negozi, non un
-flag.
+**Perché non basta spegnere il flag**: quattro righe `.cryId` in questo repo non
+hanno la guardia `#if P_MODIFIED_MEGA_CRIES` (Slowbro Mega, Kyogre Primal,
+Groudon Primal, Rayquaza Mega). Le altre 95 ce l'hanno; Soulgold le ha tutte.
+Senza quelle quattro la combinazione "mega accese, versi spenti" **non compila**.
 
-Per il seguito: dopo le mega qualunque altra aggiunta grossa non entra più.
+### Megapietre per tipo, non per specie
 
----
+Il sistema di Soulgold, e il motore **non si tocca**. SG ha solo riscritto
+`form_change_tables.h`:
+
+```
+{FORM_CHANGE_BATTLE_MEGA_EVOLUTION_ITEM, SPECIES_VENUSAUR_MEGA, ITEM_GRASSTITE},
+```
+
+Cose verificate, da non ricontrollare:
+
+- **18 pietre di tipo + Bondstone** (quella dello starter). Le collisioni X/Y si
+  risolvono col tipo della **forma risultante**: Charizard X → Dragotite,
+  Y → Firetite; Mewtwo X → Fightite, Y → Psychite.
+- **Nessuna grafica nuova per gli oggetti**: ogni pietra riusa l'icona di una
+  megapietra di specie già presente (Normalite usa `gItemIcon_Pidgeotite`, ecc.).
+  Controllate tutte e 18.
+- **96 su 99 forme mega sono già qui.** Solo Typhlosion, Meowscarada e Primarina
+  Mega sono esclusive di SG. La mappa di SG copre **tutte** le 96 voci di questo
+  repo, zero avanzi.
+- **Gli sprite follower delle mega ci sono già**, 92 voci dietro
+  `P_MEGA_EVOLUTIONS` in `object_event_pic_tables_followers.h`.
+- **Né SG né Hasep distribuiscono le megapietre di specie**: esistono come
+  oggetti e non si trovano da nessuna parte. SG dà solo il Mega Ring (Oak, Radio
+  Tower di Goldenrod) e il Bondstone (Elm, laboratorio, se hai già l'anello).
+- `CanMegaEvolve` richiede `ITEM_MEGA_RING` in borsa: l'oggetto qui c'è già.
+- Lo sprite OW delle pietre a terra (`OBJ_EVENT_GFX_MEGASTONE`,
+  `graphics/object_events/pics/misc/megastone.png`) è l'**unica** grafica da
+  portare, e usa `OBJ_EVENT_PAL_TAG_NPC_3`: va renderizzato con la palette di
+  *questo* repo prima di fidarsi (vedi §2).
+
+### Le tasche dello zaino: come aggiungerne senza toccare il salvataggio
+
+`I_COMBINE_BAG_POCKETS` (`include/config/item.h`) è `TRUE` qui e fonde Battle
+Items dentro Medicine e Treasures dentro Items, con dei `#define` alias. Le
+capacità sono dimensionate perché i totali **coincidano**: `items[236]` =
+200 + 36, `medicine[92]` = 60 + 32.
+
+Da qui la mossa che rende gratis l'aggiunta: le tasche nuove si **ritagliano dal
+blocco esistente** invece di appenderle. Battle Items e Mega Stones escono dai
+92 slot della Medicine — `medicine[60] + battleItems[12] + megaStones[20] = 92` —
+quindi `struct Bag` resta identica e **niente in SaveBlock1 si sposta**. Un
+`STATIC_ASSERT` in `save.c` lo inchioda.
+
+**Conta gli oggetti veri, non fidarti dei commenti**: il commento diceva
+"40 + padding" per le medicine, ma le medicine che esistono davvero sono **59**.
+Con 45 slot avrei rotto la tasca. Le cifre reali: 59 medicine, 12 oggetti da
+battaglia, 19 pietre.
+
+La migrazione (`saveVersion < 7`) è obbligatoria: in un salvataggio vecchio gli
+oggetti da battaglia stanno dentro la corsa della Medicine, e tutto ciò che
+stava oltre lo slot 59 verrebbe letto come oggetto da battaglia o pietra. Si
+percorrono i 92 slot, si estraggono gli oggetti da battaglia, si compattano le
+medicine e si azzera il resto. Le quantità sono in XOR con **una chiave
+globale**, non con la posizione, quindi uno slot si può spostare dov'è.
+Verificato sul salvataggio 2.0.6: X DEFENSE ×2 e X ATTACK ×1 sono passate nella
+tasca BATTLE, la Medicine si è compattata senza buchi, MEGA STONES è vuota.
 
 ## 8. Rotture preesistenti (non tue)
 

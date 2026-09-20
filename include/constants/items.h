@@ -1085,6 +1085,28 @@ enum __attribute__((packed)) Item
     // after an insertion would shift and every save's bag would be rewritten.
     // (Soulgold can place it mid-list because its enum is explicitly numbered.)
     ITEM_CANDY_JAR,
+    // Soulgold's Mega Stones: one per type instead of one per species, so a
+    // single stone covers every Mega form of that type. Appended for the same
+    // reason ITEM_CANDY_JAR is - this enum is implicit.
+    ITEM_NORMALITE,
+    ITEM_FIRETITE,
+    ITEM_WATERTITE,
+    ITEM_ELECTRITE,
+    ITEM_GRASSTITE,
+    ITEM_ICETITE,
+    ITEM_FIGHTITE,
+    ITEM_POISONTITE,
+    ITEM_GROUNDITE,
+    ITEM_FLYINGITE,
+    ITEM_PSYCHITE,
+    ITEM_BUGTITE,
+    ITEM_ROCKTITE,
+    ITEM_GHOSTITE,
+    ITEM_DRAGOTITE,
+    ITEM_DARKTITE,
+    ITEM_STEELTITE,
+    ITEM_FAIRYTITE,
+    ITEM_BONDSTONE, // the starter's own stone, whatever its type
 
     ITEMS_COUNT,
     ITEM_FIELD_ARROW = ITEMS_COUNT,

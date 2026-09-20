@@ -12901,7 +12901,11 @@ const struct SpeciesInfo gSpeciesInfoGen3[] =
         .abilities = { ABILITY_PRIMORDIAL_SEA, ABILITY_PRIMORDIAL_SEA },
         .bodyColor = BODY_COLOR_BLUE,
         .speciesName = _("KYOGRE"),
+        #if P_MODIFIED_MEGA_CRIES
         .cryId = CRY_KYOGRE_PRIMAL,
+        #else
+        .cryId = CRY_KYOGRE,
+        #endif //P_MODIFIED_MEGA_CRIES
         .natDexNum = NATIONAL_DEX_KYOGRE,
         .categoryName = _("Sea Basin"),
         .height = 98,
@@ -13057,7 +13061,11 @@ const struct SpeciesInfo gSpeciesInfoGen3[] =
         .abilities = { ABILITY_DESOLATE_LAND, ABILITY_DESOLATE_LAND },
         .bodyColor = BODY_COLOR_RED,
         .speciesName = _("GROUDON"),
+        #if P_MODIFIED_MEGA_CRIES
         .cryId = CRY_GROUDON_PRIMAL,
+        #else
+        .cryId = CRY_GROUDON,
+        #endif //P_MODIFIED_MEGA_CRIES
         .natDexNum = NATIONAL_DEX_GROUDON,
         .categoryName = _("Continent"),
         .height = 50,
@@ -13217,7 +13225,11 @@ const struct SpeciesInfo gSpeciesInfoGen3[] =
         .abilities = { ABILITY_DELTA_STREAM, ABILITY_DELTA_STREAM, ABILITY_DELTA_STREAM },
         .bodyColor = BODY_COLOR_GREEN,
         .speciesName = _("RAYQUAZA"),
+        #if P_MODIFIED_MEGA_CRIES
         .cryId = CRY_RAYQUAZA_MEGA,
+        #else
+        .cryId = CRY_RAYQUAZA,
+        #endif //P_MODIFIED_MEGA_CRIES
         .natDexNum = NATIONAL_DEX_RAYQUAZA,
         .categoryName = _("Sky High"),
         .height = 108,

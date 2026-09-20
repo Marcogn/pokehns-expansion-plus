@@ -78,7 +78,12 @@
 #include "constants/sound.h"
 
 // Sound related settings
-#define P_MODIFIED_MEGA_CRIES            P_MEGA_EVOLUTIONS  // If TRUE, will use the extra separate Mega Cries (approx. 3% space of ROM). if FALSE, will use the same cry for all Mega Evolutions except modified with P_MODIFIED_MEGA_CRY_MODE. By default, this is set based on if mega evolutions are enabled.
+// Soulgold sets this FALSE explicitly rather than tying it to
+// P_MEGA_EVOLUTIONS, and that single choice is what makes Mega Evolution
+// affordable here: measured on this repo, the forms cost 345 KB but the
+// extra cries cost another 1.2 MB. 95.83% of the ROM with them off
+// against 99.46% with them on.
+#define P_MODIFIED_MEGA_CRIES            FALSE  // If TRUE, will use the extra separate Mega Cries (approx. 3% space of ROM). if FALSE, will use the same cry for all Mega Evolutions except modified with P_MODIFIED_MEGA_CRY_MODE. By default, this is set based on if mega evolutions are enabled.
 #define P_MODIFIED_MEGA_CRY_MODE         CRY_MODE_HIGH_PITCH
 
 #endif // GUARD_CONFIG_POKEMON_H
