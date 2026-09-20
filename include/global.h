@@ -350,13 +350,15 @@ struct ChallengeSettings
                              // so a save written before this option keeps asking.
     u8 noWildEncounters:1;   // 1 = a repel that never runs out. Zero means
                              // encounters happen, which is what an older save reads.
-    u8 dexNavShowAll:1;      // 1 = the DexNav lists species you have not seen.
-                             // Zero hides them, which is what an older save reads.
-    u8 dexNavSoulgold:1;     // 1 = Soulgold's DexNav: its tile picking, no
-                             // relocating target, and none of the stealth
-                             // bail-outs on a search the player started.
-                             // Zero is the behaviour HnS shipped, which is what
-                             // an older save reads. This is the last free bit.
+    u8 basicDexNav:1;        // ENHANCED DEXNAV, stored inverted. The default is
+                             // ON, and an older save reads zero, so zero has to
+                             // be the ON side: 1 means "fall back to the plain
+                             // DexNav HnS shipped". Ugly name, right polarity -
+                             // see the bit polarity rule in CLAUDE.md.
+    u8 unusedDexNavBit:1;    // Freed by merging DEXNAV SHOW ALL and DEXNAV
+                             // SOULGOLD into one option. Kept as padding rather
+                             // than removed so nothing above it shifts; this is
+                             // the only spare bit in the struct.
 };
 
 struct SaveBlock3

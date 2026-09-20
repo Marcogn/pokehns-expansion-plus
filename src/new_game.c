@@ -146,8 +146,9 @@ void SetDefaultChallengeSettings(void)
     gSaveblock3.challengeSettings.guaranteedCatch = FALSE;
     gSaveblock3.challengeSettings.skipNicknamePrompt = FALSE;
     gSaveblock3.challengeSettings.noWildEncounters = FALSE;
-    gSaveblock3.challengeSettings.dexNavShowAll = FALSE;
-    gSaveblock3.challengeSettings.dexNavSoulgold = FALSE;
+    // ENHANCED DEXNAV is stored inverted and defaults to ON, so the field is
+    // FALSE here for the same reason it is zero in an older save.
+    gSaveblock3.challengeSettings.basicDexNav = FALSE;
 
     // Challenge menu — "RECOMMENDED" defaults
     gSaveblock3.challengeSettings.tx_Mode_Modern_Moves       = 1;

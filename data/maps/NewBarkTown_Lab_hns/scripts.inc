@@ -500,6 +500,11 @@ NewBarkTown_Lab_EventScript_TriggerAideGiveBalls::
 	giveitem ITEM_POKE_BALL, 5
 	goto_if_eq VAR_RESULT, FALSE, Common_EventScript_ShowBagIsFull
 	setflag FLAG_RECEIVED_FIRST_BALLS
+	@ The same flag gates the DEXNAV menu entry (DN_FLAG_DEXNAV_GET), so this is
+	@ where the player is told about it. By now they have both the POKeGEAR, from
+	@ Mom before leaving home, and the POKeDEX, from OAK at MR.POKeMON's house.
+	msgbox NewBarkTown_Lab_Text_AideGiveDexNav, MSGBOX_DEFAULT
+	closemessage
 	setvar VAR_NEWBARKTOWN_LABSTATE, 6
 	applymovement LOCALID_AIDE1, NewBarkTown_Lab_Movement_Aide1LeavePlayer
 	waitmovement 0
@@ -1001,6 +1006,14 @@ NewBarkTown_Lab_Text_AideGiveBalls:
 	.string "{PLAYER}!\p"
 	.string "Use these on your POKéDEX\n"
 	.string "quest!$"
+
+NewBarkTown_Lab_Text_AideGiveDexNav:
+	.string "Oh, and I set up the DEXNAV on\n"
+	.string "your POKéDEX while you were out.\p"
+	.string "Open it from the menu and it will\n"
+	.string "tell you what lives around you.\p"
+	.string "Pick one and press R, and it will\n"
+	.string "help you track it down!$"
 
 NewBarkTown_Lab_Text_AideExplainBalls:
 	.string "To add to your POKéDEX, you\n"

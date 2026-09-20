@@ -21,10 +21,16 @@
 // Flag/var defines
 #define DN_FLAG_SEARCHING             FLAG_DEXNAV_SEARCHING // Searching for mon
 // Soulgold hands the DexNav out with the Pokedex at Mr Pokemon's house and
-// gates the menu entry on a flag of its own. Reusing FLAG_SYS_POKEDEX_GET
-// reaches the same place without touching a map script, and it also works on a
-// save that is already past that scene.
-#define DN_FLAG_DEXNAV_GET            FLAG_SYS_POKEDEX_GET // DexNav shows in start menu
+// gates the menu entry on a flag of its own. Here it comes from Elm's Aide,
+// together with the first five Poke Balls back at the Lab, which is a moment
+// the story already stops for: FLAG_RECEIVED_FIRST_BALLS is set exactly once
+// there, is never cleared afterwards (the two clearflags earlier in that file
+// run before the gift, when Elm sends you to Mr Pokemon), and is already set in
+// every save past New Bark Town - so no migration is needed.
+// It also lands after both the Pokegear (from Mom, before leaving home) and the
+// Pokedex (from Oak at Mr Pokemon's house), which is what the DexNav needs if it
+// is ever moved inside the Pokegear.
+#define DN_FLAG_DEXNAV_GET            FLAG_RECEIVED_FIRST_BALLS // DexNav shows in start menu
 // Assigned but never set, exactly as in Soulgold, where no script sets its
 // equivalent either. dexnav.c asserts it is non-zero, so it needs a real flag;
 // setting it turns the hidden-Pokemon step search on.

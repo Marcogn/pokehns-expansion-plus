@@ -48,9 +48,9 @@ existed is migrated on load (`SAVE_VERSION` in `include/save.h`).
 | Guaranteed capture | `EASY CATCH` OFF/ON | Every Ball catches without fail while it is on. |
 | Nickname prompts | `NICKNAMES` ON/OFF | When off, catches, gift Pokémon and hatched eggs never ask. |
 | Wild encounters | `WILD BATTLES` ON/OFF | When off, grass, surfing, Rock Smash, Sweet Scent and fishing never trigger a wild battle. |
-| DexNav: show all | `DEXNAV SHOW ALL` OFF/ON | Lists every species in the area, not only the ones the Pokédex has seen. |
-| DexNav: Soulgold search | `DEXNAV SOULGOLD` OFF/ON | Makes a DexNav search behave the way Soulgold's does: it always finds a spot, the target neither relocates nor flees, and there is no timer. Creeping stops mattering, as it already does in Soulgold. Off leaves the HGSS-style behaviour HnS ships. |
+| Enhanced DexNav | `ENHANCED DEXNAV` ON/OFF | One switch, **on by default**, over two things that are never wanted apart. The search half is Soulgold's: it always finds a spot, the target neither relocates nor flees, and there is no timer, so creeping stops mattering exactly as it already does in Soulgold. The listing half is not Soulgold's — it gates the area list on the Pokédex the same way HnS does — and shows every species in the area, seen or not. Off leaves the HGSS-style behaviour HnS ships. |
 | Follower toggle in both party menus | — | The classic menu already had it; the SwSh menu now does too. |
+| Bag icons readable in both themes | — | The registered-item `SEL` badge and the HM badge sat on palette entries that flip with the theme, so each came out as a bright box over the dark bag. Both now use entries that mean the same colour in either theme. Not a port: Soulgold's own HM badge has the same problem. |
 
 ### Switched on and finished here
 
@@ -59,7 +59,7 @@ written for this fork; the work was turning it on and making it behave.
 
 | Feature | Where it came from | What was done here |
 | --- | --- | --- |
-| DexNav | `src/dexnav.c`, already present with `DEXNAV_ENABLED FALSE` | Turned on, given R on foot, made the creeping reachable, and reconciled with Soulgold: search levels, SELECT to unbind, per-row caught counts, and a pile of Soulgold's robustness fixes. It opens on maps with no wild encounters instead of silently refusing. |
+| DexNav | `src/dexnav.c`, already present with `DEXNAV_ENABLED FALSE` | Turned on, given R on foot, made the creeping reachable, and reconciled with Soulgold: search levels, SELECT to unbind, per-row caught counts, and a pile of Soulgold's robustness fixes. It opens on maps with no wild encounters instead of silently refusing. Elm's Aide hands it over with the first five Poké Balls, so it appears in the Start menu only from that scene on — by which point the player already has both the Pokégear and the Pokédex. |
 | Move relearner from the summary | `P_ENABLE_MOVE_RELEARNERS`, a pokeemerald-expansion feature | HnS drew the prompt but nothing handled START. Wired up, and kept to the Battle Moves page the way Soulgold does. |
 | Types shown in battle | `src/type_icons.c`, with `B_SHOW_TYPES SHOW_TYPES_NEVER` | Turned on and aligned to Soulgold: the art is Soulgold's and is asymmetric, so the mirroring, the 4px stagger and the slide directions all had to match. |
 | HGSS Pokédex | `src/pokedex_plus_hgss.c`, already present | Used as-is. The party-menu entry point above is what was added. |

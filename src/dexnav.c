@@ -457,14 +457,9 @@ static const struct CompressedSpriteSheet sHiddenMonIconSpriteSheet = {sHiddenMo
 ///////////////////////
 //// DEXNAV SEARCH ////
 ///////////////////////
-// DEXNAV SHOW ALL: list every species in the area whatever the Pokedex knows.
-// Off by default, and off is what an older save reads back.
-static bool32 DexNavShowsUnseen(void)
-{
-    return gSaveBlock3Ptr->challengeSettings.dexNavShowAll != 0;
-}
-
-// DEXNAV SOULGOLD: take Soulgold's decisions instead of the ones HnS ships.
+// ENHANCED DEXNAV: take Soulgold's decisions instead of the ones HnS ships.
+// One option, on by default, covering everything the two separate toggles used
+// to do - the user asked for them merged because they are never wanted apart.
 //
 // 1. Tile picking. HnS weights each candidate with a random roll whose scale is
 //    440 - distance/2 - 2 * (tileX + tileY) in a cave. That scale is stored in a
@@ -479,11 +474,19 @@ static bool32 DexNavShowsUnseen(void)
 //    a relocation that finds no tile ends the search with "The Pokemon got
 //    away!" - with the odds above, that is most of them. Soulgold has no such
 //    block.
+// 3. No stealth bail-outs on a search you started: no fleeing when you come
+//    close without creeping, no timer. Creeping stops mattering, exactly as in
+//    Soulgold, where the flag has no readers at all.
+// 4. The area list shows every species, not only the ones the Pokedex has seen.
+//    This one is NOT Soulgold's: Soulgold gates the list on FLAG_GET_SEEN just
+//    like HnS does. It is bundled in here because the user wanted a single
+//    switch, not because it came from there.
 //
-// Off by default, and off is what an older save reads back.
-static bool32 DexNavSoulgoldSearch(void)
+// Stored inverted (see struct ChallengeSettings): zero, which is what an older
+// save reads back, is the ON side.
+static bool32 EnhancedDexNav(void)
 {
-    return gSaveBlock3Ptr->challengeSettings.dexNavSoulgold != 0;
+    return gSaveBlock3Ptr->challengeSettings.basicDexNav == 0;
 }
 
 static s16 GetSearchWindowY(void)
@@ -782,7 +785,7 @@ static bool8 DexNavPickTile(enum EncounterType environment, u8 areaX, u8 areaY, 
                 {
                     // Soulgold also counts plain indoor maps as caves here, so
                     // places like Sprout Tower behave the same way.
-                    if (DexNavSoulgoldSearch())
+                    if (EnhancedDexNav())
                     {
                         if ((currMapType == MAP_TYPE_UNDERGROUND || currMapType == MAP_TYPE_INDOOR)
                          && IsElevationMismatchAt(gObjectEvents[gPlayerAvatar.objectEventId].currentElevation, topX, topY))
@@ -819,7 +822,7 @@ static bool8 DexNavPickTile(enum EncounterType environment, u8 areaX, u8 areaY, 
                     if (IsElevationMismatchAt(gObjectEvents[gPlayerAvatar.objectEventId].currentElevation, topX, topY))
                         break;
 
-                    if (DexNavSoulgoldSearch())
+                    if (EnhancedDexNav())
                         weight = !MapGridGetCollisionAt(topX, topY);
                     else
                         weight = (Random() % scale <= 1) && !MapGridGetCollisionAt(topX, topY);
@@ -1254,7 +1257,7 @@ bool32 OnStep_DexNavSearch(void)
     // range, not creeping within two tiles, running within four, and a fifteen
     // second clock. In a cave, where the target starts far away and creeping is
     // half speed, they are what makes it flee before you arrive.
-    bool32 lenient = DexNavSoulgoldSearch() && !sDexNavSearchDataPtr->hiddenSearch;
+    bool32 lenient = EnhancedDexNav() && !sDexNavSearchDataPtr->hiddenSearch;
 
     DexNavProximityUpdate();
     if (!sDexNavSearchDataPtr->hiddenSearch)    //update search window info only if revealed mon
@@ -1330,7 +1333,7 @@ bool32 OnStep_DexNavSearch(void)
     }
 
     //Caves and water the pokemon moves around
-    if (!DexNavSoulgoldSearch()
+    if (!EnhancedDexNav()
         && (sDexNavSearchDataPtr->environment == ENCOUNTER_TYPE_WATER || GetCurrentMapType() == MAP_TYPE_UNDERGROUND)
         && sDexNavSearchDataPtr->proximity < GetMovementProximityBySearchLevel() && sDexNavSearchDataPtr->movementCount < 2
         && !sDexNavSearchDataPtr->hiddenSearch)
@@ -2304,7 +2307,7 @@ static void TryDrawIconInSlot(u16 species, s16 x, s16 y)
 {
     if (species == SPECIES_NONE || species > NUM_SPECIES)
         CreateNoDataIcon(x, y);   //'X' in slot
-    else if (!DexNavShowsUnseen() && !GetSetPokedexFlag(SpeciesToNationalPokedexNum(species), FLAG_GET_SEEN))
+    else if (!EnhancedDexNav() && !GetSetPokedexFlag(SpeciesToNationalPokedexNum(species), FLAG_GET_SEEN))
         CreateMonIcon(SPECIES_NONE, SpriteCB_MonIcon, x, y, 0, 0xFFFFFFFF); //question mark
     else
         CreateMonIcon(species, SpriteCB_MonIcon, x, y, 0, 0xFFFFFFFF);
@@ -2374,8 +2377,8 @@ static u16 DexNavGetSpecies(void)
 
     // This is the single gate the whole screen goes through: R, A and the info
     // panel all ask here. Answering SPECIES_NONE for an unseen species is what
-    // made DEXNAV SHOW ALL draw an icon you could not then register.
-    if (!DexNavShowsUnseen() && !GetSetPokedexFlag(SpeciesToNationalPokedexNum(species), FLAG_GET_SEEN))
+    // made the ENHANCED DEXNAV listing draw an icon you could not register.
+    if (!EnhancedDexNav() && !GetSetPokedexFlag(SpeciesToNationalPokedexNum(species), FLAG_GET_SEEN))
         return SPECIES_NONE;
 
     return species;
@@ -2431,7 +2434,7 @@ static void PrintCurrentSpeciesInfo(void)
     enum Type type1, type2;
     // Capturing is what unlocks the details, not seeing. The grid draws the
     // same icon either way, so without this the panel was the only place the
-    // two states could differ and it did not - worst with DEXNAV SHOW ALL on,
+    // two states could differ and it did not - worst with ENHANCED DEXNAV on,
     // where a species you have never met read like one you owned.
     bool32 caught = (species != SPECIES_NONE)
                  && GetSetPokedexFlag(dexNum, FLAG_GET_CAUGHT);

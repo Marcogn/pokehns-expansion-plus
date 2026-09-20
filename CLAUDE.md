@@ -111,10 +111,14 @@ ragionamento girava a vuoto da un'ora. Ricordati di `cp` del file prima.
 `STATIC_ASSERT(..., ChallengeSettingsLayoutPinned)` in `src/save.c`.
 
 - Aggiungi campi **solo in fondo**, così nessun campo esistente cambia offset.
-- Bit liberi nell'ultimo byte: dopo `dexNavSoulgold` ne restano **0**. La struct è
-  piena. Verificato aggiungendo un bit finto: `ChallengeSettingsLayoutPinned`
-  fallisce. Per una nuova opzione bisognerà ingrandire la struct, e quello sposta
-  il layout del salvataggio.
+- Bit liberi nell'ultimo byte: **1**, `unusedDexNavBit`, liberato fondendo
+  `DEXNAV SHOW ALL` e `DEXNAV SOULGOLD` in `ENHANCED DEXNAV`. Prima erano 0 e la
+  struct era piena (verificato aggiungendo un bit finto: `ChallengeSettingsLayoutPinned`
+  fallisce). Il bit liberato è stato lasciato **al suo posto come padding** invece
+  di essere tolto, così nessun campo sopra si sposta. Per la seconda opzione nuova
+  bisognerà ingrandire la struct, e quello sposta il layout del salvataggio.
+- **Fondere due opzioni è anche il modo di recuperare bit.** Se due toggle non
+  si usano mai separati, uno solo costa la metà.
 - Dopo ogni aggiunta verifica che compili: l'assert fallisce da sola se sfori.
 
 **Polarità dei bit.** Un salvataggio scritto prima che l'opzione esistesse legge il
@@ -123,8 +127,14 @@ modo che zero significhi il comportamento vecchio — anche se il nome viene bru
 `skipNicknamePrompt` è memorizzato invertito proprio per questo, e la lista di scelte
 è ordinata di conseguenza (`sChoices_OnOff` = ON per primo, `sChoices_OffOn` = OFF
 per primo). La regola in una riga: **l'etichetta del valore zero deve venire prima**.
-`noWildEncounters` segue la stessa logica (0 = incontri attivi = "ON"), e
-`dexNavShowAll` pure (0 = nasconde i non visti, quindi `sChoices_OffOn`).
+`noWildEncounters` segue la stessa logica (0 = incontri attivi = "ON").
+
+La regola vale **anche quando il default è ON**, e allora il campo va memorizzato
+invertito: `ENHANCED DEXNAV` è il primo caso. Default ON, un salvataggio vecchio
+legge 0, quindi 0 deve essere il lato ON → il campo si chiama `basicDexNav`
+(1 = torna al DexNav base) e la lista è `sChoices_OnOff`. Nome brutto, polarità
+giusta. Stessa cosa in `new_game.c`, dove il campo va messo a `FALSE` proprio
+perché il default è ON.
 
 Le opzioni impostate prima di iniziare una partita passano da
 `src/oak_speech_hns.c`, che azzera tutta la struct e poi ricopia a mano i campi
@@ -279,8 +289,36 @@ Vale più di qualunque stima. Cose date per mancanti che invece c'erano, spente:
   la fuga per avvicinamento e il timeout dalle ricerche avviate dal giocatore.
   La scelta iniziale dell'utente era tenere quella di Hasep in stile HGSS; alla
   prova sul campo in grotta si è rivelata impraticabile (vedi più sotto), e ora
-  convivono: `DEXNAV SOULGOLD` spenta = comportamento Hasep, accesa = SG.
-- **DEXNAV SHOW ALL, il gate vero**: l'opzione va agganciata a
+  convivono dietro un'unica opzione.
+- **`ENHANCED DEXNAV`: una sola opzione, default ON.** `DEXNAV SHOW ALL` e
+  `DEXNAV SOULGOLD` erano due toggle separati; l'utente le ha volute fuse perché
+  non si usano mai separate. Accessore unico `EnhancedDexNav()` in `dexnav.c`,
+  campo `basicDexNav` memorizzato invertito (vedi §4).
+  **Attenzione ai crediti, qui è facile sbagliare**: delle due metà **solo la
+  ricerca è di Soulgold**. Il "mostra tutti" **non lo è**: verificato leggendo
+  `soulgold/src/dexnav.c`, che gatta la lista su `FLAG_GET_SEEN` nelle stesse
+  tre funzioni di Hasep. La descrizione dell'opzione nomina quindi SOULGOLD per
+  la ricerca e si limita a *constatare* l'elenco completo, senza attribuirlo.
+- **Da dove arriva il DexNav nella storia.** Non è più agganciato a
+  `FLAG_SYS_POKEDEX_GET`: lo consegna **l'assistente di Elm insieme alle prime
+  cinque Poké Ball**, nel laboratorio di New Bark
+  (`NewBarkTown_Lab_EventScript_TriggerAideGiveBalls`), che è un momento in cui
+  la storia si ferma già di suo. Il flag è `FLAG_RECEIVED_FIRST_BALLS`, ed è la
+  scelta giusta per tre motivi **verificati, non supposti**:
+  1. è alzato una volta sola lì e non viene mai più pulito — i due `clearflag`
+     più su nello stesso file girano **prima**, quando Elm ti manda da
+     Mr. Pokémon;
+  2. è già alzato in qualunque salvataggio oltre New Bark, quindi **nessuna
+     migrazione** serve (confermato sul salvataggio 2.0.6 dell'utente: la voce
+     DEXNAV è rimasta al suo posto);
+  3. arriva **dopo** sia il Pokégear (dalla mamma, prima di uscire di casa,
+     `NewBarkTown_PlayersHouse_1F_EventScript_GivePokeGear`) sia il Pokédex
+     (da Oak a casa di Mr. Pokémon, `Route30_MrPokemonsHouse_hns`). È la
+     precondizione per spostarlo un giorno dentro il Pokégear.
+  R sul campo non ha bisogno di un gate proprio: `TryStartDexNavSearch()` esce
+  subito se non c'è una specie registrata in `DN_VAR_SPECIES`, e registrarla si
+  può solo dalla schermata, che prima del flag non è raggiungibile.
+- **Il gate vero della metà "mostra tutti"**: l'opzione va agganciata a
   `DexNavGetSpecies()`, non alle singole schermate. Quella funzione risponde
   `SPECIES_NONE` per una specie non vista, e **R, A e il pannello info passano
   tutti di lì**: agganciare l'opzione solo a `TryDrawIconInSlot` e
@@ -319,7 +357,7 @@ Vale più di qualunque stima. Cose date per mancanti che invece c'erano, spente:
   mappa invece che alla distanza, che è già un termine a parte.
   Misurato sul salvataggio dell'utente a Burned Tower B1F, stesso punto:
   **0 ricerche avviate su 7** con il comportamento HnS, **5 su 5** con quello di
-  SG. Dietro l'opzione `DEXNAV SOULGOLD`, spenta di default.
+  SG. Oggi dentro `ENHANCED DEXNAV`, accesa di default.
   **Le fughe sono la seconda metà, ed è la più grossa.** SG mette *ogni*
   uscita per fallimento dietro `hiddenSearch`, con tanto di commento: una
   ricerca avviata dal giocatore «stays active until completed, canceled, or
@@ -470,17 +508,42 @@ vuoti non è una verifica.** Controlla sempre che l'estratto non sia vuoto.
   rigenera `include/party_menu_variant.h` e `src/party_menu_dispatch.c`. Lo script è
   idempotente (toglie i prefissi prima di riapplicarli) e verifica che ogni
   sostituzione compaia esattamente una volta.
-- **Blit dentro una finestra: l'indice 0 è trasparente.** Il badge `SEL` della
-  borsa (`graphics/bag/select_button*.png`, `BlitBitmapToWindow` in
-  `item_menu.c`) aveva i 154 pixel di sfondo sull'indice **10**, opaco, e in
-  tema scuro si vedeva un rettangolo bianco attorno alla pillola rossa. In
-  Soulgold quegli stessi 154 pixel stanno sull'indice **0**. `WIN_ITEM_LIST` è
-  riempita con `PIXEL_FILL(0)`, quindi l'indice 0 lascia vedere lo sfondo della
-  borsa e il badge si fonde con la lista. Rimappato 10 → 0 nei due PNG (solo i
-  `.png` sono tracciati, i `.4bpp` li genera la build). Verificato in emulatore
-  in **entrambi** i temi, ed è importante averli provati tutti e due: l'indice 1
-  del badge è il colore del testo del tema, quindi il contorno esce bianco su
-  scuro e nero su chiaro, e in nessuno dei due sparisce.
+- **Le icone blittate nella lista della borsa: la palette del tema è la
+  trappola.** `WIN_ITEM_LIST` usa **BG pal 1** ed è riempita con `PIXEL_FILL(0)`.
+  Quella palette **cambia col tema**, e cambia solo in parte. Misurata da
+  `graphics/bag/soulgold/menu_male.gbapal` e `menu_male_dark.gbapal`:
+
+  | entry | chiaro | scuro | |
+  | --- | --- | --- | --- |
+  | 0 | — | — | trasparente: si vede la borsa dietro |
+  | 1 | **nero** | **bianco** | è `TEXT_COLOR_WHITE`, il colore del testo |
+  | 2, 3, 6, 7, 8 | chiari | scuri | cambiano |
+  | 4, 5, 9, 10, 11, 12, 13, 14, 15 | uguali | uguali | **fissi nei due temi** |
+
+  Quindi: un pixel sull'indice **1** si inverte col tema, uno su **11** o **15**
+  no. Due bug distinti, stessa radice:
+  - **badge `SEL`** (`graphics/bag/select_button*.png`): i 154 pixel di sfondo
+    stavano sull'indice **10**, opaco, e in tema scuro erano un rettangolo
+    bianco. In Soulgold stanno sullo **0**. Rimappato 10 → 0: il badge si fonde
+    con la lista, e il contorno (indice 1) esce bianco su scuro e nero su
+    chiaro, leggibile in entrambi;
+  - **badge `HM`** (`graphics/bag/hm.png`): qui il rimappaggio 10 → 0 **non
+    basta**, ed è stato il mio errore: quei 36 pixel sono solo gli **angoli
+    arrotondati**. Il riquadro vero sono i **162 pixel sull'indice 1**, cioè il
+    piatto del badge, che per forza si inverte col tema — nero in chiaro,
+    bianco in scuro. **Soulgold ha esattamente lo stesso difetto**
+    (`0:36, 1:162, 11:32, 15:26`, identico): non c'era niente da portare, la
+    soluzione andava inventata. Piatto spostato sull'indice **11** (viola) e
+    ombra delle lettere sulla **15** (rosa), entrambe fisse: badge viola con
+    "HM" rosa, **identico nei due temi**. La rimappatura va fatta in **un solo
+    passaggio** con un dizionario `{1: 11, 11: 15}`, non in due sostituzioni in
+    fila, o il piatto nuovo finisce anche lui sul 15.
+
+  Metodo che ha risolto e che vale la pena rifare: dumpare la `.4bpp` come
+  **mappa di indici** (16×16 di cifre esadecimali) e renderizzarla offline con
+  le `.gbapal` vere dei **due** temi affiancate. Dieci secondi, e si vede subito
+  quale indice è il riquadro. Solo i `.png` sono tracciati: i `.4bpp` li genera
+  la build.
 - **Negozi**: tutti i Poké Mart normali usano `pokemart 0`, cioè un inventario unico
   scalato sui medaglieri (`sShopInventories` in `src/shop.c`). Per vendere qualcosa
   in una sola città si **appendono** extra a quella lista (`sMartExtras`), non si dà
