@@ -1688,12 +1688,12 @@ static void DrawPocketIndicatorSquares(u8 currentPocket)
 
 static void DrawPocketIndicatorSquare(u8 x, bool8 isCurrentPocket)
 {
-#if I_COMBINE_BAG_POCKETS
-    // Six pockets, so the row starts a tile further right to stay centred.
-    const u8 xOffset = 5;
-#else
-    const u8 xOffset = 4;
-#endif
+    // The row is POCKETS_COUNT tiles wide and is meant to sit centred on tile
+    // column 8. That is what the two hardcoded offsets this replaced both did -
+    // 5 + 6/2 and 4 + 8/2 - but hardcoding them meant adding a pocket pushed the
+    // whole row right instead of widening it evenly, which is what happened when
+    // Battle Items and Mega Stones arrived. Derive it and it stays centred.
+    const u8 xOffset = 8 - (POCKETS_COUNT / 2);
 
 #if BAG_SCREEN_SOULGOLD
     // The indicators are tilemap cells, not sprites, so they name tiles by
