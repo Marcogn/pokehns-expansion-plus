@@ -875,4 +875,8 @@ const u32 gObjectEventPic_KrisFishing_hns[] = INCBIN_U32("graphics/object_events
 const u32 gObjectEventPic_KrisWatering_hns[] = INCBIN_U32("graphics/object_events/pics/people/kris/watering_hns.4bpp");
 const u32 gObjectEventPic_KrisDecorating_hns[] = INCBIN_U32("graphics/object_events/pics/people/kris/decorating_hns.4bpp");
 const u32 gObjectEventPic_KrisUnderwater_hns[] = INCBIN_U32("graphics/object_events/pics/people/kris/underwater_hns.4bpp");
+// Ported from Soulgold: the ground-item sprite for the type Mega Stones.
+// It draws with OBJ_EVENT_PAL_TAG_NPC_3, and this repo's npc_3.gbapal is
+// byte-identical to Soulgold's, so the colours land exactly as they do there.
+const u32 gObjectEventPic_Megastone[] = INCBIN_U32("graphics/object_events/pics/misc/megastone.4bpp");
 #endif // IS_HNS

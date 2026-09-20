@@ -583,7 +583,8 @@
 #define OBJ_EVENT_GFX_SKIER_F_HNS               545
 #define OBJ_EVENT_GFX_SKIER_M_HNS               546
 #define OBJ_EVENT_GFX_ALOLA_OAK_HNS             547
-#define NUM_OBJ_EVENT_GFX                        548
+#define OBJ_EVENT_GFX_MEGASTONE                  548 // Soulgold's ground sprite for the type Mega Stones
+#define NUM_OBJ_EVENT_GFX                        549
 
 
 // These are dynamic object gfx ids.

@@ -67,6 +67,11 @@ NewBarkTown_EventScript_Aide2Testimony::
 NewBarkTown_Lab_EventScript_Elm::
 	lock
 	faceplayer
+	@ Soulgold's NewBarkTown_Lab_GiveStarterMega: once you have the MEGA RING,
+	@ Elm hands over the BONDSTONE for your starter. Checked before the state
+	@ branches below so it fires on the first conversation after the ring,
+	@ whatever else Elm would have said.
+	call NewBarkTown_Lab_EventScript_TryGiveBondstone
 	goto_if_set FLAG_HIDE_NEWBARKTOWN_LAB_AIDE, NewBarkTown_Lab_EventScript_ElmAideIsWaiting
 	goto_if_eq VAR_NEWBARKTOWN_LABSTATE, 7, NewBarkTown_Lab_EventScript_ElmMasterBall
 	goto_if_eq VAR_NEWBARKTOWN_LABSTATE, 8, NewBarkTown_Lab_EventScript_ElmKimono
@@ -470,6 +475,18 @@ NewBarkTown_Lab_EventScript_ElmKimono::
 	closemessage
 	release
 	end
+
+NewBarkTown_Lab_EventScript_TryGiveBondstone::
+	checkitem ITEM_MEGA_RING
+	goto_if_eq VAR_RESULT, FALSE, NewBarkTown_Lab_EventScript_NoBondstoneYet
+	checkitem ITEM_BONDSTONE
+	goto_if_eq VAR_RESULT, TRUE, NewBarkTown_Lab_EventScript_NoBondstoneYet
+	msgbox NewBarkTown_Lab_Text_ElmBondstone, MSGBOX_DEFAULT
+	giveitem ITEM_BONDSTONE
+	msgbox NewBarkTown_Lab_Text_ElmBondstoneExplanation, MSGBOX_DEFAULT
+	closemessage
+NewBarkTown_Lab_EventScript_NoBondstoneYet::
+	return
 
 NewBarkTown_Lab_EventScript_ElmLeague::
 	lock
@@ -1049,3 +1066,15 @@ NewBarkTown_Lab_Text_Elm_CallMe:
 	.string "How's your POKéDEX coming along?\n"
 	.string "I'm busy now, but call me sometime\l"
 	.string "and I can check your progress!$"
+
+NewBarkTown_Lab_Text_ElmBondstone:
+	.string "{PLAYER}! Is that a MEGA RING?\p"
+	.string "So PROF.OAK thinks you're ready.\n"
+	.string "Then take this, too.$"
+
+NewBarkTown_Lab_Text_ElmBondstoneExplanation:
+	.string "It's a BONDSTONE.\p"
+	.string "The other stones only answer to one\n"
+	.string "type, but this one answers to the\l"
+	.string "POKéMON you started out with.\p"
+	.string "I expect great things from you!$"

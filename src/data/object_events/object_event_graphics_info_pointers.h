@@ -552,6 +552,7 @@ extern const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_KrisFishing
 extern const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_KrisWatering_hns;
 extern const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_KrisDecorating_hns;
 extern const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_AlolaOak_hns;
+extern const struct ObjectEventGraphicsInfo gObjectEventGraphicsInfo_Megastone;
 
 const struct ObjectEventGraphicsInfo *const gObjectEventGraphicsInfoPointers[NUM_OBJ_EVENT_GFX] = {
     [OBJ_EVENT_GFX_BRENDAN_NORMAL] =           &gObjectEventGraphicsInfo_BrendanNormal,
@@ -1103,6 +1104,7 @@ const struct ObjectEventGraphicsInfo *const gMauvilleOldManGraphicsInfoPointers[
     [MAUVILLE_MAN_HIPSTER]     = &gObjectEventGraphicsInfo_Hipster,
     [MAUVILLE_MAN_TRADER]      = &gObjectEventGraphicsInfo_Trader,
     [MAUVILLE_MAN_STORYTELLER] = &gObjectEventGraphicsInfo_Storyteller,
+    [OBJ_EVENT_GFX_MEGASTONE] =                  &gObjectEventGraphicsInfo_Megastone,
     [MAUVILLE_MAN_GIDDY]       = &gObjectEventGraphicsInfo_Giddy,
     [MAUVILLE_MAN_UNUSED1]     = &gObjectEventGraphicsInfo_UnusedMauvilleOldMan1,
     [MAUVILLE_MAN_UNUSED2]     = &gObjectEventGraphicsInfo_UnusedMauvilleOldMan2,

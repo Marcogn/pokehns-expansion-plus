@@ -215,6 +215,7 @@ GoldenrodCity_RadioTower_5F_EventScript_WingBot::
 GoldenrodCity_RadioTower_5F_EventScript_GiveTidalWing::
 	giveitem ITEM_SILVER_WING
 	msgbox GoldenrodCity_RadioTower_5F_Text_DirectorTidalWingExplanation, MSGBOX_DEFAULT
+	call GoldenrodCity_RadioTower_5F_EventScript_GiveMegaRing
 	closemessage
 	release
 	return
@@ -222,8 +223,20 @@ GoldenrodCity_RadioTower_5F_EventScript_GiveTidalWing::
 GoldenrodCity_RadioTower_5F_EventScript_GiveClearWing::
 	giveitem ITEM_RAINBOW_WING
 	msgbox GoldenrodCity_RadioTower_5F_Text_DirectorClearWingExplanation, MSGBOX_DEFAULT
+	call GoldenrodCity_RadioTower_5F_EventScript_GiveMegaRing
 	closemessage
 	release
+	return
+
+@ Soulgold hands the MEGA RING over right here, after Team Rocket falls, but
+@ from OAK in a scene of its own. The Director is already on this map and is
+@ already thanking you at this exact moment, so the ring comes from him instead
+@ and no object event has to be added to the map - the text still credits OAK.
+@ Called from both wing branches, so every path through the scene gives it.
+GoldenrodCity_RadioTower_5F_EventScript_GiveMegaRing::
+	msgbox GoldenrodCity_RadioTower_5F_Text_DirectorMegaRing, MSGBOX_DEFAULT
+	giveitem ITEM_MEGA_RING
+	msgbox GoldenrodCity_RadioTower_5F_Text_DirectorMegaRingExplanation, MSGBOX_DEFAULT
 	return
 
 GoldenrodCity_RadioTower_5F_Fakeout::
@@ -435,3 +448,16 @@ GoldenrodCity_RadioTower_5F_Text_DirectorOfficeSign:
 
 GoldenrodCity_RadioTower_5F_Text_Studio1Sign:
 	.string "5F STUDIO 1$"
+
+GoldenrodCity_RadioTower_5F_Text_DirectorMegaRing:
+	.string "Oh--before you go!\p"
+	.string "PROF.OAK left this here for you.\n"
+	.string "He said you'd earned it.$"
+
+GoldenrodCity_RadioTower_5F_Text_DirectorMegaRingExplanation:
+	.string "It's called a MEGA RING.\p"
+	.string "They say a POKéMON holding the right\n"
+	.string "stone can change shape in battle\l"
+	.string "while you wear it.\p"
+	.string "The stones are out there somewhere.\n"
+	.string "Go and find them!$"

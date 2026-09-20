@@ -4605,5 +4605,9 @@ static const struct SpriteFrameImage sPicTable_KrisDecorating_hns[] = {
     obj_frame_tiles(gObjectEventPic_KrisDecorating_hns),
 };
 
+static const struct SpriteFrameImage sPicTable_Megastone[] = {
+    overworld_frame(gObjectEventPic_Megastone, 2, 2, 0),
+};
+
 #endif // IS_HNS
 
