@@ -355,10 +355,12 @@ struct ChallengeSettings
                              // be the ON side: 1 means "fall back to the plain
                              // DexNav HnS shipped". Ugly name, right polarity -
                              // see the bit polarity rule in CLAUDE.md.
-    u8 unusedDexNavBit:1;    // Freed by merging DEXNAV SHOW ALL and DEXNAV
-                             // SOULGOLD into one option. Kept as padding rather
-                             // than removed so nothing above it shifts; this is
-                             // the only spare bit in the struct.
+    u8 trainerCatch:1;       // 1 = Balls work on a Trainer's Pokemon, see
+                             // CanCatchTrainerMon. This bit used to be DEXNAV
+                             // SOULGOLD, so a save that went through those builds
+                             // can hold a 1 here: the SAVE_VERSION 7 migration
+                             // clears it. It was the last spare bit; the next
+                             // option has to grow the struct.
 };
 
 struct SaveBlock3

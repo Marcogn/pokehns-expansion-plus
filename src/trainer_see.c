@@ -591,6 +591,9 @@ static u8 CheckTrainer(u8 objectEventId)
     }
     else if (trainerBattlePtr)
     {
+        // TRAINER CATCH: see sSightSuspendedTrainer in battle_setup.c.
+        if (IsTrainerSightSuspended(trainerBattlePtr))
+            return 0;
         if (GetTrainerFlagFromScriptPointer(trainerBattlePtr))
         {
             //If there is a rematch, we want to trigger the approach sequence

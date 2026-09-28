@@ -3307,6 +3307,17 @@ static s32 CompareItemsByType(enum Pocket pocketId, struct ItemSlot item1, struc
     else if (type1 > type2)
         return 1;
 
+    // Alphabetical order scatters the Exp. Candies (L, M, S, XL, XS); list them
+    // by size instead, biggest first. Ported from Soulgold (e42b2b6f0).
+    if (item1.itemId >= ITEM_EXP_CANDY_XS && item1.itemId <= ITEM_EXP_CANDY_XL
+     && item2.itemId >= ITEM_EXP_CANDY_XS && item2.itemId <= ITEM_EXP_CANDY_XL)
+    {
+        if (item1.itemId > item2.itemId)
+            return -1;
+        else if (item1.itemId < item2.itemId)
+            return 1;
+    }
+
     return CompareItemsAlphabetically(pocketId, item1, item2); // Items are of same type so sort alphabetically
 }
 

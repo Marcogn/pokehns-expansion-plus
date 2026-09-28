@@ -111,12 +111,15 @@ ragionamento girava a vuoto da un'ora. Ricordati di `cp` del file prima.
 `STATIC_ASSERT(..., ChallengeSettingsLayoutPinned)` in `src/save.c`.
 
 - Aggiungi campi **solo in fondo**, così nessun campo esistente cambia offset.
-- Bit liberi nell'ultimo byte: **1**, `unusedDexNavBit`, liberato fondendo
-  `DEXNAV SHOW ALL` e `DEXNAV SOULGOLD` in `ENHANCED DEXNAV`. Prima erano 0 e la
-  struct era piena (verificato aggiungendo un bit finto: `ChallengeSettingsLayoutPinned`
-  fallisce). Il bit liberato è stato lasciato **al suo posto come padding** invece
-  di essere tolto, così nessun campo sopra si sposta. Per la seconda opzione nuova
-  bisognerà ingrandire la struct, e quello sposta il layout del salvataggio.
+- Bit liberi: **0**. L'ultimo (`unusedDexNavBit`, liberato fondendo `DEXNAV SHOW
+  ALL` e `DEXNAV SOULGOLD`) ora è `trainerCatch`. **La prossima opzione deve
+  ingrandire la struct**, e quello sposta il layout del salvataggio — oppure
+  vivere in un flag, come fa Soulgold per le luci.
+  Riusare un bit che ha già avuto un significato vuol dire che nei salvataggi
+  passati per quelle build può valere 1: per questo il passo
+  `saveVersion < 7` lo azzera. Stessa cautela per `FLAG_FORCE_SHINY` (ex
+  `FLAG_UNUSED_3`): la storia di upstream è un commit unico, non si può provare
+  che una HnS vecchia non l'abbia mai scritto, e la migrazione lo pulisce.
 - **Fondere due opzioni è anche il modo di recuperare bit.** Se due toggle non
   si usano mai separati, uno solo costa la metà.
 - Dopo ogni aggiunta verifica che compili: l'assert fallisce da sola se sfori.
@@ -204,6 +207,13 @@ sono testo puro. Se una finestra resta chiara pur essendo nella lista di
 ---
 
 ## 6. Prima di portare qualcosa: controlla se c'è già
+
+**Il report aggiornato di cosa è arrivato da Soulgold e cosa no è
+`docs/SOULGOLD_PORT_REPORT.md`**: tienilo in pari a ogni port. Il codice di SG
+portato è allineato a **SG 1.1.4** più i fix del §4 di quel report; per un
+nuovo giro di sync si parte da `git diff a374881df upstream/master` in
+`soulgold`, e la maggior parte di quello che esce è contenuto di SG (squadre,
+learnset, tratti), non da portare.
 
 Vale più di qualunque stima. Cose date per mancanti che invece c'erano, spente:
 
@@ -635,6 +645,61 @@ vuoti non è una verifica.** Controlla sempre che l'estratto non sia vuoto.
      "callback a zero" da "reshow che crasha".
 
 ---
+
+## 7ter. Cattura dei Pokémon degli allenatori (`TRAINER CATCH`)
+
+Non c'era. `MIRROR THIEF` sembra la stessa cosa e **non lo è**: con Mirror Mode
+combatti con una copia della squadra avversaria, e "thief" te la lascia dopo.
+
+- Il blocco è in `Cmd_handleballthrow` (`BALL_TRAINER_BLOCK`); il permesso sta in
+  `CanCatchTrainerMon()` (`battle_util.c`), che esclude strutture, link, partner,
+  primo tutorial e **Mirror Mode** (a fine lotta ripristina la squadra dal backup
+  e butterebbe via la cattura). Anche `item_use.c` lo consulta: la regola Gen4+
+  che non consuma la ball contro un allenatore vale solo quando la ball è bloccata.
+- **La trappola vera è lo script dopo la lotta.** Dopo un `trainerbattle` lo
+  script di mappa riprende come se avessi vinto: per un capopalestra
+  (`trainerbattle_no_intro`) quella ripresa è la **medaglia**. `B_OUTCOME_CAUGHT`
+  in `CB2_EndTrainerBattle` non alza il flag dell'allenatore e accende
+  `sTrainerMonCaught`; poi `BattleSetup_GetScriptAddrAfterBattle` e
+  `BattleSetup_GetTrainerPostBattleScript` (le due strade, `gotopostbattlescript`
+  e `gotobeatenscript`) restituiscono `EventScript_TrainerMonCaught`, che fa solo
+  `releaseall; end`. Il flag si azzera all'inizio di ogni lotta con allenatore.
+- Verificato in emulatore: opzione accesa **da PC a partita iniziata**, Master
+  Ball su Pidgey di Bird Keeper Rod e di Falkner, Pokédex/esperienza/nickname
+  normali, ball consumata (5 → 4), **nessuna medaglia**, Falkner sfida di nuovo;
+  battuto onestamente, la medaglia e la MT arrivano come prima.
+- **Vista sospesa fino al cambio mappa** (scelta dell'utente): senza, un
+  allenatore che ti vede ti risfidava **subito**, perché il suo flag non è
+  alzato. Ora `sSightSuspendedTrainer` (`battle_setup.c`) spegne la sua vista in
+  `CheckTrainer` (`trainer_see.c`) finché non cambi mappa
+  (`ClearTempFieldEventData` → `ClearTrainerSightSuspension`); parlandoci la
+  lotta parte lo stesso, quindi decidi tu quando rifarla. Verificato: dopo la
+  cattura Rod non ti vede, parlandoci ti sfida.
+  La sua squadra si rigenera a ogni lotta e lo stesso Pokémon si può catturare
+  più volte: lasciato così per scelta dell'utente.
+- **Bug trovato in emulatore, e il più insidioso: il Pokémon catturato diventava
+  un Bad Egg.** `GiveCapturedMonToPlayer` imposta l'OT ID con `SetMonData`, che
+  per `MON_DATA_OT_ID` scrive **in chiaro**, senza ricifrare. Ma l'OT ID è metà
+  della chiave dei substruct (`EncryptBoxMon`: `personality ^ otId`). Un
+  selvatico nasce già con l'OT del giocatore, quindi la chiave non cambia e nel
+  vanilla non succede mai niente; un Pokémon di allenatore ha l'ID
+  dell'allenatore, la chiave cambia e alla lettura successiva il checksum non
+  torna: "Egg" nel menu squadra, e l'assert `invalid item: 1004` alla lotta
+  dopo era spazzatura letta da dati non decifrabili, non un vero oggetto.
+  Correzione: `SetMonOtIdRekeyed` (`pokemon.c`) decifra con la chiave vecchia,
+  scrive l'ID e ricifra; conserva anche la shininess, che expansion salva
+  relativa all'OT ID (`shinyModifier`). Il checksum è calcolato sui dati in
+  chiaro, quindi non cambia.
+  **Lezione di verifica**: nel primo giro di test avevo controllato Pokédex,
+  ball consumata e medaglia, ma **non avevo aperto la squadra** dopo la
+  cattura. Il Pokémon catturato è il prodotto della feature: va guardato.
+
+**Nuova partita in mGBA, per i test**: la camera della camera da letto è sul
+bordo della mappa (metà schermo nera) e la scena aspetta input: **non è un
+freeze**, l'ho scambiato per uno e ho perso tempo con un A/B. Il personaggio
+però non cammina finché la scena non finisce; conviene saltare con il debug:
+`Flags & Vars → Toggle Fly Flags`, poi `Utilities → Warp to map warp` (gruppo e
+numero da `data/maps/map_groups.json`, es. Violet Gym = 3/5).
 
 ## 7bis. Megaevoluzioni: misurate, non stimate
 

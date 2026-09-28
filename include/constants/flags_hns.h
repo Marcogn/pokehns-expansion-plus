@@ -813,7 +813,7 @@
 #define HNS_UNUSED_START                            0x2E0
 #define FLAG_TELEPORTER_UNLOCKED                    0x2E0
 #define FLAG_COLLISION                              0x2E1
-#define FLAG_UNUSED_3                               0x2E2
+#define FLAG_FORCE_SHINY                            0x2E2 // P_FLAG_FORCE_SHINY, toggled from the debug menu
 #define FLAG_MAP_SCRIPT_CHECKED_DEOXYS              0x2E3
 #define FLAG_HIDE_BIRTH_ISLAND_DEOXYS_TRIANGLE      0x2E4
 #define FLAG_DEOXYS_ROCK_COMPLETE                   0x2E5

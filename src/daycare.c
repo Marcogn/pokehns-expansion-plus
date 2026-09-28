@@ -1182,6 +1182,38 @@ static void RollEggShininess(struct Pokemon *mon)
 }
 #endif
 
+// A shiny parent makes a shiny Egg more likely: 4x the odds with one, 8x with
+// both. Soulgold (93b51c041, e42b2b6f0) folds the multiplier into its own
+// shininess check; here CreateBoxMon has already rolled at the base odds, so
+// this only gives the Egg a second chance at the boosted odds and never takes
+// shininess away. Outside the pickup-roll mode the check reuses the Egg's
+// personality, which keeps a soft reset on pickup from changing the result.
+static void TryBoostEggShininessFromParents(struct Pokemon *mon, struct DayCare *daycare)
+{
+    u32 odds = GetShinyOdds();
+    bool32 parent0 = GetBoxMonData(&daycare->mons[0].mon, MON_DATA_IS_SHINY);
+    bool32 parent1 = GetBoxMonData(&daycare->mons[1].mon, MON_DATA_IS_SHINY);
+    bool8 isShiny = TRUE;
+
+    if (!parent0 && !parent1)
+        return;
+    if (GetMonData(mon, MON_DATA_IS_SHINY))
+        return;
+    if (P_FLAG_FORCE_NO_SHINY != 0 && FlagGet(P_FLAG_FORCE_NO_SHINY))
+        return;
+
+    odds *= 4;
+    if (parent0 && parent1)
+        odds *= 2;
+
+#if P_EGG_SHINY_ROLL_ON_PICKUP
+    if (GET_SHINY_VALUE(GetMonData(mon, MON_DATA_OT_ID), Random32()) < odds)
+#else
+    if (GET_SHINY_VALUE(GetMonData(mon, MON_DATA_OT_ID), GetMonData(mon, MON_DATA_PERSONALITY)) < odds)
+#endif
+        SetMonData(mon, MON_DATA_IS_SHINY, &isShiny);
+}
+
 static void SetInitialEggData(struct Pokemon *mon, u16 species, struct DayCare *daycare)
 {
     u32 personality;
@@ -1194,6 +1226,7 @@ static void SetInitialEggData(struct Pokemon *mon, u16 species, struct DayCare *
 #if P_EGG_SHINY_ROLL_ON_PICKUP
     RollEggShininess(mon);
 #endif
+    TryBoostEggShininessFromParents(mon, daycare);
     GiveMonInitialMoveset(mon);
     metLevel = 0;
     ball = BALL_POKE;

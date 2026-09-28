@@ -106,6 +106,7 @@ enum FlagsVarsDebugMenu
     DEBUG_FLAGVAR_MENU_ITEM_TOGGLE_TRAINER_SEE,
     DEBUG_FLAGVAR_MENU_ITEM_TOGGLE_CATCHING,
     DEBUG_FLAGVAR_MENU_ITEM_TOGGLE_BAG_USE,
+    DEBUG_FLAGVAR_MENU_ITEM_TOGGLE_FORCE_SHINY,
 };
 
 enum DebugBattleType
@@ -316,6 +317,7 @@ static void DebugAction_FlagsVars_ToggleBadgeFlags(u8 taskId);
 static void DebugAction_FlagsVars_ToggleGameClear(u8 taskId);
 static void DebugAction_FlagsVars_ToggleFrontierPass(u8 taskId);
 static void DebugAction_FlagsVars_CollisionOnOff(u8 taskId);
+static void DebugAction_FlagsVars_ForceShinyOnOff(u8 taskId);
 static void DebugAction_FlagsVars_EncounterOnOff(u8 taskId);
 static void DebugAction_FlagsVars_TrainerSeeOnOff(u8 taskId);
 static void DebugAction_FlagsVars_BagUseOnOff(u8 taskId);
@@ -340,6 +342,9 @@ static void DebugAction_Give_Pokemon_SelectIVs(u8 taskId);
 static void DebugAction_Give_Pokemon_SelectEVs(u8 taskId);
 static void DebugAction_Give_Pokemon_ComplexCreateMon(u8 taskId);
 static void DebugAction_Give_Pokemon_Move(u8 taskId);
+static void DebugAction_Party_EditMonFull(u8 taskId);
+static void DebugAction_Edit_Pokemon_SelectSlot(u8 taskId);
+static void DebugAction_Edit_Pokemon_Apply(u8 taskId);
 static void DebugAction_Give_Decoration(u8 taskId);
 static void DebugAction_Give_Decoration_SelectId(u8 taskId);
 static void DebugAction_Give_MaxMoney(u8 taskId);
@@ -607,6 +612,7 @@ static const struct DebugMenuOption sDebugMenu_Actions_PCBag[] =
 
 static const struct DebugMenuOption sDebugMenu_Actions_EditPokemon[] =
 {
+    { COMPOUND_STRING("Edit All…"),          DebugAction_Party_EditMonFull },
     { COMPOUND_STRING("Inflict Status1"),    DebugAction_ExecuteScript, Debug_EventScript_InflictStatus1 },
     { COMPOUND_STRING("Faint Pokemon"),      DebugAction_ExecuteScript, Debug_EventScript_KoPokemon },
     { COMPOUND_STRING("Set Hidden Nature"),  DebugAction_ExecuteScript, Debug_EventScript_SetHiddenNature },
@@ -715,6 +721,7 @@ static const struct DebugMenuOption sDebugMenu_Actions_Flags[] =
     [DEBUG_FLAGVAR_MENU_ITEM_TOGGLE_TRAINER_SEE]   = { COMPOUND_STRING("Toggle {STR_VAR_1}Trainer See OFF"), DebugAction_ToggleFlag, DebugAction_FlagsVars_TrainerSeeOnOff },
     [DEBUG_FLAGVAR_MENU_ITEM_TOGGLE_CATCHING]      = { COMPOUND_STRING("Toggle {STR_VAR_1}Catching OFF"),    DebugAction_ToggleFlag, DebugAction_FlagsVars_CatchingOnOff },
     [DEBUG_FLAGVAR_MENU_ITEM_TOGGLE_BAG_USE]       = { COMPOUND_STRING("Toggle {STR_VAR_1}Bag Use OFF"),     DebugAction_ToggleFlag, DebugAction_FlagsVars_BagUseOnOff },
+    [DEBUG_FLAGVAR_MENU_ITEM_TOGGLE_FORCE_SHINY]   = { COMPOUND_STRING("Toggle {STR_VAR_1}Force Shiny"),     DebugAction_ToggleFlag, DebugAction_FlagsVars_ForceShinyOnOff },
     { NULL }
 };
 
@@ -1243,6 +1250,11 @@ static u32 Debug_CheckToggleFlags(u8 id)
     case DEBUG_FLAGVAR_MENU_ITEM_TOGGLE_FRONTIER_PASS:
         result = FlagGet(FLAG_SYS_FRONTIER_PASS);
         break;
+    #if P_FLAG_FORCE_SHINY != 0
+    case DEBUG_FLAGVAR_MENU_ITEM_TOGGLE_FORCE_SHINY:
+        result = FlagGet(P_FLAG_FORCE_SHINY);
+        break;
+    #endif
     #if OW_FLAG_NO_COLLISION != 0
     case DEBUG_FLAGVAR_MENU_ITEM_TOGGLE_COLLISION:
         result = FlagGet(OW_FLAG_NO_COLLISION);
@@ -2637,6 +2649,21 @@ static void DebugAction_FlagsVars_CollisionOnOff(u8 taskId)
 #endif
 }
 
+// Every wild, gift and hatched Pokemon comes out shiny while this is on (the
+// player-OT branch of CreateBoxMon). Trainers' Pokemon are unaffected.
+static void DebugAction_FlagsVars_ForceShinyOnOff(u8 taskId)
+{
+#if P_FLAG_FORCE_SHINY == 0
+    Debug_DestroyMenu_Full_Script(taskId, Debug_FlagsNotSetOverworldConfigMessage);
+#else
+    if (FlagGet(P_FLAG_FORCE_SHINY))
+        PlaySE(SE_PC_OFF);
+    else
+        PlaySE(SE_PC_LOGIN);
+    FlagToggle(P_FLAG_FORCE_SHINY);
+#endif
+}
+
 static void DebugAction_FlagsVars_EncounterOnOff(u8 taskId)
 {
 #if OW_FLAG_NO_ENCOUNTER == 0
@@ -2842,6 +2869,16 @@ static void ResetMonDataStruct(struct DebugMonData *sDebugMonData)
 #define tSpriteId   data[6]
 #define tIterator   data[7]
 #define tIsEgg      data[8]
+#define tIsEdit     data[9]  // "Edit All…": same screens, but on a party Pokemon
+#define tEditSlot   data[10]
+
+// Where each step of the Complex flow starts. Giving a Pokemon starts from the
+// defaults; editing one starts from what it has now, which sDebugMonData was
+// filled with when the slot was picked.
+static s32 Debug_StepStart(u8 taskId, s32 current, s32 fallback)
+{
+    return gTasks[taskId].tIsEdit ? current : fallback;
+}
 
 static void Debug_Display_SpeciesInfo(u32 species, u32 number, u32 digit, u8 windowId)
 {
@@ -2939,6 +2976,7 @@ static void DebugAction_Give_PokemonComplex(u8 taskId)
     gTasks[taskId].tDigit = 0;
     gTasks[taskId].tIsComplex = TRUE;
     gTasks[taskId].tIsEgg = FALSE;
+    gTasks[taskId].tIsEdit = FALSE;
 
     FreeMonIconPalettes();
     LoadMonIconPalettePersonality(species, 0);
@@ -3087,7 +3125,7 @@ static void DebugAction_Give_Pokemon_SelectLevel(u8 taskId)
         else
         {
             sDebugMonData->level = gTasks[taskId].tInput;
-            gTasks[taskId].tInput = 0;
+            gTasks[taskId].tInput = Debug_StepStart(taskId, sDebugMonData->isShiny, 0);
             gTasks[taskId].tDigit = 0;
             Debug_Display_TrueFalse(gTasks[taskId].tInput, gTasks[taskId].tSubWindowId, sDebugText_PokemonShiny);
             gTasks[taskId].func = DebugAction_Give_Pokemon_SelectShiny;
@@ -3128,7 +3166,7 @@ static void DebugAction_Give_Pokemon_SelectShiny(u8 taskId)
     if (JOY_NEW(A_BUTTON))
     {
         sDebugMonData->isShiny = gTasks[taskId].tInput;
-        gTasks[taskId].tInput = 0;
+        gTasks[taskId].tInput = Debug_StepStart(taskId, sDebugMonData->nature + 1, 0);
         gTasks[taskId].tDigit = 0;
         Debug_Display_Nature(gTasks[taskId].tInput, gTasks[taskId].tDigit, gTasks[taskId].tSubWindowId);
         gTasks[taskId].func = DebugAction_Give_Pokemon_SelectNature;
@@ -3181,10 +3219,10 @@ static void DebugAction_Give_Pokemon_SelectNature(u8 taskId)
             sDebugMonData->nature = NATURE_RANDOM;
         else
             sDebugMonData->nature = gTasks[taskId].tInput - 1;
-        gTasks[taskId].tInput = 0;
+        gTasks[taskId].tInput = Debug_StepStart(taskId, sDebugMonData->abilityNum, 0);
         gTasks[taskId].tDigit = 0;
 
-        Debug_Display_Ability(0, gTasks[taskId].tDigit, gTasks[taskId].tSubWindowId);
+        Debug_Display_Ability(gTasks[taskId].tInput, gTasks[taskId].tDigit, gTasks[taskId].tSubWindowId);
 
         gTasks[taskId].func = DebugAction_Give_Pokemon_SelectAbility;
     }
@@ -3241,7 +3279,7 @@ static void DebugAction_Give_Pokemon_SelectAbility(u8 taskId)
     if (JOY_NEW(A_BUTTON))
     {
         sDebugMonData->abilityNum = gTasks[taskId].tInput;
-        gTasks[taskId].tInput = 0;
+        gTasks[taskId].tInput = Debug_StepStart(taskId, sDebugMonData->teraType, 0);
         gTasks[taskId].tDigit = 0;
 
         Debug_Display_TeraType(gTasks[taskId].tInput, gTasks[taskId].tDigit, gTasks[taskId].tSubWindowId);
@@ -3290,7 +3328,7 @@ static void DebugAction_Give_Pokemon_SelectTeraType(u8 taskId)
     if (JOY_NEW(A_BUTTON))
     {
         sDebugMonData->teraType = gTasks[taskId].tInput;
-        gTasks[taskId].tInput = 0;
+        gTasks[taskId].tInput = Debug_StepStart(taskId, sDebugMonData->dynamaxLevel, 0);
         gTasks[taskId].tDigit = 0;
 
         Debug_Display_DynamaxLevel(gTasks[taskId].tInput, gTasks[taskId].tDigit, gTasks[taskId].tSubWindowId);
@@ -3322,7 +3360,7 @@ static void DebugAction_Give_Pokemon_SelectDynamaxLevel(u8 taskId)
     if (JOY_NEW(A_BUTTON))
     {
         sDebugMonData->dynamaxLevel = gTasks[taskId].tInput;
-        gTasks[taskId].tInput = 0;
+        gTasks[taskId].tInput = Debug_StepStart(taskId, sDebugMonData->gmaxFactor, 0);
         gTasks[taskId].tDigit = 0;
         Debug_Display_GigantamaxFactor(gTasks[taskId].tInput, gTasks[taskId].tSubWindowId);
         gTasks[taskId].func = DebugAction_Give_Pokemon_SelectGigantamaxFactor;
@@ -3359,7 +3397,7 @@ static void DebugAction_Give_Pokemon_SelectGigantamaxFactor(u8 taskId)
     if (JOY_NEW(A_BUTTON))
     {
         sDebugMonData->gmaxFactor = gTasks[taskId].tInput;
-        gTasks[taskId].tInput = 0;
+        gTasks[taskId].tInput = Debug_StepStart(taskId, sDebugMonData->monIVs[0], 0);
         gTasks[taskId].tDigit = 0;
         Debug_Display_StatInfo(sDebugText_IVs, gTasks[taskId].tIterator, gTasks[taskId].tInput, gTasks[taskId].tDigit, gTasks[taskId].tSubWindowId, MAX_PER_STAT_IVS);
         gTasks[taskId].func = DebugAction_Give_Pokemon_SelectIVs;
@@ -3391,7 +3429,7 @@ static void DebugAction_Give_Pokemon_SelectIVs(u8 taskId)
         if (gTasks[taskId].tIterator != NUM_STATS - 1)
         {
             gTasks[taskId].tIterator++;
-            gTasks[taskId].tInput = 0;
+            gTasks[taskId].tInput = Debug_StepStart(taskId, sDebugMonData->monIVs[gTasks[taskId].tIterator], 0);
             gTasks[taskId].tDigit = 0;
 
             Debug_Display_StatInfo(sDebugText_IVs, gTasks[taskId].tIterator, gTasks[taskId].tInput, gTasks[taskId].tDigit, gTasks[taskId].tSubWindowId, MAX_PER_STAT_IVS);
@@ -3399,9 +3437,9 @@ static void DebugAction_Give_Pokemon_SelectIVs(u8 taskId)
         }
         else
         {
-            gTasks[taskId].tInput = 0;
             gTasks[taskId].tDigit = 0;
             gTasks[taskId].tIterator = 0;
+            gTasks[taskId].tInput = Debug_StepStart(taskId, sDebugMonData->monEVs[0], 0);
 
             Debug_Display_StatInfo(sDebugText_EVs, gTasks[taskId].tIterator, gTasks[taskId].tInput, gTasks[taskId].tDigit, gTasks[taskId].tSubWindowId, MAX_PER_STAT_EVS);
             gTasks[taskId].func = DebugAction_Give_Pokemon_SelectEVs;
@@ -3449,8 +3487,6 @@ static void Debug_Display_MoveInfo(enum Move moveId, u32 iteration, u32 digit, u
 
 static void DebugAction_Give_Pokemon_SelectEVs(u8 taskId)
 {
-    u16 totalEV = GetDebugPokemonTotalEV();
-
     if (JOY_NEW(DPAD_ANY))
     {
         PlaySE(SE_SELECT);
@@ -3468,7 +3504,7 @@ static void DebugAction_Give_Pokemon_SelectEVs(u8 taskId)
         if (gTasks[taskId].tIterator != NUM_STATS - 1)
         {
             gTasks[taskId].tIterator++;
-            gTasks[taskId].tInput = 0;
+            gTasks[taskId].tInput = Debug_StepStart(taskId, sDebugMonData->monEVs[gTasks[taskId].tIterator], 0);
             gTasks[taskId].tDigit = 0;
             Debug_Display_StatInfo(sDebugText_EVs, gTasks[taskId].tIterator, gTasks[taskId].tInput, gTasks[taskId].tDigit, gTasks[taskId].tSubWindowId, MAX_PER_STAT_EVS);
             gTasks[taskId].func = DebugAction_Give_Pokemon_SelectEVs;
@@ -3479,7 +3515,9 @@ static void DebugAction_Give_Pokemon_SelectEVs(u8 taskId)
             gTasks[taskId].tDigit = 0;
             gTasks[taskId].tIterator = 0;
 
-            if (totalEV > MAX_TOTAL_EVS)
+            // Summed after the last stat is stored: counting before it, as this
+            // used to, never included the Speed value just entered.
+            if (GetDebugPokemonTotalEV() > MAX_TOTAL_EVS)
             {
                 for (u32 i = 0; i < NUM_STATS; i++)
                 {
@@ -3492,6 +3530,7 @@ static void DebugAction_Give_Pokemon_SelectEVs(u8 taskId)
             }
             else
             {
+                gTasks[taskId].tInput = Debug_StepStart(taskId, sDebugMonData->monMoves[0], 0);
                 Debug_Display_MoveInfo(gTasks[taskId].tInput, gTasks[taskId].tIterator, gTasks[taskId].tDigit, gTasks[taskId].tSubWindowId);
                 gTasks[taskId].func = DebugAction_Give_Pokemon_Move;
             }
@@ -3522,15 +3561,21 @@ static void DebugAction_Give_Pokemon_Move(u8 taskId)
             sDebugMonData->monMoves[gTasks[taskId].tIterator] = gTasks[taskId].tInput;
         else
             sDebugMonData->monMoves[gTasks[taskId].tIterator] = MOVE_DEFAULT;
-        // If MOVE_NONE selected, stop asking for additional moves
+        // If MOVE_NONE selected, stop asking for additional moves. An edited
+        // Pokemon arrives with its old moves filled in, so empty the slots
+        // after this one rather than keeping them.
         if (gTasks[taskId].tInput == MOVE_NONE)
+        {
+            for (u32 i = gTasks[taskId].tIterator; i < MAX_MON_MOVES; i++)
+                sDebugMonData->monMoves[i] = MOVE_NONE;
             gTasks[taskId].tIterator = MAX_MON_MOVES;
+        }
 
         //If NOT last move or selected MOVE_NONE ask for next move, else make mon
         if (gTasks[taskId].tIterator < MAX_MON_MOVES - 1)
         {
             gTasks[taskId].tIterator++;
-            gTasks[taskId].tInput = 0;
+            gTasks[taskId].tInput = Debug_StepStart(taskId, sDebugMonData->monMoves[gTasks[taskId].tIterator], 0);
             gTasks[taskId].tDigit = 0;
 
             Debug_Display_MoveInfo(gTasks[taskId].tInput, gTasks[taskId].tIterator, gTasks[taskId].tDigit, gTasks[taskId].tSubWindowId);
@@ -3542,7 +3587,10 @@ static void DebugAction_Give_Pokemon_Move(u8 taskId)
             gTasks[taskId].tDigit = 0;
 
             PlaySE(MUS_LEVEL_UP);
-            gTasks[taskId].func = DebugAction_Give_Pokemon_ComplexCreateMon;
+            if (gTasks[taskId].tIsEdit)
+                gTasks[taskId].func = DebugAction_Edit_Pokemon_Apply;
+            else
+                gTasks[taskId].func = DebugAction_Give_Pokemon_ComplexCreateMon;
         }
     }
     else if (JOY_NEW(B_BUTTON))
@@ -3646,10 +3694,192 @@ static void DebugAction_Give_Pokemon_ComplexCreateMon(u8 taskId) //https://githu
     DebugAction_DestroyExtraWindow(taskId); //return sentToPc;
 }
 
+// "Edit All…" in Party > Edit Pokemon: the Complex give screens run on a party
+// Pokemon, each starting from what it has now, and the result is written back
+// to it instead of creating a new one. Species and personality are left alone,
+// so gender, form and the OT stay as they are; the nature is the hidden one
+// that stats use, the same field a Mint sets.
+static void Debug_Display_EditSlot(u32 slot, u8 windowId)
+{
+    struct Pokemon *mon = &gPlayerParty[slot - 1];
+
+    ConvertIntToDecimalStringN(gStringVar3, slot, STR_CONV_MODE_LEFT_ALIGN, 1);
+    if (GetMonData(mon, MON_DATA_IS_EGG))
+        StringCopy(gStringVar1, COMPOUND_STRING("Egg"));
+    else
+        GetMonData(mon, MON_DATA_NICKNAME, gStringVar1);
+    StringExpandPlaceholders(gStringVar4, COMPOUND_STRING("Party slot: {STR_VAR_3}{CLEAR_TO 90}\n{STR_VAR_1}{CLEAR_TO 90}\n{CLEAR_TO 90}\n{CLEAR_TO 90}"));
+    AddTextPrinterParameterized(windowId, DEBUG_MENU_FONT, gStringVar4, 0, 0, 0, NULL);
+}
+
+static void Debug_Edit_CreateSlotIcon(u8 taskId)
+{
+    struct Pokemon *mon = &gPlayerParty[gTasks[taskId].tInput - 1];
+    u32 species = GetMonData(mon, MON_DATA_SPECIES_OR_EGG);
+
+    FreeMonIconPalettes();
+    LoadMonIconPalettePersonality(species, GetMonData(mon, MON_DATA_PERSONALITY));
+    gTasks[taskId].tSpriteId = CreateMonIcon(species, SpriteCB_MonIcon, DEBUG_NUMBER_ICON_X, DEBUG_NUMBER_ICON_Y, 4, GetMonData(mon, MON_DATA_PERSONALITY));
+    gSprites[gTasks[taskId].tSpriteId].oam.priority = 0;
+}
+
+static void DebugAction_Party_EditMonFull(u8 taskId)
+{
+    u8 windowId;
+
+    if (gPlayerPartyCount == 0)
+    {
+        PlaySE(SE_FAILURE);
+        return;
+    }
+
+    sDebugMonData = AllocZeroed(sizeof(struct DebugMonData));
+    ResetMonDataStruct(sDebugMonData);
+
+    ClearStdWindowAndFrame(gTasks[taskId].tWindowId, TRUE);
+    RemoveWindow(gTasks[taskId].tWindowId);
+
+    HideMapNamePopUpWindow();
+    LoadMessageBoxAndBorderGfx();
+    windowId = AddWindow(&sDebugMenuWindowTemplateExtra);
+    DrawStdWindowFrame(windowId, FALSE);
+    CopyWindowToVram(windowId, COPYWIN_FULL);
+
+    gTasks[taskId].func = DebugAction_Edit_Pokemon_SelectSlot;
+    gTasks[taskId].tSubWindowId = windowId;
+    gTasks[taskId].tInput = 1;
+    gTasks[taskId].tDigit = 0;
+    gTasks[taskId].tIsComplex = TRUE;
+    gTasks[taskId].tIsEgg = FALSE;
+    gTasks[taskId].tIsEdit = TRUE;
+    gTasks[taskId].tIterator = 0;
+
+    Debug_Display_EditSlot(gTasks[taskId].tInput, windowId);
+    Debug_Edit_CreateSlotIcon(taskId);
+}
+
+static void DebugAction_Edit_Pokemon_SelectSlot(u8 taskId)
+{
+    if (JOY_NEW(DPAD_UP | DPAD_DOWN))
+    {
+        PlaySE(SE_SELECT);
+        if (JOY_NEW(DPAD_UP))
+            gTasks[taskId].tInput = (gTasks[taskId].tInput % gPlayerPartyCount) + 1;
+        else
+            gTasks[taskId].tInput = gTasks[taskId].tInput == 1 ? gPlayerPartyCount : gTasks[taskId].tInput - 1;
+        Debug_Display_EditSlot(gTasks[taskId].tInput, gTasks[taskId].tSubWindowId);
+        FreeAndDestroyMonIconSprite(&gSprites[gTasks[taskId].tSpriteId]);
+        Debug_Edit_CreateSlotIcon(taskId);
+    }
+
+    if (JOY_NEW(A_BUTTON))
+    {
+        struct Pokemon *mon = &gPlayerParty[gTasks[taskId].tInput - 1];
+
+        if (GetMonData(mon, MON_DATA_IS_EGG))
+        {
+            PlaySE(SE_FAILURE);
+            return;
+        }
+
+        gTasks[taskId].tEditSlot = gTasks[taskId].tInput - 1;
+        sDebugMonData->species      = GetMonData(mon, MON_DATA_SPECIES);
+        sDebugMonData->level        = GetMonData(mon, MON_DATA_LEVEL);
+        sDebugMonData->isShiny      = GetMonData(mon, MON_DATA_IS_SHINY);
+        sDebugMonData->nature       = GetMonData(mon, MON_DATA_HIDDEN_NATURE);
+        sDebugMonData->abilityNum   = GetMonData(mon, MON_DATA_ABILITY_NUM);
+        sDebugMonData->teraType     = GetMonData(mon, MON_DATA_TERA_TYPE);
+        sDebugMonData->dynamaxLevel = GetMonData(mon, MON_DATA_DYNAMAX_LEVEL);
+        sDebugMonData->gmaxFactor   = GetMonData(mon, MON_DATA_GIGANTAMAX_FACTOR);
+        for (u32 i = 0; i < NUM_STATS; i++)
+        {
+            sDebugMonData->monIVs[i] = GetMonData(mon, MON_DATA_HP_IV + i);
+            sDebugMonData->monEVs[i] = GetMonData(mon, MON_DATA_HP_EV + i);
+        }
+        for (u32 i = 0; i < MAX_MON_MOVES; i++)
+            sDebugMonData->monMoves[i] = GetMonData(mon, MON_DATA_MOVE1 + i);
+
+        PlaySE(SE_SELECT);
+        gTasks[taskId].tInput = sDebugMonData->level;
+        gTasks[taskId].tDigit = 0;
+        Debug_Display_Level(gTasks[taskId].tInput, gTasks[taskId].tDigit, gTasks[taskId].tSubWindowId);
+        gTasks[taskId].func = DebugAction_Give_Pokemon_SelectLevel;
+    }
+    else if (JOY_NEW(B_BUTTON))
+    {
+        PlaySE(SE_SELECT);
+        Free(sDebugMonData);
+        FreeMonIconPalettes();
+        FreeAndDestroyMonIconSprite(&gSprites[gTasks[taskId].tSpriteId]);
+        DebugAction_DestroyExtraWindow(taskId);
+    }
+}
+
+static void DebugAction_Edit_Pokemon_Apply(u8 taskId)
+{
+    struct Pokemon *mon = &gPlayerParty[gTasks[taskId].tEditSlot];
+    u32 species = sDebugMonData->species;
+    u32 value;
+
+    // Level lives in the Exp total; the level field itself is derived from it.
+    if (sDebugMonData->level != GetMonData(mon, MON_DATA_LEVEL))
+    {
+        value = gExperienceTables[gSpeciesInfo[species].growthRate][sDebugMonData->level];
+        SetMonData(mon, MON_DATA_EXP, &value);
+    }
+
+    value = sDebugMonData->isShiny;
+    SetMonData(mon, MON_DATA_IS_SHINY, &value);
+    if (sDebugMonData->nature != NATURE_RANDOM)
+    {
+        value = sDebugMonData->nature;
+        SetMonData(mon, MON_DATA_HIDDEN_NATURE, &value);
+    }
+    value = sDebugMonData->abilityNum;
+    SetMonData(mon, MON_DATA_ABILITY_NUM, &value);
+
+    value = sDebugMonData->teraType;
+    if (value == TYPE_NONE || value == TYPE_MYSTERY || value >= NUMBER_OF_MON_TYPES)
+        value = GetTeraTypeFromPersonality(mon);
+    SetMonData(mon, MON_DATA_TERA_TYPE, &value);
+    value = sDebugMonData->dynamaxLevel;
+    SetMonData(mon, MON_DATA_DYNAMAX_LEVEL, &value);
+    value = sDebugMonData->gmaxFactor;
+    SetMonData(mon, MON_DATA_GIGANTAMAX_FACTOR, &value);
+
+    for (u32 i = 0; i < NUM_STATS; i++)
+    {
+        value = sDebugMonData->monIVs[i];
+        SetMonData(mon, MON_DATA_HP_IV + i, &value);
+        value = sDebugMonData->monEVs[i];
+        SetMonData(mon, MON_DATA_HP_EV + i, &value);
+    }
+
+    // An empty first slot means "leave the moves alone": a Pokemon with no
+    // moves at all cannot battle. Slots that did not change keep their PP.
+    if (sDebugMonData->monMoves[0] != MOVE_NONE)
+    {
+        for (u32 i = 0; i < MAX_MON_MOVES; i++)
+        {
+            if (sDebugMonData->monMoves[i] == MOVE_DEFAULT)
+                GiveMonDefaultMove(mon, i);
+            else if (sDebugMonData->monMoves[i] != GetMonData(mon, MON_DATA_MOVE1 + i))
+                SetMonMoveSlot(mon, sDebugMonData->monMoves[i], i);
+        }
+    }
+
+    CalculateMonStats(mon);
+
+    Free(sDebugMonData);
+    DebugAction_DestroyExtraWindow(taskId);
+}
+
 #undef tIsComplex
 #undef tSpriteId
 #undef tIterator
 #undef tIsEgg
+#undef tIsEdit
+#undef tEditSlot
 
 //Decoration
 #define tSpriteId  data[6]
