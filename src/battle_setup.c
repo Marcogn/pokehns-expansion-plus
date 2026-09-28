@@ -104,6 +104,12 @@ EWRAM_DATA static u8 sNoOfPossibleTrainerRetScripts = 0;
 // that is the badge - so the next post-battle lookup hands back a script that
 // just ends instead. See CanCatchTrainerMon.
 EWRAM_DATA static bool8 sTrainerMonCaught = FALSE;
+// The Trainer whose Pokemon was just caught. They were not beaten, so their
+// flag stays clear and, left alone, they would spot the player again the moment
+// the battle ends - an endless loop for anyone standing in their line of sight.
+// Their sight is switched off instead until the player leaves the map; talking
+// to them still starts the battle, so the player chooses when to take them on.
+EWRAM_DATA static u16 sSightSuspendedTrainer = TRAINER_NONE;
 
 // The first transition is used if the enemy Pokémon are lower level than our Pokémon.
 // Otherwise, the second transition is used.
@@ -1509,6 +1515,17 @@ void SetUpTwoTrainersBattle(void)
 }
 
 #define OPCODE_OFFSET 1
+bool32 IsTrainerSightSuspended(const u8 *data)
+{
+    TrainerBattleParameter *temp = (TrainerBattleParameter*)(data + OPCODE_OFFSET);
+    return sSightSuspendedTrainer != TRAINER_NONE && temp->params.opponentA == sSightSuspendedTrainer;
+}
+
+void ClearTrainerSightSuspension(void)
+{
+    sSightSuspendedTrainer = TRAINER_NONE;
+}
+
 bool32 GetTrainerFlagFromScriptPointer(const u8 *data)
 {
     TrainerBattleParameter *temp = (TrainerBattleParameter*)(data + OPCODE_OFFSET);
@@ -1732,6 +1749,7 @@ static void CB2_EndTrainerBattle(void)
         // not beaten: no flag, no rematch bookkeeping, and the post-battle
         // script is swapped for one that ends, so they challenge again.
         sTrainerMonCaught = TRUE;
+        sSightSuspendedTrainer = TRAINER_BATTLE_PARAM.opponentA;
         DowngradeBadPoison();
         SetMainCallback2(CB2_ReturnToFieldContinueScriptPlayMapMusic);
         return;
@@ -1797,6 +1815,7 @@ static void CB2_EndRematchBattle(void)
     {
         // TRAINER CATCH: a rematch script ends right after the battle, so only
         // the "beaten" bookkeeping needs skipping. The rematch stays pending.
+        sSightSuspendedTrainer = TRAINER_BATTLE_PARAM.opponentA;
         DowngradeBadPoison();
         SetMainCallback2(CB2_ReturnToFieldContinueScriptPlayMapMusic);
         return;

@@ -668,9 +668,31 @@ combatti con una copia della squadra avversaria, e "thief" te la lascia dopo.
   Ball su Pidgey di Bird Keeper Rod e di Falkner, Pokédex/esperienza/nickname
   normali, ball consumata (5 → 4), **nessuna medaglia**, Falkner sfida di nuovo;
   battuto onestamente, la medaglia e la MT arrivano come prima.
-- Conseguenza da sapere: un allenatore che ti vede ti risfida **subito**, perché
-  il suo flag non è alzato e sei nella sua linea di vista. E la sua squadra si
-  rigenera a ogni lotta, quindi lo stesso Pokémon si può catturare più volte.
+- **Vista sospesa fino al cambio mappa** (scelta dell'utente): senza, un
+  allenatore che ti vede ti risfidava **subito**, perché il suo flag non è
+  alzato. Ora `sSightSuspendedTrainer` (`battle_setup.c`) spegne la sua vista in
+  `CheckTrainer` (`trainer_see.c`) finché non cambi mappa
+  (`ClearTempFieldEventData` → `ClearTrainerSightSuspension`); parlandoci la
+  lotta parte lo stesso, quindi decidi tu quando rifarla. Verificato: dopo la
+  cattura Rod non ti vede, parlandoci ti sfida.
+  La sua squadra si rigenera a ogni lotta e lo stesso Pokémon si può catturare
+  più volte: lasciato così per scelta dell'utente.
+- **Bug trovato in emulatore, e il più insidioso: il Pokémon catturato diventava
+  un Bad Egg.** `GiveCapturedMonToPlayer` imposta l'OT ID con `SetMonData`, che
+  per `MON_DATA_OT_ID` scrive **in chiaro**, senza ricifrare. Ma l'OT ID è metà
+  della chiave dei substruct (`EncryptBoxMon`: `personality ^ otId`). Un
+  selvatico nasce già con l'OT del giocatore, quindi la chiave non cambia e nel
+  vanilla non succede mai niente; un Pokémon di allenatore ha l'ID
+  dell'allenatore, la chiave cambia e alla lettura successiva il checksum non
+  torna: "Egg" nel menu squadra, e l'assert `invalid item: 1004` alla lotta
+  dopo era spazzatura letta da dati non decifrabili, non un vero oggetto.
+  Correzione: `SetMonOtIdRekeyed` (`pokemon.c`) decifra con la chiave vecchia,
+  scrive l'ID e ricifra; conserva anche la shininess, che expansion salva
+  relativa all'OT ID (`shinyModifier`). Il checksum è calcolato sui dati in
+  chiaro, quindi non cambia.
+  **Lezione di verifica**: nel primo giro di test avevo controllato Pokédex,
+  ball consumata e medaglia, ma **non avevo aperto la squadra** dopo la
+  cattura. Il Pokémon catturato è il prodotto della feature: va guardato.
 
 **Nuova partita in mGBA, per i test**: la camera della camera da letto è sul
 bordo della mappa (metà schermo nera) e la scena aspetta input: **non è un

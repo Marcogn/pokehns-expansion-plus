@@ -5379,13 +5379,35 @@ void CopyMon(void *dest, void *src, size_t size)
     memcpy(dest, src, size);
 }
 
+// The OT ID is half of the key the secure substructs are encrypted with
+// (EncryptBoxMon), but SetBoxMonData writes it raw. A caught wild Pokemon
+// already has the player as OT, so the key does not change; a Trainer's Pokemon
+// (TRAINER CATCH) does not, and a raw write left it undecryptable: a Bad Egg on
+// its next read. Re-key the substructs, and keep shininess, which is stored
+// relative to the OT ID (shinyModifier).
+static void SetMonOtIdRekeyed(struct Pokemon *mon, const u8 *otIdBytes)
+{
+    struct BoxPokemon *boxMon = &mon->box;
+    u32 otId = otIdBytes[0] | (otIdBytes[1] << 8) | (otIdBytes[2] << 16) | (otIdBytes[3] << 24);
+    bool8 isShiny;
+
+    if (boxMon->otId == otId)
+        return;
+
+    isShiny = GetMonData(mon, MON_DATA_IS_SHINY);
+    DecryptBoxMon(boxMon);
+    boxMon->otId = otId;
+    EncryptBoxMon(boxMon);
+    SetMonData(mon, MON_DATA_IS_SHINY, &isShiny);
+}
+
 u8 GiveCapturedMonToPlayer(struct Pokemon *mon)
 {
     s32 i;
 
     SetMonData(mon, MON_DATA_OT_NAME, gSaveBlock2Ptr->playerName);
     SetMonData(mon, MON_DATA_OT_GENDER, &gSaveBlock2Ptr->playerGender);
-    SetMonData(mon, MON_DATA_OT_ID, gSaveBlock2Ptr->playerTrainerId);
+    SetMonOtIdRekeyed(mon, gSaveBlock2Ptr->playerTrainerId);
 
     for (i = 0; i < GetMaxPartySize(); i++)
     {
