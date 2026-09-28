@@ -1,5 +1,9 @@
 # Inventario: HnS expanded (2.0.5) vs Soulgold
 
+> **Documento storico**: è l'analisi fatta prima del port. Lo stato attuale
+> (cosa è stato portato, dove, cosa no e perché) è in
+> [`SOULGOLD_PORT_REPORT.md`](SOULGOLD_PORT_REPORT.md).
+
 Scopo: capire **prima di portare qualunque cosa** su che base sta il nuovo HnS,
 quanto è vicino a Soulgold, cosa ha già, e quanto costa ciascuna feature mancante.
 

@@ -39,6 +39,8 @@ existed is migrated on load (`SAVE_VERSION` in `include/save.h`).
 | Shiny Genome | — | Turns a Pokémon shiny. Sold at the Viridian City Mart for 1000. |
 | Compact start menu | — | The menu window grows with the number of entries, so nine fit. |
 | Candy Jar | — | A Key Item that skims 90% of the Exp from every battle and turns it into Exp. Candies. Elm's Aide hands it over in the Violet City Pokémon Center along with the Togepi Egg. |
+| Shiny parents | — | A Day-Care Egg is 4x as likely to be shiny with one shiny parent, 8x with two. |
+| Exp. Candy order | — | Sorting the bag by type lists the Exp. Candies by size, biggest first. |
 
 ### Added here
 
@@ -73,6 +75,9 @@ the Quick Ball, Violet City the Ability Patch and Capsule, and Goldenrod 4F now 
 sells the six EV-lowering Berries. Town-specific stock is appended to the usual
 badge-scaled inventory rather than replacing it, so those towns keep their normal
 progression.
+
+What came over from Soulgold, where it lives, what did not and why:
+[`docs/SOULGOLD_PORT_REPORT.md`](docs/SOULGOLD_PORT_REPORT.md).
 
 ### Credits for this fork
 

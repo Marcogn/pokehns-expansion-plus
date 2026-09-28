@@ -205,6 +205,13 @@ sono testo puro. Se una finestra resta chiara pur essendo nella lista di
 
 ## 6. Prima di portare qualcosa: controlla se c'è già
 
+**Il report aggiornato di cosa è arrivato da Soulgold e cosa no è
+`docs/SOULGOLD_PORT_REPORT.md`**: tienilo in pari a ogni port. Il codice di SG
+portato è allineato a **SG 1.1.4** più i fix del §4 di quel report; per un
+nuovo giro di sync si parte da `git diff a374881df upstream/master` in
+`soulgold`, e la maggior parte di quello che esce è contenuto di SG (squadre,
+learnset, tratti), non da portare.
+
 Vale più di qualunque stima. Cose date per mancanti che invece c'erano, spente:
 
 - **DexNav**: `src/dexnav.c` (2691 righe), `include/config/dexnav.h`, le 12 grafiche,
