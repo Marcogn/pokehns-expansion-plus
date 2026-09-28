@@ -129,6 +129,13 @@ EventScript_EndTrainerBattle::
 	releaseall
 	end
 
+@ TRAINER CATCH ended the battle with a capture: the Trainer was not beaten,
+@ so skip whatever the map script does after a win (a Gym badge, a story
+@ step) and let them challenge again next time.
+EventScript_TrainerMonCaught::
+	releaseall
+	end
+
 Std_MsgboxAutoclose::
 	message NULL
 	waitmessage

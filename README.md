@@ -53,6 +53,9 @@ existed is migrated on load (`SAVE_VERSION` in `include/save.h`).
 | Enhanced DexNav | `ENHANCED DEXNAV` ON/OFF | One switch, **on by default**, over two things that are never wanted apart. The search half is Soulgold's: it always finds a spot, the target neither relocates nor flees, and there is no timer, so creeping stops mattering exactly as it already does in Soulgold. The listing half is not Soulgold's — it gates the area list on the Pokédex the same way HnS does — and shows every species in the area, seen or not. Off leaves the HGSS-style behaviour HnS ships. |
 | Follower toggle in both party menus | — | The classic menu already had it; the SwSh menu now does too. |
 | Bag icons readable in both themes | — | The registered-item `SEL` badge and the HM badge sat on palette entries that flip with the theme, so each came out as a bright box over the dark bag. Both now use entries that mean the same colour in either theme. Not a port: Soulgold's own HM badge has the same problem. |
+| Catching Trainers' Pokémon | `TRAINER CATCH` OFF/ON, challenge menu (Features), changeable from the PC | A Ball thrown at a Trainer's Pokémon works like on a wild one, and the battle ends with the catch. The Trainer does not count as beaten: no badge, no story step, and they challenge you again. Facility, link and partner battles and Mirror Mode are left out. |
+| Full party editor (debug) | Debug menu → Party → Edit Pokemon → Edit All… | Level, shininess, nature (the stat one, as a Mint sets it), ability, Tera type, IVs, EVs and moves of a party Pokémon, each screen starting from its current values. |
+| Force Shiny (debug) | Debug menu → Flags & Vars → Toggle Force Shiny | Every wild, gift and hatched Pokémon comes out shiny while it is on. |
 
 ### Switched on and finished here
 

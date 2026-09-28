@@ -10827,6 +10827,35 @@ bool32 IsAllowedToUseBag(void)
     }
 }
 
+// TRAINER CATCH (challenge menu, Features tab). Only the ordinary overworld
+// Trainer battles qualify. Facilities, link and recorded battles have their
+// own bookkeeping that a caught Pokemon would break, a partner's party is not
+// the player's to add to, and Mirror Mode swaps the player's party back from a
+// backup at the end of the battle, which would throw the new catch away.
+bool32 CanCatchTrainerMon(void)
+{
+    if (!gSaveBlock3Ptr->challengeSettings.trainerCatch)
+        return FALSE;
+    if (!(gBattleTypeFlags & BATTLE_TYPE_TRAINER))
+        return FALSE;
+    if (gBattleTypeFlags & (BATTLE_TYPE_LINK
+                          | BATTLE_TYPE_RECORDED
+                          | BATTLE_TYPE_RECORDED_LINK
+                          | BATTLE_TYPE_FRONTIER
+                          | BATTLE_TYPE_EREADER_TRAINER
+                          | BATTLE_TYPE_TRAINER_HILL
+                          | BATTLE_TYPE_SECRET_BASE
+                          | BATTLE_TYPE_MULTI
+                          | BATTLE_TYPE_INGAME_PARTNER
+                          | BATTLE_TYPE_FIRST_BATTLE))
+        return FALSE;
+    if (CurrentBattlePyramidLocation() != PYRAMID_LOCATION_NONE)
+        return FALSE;
+    if (gSaveBlock3Ptr->challengeSettings.tx_Challenges_Mirror)
+        return FALSE;
+    return TRUE;
+}
+
 bool32 IsMimikyuDisguised(enum BattlerId battler)
 {
     return gBattleMons[battler].species == SPECIES_MIMIKYU_DISGUISED

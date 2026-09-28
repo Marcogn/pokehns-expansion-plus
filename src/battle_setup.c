@@ -99,6 +99,11 @@ EWRAM_DATA u16 gPartnerTrainerId = 0;
 EWRAM_DATA static u8 *sTrainerBattleEndScript = NULL;
 EWRAM_DATA static bool8 sShouldCheckTrainerBScript = FALSE;
 EWRAM_DATA static u8 sNoOfPossibleTrainerRetScripts = 0;
+// Set when TRAINER CATCH ended the last Trainer battle with a capture. The map
+// script resumes after the battle as if it had been won - for a Gym Leader
+// that is the badge - so the next post-battle lookup hands back a script that
+// just ends instead. See CanCatchTrainerMon.
+EWRAM_DATA static bool8 sTrainerMonCaught = FALSE;
 
 // The first transition is used if the enemy Pokémon are lower level than our Pokémon.
 // Otherwise, the second transition is used.
@@ -1580,6 +1585,7 @@ void ClearTrainerFlag(u16 trainerId)
 
 void BattleSetup_StartTrainerBattle(void)
 {
+    sTrainerMonCaught = FALSE;
     if (gNoOfApproachingTrainers == 2)
     {
         if (FollowerNPCIsBattlePartner())
@@ -1720,6 +1726,17 @@ static void CB2_EndTrainerBattle(void)
             HealPlayerParty();
     }
 
+    if (gBattleOutcome == B_OUTCOME_CAUGHT)
+    {
+        // Only TRAINER CATCH gets here. The battle is over, but the Trainer was
+        // not beaten: no flag, no rematch bookkeeping, and the post-battle
+        // script is swapped for one that ends, so they challenge again.
+        sTrainerMonCaught = TRUE;
+        DowngradeBadPoison();
+        SetMainCallback2(CB2_ReturnToFieldContinueScriptPlayMapMusic);
+        return;
+    }
+
     if (GetTrainerBattleMode() == TRAINER_BATTLE_EARLY_RIVAL)
     {
         if (IsPlayerDefeated(gBattleOutcome) == TRUE)
@@ -1776,6 +1793,14 @@ static void CB2_EndTrainerBattle(void)
 
 static void CB2_EndRematchBattle(void)
 {
+    if (gBattleOutcome == B_OUTCOME_CAUGHT)
+    {
+        // TRAINER CATCH: a rematch script ends right after the battle, so only
+        // the "beaten" bookkeeping needs skipping. The rematch stays pending.
+        DowngradeBadPoison();
+        SetMainCallback2(CB2_ReturnToFieldContinueScriptPlayMapMusic);
+        return;
+    }
     if (TRAINER_BATTLE_PARAM.opponentA == TRAINER_SECRET_BASE)
     {
         DowngradeBadPoison();
@@ -1797,6 +1822,7 @@ static void CB2_EndRematchBattle(void)
 
 void BattleSetup_StartRematchBattle(void)
 {
+    sTrainerMonCaught = FALSE;
     gBattleTypeFlags = BATTLE_TYPE_TRAINER;
     gMain.savedCallback = CB2_EndRematchBattle;
     DoTrainerBattle();
@@ -1831,6 +1857,11 @@ void ShowTrainerIntroSpeech(void)
 
 const u8 *BattleSetup_GetScriptAddrAfterBattle(void)
 {
+    if (sTrainerMonCaught)
+    {
+        sTrainerMonCaught = FALSE;
+        return EventScript_TrainerMonCaught;
+    }
     if (sTrainerBattleEndScript != NULL)
         return sTrainerBattleEndScript;
     else
@@ -1839,6 +1870,11 @@ const u8 *BattleSetup_GetScriptAddrAfterBattle(void)
 
 const u8 *BattleSetup_GetTrainerPostBattleScript(void)
 {
+    if (sTrainerMonCaught)
+    {
+        sTrainerMonCaught = FALSE;
+        return EventScript_TrainerMonCaught;
+    }
     if (sShouldCheckTrainerBScript)
     {
         sShouldCheckTrainerBScript = FALSE;

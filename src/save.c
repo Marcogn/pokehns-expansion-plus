@@ -1015,6 +1015,19 @@ u8 LoadGameSave(u8 saveType)
 
         gSaveBlock1Ptr->saveVersion = 6;
     }
+    if (gSaveBlock1Ptr->saveVersion < 7)
+    {
+        // trainerCatch reuses the bit that DEXNAV SOULGOLD held before it was
+        // merged into ENHANCED DEXNAV, so a save that had that option on would
+        // wake up able to catch Trainers' Pokemon. Start every existing save
+        // with it off; it is one toggle away in the PC's challenge menu.
+        gSaveBlock3Ptr->challengeSettings.trainerCatch = FALSE;
+        // FLAG_FORCE_SHINY is the old FLAG_UNUSED_3. Upstream's history is a
+        // single squashed commit, so there is no proving an older HnS never
+        // wrote it; if it did, every wild Pokemon would come out shiny.
+        FlagClear(FLAG_FORCE_SHINY);
+        gSaveBlock1Ptr->saveVersion = 7;
+    }
 
     // Add version migration steps here:
     // if (gSaveBlock1Ptr->saveVersion < 1)
