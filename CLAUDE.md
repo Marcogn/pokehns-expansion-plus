@@ -15,6 +15,27 @@ zip -9 pokemonHnS_<descrizione>_<sha>.zip pokehns.gba
 **Consegna sempre la ROM completa da 32 MB compressa.** Niente ROM tagliate: il
 padding lo toglie la compressione, non il file. Zippata sta intorno ai 18 MB.
 
+**ROM in chat, patch nel repo.** All'utente si consegna la ROM zippata; quello
+che si pubblica è solo la patch BPS, sulle release di GitHub (mai nel git: è
+grande quanto la ROM).
+
+```sh
+tools/make_patch.sh                     # pokehns.gba -> pokehns.bps
+git tag v<x> && git push origin v<x>    # .github/workflows/release.yml pubblica la release
+```
+
+La base è **Emerald USA pulito**, e non la deve fornire nessuno: lo script lo
+ricompila da pret/pokeemerald (commit fissati nello script, ~1 min, in cache in
+`~/.cache/hasep-patch`) e si ferma se lo SHA-1 non è
+`f3ae088181bf583e55daf962a92bb46f4f1d07b7`. Poi riapplica la patch alla base e
+la confronta con la ROM: una patch che non riproduce la build non viene
+scritta. **BPS e non IPS**: IPS ha offset a 24 bit e si ferma a 16 MB, Hasep
+ne occupa 32. Non aspettarti una patch piccola: un hack compilato dal decomp
+ridispone quasi tutta la ROM. Misurato sulla build di `668cfc6d`: `.bps` di
+**18,4 MB**, 17,2 zippata, cioè quanto la ROM zippata. La patch esce identica
+byte per byte rilanciando lo script, ed è stata verificata anche con un
+applicatore BPS scritto a parte, non solo con Flips che l'ha creata.
+
 Prima di ogni build, se hai toccato direttive del preprocessore:
 
 ```sh
@@ -734,10 +755,14 @@ Per il seguito: dopo le mega qualunque altra aggiunta grossa non entra più.
 Verificate su `master` pulito, **prima** di qualunque modifica:
 
 - `make all`, `make firered`, `make leafgreen` falliscono su `src/mom_savings.c`;
-- `make check` fallisce in entrambe le varianti; `test/save.c` fissa dimensioni stale;
-- la CI **non costruisce mai** il target `hns`, quindi oggi non protegge da nulla.
+- `make check` fallisce in entrambe le varianti; `test/save.c` fissa dimensioni stale.
 
-Se qualcuno chiede di sistemare la CI, il lavoro utile è restringerla a `hns`.
+La CI ereditata costruiva proprio quei target, e mai `hns`: era rossa su
+`master` e non proteggeva nulla. Ora `.github/workflows/build.yml` costruisce
+**solo** `make hns` e scrive nel riepilogo quanto dei 32 MB è usato (la parte
+prima del padding finale a `0xFF`). Il job `build` resta come cancello per
+eventuali regole di protezione del branch. Se un giorno servono di nuovo gli
+altri target, vanno prima riparati, non solo riaccesi.
 
 ---
 
