@@ -59,8 +59,21 @@ jobs:
       - name: ROM size
         run: |
           # The ROM is padded to 32 MiB, so measure the used part: everything
-          # before the trailing run of 0xFF padding.
-          python3 -c "d=open('pokehns.gba','rb').read(); u=len(d.rstrip(b'\\xff')); print(f'{u} of {len(d)} bytes used ({100*u/len(d):.2f}%)')" | tee -a "$GITHUB_STEP_SUMMARY"
+          # before the trailing run of 0xFF padding. Warn from 98%, fail from
+          # 99.5%: megas alone would take it to 99.46% (CLAUDE.md 7bis), which
+          # must be visible but is still a ROM that fits.
+          set -o pipefail  # or tee would hide python's exit code
+          python3 - <<'PY' | tee -a "$GITHUB_STEP_SUMMARY"
+          import sys
+          d = open('pokehns.gba', 'rb').read()
+          used = len(d.rstrip(b'\xff'))
+          pct = 100 * used / len(d)
+          msg = f'{used} of {len(d)} bytes used ({pct:.2f}%), {len(d) - used} free'
+          if pct >= 99.5:
+              print(f'::error::ROM almost full: {msg}')
+              sys.exit(1)
+          print(f'::warning::ROM above 98%: {msg}' if pct >= 98 else msg)
+          PY
 
   # Gate job: satisfies the "build" branch protection rule.
   build:
