@@ -143,7 +143,8 @@ ragionamento girava a vuoto da un'ora. Ricordati di `cp` del file prima.
 - Bit liberi: **0**. L'ultimo (`unusedDexNavBit`, liberato fondendo `DEXNAV SHOW
   ALL` e `DEXNAV SOULGOLD`) ora è `trainerCatch`. **La prossima opzione deve
   ingrandire la struct**, e quello sposta il layout del salvataggio — oppure
-  vivere in un flag, come fa Soulgold per le luci.
+  vivere in un flag, come fa Soulgold per le luci, oppure nel byte
+  `soundAndFieldOptions` (vedi sotto, 3 bit liberi).
   Riusare un bit che ha già avuto un significato vuol dire che nei salvataggi
   passati per quelle build può valere 1: per questo il passo
   `saveVersion < 7` lo azzera. Stessa cautela per `FLAG_FORCE_SHINY` (ex
@@ -174,6 +175,40 @@ del menu opzioni. **Ogni campo nuovo va aggiunto anche a quella lista**, altrime
 la scelta fatta dal titolo viene persa in silenzio. Nota: quel memset tocca
 **solo** `challengeSettings`, non tutto SaveBlock3, quindi i campi aggiunti fuori
 dalla struct non passano di lì.
+
+### `soundAndFieldOptions`: il secondo posto per le opzioni
+
+Dal `SAVE_VERSION 8` (Fast HMs, tema musica di lotta, musica notturna nei
+Centri) c'è un secondo contenitore, **in coda a SaveBlock3 dopo `candyJarExp`**
+(offset 56): `struct SoundAndFieldOptions`, un byte di bitfield.
+`ChallengeSettings` non è stata toccata.
+
+| campo | bit | polarità |
+| --- | --- | --- |
+| `fastHms` | 1 | 0 = OFF (default) |
+| `battleMusicTheme` | 3 | `enum BattleMusicTheme`, 0 = DEFAULT (regionale) |
+| `noNightCenterMusic` | 1 | **invertito**: 0 = musica notturna ON (default) |
+| `unused` | 3 | liberi |
+
+- **Flag specchio.** `FLAG_FAST_HMS` (`ENGINE_FLAGS_START + 13`) è lo stato a
+  runtime, come `FLAG_EVEN_FASTER_JOY`: lo leggono gli script (`goto_if_set`) e
+  `ShouldSkipHmAnimation()`. Lo scrivono `Task_Save` e `NewGameInitData`. Il
+  campo serve solo a farlo sopravvivere a `ClearSav1()` di inizio partita.
+  Engine flag liberi: da `+14`.
+- **Trappola trovata verificando: `NewGameInitData` chiama `ClearSav3()`.** Il
+  piano diceva "il memset di `oak_speech_hns.c` tocca solo `challengeSettings`",
+  vero, ma `NewGameInitData` azzera **tutta** SaveBlock3 e restituiva a mano
+  solo `challengeSettings`. Un campo nuovo fuori da quella struct va quindi
+  salvato e ripristinato **anche lì** (`savedSoundAndField`), altrimenti la scelta
+  fatta dal titolo sparisce in silenzio. Verificato: dal titolo FAST HMS ON +
+  DPPT + NIGHT CENTER OFF, nuova partita, byte `0x1B` e flag 2413 TRUE.
+- **`sizeof(struct SoundAndFieldOptions)` è 4, non 1**: con `-mabi=apcs-gnu` ogni
+  struct è arrotondata a una word. L'offset resta 56 e `SaveBlock3` arriva a 60
+  byte; l'assert che conta è `sizeof(SaveBlock3) <= SAVE_BLOCK_3_CHUNK_SIZE`.
+- Migrazione `saveVersion < 8` in `LoadGameSave`: azzera il campo e il flag.
+- **L'opzione `BATTLE MUSIC` ha 7 scelte e il menu ne disegnava al massimo 4**:
+  `DrawChoices_Many` mostra solo la scelta corrente fra `<` e `>`. Le prime
+  schermate mostravano la riga vuota; l'ho visto solo in emulatore.
 
 ### C'è già un sistema di migrazione dei salvataggi: usalo
 
@@ -545,6 +580,26 @@ vuoti non è una verifica.** Controlla sempre che l'estratto non sia vuoto.
 ---
 
 ## 7. Altre cose da sapere
+
+- **Script delle MN: la build `hns` usa `data/scripts/field_move_scripts_hns.inc`**,
+  non `field_move_scripts.inc` (`data/event_scripts.s`, `#if IS_HNS`). Il piano
+  del port di Fast HMs citava il secondo e dava per uguali le etichette di SG:
+  non lo sono. Nel file `_hns` Taglio, Spaccaroccia, Forza, Cascata e Testata
+  hanno **già** il sì/no e il `dofieldeffect` commentati, e Strength mostra il
+  messaggio dentro `EventScript_ActivateStrength`. Prima di toccare uno script di
+  MN controlla quale dei due file è compilato (`nm pokehns.elf | grep
+  EventScript_CutTree` e confronta con le etichette).
+- **Leggere il brano in riproduzione, per verificare la musica.** Con
+  `mgba -g` (stub GDB, porta 2345) si legge la memoria con un client di dieci
+  righe in Python (`$` + `m<addr>,<len>` + checksum). `gMPlayInfo_BGM` (da
+  `nm pokehns.elf`) ha il puntatore all'header del brano al primo campo: lo si
+  confronta con gli indirizzi dei simboli `mus_*` (`nm`) e si ha il nome. Per
+  l'ora, `mgba` non ha opzioni RTC: si lancia con `faketime -f "@2026-10-12
+  23:00:00" /usr/games/mgba ...`. Le stesse due scritture in RAM (`M<addr>,...`)
+  permettono di dare mosse a un Pokémon: struct a bitfield cifrata
+  (`personality ^ otId`), mosse negli 11 bit bassi dei primi quattro u16 della substruct
+  indicata da `sSubstructOffsets[1][personality % 24]` (i 5 alti sono altro),
+  checksum a somma di u16 da ricalcolare.
 
 - **Menu squadra SwSh**: due varianti compilate insieme. `tools/gen_party_menu_variant.py`
   rigenera `include/party_menu_variant.h` e `src/party_menu_dispatch.c`. Lo script è

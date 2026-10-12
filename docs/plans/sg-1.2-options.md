@@ -248,6 +248,23 @@ hunk, controllando ogni etichetta e funzione **nella versione di Hasep**
 
 ---
 
+## Esito dell'implementazione (differenze dal piano)
+
+- **§1 salvataggio**: `sizeof(struct SoundAndFieldOptions)` è 4 (ABI apcs-gnu),
+  non 1; l'assert sulla size è sostituita da `sizeof(SaveBlock3) <= CHUNK`.
+- **§1 `NewGameInitData`**: il piano dava per sicuro che non azzerasse il campo.
+  Lo azzerava (`ClearSav3()`): ora salva e ripristina `soundAndFieldOptions`.
+- **§3 menu**: il menu disegnava al massimo 4 scelte; aggiunto `DrawChoices_Many`
+  per le 7 di `BATTLE MUSIC`.
+- **§7 script**: la build `hns` compila `field_move_scripts_hns.inc`, non
+  `field_move_scripts.inc` (che è il ramo non-HnS). Lì Taglio, Spaccaroccia,
+  Forza, Cascata e Testata non hanno più il sì/no né l'effetto: l'opzione toglie
+  il messaggio "usato". Le etichette di SG (`EventScript_PushABoulderLikeBathanielNandy`,
+  `EventScript_MoveUpAWaterfall`, …) non esistono qui e sono state create.
+  `field_move_scripts.inc` non è stato toccato.
+
+---
+
 ## Prompt per la sessione Sonnet
 
 ```
