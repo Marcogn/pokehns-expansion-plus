@@ -30,8 +30,16 @@ enum {
 };
 
 #define VERSION_BANNER_RIGHT_TILEOFFSET 64
+#if IS_HNS
+// The "+" after SOUL makes the banner 7 px longer to the right. HnS centres
+// the banner on the logo, not the screen (measured: pill x 76-159, centre
+// 117.5; logo centre ~116), so it moves 4 px left to keep that centre.
+#define VERSION_BANNER_LEFT_X (98 - 4)
+#define VERSION_BANNER_RIGHT_X (162 - 4)
+#else
 #define VERSION_BANNER_LEFT_X 98
 #define VERSION_BANNER_RIGHT_X 162
+#endif
 #define VERSION_BANNER_Y 2
 #if IS_HNS
 #define VERSION_BANNER_Y_GOAL 58
