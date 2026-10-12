@@ -107,10 +107,15 @@ what stops someone from re-evaluating them.
 - Hasep: `make hns -j$(nproc) -O` must pass. Report how much of the 32 MB is
   used before and after (§7bis: ~95% before megas; anything that pushes past
   ~99% is a stop-and-ask).
-- Every **behaviour** change from job A or C gets checked in mGBA (CLAUDE.md §3)
-  on the thing it changes, not just "the game boots". If something cannot be
-  tested here (needs a save at a point you can't reach), say so explicitly in
-  the PR and to the user instead of calling it verified.
+- mGBA is **not** part of the default run: driving it costs time and a
+  screenshot per step. Instead, write in the PR and in the final message a
+  short "cosa provare" list: for each behaviour change from job A or C, where
+  to go in the game and what should happen. The user tests on their device.
+- Use mGBA (CLAUDE.md §3) only when the user asks, or for a change whose
+  failure would damage saves (anything near save layout or migration): there,
+  load the user's save and check that it still loads and the party is intact.
+- Never call a change "verified" when it was only built. Say "compila, non
+  provato in gioco".
 - `make check` and the CI are already broken upstream (§8): their failure is
   not a sync regression, and passing them is not a verification either.
 
