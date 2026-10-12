@@ -10,10 +10,15 @@ EventScript_CutTree::
 	buffermovename STR_VAR_2, MOVE_CUT
 	@msgbox Text_WantToCut, MSGBOX_YESNO
 	@goto_if_eq VAR_RESULT, NO, EventScript_CancelCut
+	goto_if_set FLAG_FAST_HMS, EventScript_CutTreeCommon
 	msgbox Text_MonUsedFieldMove, MSGBOX_DEFAULT
 	closemessage
 EventScript_CutTreeCommon:
+	@ FAST HMS also keeps the follower out of the field move swap
+	setvar VAR_0x8004, FALSE
+	goto_if_set FLAG_FAST_HMS, EventScript_CutTreeStartEffect
 	isfollowerfieldmoveuser VAR_0x8004
+EventScript_CutTreeStartEffect:
 	@setfieldeffectargument 3, VAR_0x8004 @ skip pose if so
 	@dofieldeffect FLDEFF_USE_CUT_ON_TREE
 	@waitstate
@@ -76,11 +81,15 @@ EventScript_RockSmash::
 	buffermovename STR_VAR_2, MOVE_ROCK_SMASH
 	@msgbox Text_WantToSmash, MSGBOX_YESNO
 	@goto_if_eq VAR_RESULT, NO, EventScript_CancelSmash
+	goto_if_set FLAG_FAST_HMS, EventScript_RockSmashCommon
 	msgbox Text_MonUsedFieldMove, MSGBOX_DEFAULT
 	closemessage
 EventScript_RockSmashCommon:
 	@ check if follower should use the field move
+	setvar VAR_0x8004, FALSE
+	goto_if_set FLAG_FAST_HMS, EventScript_RockSmashStartEffect
 	isfollowerfieldmoveuser VAR_0x8004
+EventScript_RockSmashStartEffect:
 	@setfieldeffectargument 3, VAR_0x8004 @ skip pose if so
 	@dofieldeffect FLDEFF_USE_ROCK_SMASH
 	@waitstate
@@ -113,11 +122,15 @@ EventScript_Headbutt::
 	goto_if_eq VAR_RESULT, PARTY_SIZE, EventScript_CantHeadbuttTree
 	bufferpartymonnick STR_VAR_1, VAR_RESULT
 	setfieldeffectargument 0, VAR_RESULT
+	goto_if_set FLAG_FAST_HMS, EventScript_HeadbuttCommon
 	msgbox Text_MonUsedHeadbutt, MSGBOX_DEFAULT
 	closemessage
 EventScript_HeadbuttCommon:
 	@ check if follower should use the field move
+	setvar VAR_0x8004, FALSE
+	goto_if_set FLAG_FAST_HMS, EventScript_HeadbuttStartEffect
 	isfollowerfieldmoveuser VAR_0x8004
+EventScript_HeadbuttStartEffect:
 EventScript_HeadbuttTree:: @ fallthrough
 	setflag FLAG_SAFE_FOLLOWER_MOVEMENT
 	call_if_eq VAR_0x8004, TRUE, EventScript_FollowerFieldMove
@@ -348,7 +361,9 @@ EventScript_UseStrength::
 
 EventScript_ActivateStrength::
 	setflag FLAG_SYS_USE_STRENGTH
+	goto_if_set FLAG_FAST_HMS, EventScript_EndStrength
 	msgbox Text_MonUsedStrength, MSGBOX_DEFAULT
+EventScript_EndStrength:
 	releaseall
 	end
 
@@ -358,6 +373,7 @@ EventScript_CantStrength::
 	end
 
 EventScript_CheckActivatedBoulder::
+	goto_if_set FLAG_FAST_HMS, EventScript_EndStrength
 	msgbox Text_StrengthActivated, MSGBOX_DEFAULT
 	releaseall
 	end
@@ -392,7 +408,9 @@ EventScript_UseWaterfall::
 	setfieldeffectargument 0, VAR_RESULT
 	@msgbox Text_WantToWaterfall, MSGBOX_YESNO
 	@goto_if_eq VAR_RESULT, NO, EventScript_EndWaterfall
+	goto_if_set FLAG_FAST_HMS, EventScript_MoveUpAWaterfall
 	msgbox Text_MonUsedWaterfall, MSGBOX_DEFAULT
+EventScript_MoveUpAWaterfall:
 	dofieldeffect FLDEFF_USE_WATERFALL
 	goto EventScript_EndWaterfall
 
@@ -424,9 +442,11 @@ EventScript_UseDive::
 	bufferpartymonnick STR_VAR_1, VAR_RESULT
 	setfieldeffectargument 0, VAR_RESULT
 	setfieldeffectargument 1, 1
+	goto_if_set FLAG_FAST_HMS, EventScript_DiveDown
 	msgbox Text_WantToDive, MSGBOX_YESNO
 	goto_if_eq VAR_RESULT, NO, EventScript_EndDive
 	msgbox Text_MonUsedDive, MSGBOX_DEFAULT
+EventScript_DiveDown:
 	dofieldeffect FLDEFF_USE_DIVE
 	goto EventScript_EndDive
 	end
@@ -447,9 +467,11 @@ EventScript_UseDiveUnderwater::
 	bufferpartymonnick STR_VAR_1, VAR_RESULT
 	setfieldeffectargument 0, VAR_RESULT
 	setfieldeffectargument 1, 1
+	goto_if_set FLAG_FAST_HMS, EventScript_DiveSurface
 	msgbox Text_WantToSurface, MSGBOX_YESNO
 	goto_if_eq VAR_RESULT, NO, EventScript_EndSurface
 	msgbox Text_MonUsedDive, MSGBOX_DEFAULT
+EventScript_DiveSurface:
 	dofieldeffect FLDEFF_USE_DIVE
 	goto EventScript_EndSurface
 	end
@@ -581,7 +603,10 @@ EventScript_UseDig::
 
 
 EventScript_CutGrassCommon:
+	setvar VAR_0x8004, FALSE
+	goto_if_set FLAG_FAST_HMS, EventScript_CutGrassStartEffect
 	isfollowerfieldmoveuser VAR_0x8004
+EventScript_CutGrassStartEffect:
 	setfieldeffectargument 3, VAR_0x8004 @ skip pose if true
 	dofieldeffect FLDEFF_USE_CUT_ON_GRASS
 	waitstate
@@ -595,9 +620,12 @@ EventScript_UseDefog::
 	lockall
 	bufferpartymonnick STR_VAR_1, VAR_RESULT
 	buffermovename STR_VAR_2, MOVE_DEFOG
+	setvar VAR_0x8004, FALSE
+	goto_if_set FLAG_FAST_HMS, EventScript_DefogStartEffect
 	msgbox Text_MonUsedFieldMove, MSGBOX_DEFAULT
 	closemessage
 	isfollowerfieldmoveuser VAR_0x8004
+EventScript_DefogStartEffect:
 	setfieldeffectargument 3, VAR_0x8004 @ skip pose if so
 	setflag FLAG_SAFE_FOLLOWER_MOVEMENT
 	call_if_eq VAR_0x8004, TRUE, EventScript_FollowerFieldMove
@@ -614,9 +642,11 @@ EventScript_UseRockClimb::
 	goto_if_eq VAR_RESULT, PARTY_SIZE, EventScript_CantRockClimb
 	bufferpartymonnick STR_VAR_1, VAR_RESULT
 	setfieldeffectargument 0, VAR_RESULT
+	goto_if_set FLAG_FAST_HMS, EventScript_RockClimbStartEffect
 	msgbox Text_WantToRockClimb, MSGBOX_YESNO
 	goto_if_eq VAR_RESULT, NO, EventScript_EndRockClimb
 	msgbox Text_MonUsedRockClimb, MSGBOX_DEFAULT
+EventScript_RockClimbStartEffect:
 	closemessage
 	dofieldeffect FLDEFF_USE_ROCK_CLIMB
 	waitstate

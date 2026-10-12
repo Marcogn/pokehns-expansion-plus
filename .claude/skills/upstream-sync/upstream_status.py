@@ -43,6 +43,9 @@ PORTED = [
     "src/battle_bg.c", "src/battle_interface.c", "src/battle_gfx_sfx_util.c",
     "src/menu.c", "src/start_menu.c", "src/pokemon_summary_screen.c",
     "src/daycare.c", "src/datetime.c", "src/rtc.c",
+    # Fast HMs (SG 1.2): the hunks are ported by hand, so read these diffs whole.
+    "src/field_effect.c", "src/fldeff_flash.c", "src/fldeff_rocksmash.c",
+    "data/scripts/field_move_scripts.inc", "data/scripts/surf.inc",
 ]
 
 # SG content: its own game, never ported (report section 5). Prefix match.
