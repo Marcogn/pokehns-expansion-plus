@@ -10,13 +10,13 @@ qui c'è l'elenco, con il rimando al punto giusto.
 
 ---
 
-## 0. Stato della sincronizzazione (28/09/2026)
+## 0. Stato della sincronizzazione (12/10/2026)
 
 | repo | allineato a | note |
 | --- | --- | --- |
-| `pokehns-expansion-plus` ← `PokemonHnS-Development/pokehns-expansion` | `167aa6d` (2.0.6) | 0 commit mancanti, verificato con `git rev-list --count HEAD..upstream/master` |
-| `Marcogn/soulgold` ← `Eemeliri/soulgold` | `dcba9e032` (27/09) | merge pulito, `make modern` compila |
-| codice di Soulgold portato in Hasep | Soulgold **1.1.4** (`a374881df`) + i fix elencati al §4 | `dexnav.c`, `candy_jar.c`, `swsh_party_menu.c`, `type_icons.c` e il codice degli speed-up in SG **non sono cambiati** dopo 1.1.4 |
+| `pokehns-expansion-plus` ← `PokemonHnS-Development/pokehns-expansion` | `167aa6d` (2.0.6) | 0 commit mancanti anche al 12/10, verificato con `git rev-list --count HEAD..upstream/master` |
+| `Marcogn/soulgold` ← `Eemeliri/soulgold` | `73a66207e` (08/10, SG 1.2) | merge pulito di 13 commit, `make modern` compila |
+| codice di Soulgold portato in Hasep | Soulgold **1.1.4** (`a374881df`) + i fix elencati al §4, valutato fino a `73a66207e` | dopo 1.1.4 in SG è cambiato solo `swsh_party_menu.c` (selezione squadra per le strutture lotta, fix applicato, §4); `dexnav.c`, `candy_jar.c`, `type_icons.c` e gli speed-up no |
 
 Il branch `claude/mega-type-stones` ha 3 commit **non ancora in master**
 (megaevoluzioni con le type stone di SG, due tasche nuove nella borsa). Vedi §5.
@@ -71,6 +71,37 @@ documentazione). Quello che riguarda anche Hasep:
 | `MonGainEVs` (moltiplicatori applicati più volte) | non applicato | il bug sta nel codice multi-strumento di SG, che Hasep non ha |
 | Fix del "fantasma" dopo il Rocket Arcade | non applicato | in Hasep il Rocket Arcade non c'è |
 
+Sync del 12/10/2026, commit di SG da `c913c4a2d` a `73a66207e` (SG 1.2), letti
+diff per diff:
+
+| cambio in SG | in Hasep | perché |
+| --- | --- | --- |
+| Mirror Armor, "non può calare oltre" (`39f2cc303`) | **applicato** | stesso bug in Hasep: `BattleScript_MirrorArmorReflectWontFall` copiava l'attaccante in `gBattlerTarget` e tornava al chiamante senza ripristinarlo, quindi le istruzioni successive dello script della mossa (es. il secondo calo di Parting Shot) agivano sull'attaccante. Ora `savetarget`/`restoretarget`. Letto dal codice, non riprodotto in gioco |
+| Bad Dreams lascia `sFIXED_ABILITY_POPUP` alzato (`39f2cc303`) | **applicato** | stesso script in Hasep: dal secondo turno il popup dell'abilità non compariva più |
+| Revive / cure a metà o a un quarto in lotta con PS massimi 1-3 (`39f2cc303`) | **applicato** | `BS_ItemRestoreHP`: `maxHP / 2` su Shedinja (1 PS) fa 0, cioè rianimato a 0 PS. Ora almeno 1. Il ramo Sitrus/`tx_Mode_New_Citrus` di Hasep è rimasto com'era |
+| Imposter dopo essere andato KO per gli hazard (`39f2cc303`) | **applicato** | `DoSwitchInEvents`: il controllo "è vivo?" stava solo prima del blocco, quindi chi moriva sugli hazard eseguiva lo stesso gli eventi successivi del blocco (abilità d'ingresso). Ora è controllato a ogni evento |
+| Conteggio squadra dopo una cattura con scambio (`39f2cc303`) | **applicato** | `GiveCapturedMonToPlayer`: dopo lo scambio dalla lotta lo slot liberato è in mezzo, e `gPlayerPartyCount = i + 1` contava meno Pokémon di quelli presenti. Ora `CalculatePlayerPartyCount()`. `GiveMonToPlayer` (regali da script) non ha buchi in mezzo e non è stato toccato |
+| Pensione: Everstone sul padre straniero (`39f2cc303`) | **applicato** | stesso codice in Hasep: un padre di forma regionale straniera con Pietrastante imponeva la **sua specie** all'uovo anche se la madre era di un'altra specie. Ora solo se la specie base coincide |
+| Menu squadra SwSh, scelta squadra per le strutture (`c913c4a2d`) | **applicato** | due pezzi: START conferma anche una squadra incompleta (come già il pulsante Conferma, poi la validazione chiede il minimo), e `UnselectLastBattleEntry` non legge più `gSelectedOrderFromParty[max - 1] - 1` = 255 quando l'ultima casella è vuota. In Hasep il secondo caso si raggiungeva già dal pulsante Conferma rispondendo NO |
+| `gLeveledUpInBattle` azzerato dopo lo scambio di cattura (`39f2cc303`) | **già presente** | |
+| Simple che va in overflow sopra +6 (`39f2cc303`) | non applicato | in SG nasce dai suoi tratti che moltiplicano i boost; in Hasep il boost più grande per mossa è +3, raddoppiato +6, nessun overflow |
+| Aura Shield / Omega / Infiltrator, Neutralizing Gas sui tratti, Ability Shield sui tratti (`c913c4a2d`) | non applicato | sistema a tratti multipli di SG |
+| `IsRuinStatusActive` senza l'eccezione Neutralizing Gas (`c913c4a2d`) | non applicato | conta solo se un Pokémon ha Neutralizing Gas **e** un'abilità Ruin insieme, cioè con i tratti di SG |
+| Maneuverability `<= 60` (`c913c4a2d`) | non applicato | abilità di SG |
+| Musica notturna nei Centri Pokémon (`c913c4a2d`) | non applicato | feature, candidato al §5 |
+| Tema della musica di lotta (`f81a55ff3`) | non applicato | feature, candidato al §5 |
+| Palette del box PC con trasferimento parziale (`f81a55ff3`) | non applicato | SG toglie una sua ottimizzazione (`transferWholePlttFrames`) che in Hasep non è mai esistita |
+| Fast HMs (`a9d41a7b9`) | non applicato | feature, candidato al §5 |
+| Sprite di surf regionali (`73a66207e`) | **già presente** | SG li ha presi da HnS 2.0: i 30 PNG e le voci in `surfable_pokemon.h` ci sono già |
+| Level scaling dei rivali (`39f2cc303`), versione 1.2 (`20089aa08`), MT75 Agility, testi, squadre, learnset, tratti, documentazione (`1d09352b9`, `b7d1534e3`, `29b53d739`, `f6a7d7c2b`, `ad91d8aa5`, `23412857c`, `145247fb4`) | non applicato | contenuto di SG. Il refuso di Motor Drive sta in una `longDescription` che Hasep non ha |
+
+Trovato e **non** corretto (non è nel diff di SG, presente in entrambi):
+`CheckBattleEntriesAndGetMessage` in `swsh_party_menu.c` confronta specie e
+strumenti di tutte le `maxBattlers` caselle anche quando le ultime sono vuote,
+leggendo `gPlayerParty[255]`. Con una squadra incompleta può dare un falso
+"stesso Pokémon / stesso strumento". Raggiungibile solo nelle strutture con
+minimo inferiore al massimo.
+
 ---
 
 ## 5. Non portato, e perché
@@ -89,6 +120,18 @@ documentazione). Quello che riguarda anche Hasep:
   In SG costano due flag. Da valutare: in Hasep le opzioni vivono in
   `ChallengeSettings`, e resta un bit libero solo (§4 di CLAUDE.md), quindi
   la strada più economica sono i flag come in SG.
+
+- **Fast HMs** (SG 1.2, `a9d41a7b9`): un'opzione che salta domanda,
+  messaggio e animazione delle MN (taglio, spaccaroccia, forza, surf, cascata,
+  sub, scalaroccia, volo, flash). In SG è un flag (`FLAG_FAST_HMS`) e tocca
+  `field_move_scripts.inc`, `surf.inc`, `field_effect.c`, `fldeff_*.c`.
+- **Tema della musica di lotta** (SG 1.2, `f81a55ff3`): sceglie fra le musiche
+  di lotta HGSS, RSE, FRLG, DPPT, HGSS Kanto o casuale per selvatici,
+  allenatori e capipalestra. Costa una var e i brani devono essere abilitati
+  in `songs_enabled.h` (spazio in ROM da misurare).
+- **Musica notturna nei Centri Pokémon** (`c913c4a2d`): di notte il Centro
+  suona il tema notturno di DP. Richiede di abilitare
+  `SONG_MUS_DP_POKE_CENTER_NIGHT` (spazio in ROM da misurare).
 
 **Contenuto e design di Soulgold, legati alle sue mappe e al suo bilanciamento**
 

@@ -12086,13 +12086,14 @@ void BS_ItemRestoreHP(void)
             healAmount = maxHP;
             break;
         case ITEM6_HEAL_HP_HALF:
-            healAmount = maxHP / 2;
+            // Shedinja has 1 max HP: maxHP / 2 would revive it with 0 HP.
+            healAmount = max(1, maxHP / 2);
             break;
         case ITEM6_HEAL_HP_QUARTER:
             if (gLastUsedItem == ITEM_SITRUS_BERRY && gSaveBlock3Ptr->challengeSettings.tx_Mode_New_Citrus == 0)
                 healAmount = 30;
             else
-                healAmount = maxHP / 4;
+                healAmount = max(1, maxHP / 4);
             break;
         default:
             healAmount = healParam;

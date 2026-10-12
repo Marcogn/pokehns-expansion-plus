@@ -438,7 +438,6 @@ static void TryGiveItemOrMailToSelectedMon(u8);
 static void SwitchSelectedMons(u8);
 static void TryEnterMonForMinigame(u8, u8);
 static void Task_TryCreateSelectionWindow(u8);
-static bool8 IsBattleEntrySelectionComplete(void);
 static inline u8 GetButtonPromptType(void);
 static void ShowButtonPrompt(u8 type);
 static void RefreshSelectedMonInfoAndPrompt(void);
@@ -1993,7 +1992,7 @@ void Task_HandleChooseMonInput(u8 taskId)
             HandleChooseMonCancel(taskId, slotPtr);
             break;
         case START_BUTTON:
-            if (sPartyMenuInternal->chooseHalf && IsBattleEntrySelectionComplete())
+            if (sPartyMenuInternal->chooseHalf)
             {
                 PlaySE(SE_SELECT);
                 gPartyMenu.task(taskId);
@@ -3155,27 +3154,6 @@ static void PrintTextOnWindowWithFont(u8 windowId, const u8 *string, u8 x, u8 y,
 static void PrintTextOnWindowToFit(u8 windowId, const u8 *string, u8 x, u8 y, u32 width, u8 colorId, u32 fontId)
 {
     AddTextPrinterParameterized4(windowId, GetFontIdToFit(string, fontId, 0, width), x, y, 0, 0, sFontColorTable[colorId], 0, string);
-}
-
-static bool8 IsBattleEntrySelectionComplete(void)
-{
-    u8 i;
-    u8 maxBattlers;
-
-    if (sPartyMenuInternal == NULL || !sPartyMenuInternal->chooseHalf)
-        return FALSE;
-
-    maxBattlers = GetMaxBattleEntries();
-    if (maxBattlers == 0)
-        return FALSE;
-
-    for (i = 0; i < maxBattlers; i++)
-    {
-        if (gSelectedOrderFromParty[i] == 0)
-            return FALSE;
-    }
-
-    return TRUE;
 }
 
 static void ShowSelectedMonInfo(void)
@@ -10160,9 +10138,18 @@ static void UnselectLastBattleEntry(void)
 {
     u8 i;
     u8 maxBattlers = GetMaxBattleEntries();
-    u8 slot = gSelectedOrderFromParty[maxBattlers - 1] - 1;
+    u8 numSelected = maxBattlers;
+    u8 slot;
 
-    gSelectedOrderFromParty[maxBattlers - 1] = 0;
+    // The Confirm button (and START) can validate a team smaller than the
+    // maximum: the last selected entry is not necessarily the last slot.
+    while (numSelected != 0 && gSelectedOrderFromParty[numSelected - 1] == 0)
+        numSelected--;
+    if (numSelected == 0)
+        return;
+
+    slot = gSelectedOrderFromParty[numSelected - 1] - 1;
+    gSelectedOrderFromParty[numSelected - 1] = 0;
     DisplayPartyPokemonDescriptionText(PARTYBOX_DESC_ABLE_3, &sPartyMenuBoxes[slot], 1);
     for (i = 0; i < maxBattlers - 1; i++)
     {
