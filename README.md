@@ -58,6 +58,9 @@ is running.
 | Candy Jar | — | A Key Item that skims 90% of the Exp from every battle and turns it into Exp. Candies. Elm's Aide hands it over in the Violet City Pokémon Center along with the Togepi Egg. |
 | Shiny parents | — | A Day-Care Egg is 4x as likely to be shiny with one shiny parent, 8x with two. |
 | Exp. Candy order | — | Sorting the bag by type lists the Exp. Candies by size, biggest first. |
+| Fast HMs | `FAST HMS` OFF/ON | Skips the yes/no prompt, the "used X" message and the field-move pose. Cut, Rock Smash, Strength, Waterfall and Headbutt already had no prompt or animation in HnS, so for them it only drops the message. |
+| Battle music theme | `BATTLE MUSIC` DEFAULT / HG JOHTO / HG KANTO / FRLG / RSE / DPPT / RANDOM | Wild, Trainer, Gym Leader and Elite Four battles. DEFAULT keeps each region's own themes. Bosses, rivals, Team Rocket, champions, legendaries, link and facility battles never change. Unlike Soulgold: the default is regional, HG JOHTO is an option, and the Elite Four follows the theme. |
+| Night music in Pokémon Centers | `NIGHT CENTER` ON/OFF | At night the Center plays the DPPt night theme. On by default here; always on in Soulgold. |
 
 ### Added here
 

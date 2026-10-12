@@ -274,7 +274,8 @@ sono testo puro. Se una finestra resta chiara pur essendo nella lista di
 
 **Il report aggiornato di cosa è arrivato da Soulgold e cosa no è
 `docs/SOULGOLD_PORT_REPORT.md`**: tienilo in pari a ogni port. Il codice di SG
-portato è allineato a **SG 1.1.4** più i fix del §4 di quel report. Un nuovo
+portato è allineato a **SG 1.1.4** più i fix del §4 di quel report e le tre
+feature di SG 1.2 (Fast HMs, tema musica di lotta, musica notturna nei Centri). Un nuovo
 giro di sync (HnS e Soulgold insieme) si fa con la skill
 `.claude/skills/upstream-sync/` (`/upstream-sync`): lo script
 `upstream_status.py` fa fetch e classificazione, e il punto da cui ripartire
