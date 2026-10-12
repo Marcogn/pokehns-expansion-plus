@@ -1,0 +1,5 @@
+{
+  "soulgold_evaluated_upto": "dcba9e03266f0bda2549062f16ce5aeb82a0ea11",
+  "soulgold_evaluated_on": "2026-09-28",
+  "note": "Last Eemeliri/soulgold commit whose changes were evaluated for porting into Hasep. Bump it in the same commit that records the evaluation in docs/SOULGOLD_PORT_REPORT.md section 4."
+}

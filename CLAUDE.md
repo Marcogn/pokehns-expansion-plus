@@ -210,10 +210,13 @@ sono testo puro. Se una finestra resta chiara pur essendo nella lista di
 
 **Il report aggiornato di cosa è arrivato da Soulgold e cosa no è
 `docs/SOULGOLD_PORT_REPORT.md`**: tienilo in pari a ogni port. Il codice di SG
-portato è allineato a **SG 1.1.4** più i fix del §4 di quel report; per un
-nuovo giro di sync si parte da `git diff a374881df upstream/master` in
-`soulgold`, e la maggior parte di quello che esce è contenuto di SG (squadre,
-learnset, tratti), non da portare.
+portato è allineato a **SG 1.1.4** più i fix del §4 di quel report. Un nuovo
+giro di sync (HnS e Soulgold insieme) si fa con la skill
+`.claude/skills/upstream-sync/` (`/upstream-sync`): lo script
+`upstream_status.py` fa fetch e classificazione, e il punto da cui ripartire
+per Soulgold sta in `state.json`, non più in uno SHA scritto qui. La maggior
+parte di quello che esce è contenuto di SG (squadre, learnset, tratti), non da
+portare.
 
 Vale più di qualunque stima. Cose date per mancanti che invece c'erano, spente:
 
