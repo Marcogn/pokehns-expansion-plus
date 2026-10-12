@@ -15,6 +15,32 @@ zip -9 pokemonHnS_<descrizione>_<sha>.zip pokehns.gba
 **Consegna sempre la ROM completa da 32 MB compressa.** Niente ROM tagliate: il
 padding lo toglie la compressione, non il file. Zippata sta intorno ai 18 MB.
 
+**ROM in chat, patch nel repo.** All'utente si consegna la ROM zippata; quello
+che si pubblica è solo la patch BPS, sulle release di GitHub (mai nel git: è
+grande quanto la ROM).
+
+```sh
+tools/make_patch.sh                     # pokehns.gba -> pokehns.bps
+```
+
+La release la fa `.github/workflows/release.yml`: **Actions → Release → Run
+workflow**, si sceglie il branch e si scrive la versione (`2.0.6-plus.1` →
+tag `v2.0.6-plus.1`, creato dalla release stessa sul commit compilato). In
+alternativa basta pushare un tag `v*`. Il pulsante compare solo quando il file
+è sul branch di default.
+
+La base è **Emerald USA pulito**, e non la deve fornire nessuno: lo script lo
+ricompila da pret/pokeemerald (commit fissati nello script, ~1 min, in cache in
+`~/.cache/hasep-patch`) e si ferma se lo SHA-1 non è
+`f3ae088181bf583e55daf962a92bb46f4f1d07b7`. Poi riapplica la patch alla base e
+la confronta con la ROM: una patch che non riproduce la build non viene
+scritta. **BPS e non IPS**: IPS ha offset a 24 bit e si ferma a 16 MB, Hasep
+ne occupa 32. Non aspettarti una patch piccola: un hack compilato dal decomp
+ridispone quasi tutta la ROM. Misurato sulla build di `668cfc6d`: `.bps` di
+**18,4 MB**, 17,2 zippata, cioè quanto la ROM zippata. La patch esce identica
+byte per byte rilanciando lo script, ed è stata verificata anche con un
+applicatore BPS scritto a parte, non solo con Flips che l'ha creata.
+
 Prima di ogni build, se hai toccato direttive del preprocessore:
 
 ```sh
@@ -210,10 +236,13 @@ sono testo puro. Se una finestra resta chiara pur essendo nella lista di
 
 **Il report aggiornato di cosa è arrivato da Soulgold e cosa no è
 `docs/SOULGOLD_PORT_REPORT.md`**: tienilo in pari a ogni port. Il codice di SG
-portato è allineato a **SG 1.1.4** più i fix del §4 di quel report; per un
-nuovo giro di sync si parte da `git diff a374881df upstream/master` in
-`soulgold`, e la maggior parte di quello che esce è contenuto di SG (squadre,
-learnset, tratti), non da portare.
+portato è allineato a **SG 1.1.4** più i fix del §4 di quel report. Un nuovo
+giro di sync (HnS e Soulgold insieme) si fa con la skill
+`.claude/skills/upstream-sync/` (`/upstream-sync`): lo script
+`upstream_status.py` fa fetch e classificazione, e il punto da cui ripartire
+per Soulgold sta in `state.json`, non più in uno SHA scritto qui. La maggior
+parte di quello che esce è contenuto di SG (squadre, learnset, tratti), non da
+portare.
 
 Vale più di qualunque stima. Cose date per mancanti che invece c'erano, spente:
 
@@ -726,15 +755,60 @@ Per il seguito: dopo le mega qualunque altra aggiunta grossa non entra più.
 
 ---
 
+## 7quater. Schermata del titolo: il "+"
+
+La scritta "HEART & SOUL" è uno sprite 8bpp da 64×64
+(`graphics/title_screen/hns/emerald_version.png`), usato come due sprite da
+64×32 affiancati: metà sinistra = righe 0-31, metà destra = righe 32-63.
+Indici: 0 trasparente, 4 nero (bordo), 7 grigio scuro (fondo), 15 bianco
+(lettere); testo sulle righe 43-53 della metà destra, punta della pillola
+alla colonna 29.
+
+Il "+" sta **fuori** dalla pillola, che resta identica all'originale. È una
+scelta dell'utente: dentro l'ovale, sia "+" sia "PLUS" nel font del banner
+non stavano bene. Nero (indice 4), 9×9 a tratto 3, contorno bianco di 1 px
+(indice 15, sugli 8 vicini): 11×11, righe 43-53, colonne 32-42, cioè 2
+colonne trasparenti dopo la punta.
+
+**Centrato sul logo, non sullo schermo.** HnS allinea titolo e versione al
+logo: misurato in mGBA, logo (giallo + contorno blu) x 42-190, centro 116.
+Pillola + "+" senza spostamento: x 76-172, centro 124; per questo le due X
+in `src/title_screen.c` scendono di **8** (misurato dopo: x 68-164, centro
+116). Se si cambia la larghezza del "+", si rifà questa misura.
+
+**Versione sotto PRESS START** (`press_start.png`, stesso file del testo
+PRESS START): è una striscia di 20 tile = 160×8 px, disposta nel foglio come
+riga 1 x40-127 seguita da riga 2 x0-71 (sono 5 sprite 32×8, tile 21-40).
+Una colonna x della striscia è la x 48+x a schermo. Il font ha **solo
+maiuscole e cifre**: per questo la versione è `v2.0.6.PLUS.1` e non "plus".
+Glifi: P e S copiati dall'arte di PRESS START, L, U e 1 disegnati nello
+stesso schema (forma su 5 righe colorata per riga: 5, 5, 4, 3, 3; contorno
+nero = gli 8 vicini; lettere separate da 1 colonna nera; il punto è un pixel
+della riga 5 fra due colonne nere). Testo centrato su 116 come il logo: x
+79-153. Per cambiare numero di versione si rifà la striscia, non si scrive
+un testo.
+
+---
+
 ## 8. Rotture preesistenti (non tue)
 
 Verificate su `master` pulito, **prima** di qualunque modifica:
 
 - `make all`, `make firered`, `make leafgreen` falliscono su `src/mom_savings.c`;
-- `make check` fallisce in entrambe le varianti; `test/save.c` fissa dimensioni stale;
-- la CI **non costruisce mai** il target `hns`, quindi oggi non protegge da nulla.
+- `make check` fallisce in entrambe le varianti; `test/save.c` fissa dimensioni stale.
 
-Se qualcuno chiede di sistemare la CI, il lavoro utile è restringerla a `hns`.
+La CI ereditata costruiva proprio quei target, e mai `hns`: era rossa su
+`master` e non proteggeva nulla. Ora `.github/workflows/build.yml` costruisce
+**solo** `make hns` e scrive nel riepilogo quanto dei 32 MB è usato (la parte
+prima del padding finale a `0xFF`): **avviso dal 98%, errore dal 99,5%**.
+Le mega da sole porterebbero al 99,46% (§7bis), quindi avvisano ma passano. Il job `build` resta come cancello per
+eventuali regole di protezione del branch. Se un giorno servono di nuovo gli
+altri target, vanno prima riparati, non solo riaccesi.
+
+La CI compila con `UNUSED_ERROR=0`, come la ROM consegnata. Quello ereditato
+da expansion era 1, e con 1 `make hns` fallisce su **40** funzioni e variabili
+mai usate in 15 file, tutte di HnS spente dietro `IS_HNS`: un errore su codice
+che nessuno chiama, non su qualcosa che una modifica ha rotto.
 
 ---
 

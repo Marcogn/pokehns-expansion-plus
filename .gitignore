@@ -71,3 +71,4 @@ src/data/trainers_hns.h
 tools/poryscript
 porymap.user.json
 tools/mid2gbs/.venv
+*.bps
