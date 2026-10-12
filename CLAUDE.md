@@ -760,24 +760,23 @@ Per il seguito: dopo le mega qualunque altra aggiunta grossa non entra più.
 La scritta "HEART & SOUL" è uno sprite 8bpp da 64×64
 (`graphics/title_screen/hns/emerald_version.png`), usato come due sprite da
 64×32 affiancati: metà sinistra = righe 0-31, metà destra = righe 32-63.
-Indici: 0 trasparente, 4 bordo, 7 fondo, 15 lettere; glifi alti 11 righe,
-larghi 5, spaziatura 1, spazio fra parole 3.
+Indici: 0 trasparente, 4 nero (bordo), 7 grigio scuro (fondo), 15 bianco
+(lettere); testo sulle righe 43-53 della metà destra, punta della pillola
+alla colonna 29.
 
-- Il "+" è stato aggiunto **inserendo 7 colonne** copia della colonna 20
-  della metà destra (fondo puro, subito dopo la L di SOUL): la pillola si
-  allunga senza ridisegnare la punta. Il glifo è 5×5 a stroke 1, righe
-  46-50, centrato sulle 11 righe del testo.
-- **Il banner è centrato sul logo, non sullo schermo.** Misurato in mGBA:
-  pillola originale x 76-159, centro 117,5; logo (giallo) centro ~116. Per
-  questo con il "+" le due X in `src/title_screen.c` scendono di 4 (centro
-  117), non di 3,5 verso 120.
-- **Variante "PLUS" già pronta**: `emerald_version_PLUS_word.png` (non
-  referenziata, quindi non compilata). P ricavata dalla R di HEART senza la
-  gamba, L/U/S presi da SOUL. Inserisce 27 colonne: per usarla basta
-  copiarla su `emerald_version.png` e portare l'offset delle X da 4 a **14**
-  (misurato: pillola x 62-172, centro 117).
+Il "+" sta **fuori** dalla pillola, che resta identica all'originale. È una
+scelta dell'utente: dentro l'ovale, sia "+" sia "PLUS" nel font del banner
+non stavano bene. Nero (indice 4), 9×9 a tratto 3, contorno bianco di 1 px
+(indice 15, sugli 8 vicini): 11×11, righe 43-53, colonne 32-42, cioè 2
+colonne trasparenti dopo la punta.
 
+**Il banner non si sposta.** HnS lo centra sul logo, non sullo schermo
+(misurato in mGBA: pillola x 76-159, centro 117,5; logo ~116), e così resta:
+il "+" è un'aggiunta a destra, misurato a x 162-172.
 
+---
+
+## 8. Rotture preesistenti (non tue)
 
 Verificate su `master` pulito, **prima** di qualunque modifica:
 
