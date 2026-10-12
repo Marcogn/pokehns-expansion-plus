@@ -110,6 +110,13 @@ STATIC_ASSERT(offsetof(struct SaveBlock3, challengeSettings) == 16, SaveBlock3Ch
 // old saves would read a field that has moved and the migration would clear the
 // wrong bytes.
 STATIC_ASSERT(offsetof(struct SaveBlock3, candyJarExp) == 52, SaveBlock3CandyJarOffset);
+// Same rule for the sound/field options byte (SAVE_VERSION 8): the migration
+// that zeroes it is only correct while it stays at the end.
+STATIC_ASSERT(offsetof(struct SaveBlock3, soundAndFieldOptions) == 56, SaveBlock3SoundAndFieldOptionsOffset);
+// (sizeof(struct SoundAndFieldOptions) is 4, not 1: -mabi=apcs-gnu rounds every
+// struct up to a word. Harmless, but it is why this is not asserted.) Appending
+// must not push SaveBlock3 out of sector 0's 116-byte tail.
+STATIC_ASSERT(sizeof(struct SaveBlock3) <= SAVE_BLOCK_3_CHUNK_SIZE, SaveBlock3FitsFirstChunk);
 STATIC_ASSERT(sizeof(struct SaveBlock2) <= SECTOR_DATA_SIZE, SaveBlock2FreeSpace);
 STATIC_ASSERT(sizeof(struct SaveBlock1) <= SECTOR_DATA_SIZE * (SECTOR_ID_SAVEBLOCK1_END - SECTOR_ID_SAVEBLOCK1_START + 1), SaveBlock1FreeSpace);
 STATIC_ASSERT(sizeof(struct PokemonStorage) <= SECTOR_DATA_SIZE * (SECTOR_ID_PKMN_STORAGE_END - SECTOR_ID_PKMN_STORAGE_START + 1), PokemonStorageFreeSpace);
@@ -1027,6 +1034,17 @@ u8 LoadGameSave(u8 saveType)
         // wrote it; if it did, every wild Pokemon would come out shiny.
         FlagClear(FLAG_FORCE_SHINY);
         gSaveBlock1Ptr->saveVersion = 7;
+    }
+    if (gSaveBlock1Ptr->saveVersion < 8)
+    {
+        // soundAndFieldOptions was appended to SaveBlock3, so in a save written
+        // before it existed that byte holds whatever was in the sector buffer.
+        // Zero is every option's default.
+        memset(&gSaveBlock3Ptr->soundAndFieldOptions, 0, sizeof(gSaveBlock3Ptr->soundAndFieldOptions));
+        // FLAG_FAST_HMS mirrors fastHms, which is 0 now. The bit has never had
+        // another meaning, but clearing it keeps the two from disagreeing.
+        FlagClear(FLAG_FAST_HMS);
+        gSaveBlock1Ptr->saveVersion = 8;
     }
 
     // Add version migration steps here:

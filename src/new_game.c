@@ -231,6 +231,9 @@ void NewGameInitData(void)
     u8 rivalName[PLAYER_NAME_LENGTH + 1];
 #endif
     struct ChallengeSettings savedChallenge = gSaveBlock3Ptr->challengeSettings;
+    // Chosen from the options menu before the game starts, like the settings
+    // above; ClearSav3() would wipe it.
+    struct SoundAndFieldOptions savedSoundAndField = gSaveBlock3Ptr->soundAndFieldOptions;
     if (gSaveFileStatus == SAVE_STATUS_EMPTY || gSaveFileStatus == SAVE_STATUS_CORRUPT)
         RtcReset();
 
@@ -249,6 +252,7 @@ void NewGameInitData(void)
     gSaveBlock1Ptr->saveVersion = SAVE_VERSION;
     SetDefaultChallengeSettings();
     gSaveBlock3Ptr->challengeSettings = savedChallenge;
+    gSaveBlock3Ptr->soundAndFieldOptions = savedSoundAndField;
     ClearAllMail();
     gSaveBlock2Ptr->specialSaveWarpFlags = 0;
     gSaveBlock2Ptr->gcnLinkFlags = 0;
@@ -316,6 +320,9 @@ void NewGameInitData(void)
         FlagSet(FLAG_MINTS_DISABLED);
     if (gSaveBlock3Ptr->challengeSettings.evenFasterJoy == 0)
         FlagSet(FLAG_EVEN_FASTER_JOY);
+    // ClearSav1() just cleared every flag, so rebuild the mirror from the field.
+    if (gSaveBlock3Ptr->soundAndFieldOptions.fastHms)
+        FlagSet(FLAG_FAST_HMS);
 
 #if IS_HNS
     StringCopy(gSaveBlock2Ptr->rivalName, gText_ExpandedPlaceholder_Silver);

@@ -54,6 +54,7 @@
 #include "roamer.h"
 #include "rotating_gate.h"
 #include "rtc.h"
+#include "option_menu.h"
 #include "safari_zone.h"
 #include "save.h"
 #include "save_location.h"
@@ -1273,6 +1274,24 @@ static bool16 IsRocketTakeover(struct WarpData *warp)
     return FALSE;
 }
 
+// The three Pokemon Center themes (Emerald, FRLG, HGSS) become the DPPt night
+// theme after dark. Every caller (map entry, warp, returning from a battle)
+// goes through GetLocationMusic, so the hour is only read when the music is
+// chosen: it does not change if night falls while the player is inside.
+static u16 ApplyNightCenterMusic(u16 music)
+{
+    switch (music)
+    {
+    case MUS_POKE_CENTER:
+    case MUS_RG_POKE_CENTER:
+    case MUS_HG_POKE_CENTER:
+        if (IsNightCenterMusicEnabled() && GetTimeOfDay() == TIME_NIGHT)
+            return MUS_DP_POKE_CENTER_NIGHT;
+        break;
+    }
+    return music;
+}
+
 u16 GetLocationMusic(struct WarpData *warp)
 {
     if (IsRocketTakeover(warp) == TRUE)
@@ -1286,7 +1305,7 @@ u16 GetLocationMusic(struct WarpData *warp)
     else if (IsInfiltratedWeatherInstitute(warp) == TRUE)
         return MUS_MT_CHIMNEY;
     else
-        return Overworld_GetMapHeaderByGroupAndId(warp->mapGroup, warp->mapNum)->music;
+        return ApplyNightCenterMusic(Overworld_GetMapHeaderByGroupAndId(warp->mapGroup, warp->mapNum)->music);
 }
 
 u16 GetCurrLocationDefaultMusic(void)
