@@ -1,11 +1,21 @@
 name: Release
 
-# Push a tag such as v2.0.6-plus.1 and this publishes a GitHub release with a
-# BPS patch against clean Pokemon Emerald (USA). The ROM itself is never
-# uploaded: only the patch. tools/make_patch.sh rebuilds the clean base from
-# pret's decompilation and refuses to write a patch that does not reproduce
-# the build.
+# Publishes a GitHub release whose only asset is a BPS patch against clean
+# Pokemon Emerald (USA). The ROM itself is never uploaded. tools/make_patch.sh
+# rebuilds the clean base from pret's decompilation and refuses to write a
+# patch that does not reproduce the build.
+#
+# Two ways to start it:
+# - Actions -> Release -> Run workflow: pick the branch, type the version.
+#   The tag is created by the release itself, on the commit that was built.
+# - push a tag v*: the tag name is the version.
 on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version, e.g. 2.0.6-plus.1 (becomes tag v2.0.6-plus.1)'
+        required: true
+        type: string
   push:
     tags:
       - 'v*'
@@ -32,12 +42,25 @@ jobs:
           # The pins live in the script, so a changed pin is a new cache.
           key: patch-base-${{ hashFiles('tools/make_patch.sh') }}
 
+      - name: Version
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          if [[ $GITHUB_EVENT_NAME == workflow_dispatch ]]; then
+            tag="v${INPUT_VERSION#v}"
+          else
+            tag="$GITHUB_REF_NAME"
+          fi
+          # The tag ends up in a file name and a git ref: keep it plain.
+          [[ $tag =~ ^v[0-9A-Za-z._-]+$ ]] || { echo "invalid version: $tag"; exit 1; }
+          echo "TAG=$tag" >> "$GITHUB_ENV"
+
       - name: ROM (HnS)
         run: make hns -j$(nproc) -O
 
       - name: Patch
         run: |
-          name="pokemonHnS-plus_${GITHUB_REF_NAME}"
+          name="pokemonHnS-plus_${TAG}"
           tools/make_patch.sh pokehns.gba "$name.bps"
           # Uploaded bare: zipping saves only ~6% (measured 18.4 -> 17.2 MB)
           # and costs players an extra step before their patcher.
@@ -54,4 +77,6 @@ jobs:
             echo
             echo "Built from \`${GITHUB_SHA::9}\`."
           } > notes.md
-          gh release create "$GITHUB_REF_NAME" "$PATCH" --title "$GITHUB_REF_NAME" --notes-file notes.md
+          # --target: for a manual run the tag does not exist yet, and this makes
+          # the release create it on the commit that was just built.
+          gh release create "$TAG" "$PATCH" --target "$GITHUB_SHA" --title "$TAG" --notes-file notes.md

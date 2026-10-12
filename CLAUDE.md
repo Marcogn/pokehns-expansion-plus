@@ -21,8 +21,13 @@ grande quanto la ROM).
 
 ```sh
 tools/make_patch.sh                     # pokehns.gba -> pokehns.bps
-git tag v<x> && git push origin v<x>    # .github/workflows/release.yml pubblica la release
 ```
+
+La release la fa `.github/workflows/release.yml`: **Actions → Release → Run
+workflow**, si sceglie il branch e si scrive la versione (`2.0.6-plus.1` →
+tag `v2.0.6-plus.1`, creato dalla release stessa sul commit compilato). In
+alternativa basta pushare un tag `v*`. Il pulsante compare solo quando il file
+è sul branch di default.
 
 La base è **Emerald USA pulito**, e non la deve fornire nessuno: lo script lo
 ricompila da pret/pokeemerald (commit fissati nello script, ~1 min, in cache in
