@@ -26,6 +26,23 @@ removed, and saves from the upstream release keep working. Nothing in the save
 ever moves - new fields are only ever appended, and a save written before a field
 existed is migrated on load (`SAVE_VERSION` in `include/save.h`).
 
+### How to play
+
+Download the `.bps` patch from the
+[latest release](https://github.com/Marcogn/pokehns-expansion-plus/releases/latest)
+and apply it to a clean **Pokémon Emerald (USA)** ROM with any BPS patcher, such
+as [Flips](https://github.com/Alcaro/Flips) or
+[Rom Patcher JS](https://www.marcrobledo.com/RomPatcher.js/). The result is a
+32 MiB ROM.
+
+The patch only works on the exact clean ROM: check that yours has SHA-1
+`f3ae088181bf583e55daf962a92bb46f4f1d07b7` before patching. A save from the
+upstream HnS release can be carried over: rename it to match the new ROM.
+
+The title screen reads **HEART & SOUL +**, with this fork's version under PRESS
+START (`v2.0.6.PLUS.1` for the first release), so it is easy to tell which game
+is running.
+
 ### Ported from Soulgold
 
 | Feature | Option | Notes |
@@ -56,6 +73,7 @@ existed is migrated on load (`SAVE_VERSION` in `include/save.h`).
 | Catching Trainers' Pokémon | `TRAINER CATCH` OFF/ON, challenge menu (Features), changeable from the PC | A Ball thrown at a Trainer's Pokémon works like on a wild one, and the battle ends with the catch. The Trainer does not count as beaten: no badge, no story step, and they challenge you again. They stop noticing you until you leave the map, so you can walk away; talk to them to fight again straight away. Their team is back in full every battle. Facility, link and partner battles and Mirror Mode are left out. |
 | Full party editor (debug) | Debug menu → Party → Edit Pokemon → Edit All… | Level, shininess, nature (the stat one, as a Mint sets it), ability, Tera type, IVs, EVs and moves of a party Pokémon, each screen starting from its current values. |
 | Force Shiny (debug) | Debug menu → Flags & Vars → Toggle Force Shiny | Every wild, gift and hatched Pokémon comes out shiny while it is on. |
+| Title screen | — | A "+" after the HEART & SOUL banner and the fork's version under PRESS START. |
 
 ### Switched on and finished here
 

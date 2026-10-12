@@ -13,7 +13,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version, e.g. 2.0.6-plus.1 (becomes tag v2.0.6-plus.1)'
+        description: 'Version, e.g. 2.0.6.PLUS.2 (becomes tag v2.0.6.PLUS.2)'
         required: true
         type: string
   push:
