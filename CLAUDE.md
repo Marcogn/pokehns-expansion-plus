@@ -770,9 +770,23 @@ non stavano bene. Nero (indice 4), 9×9 a tratto 3, contorno bianco di 1 px
 (indice 15, sugli 8 vicini): 11×11, righe 43-53, colonne 32-42, cioè 2
 colonne trasparenti dopo la punta.
 
-**Il banner non si sposta.** HnS lo centra sul logo, non sullo schermo
-(misurato in mGBA: pillola x 76-159, centro 117,5; logo ~116), e così resta:
-il "+" è un'aggiunta a destra, misurato a x 162-172.
+**Centrato sul logo, non sullo schermo.** HnS allinea titolo e versione al
+logo: misurato in mGBA, logo (giallo + contorno blu) x 42-190, centro 116.
+Pillola + "+" senza spostamento: x 76-172, centro 124; per questo le due X
+in `src/title_screen.c` scendono di **8** (misurato dopo: x 68-164, centro
+116). Se si cambia la larghezza del "+", si rifà questa misura.
+
+**Versione sotto PRESS START** (`press_start.png`, stesso file del testo
+PRESS START): è una striscia di 20 tile = 160×8 px, disposta nel foglio come
+riga 1 x40-127 seguita da riga 2 x0-71 (sono 5 sprite 32×8, tile 21-40).
+Una colonna x della striscia è la x 48+x a schermo. Il font ha **solo
+maiuscole e cifre**: per questo la versione è `v2.0.6.PLUS.1` e non "plus".
+Glifi: P e S copiati dall'arte di PRESS START, L, U e 1 disegnati nello
+stesso schema (forma su 5 righe colorata per riga: 5, 5, 4, 3, 3; contorno
+nero = gli 8 vicini; lettere separate da 1 colonna nera; il punto è un pixel
+della riga 5 fra due colonne nere). Testo centrato su 116 come il logo: x
+79-153. Per cambiare numero di versione si rifà la striscia, non si scrive
+un testo.
 
 ---
 

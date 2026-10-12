@@ -30,8 +30,16 @@ enum {
 };
 
 #define VERSION_BANNER_RIGHT_TILEOFFSET 64
+#if IS_HNS
+// The "+" after the pill widens the banner to the right. HnS centres it on
+// the logo, not the screen (logo measured in mGBA at x 42-190, centre 116),
+// so the pill plus the "+" (x 76-172 unshifted, centre 124) move 8 px left.
+#define VERSION_BANNER_LEFT_X (98 - 8)
+#define VERSION_BANNER_RIGHT_X (162 - 8)
+#else
 #define VERSION_BANNER_LEFT_X 98
 #define VERSION_BANNER_RIGHT_X 162
+#endif
 #define VERSION_BANNER_Y 2
 #if IS_HNS
 #define VERSION_BANNER_Y_GOAL 58
