@@ -1,0 +1,57 @@
+name: Release
+
+# Push a tag such as v2.0.6-plus.1 and this publishes a GitHub release with a
+# BPS patch against clean Pokemon Emerald (USA). The ROM itself is never
+# uploaded: only the patch. tools/make_patch.sh rebuilds the clean base from
+# pret's decompilation and refuses to write a patch that does not reproduce
+# the build.
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends binutils-arm-none-eabi gcc-arm-none-eabi libnewlib-arm-none-eabi libpng-dev python3 g++
+
+      - name: Cache clean Emerald and Flips
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/hasep-patch
+          # The pins live in the script, so a changed pin is a new cache.
+          key: patch-base-${{ hashFiles('tools/make_patch.sh') }}
+
+      - name: ROM (HnS)
+        run: make hns -j$(nproc) -O
+
+      - name: Patch
+        run: |
+          name="pokemonHnS-plus_${GITHUB_REF_NAME}"
+          tools/make_patch.sh pokehns.gba "$name.bps"
+          # Uploaded bare: zipping saves only ~6% (measured 18.4 -> 17.2 MB)
+          # and costs players an extra step before their patcher.
+          echo "PATCH=$name.bps" >> "$GITHUB_ENV"
+
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "Apply to a clean **Pokémon Emerald (USA)** ROM,"
+            echo "SHA-1 \`f3ae088181bf583e55daf962a92bb46f4f1d07b7\`, with any BPS patcher"
+            echo "(Flips, Rom Patcher JS). The result is a 32 MiB ROM."
+            echo
+            echo "Built from \`${GITHUB_SHA::9}\`."
+          } > notes.md
+          gh release create "$GITHUB_REF_NAME" "$PATCH" --title "$GITHUB_REF_NAME" --notes-file notes.md
