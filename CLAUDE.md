@@ -764,6 +764,11 @@ prima del padding finale a `0xFF`). Il job `build` resta come cancello per
 eventuali regole di protezione del branch. Se un giorno servono di nuovo gli
 altri target, vanno prima riparati, non solo riaccesi.
 
+La CI compila con `UNUSED_ERROR=0`, come la ROM consegnata. Quello ereditato
+da expansion era 1, e con 1 `make hns` fallisce su **40** funzioni e variabili
+mai usate in 15 file, tutte di HnS spente dietro `IS_HNS`: un errore su codice
+che nessuno chiama, non su qualcosa che una modifica ha rotto.
+
 ---
 
 ## 9. Stile
