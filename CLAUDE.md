@@ -755,7 +755,29 @@ Per il seguito: dopo le mega qualunque altra aggiunta grossa non entra più.
 
 ---
 
-## 8. Rotture preesistenti (non tue)
+## 7quater. Schermata del titolo: il "+"
+
+La scritta "HEART & SOUL" è uno sprite 8bpp da 64×64
+(`graphics/title_screen/hns/emerald_version.png`), usato come due sprite da
+64×32 affiancati: metà sinistra = righe 0-31, metà destra = righe 32-63.
+Indici: 0 trasparente, 4 bordo, 7 fondo, 15 lettere; glifi alti 11 righe,
+larghi 5, spaziatura 1, spazio fra parole 3.
+
+- Il "+" è stato aggiunto **inserendo 7 colonne** copia della colonna 20
+  della metà destra (fondo puro, subito dopo la L di SOUL): la pillola si
+  allunga senza ridisegnare la punta. Il glifo è 5×5 a stroke 1, righe
+  46-50, centrato sulle 11 righe del testo.
+- **Il banner è centrato sul logo, non sullo schermo.** Misurato in mGBA:
+  pillola originale x 76-159, centro 117,5; logo (giallo) centro ~116. Per
+  questo con il "+" le due X in `src/title_screen.c` scendono di 4 (centro
+  117), non di 3,5 verso 120.
+- **Variante "PLUS" già pronta**: `emerald_version_PLUS_word.png` (non
+  referenziata, quindi non compilata). P ricavata dalla R di HEART senza la
+  gamba, L/U/S presi da SOUL. Inserisce 27 colonne: per usarla basta
+  copiarla su `emerald_version.png` e portare l'offset delle X da 4 a **14**
+  (misurato: pillola x 62-172, centro 117).
+
+
 
 Verificate su `master` pulito, **prima** di qualunque modifica:
 
