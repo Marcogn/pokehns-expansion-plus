@@ -24,6 +24,7 @@
 - [Credits](./CREDITS.md)
 - [Soulgold port report](./SOULGOLD_PORT_REPORT.md)
     - [Pre-port inventory (HnS 2.0.5)](./INVENTORY_SOULGOLD_VS_HNS_EXPANDED.md)
+- [Test plan](./TEST_PLAN.md)
 - [Tutorials]()
   - [What are AI Flags?](tutorials/ai_flags.md)
     - [How to add new AI Flags](tutorials/ai_logic.md)
