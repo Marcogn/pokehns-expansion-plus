@@ -765,7 +765,8 @@ Verificate su `master` pulito, **prima** di qualunque modifica:
 La CI ereditata costruiva proprio quei target, e mai `hns`: era rossa su
 `master` e non proteggeva nulla. Ora `.github/workflows/build.yml` costruisce
 **solo** `make hns` e scrive nel riepilogo quanto dei 32 MB è usato (la parte
-prima del padding finale a `0xFF`). Il job `build` resta come cancello per
+prima del padding finale a `0xFF`): **avviso dal 98%, errore dal 99,5%**.
+Le mega da sole porterebbero al 99,46% (§7bis), quindi avvisano ma passano. Il job `build` resta come cancello per
 eventuali regole di protezione del branch. Se un giorno servono di nuovo gli
 altri target, vanno prima riparati, non solo riaccesi.
 
