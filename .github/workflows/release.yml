@@ -79,4 +79,7 @@ jobs:
           } > notes.md
           # --target: for a manual run the tag does not exist yet, and this makes
           # the release create it on the commit that was just built.
-          gh release create "$TAG" "$PATCH" --target "$GITHUB_SHA" --title "$TAG" --notes-file notes.md
+          # --generate-notes appends GitHub's changelog: the PRs merged since the
+          # previous release, by title. Our notes-file is prepended to it.
+          gh release create "$TAG" "$PATCH" --target "$GITHUB_SHA" --title "$TAG" \
+            --notes-file notes.md --generate-notes
