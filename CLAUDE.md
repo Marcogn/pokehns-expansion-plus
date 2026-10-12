@@ -24,8 +24,11 @@ tools/make_patch.sh                     # pokehns.gba -> pokehns.bps
 ```
 
 La release la fa `.github/workflows/release.yml`: **Actions → Release → Run
-workflow**, si sceglie il branch e si scrive la versione (`2.0.6-plus.1` →
-tag `v2.0.6-plus.1`, creato dalla release stessa sul commit compilato). In
+workflow**, si sceglie il branch e si scrive la versione (`2.0.6.PLUS.2` →
+tag `v2.0.6.PLUS.2`, creato dalla release stessa sul commit compilato). Il
+formato scelto dall'utente è quello del titolo, maiuscolo; la prima release è
+uscita come `v2.0.6.plus.1` (minuscolo) prima di questa scelta e resta così.
+Il numero nel titolo non segue il tag da solo: è grafica, vedi §7quater. In
 alternativa basta pushare un tag `v*`. Il pulsante compare solo quando il file
 è sul branch di default.
 
