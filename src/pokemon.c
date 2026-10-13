@@ -42,6 +42,7 @@
 #include "pokemon_summary_screen.h"
 #include "pokemon_storage_system.h"
 #include "pokerus.h"
+#include "option_menu.h"
 #include "random.h"
 #include "randomizer.h"
 #include "nuzlocke.h"
@@ -8055,8 +8056,111 @@ bool32 IsSpeciesInHoennDex(u16 species)
         return TRUE;
 }
 
+static const u16 sBattleMusicThemeSongs[BATTLE_MUSIC_THEME_COUNT][BATTLE_MUSIC_CATEGORY_COUNT] =
+{
+    [BATTLE_MUSIC_THEME_HGSS_JOHTO] =
+    {
+        [BATTLE_MUSIC_CATEGORY_WILD] = MUS_HG_VS_WILD,
+        [BATTLE_MUSIC_CATEGORY_TRAINER] = MUS_HG_VS_TRAINER,
+        [BATTLE_MUSIC_CATEGORY_GYM] = MUS_HG_VS_GYM_LEADER,
+    },
+    [BATTLE_MUSIC_THEME_HGSS_KANTO] =
+    {
+        [BATTLE_MUSIC_CATEGORY_WILD] = MUS_HG_VS_WILD_KANTO,
+        [BATTLE_MUSIC_CATEGORY_TRAINER] = MUS_HG_VS_TRAINER_KANTO,
+        [BATTLE_MUSIC_CATEGORY_GYM] = MUS_HG_VS_GYM_LEADER_KANTO,
+    },
+    [BATTLE_MUSIC_THEME_FRLG] =
+    {
+        [BATTLE_MUSIC_CATEGORY_WILD] = MUS_RG_VS_WILD,
+        [BATTLE_MUSIC_CATEGORY_TRAINER] = MUS_RG_VS_TRAINER,
+        [BATTLE_MUSIC_CATEGORY_GYM] = MUS_RG_VS_GYM_LEADER,
+    },
+    [BATTLE_MUSIC_THEME_RSE] =
+    {
+        [BATTLE_MUSIC_CATEGORY_WILD] = MUS_VS_WILD,
+        [BATTLE_MUSIC_CATEGORY_TRAINER] = MUS_VS_TRAINER,
+        [BATTLE_MUSIC_CATEGORY_GYM] = MUS_VS_GYM_LEADER,
+    },
+    [BATTLE_MUSIC_THEME_DPPT] =
+    {
+        [BATTLE_MUSIC_CATEGORY_WILD] = MUS_DP_VS_WILD,
+        [BATTLE_MUSIC_CATEGORY_TRAINER] = MUS_DP_VS_TRAINER,
+        [BATTLE_MUSIC_CATEGORY_GYM] = MUS_DP_VS_GYM_LEADER,
+    },
+};
+
+// regionalSong is what GetBattleBGM() would have played without the option, so
+// DEFAULT keeps every region's own themes (incl. the Trainer Hill correction).
+// RANDOM picks one concrete theme per call; GetBattleBGM() runs once per battle.
+// Random2() so the choice does not advance the RNG that battles and encounters use.
+static u16 GetThemedBattleBGM(enum BattleMusicTheme theme, enum BattleMusicCategory category, u16 regionalSong)
+{
+    if (theme == BATTLE_MUSIC_THEME_DEFAULT || theme >= BATTLE_MUSIC_THEME_COUNT)
+        return regionalSong;
+    if (theme == BATTLE_MUSIC_THEME_RANDOM)
+        theme = BATTLE_MUSIC_THEME_HGSS_JOHTO + Random2() % (BATTLE_MUSIC_THEME_RANDOM - BATTLE_MUSIC_THEME_HGSS_JOHTO);
+
+    return sBattleMusicThemeSongs[theme][category];
+}
+
+static u16 GetRegionalTrainerBGM(void)
+{
+#if IS_HNS
+    // Trainer Hill and the three Battle Tents in its courtyard all use
+    // MAPSEC_TRAINER_HILL, which sits outside every range in GetRegionForSectionId
+    // and so falls through to REGION_HOENN and the Emerald theme. The facility is
+    // in Johto. Corrected here rather than in GetRegionForSectionId, which feeds
+    // far more than music, and inside default so class cases still take priority.
+    if (gMapHeader.regionMapSectionId == MAPSEC_TRAINER_HILL)
+        return MUS_HG_VS_TRAINER;
+    if (GetCurrentRegion() == REGION_JOHTO)
+        return MUS_HG_VS_TRAINER;
+    else if (GetCurrentRegion() == REGION_KANTO)
+        return MUS_HG_VS_TRAINER_KANTO;
+    else if (GetCurrentRegion() == REGION_ALOLA)
+        return MUS_HG_VS_TRAINER_KANTO;  // Alola trainer battles
+    else if (GetCurrentRegion() == REGION_HISUI)
+        return MUS_HG_VS_TRAINER;        // Sinjoh keeps the Johto theme
+    else
+        return MUS_VS_TRAINER;
+#else
+    if (GetCurrentRegion() == REGION_KANTO)
+        return MUS_RG_VS_TRAINER;
+    else
+        return MUS_VS_TRAINER;
+#endif
+}
+
+static u16 GetRegionalWildBGM(void)
+{
+#if IS_HNS
+    if (GetCurrentRegion() == REGION_JOHTO)
+        return MUS_HG_VS_WILD;
+    else if (GetCurrentRegion() == REGION_KANTO)
+        return MUS_HG_VS_WILD_KANTO;
+    else if (GetCurrentRegion() == REGION_ALOLA)
+        return MUS_HG_VS_WILD_KANTO;  // Alola wild battles
+    else if (GetCurrentRegion() == REGION_HISUI)
+        return MUS_HG_VS_WILD;        // Sinjoh keeps the Johto theme
+    else
+        return MUS_VS_WILD;
+#else
+    if (GetCurrentRegion() == REGION_KANTO)
+        return MUS_RG_VS_WILD;
+    else
+        return MUS_VS_WILD;
+#endif
+}
+
 u16 GetBattleBGM(void)
 {
+    enum BattleMusicTheme theme = GetBattleMusicTheme();
+
+    // Facility battles keep their own music whatever the option says.
+    if (gBattleTypeFlags & (BATTLE_TYPE_FRONTIER | BATTLE_TYPE_TRAINER_HILL))
+        theme = BATTLE_MUSIC_THEME_DEFAULT;
+
     if (gBattleTypeFlags & BATTLE_TYPE_LEGENDARY)
     {
         switch (GetMonData(&gEnemyParty[0], MON_DATA_SPECIES))
@@ -8103,11 +8207,11 @@ u16 GetBattleBGM(void)
         case TRAINER_CLASS_MAGMA_ADMIN:
             return MUS_VS_AQUA_MAGMA;
         case TRAINER_CLASS_LEADER:
-            return MUS_VS_GYM_LEADER;
+            return GetThemedBattleBGM(theme, BATTLE_MUSIC_CATEGORY_GYM, MUS_VS_GYM_LEADER);
         case TRAINER_CLASS_LEADER_HNS:
-            return MUS_HG_VS_GYM_LEADER;
+            return GetThemedBattleBGM(theme, BATTLE_MUSIC_CATEGORY_GYM, MUS_HG_VS_GYM_LEADER);
         case TRAINER_CLASS_LEADER_KANTO_HNS:
-            return MUS_HG_VS_GYM_LEADER_KANTO;
+            return GetThemedBattleBGM(theme, BATTLE_MUSIC_CATEGORY_GYM, MUS_HG_VS_GYM_LEADER_KANTO);
         case TRAINER_CLASS_CHAMPION:
             return MUS_VS_CHAMPION;
         case TRAINER_CLASS_PKMN_TRAINER_1_HNS:
@@ -8133,16 +8237,18 @@ u16 GetBattleBGM(void)
         case TRAINER_CLASS_TEAM_ROCKET_HNS:
             return MUS_HG_VS_ROCKET;
         case TRAINER_CLASS_ELITE_FOUR:
-            return MUS_VS_ELITE_FOUR;
+            return GetThemedBattleBGM(theme, BATTLE_MUSIC_CATEGORY_GYM, MUS_VS_ELITE_FOUR);
         case TRAINER_CLASS_ELITE_FOUR_HNS:
             // GSC/HGSS reuse the Johto Gym Leader theme for the Elite Four.
-            return MUS_HG_VS_GYM_LEADER;
+            return GetThemedBattleBGM(theme, BATTLE_MUSIC_CATEGORY_GYM, MUS_HG_VS_GYM_LEADER);
         case TRAINER_CLASS_CHAMPION_FRLG:
         case TRAINER_CLASS_DEVELOPER_HNS:
             return MUS_RG_VS_CHAMPION;
         case TRAINER_CLASS_LEADER_FRLG:
         case TRAINER_CLASS_ELITE_FOUR_FRLG:
+            return GetThemedBattleBGM(theme, BATTLE_MUSIC_CATEGORY_GYM, MUS_RG_VS_GYM_LEADER);
         case TRAINER_CLASS_PROFESSOR_HNS:
+            // Not a Gym or Elite Four fight, so the option does not apply.
             return MUS_RG_VS_GYM_LEADER;
         case TRAINER_CLASS_SALON_MAIDEN:
         case TRAINER_CLASS_DOME_ACE:
@@ -8160,51 +8266,12 @@ u16 GetBattleBGM(void)
         case TRAINER_CLASS_PYRAMID_KING_HNS:
             return MUS_VS_FRONTIER_BRAIN;
         default:
-        #if IS_HNS
-            // Trainer Hill and the three Battle Tents in its courtyard all use
-            // MAPSEC_TRAINER_HILL, which sits outside every range in GetRegionForSectionId
-            // and so falls through to REGION_HOENN and the Emerald theme. The facility is
-            // in Johto. Corrected here rather than in GetRegionForSectionId, which feeds
-            // far more than music, and inside default so class cases still take priority.
-            if (gMapHeader.regionMapSectionId == MAPSEC_TRAINER_HILL)
-                return MUS_HG_VS_TRAINER;
-            if (GetCurrentRegion() == REGION_JOHTO)
-                return MUS_HG_VS_TRAINER;
-            else if (GetCurrentRegion() == REGION_KANTO)
-                return MUS_HG_VS_TRAINER_KANTO;
-            else if (GetCurrentRegion() == REGION_ALOLA)
-                return MUS_HG_VS_TRAINER_KANTO;  // Alola trainer battles
-            else if (GetCurrentRegion() == REGION_HISUI)
-                return MUS_HG_VS_TRAINER;        // Sinjoh keeps the Johto theme
-            else
-                return MUS_VS_TRAINER;
-        #else
-            if (GetCurrentRegion() == REGION_KANTO)
-                return MUS_RG_VS_TRAINER;
-            else
-                return MUS_VS_TRAINER;
-        #endif
+            return GetThemedBattleBGM(theme, BATTLE_MUSIC_CATEGORY_TRAINER, GetRegionalTrainerBGM());
         }
     }
     else
     {
-    #if IS_HNS
-        if (GetCurrentRegion() == REGION_JOHTO)
-            return MUS_HG_VS_WILD;
-        else if (GetCurrentRegion() == REGION_KANTO)
-            return MUS_HG_VS_WILD_KANTO;
-        else if (GetCurrentRegion() == REGION_ALOLA)
-            return MUS_HG_VS_WILD_KANTO;  // Alola wild battles
-        else if (GetCurrentRegion() == REGION_HISUI)
-            return MUS_HG_VS_WILD;        // Sinjoh keeps the Johto theme
-        else
-            return MUS_VS_WILD;
-    #else
-        if (GetCurrentRegion() == REGION_KANTO)
-            return MUS_RG_VS_WILD;
-        else
-            return MUS_VS_WILD;
-    #endif
+        return GetThemedBattleBGM(theme, BATTLE_MUSIC_CATEGORY_WILD, GetRegionalWildBGM());
     }
 }
 

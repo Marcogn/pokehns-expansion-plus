@@ -685,7 +685,11 @@
 #define MUS_DP_LAKE_CAVERNS          (DP_MUSIC_START + 0x08)  // Lake Caverns
 #define MUS_DP_LEGEND_APPEARS        (DP_MUSIC_START + 0x09)  // A Legend Appears!
 #define MUS_DP_STARK_MOUNTAIN        (DP_MUSIC_START + 0x0A)  // Stark Mountain
-#define DP_MUSIC_END                 MUS_DP_STARK_MOUNTAIN
+#define MUS_DP_VS_WILD               (DP_MUSIC_START + 0x0B)  // Battle! (Wild Pokemon)
+#define MUS_DP_VS_TRAINER            (DP_MUSIC_START + 0x0C)  // Battle! (Trainer)
+#define MUS_DP_VS_GYM_LEADER         (DP_MUSIC_START + 0x0D)  // Battle! (Gym Leader)
+#define MUS_DP_POKE_CENTER_NIGHT     (DP_MUSIC_START + 0x0E)  // Pokemon Center (Night)
+#define DP_MUSIC_END                 MUS_DP_POKE_CENTER_NIGHT
 
 #define END_MUS                      DP_MUSIC_END
 

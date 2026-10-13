@@ -363,6 +363,14 @@ struct ChallengeSettings
                              // option has to grow the struct.
 };
 
+struct SoundAndFieldOptions
+{
+    u8 fastHms:1;            // 0 = off (default, as in Soulgold)
+    u8 battleMusicTheme:3;   // enum BattleMusicTheme, 0 = DEFAULT
+    u8 noNightCenterMusic:1; // stored inverted: 0 = night theme ON (default)
+    u8 unused:3;
+};
+
 struct SaveBlock3
 {
     struct SiiRtcInfo fakeRTC;
@@ -386,6 +394,9 @@ struct SaveBlock3
     // Saves written before this existed carry junk here, which the SAVE_VERSION
     // 6 migration in LoadGameSave zeroes.
     u32 candyJarExp;
+    // Appended after candyJarExp (SAVE_VERSION 8). Every field reads 0 as its
+    // default, so a fresh save and a migrated one agree without extra code.
+    struct SoundAndFieldOptions soundAndFieldOptions;
 }; /* max size 1624 bytes */
 
 extern struct SaveBlock3 *gSaveBlock3Ptr;

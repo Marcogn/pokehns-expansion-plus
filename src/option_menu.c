@@ -50,6 +50,7 @@ enum {
     ITEM_MAIN_AUTORUN,
     ITEM_MAIN_AUTORUN_SURF,
     ITEM_MAIN_OW_SPEED,
+    ITEM_MAIN_FAST_HMS,
     ITEM_MAIN_FISHING,
     ITEM_MAIN_FASTER_JOY,
     ITEM_MAIN_UNIT_TYPE,
@@ -81,10 +82,17 @@ enum {
     ITEM_SOUND_MUSIC,
     ITEM_SOUND_BIKE_MUSIC,
     ITEM_SOUND_SURF_MUSIC,
+    ITEM_SOUND_BATTLE_MUSIC,
+    ITEM_SOUND_NIGHT_CENTER,
     ITEM_SOUND_COUNT,
 };
 
 #define MAX_ITEMS_PER_TAB 20
+// The per-tab tables are indexed by item id, so an item past the limit would
+// write outside OptionMenuState.selections.
+STATIC_ASSERT(ITEM_MAIN_COUNT <= MAX_ITEMS_PER_TAB, OptionMenuMainTabTooLong);
+STATIC_ASSERT(ITEM_BATTLE_COUNT <= MAX_ITEMS_PER_TAB, OptionMenuBattleTabTooLong);
+STATIC_ASSERT(ITEM_SOUND_COUNT <= MAX_ITEMS_PER_TAB, OptionMenuSoundTabTooLong);
 #define ITEMS_VISIBLE 5
 #define Y_DIFF 16
 
@@ -282,6 +290,17 @@ static const u8 *const sChoices_OwSpeed[] = {
     COMPOUND_STRING("4x"),
 };
 
+// Order matches enum BattleMusicTheme: the selection index is the stored value.
+static const u8 *const sChoices_BattleMusic[] = {
+    COMPOUND_STRING("DEFAULT"),
+    COMPOUND_STRING("HG JOHTO"),
+    COMPOUND_STRING("HG KANTO"),
+    COMPOUND_STRING("FRLG"),
+    COMPOUND_STRING("RSE"),
+    COMPOUND_STRING("DPPT"),
+    COMPOUND_STRING("RANDOM"),
+};
+
 static const u8 *const sChoices_RunType[] = {
     COMPOUND_STRING("NO"),
     COMPOUND_STRING("L+R+A"),
@@ -428,6 +447,10 @@ static const u8 *const sDesc_LRRun[] = {
     COMPOUND_STRING("Enables a prompt to show that you\ncan run away from battles."),
     COMPOUND_STRING("Disables said prompt to flee.\nButton combo still works."),
 };
+static const u8 *const sDesc_FastHms[] = {
+    COMPOUND_STRING("Show the prompt and animation\nwhen using a field move."),
+    COMPOUND_STRING("Skip the prompt and animation\nwhen using a field move."),
+};
 static const u8 *const sDesc_Sound[] = {
     COMPOUND_STRING("Sound is the same in all speakers.\nRecommended for original hardware."),
     COMPOUND_STRING("Play the left and right audio channel\nseparately. Great with headphones."),
@@ -443,6 +466,23 @@ static const u8 *const sDesc_BikeMusic[] = {
 static const u8 *const sDesc_SurfMusic[] = {
     COMPOUND_STRING("Enables SURF music."),
     COMPOUND_STRING("Disables SURF music."),
+};
+
+#define DESC_BATTLE_MUSIC_THEME(theme) \
+    COMPOUND_STRING("Wild, Trainer, Gym and Elite Four\nbattles use the " theme " themes.")
+static const u8 *const sDesc_BattleMusic[] = {
+    COMPOUND_STRING("Each region keeps its own\nbattle themes."),
+    DESC_BATTLE_MUSIC_THEME("HG/SS Johto"),
+    DESC_BATTLE_MUSIC_THEME("HG/SS Kanto"),
+    DESC_BATTLE_MUSIC_THEME("FRLG"),
+    DESC_BATTLE_MUSIC_THEME("RSE"),
+    DESC_BATTLE_MUSIC_THEME("DPPt"),
+    COMPOUND_STRING("A random theme\nfor every battle."),
+};
+// Index 0 is ON, see sChoices_OnOff and noNightCenterMusic.
+static const u8 *const sDesc_NightCenter[] = {
+    COMPOUND_STRING("{PKMN} Centers play the\nDPPt night theme at night."),
+    COMPOUND_STRING("{PKMN} Centers keep their\nusual theme at night."),
 };
 
 // =============================================================================
@@ -503,6 +543,12 @@ static const struct OptionMenuItem sTabItems_Main[] = {
         .descriptions = sDesc_OwSpeed,
         .numChoices   = OPTIONS_OVERWORLD_SPEED_COUNT,
         .choiceNames  = sChoices_OwSpeed,
+    },
+    [ITEM_MAIN_FAST_HMS] = {
+        .name         = COMPOUND_STRING("FAST HMS"),
+        .descriptions = sDesc_FastHms,
+        .numChoices   = 2,
+        .choiceNames  = sChoices_OffOn,
     },
     [ITEM_MAIN_FISHING] = {
         .name         = COMPOUND_STRING("EASIER FISHING"),
@@ -654,6 +700,18 @@ static const struct OptionMenuItem sTabItems_Sound[] = {
         .numChoices   = 2,
         .choiceNames  = sChoices_OnOff,
     },
+    [ITEM_SOUND_BATTLE_MUSIC] = {
+        .name         = COMPOUND_STRING("BATTLE MUSIC"),
+        .descriptions = sDesc_BattleMusic,
+        .numChoices   = BATTLE_MUSIC_THEME_COUNT,
+        .choiceNames  = sChoices_BattleMusic,
+    },
+    [ITEM_SOUND_NIGHT_CENTER] = {
+        .name         = COMPOUND_STRING("NIGHT CENTER"),
+        .descriptions = sDesc_NightCenter,
+        .numChoices   = 2,
+        .choiceNames  = sChoices_OnOff,
+    },
 };
 
 // =============================================================================
@@ -666,6 +724,24 @@ struct TabDef
     const struct OptionMenuItem *items;
     u8 count;
 };
+
+// Read by GetBattleBGM(). Clamped so a stray value in the save falls back to the
+// regional themes instead of indexing past the song table.
+enum BattleMusicTheme GetBattleMusicTheme(void)
+{
+    u32 theme = gSaveBlock3Ptr->soundAndFieldOptions.battleMusicTheme;
+
+    if (theme >= BATTLE_MUSIC_THEME_COUNT)
+        return BATTLE_MUSIC_THEME_DEFAULT;
+    return theme;
+}
+
+// Read by GetLocationMusic(). The field is stored inverted (0 = ON) so a save
+// that predates it keeps the night theme without a migration to set it.
+bool32 IsNightCenterMusicEnabled(void)
+{
+    return !gSaveBlock3Ptr->soundAndFieldOptions.noNightCenterMusic;
+}
 
 // Read by the capture maths. Kept here next to the option it mirrors.
 bool8 IsGuaranteedCatchEnabled(void)
@@ -825,6 +901,18 @@ static void DrawChoices_Four(const u8 *const *strings, int selection, int y, boo
     DrawRightSideChoiceText(strings[order[2]], GetStringRightAlignXOffset(FONT_NORMAL, strings[order[2]], 198), y + 1, selection == order[2], active);
 }
 
+// More than four choices do not fit side by side: show only the current one,
+// centred between "<" and ">" (the same cue Soulgold uses for BATTLE MUSIC).
+static void DrawChoices_Many(const u8 *const *strings, int selection, int y, bool8 active)
+{
+    const u8 *text = strings[selection];
+    int width = GetStringWidth(FONT_NORMAL, text, 0);
+
+    DrawRightSideChoiceText(COMPOUND_STRING("<"), 104, y + 1, FALSE, active);
+    DrawRightSideChoiceText(text, 104 + (198 - 104 - width) / 2, y + 1, TRUE, active);
+    DrawRightSideChoiceText(COMPOUND_STRING(">"), GetStringRightAlignXOffset(FONT_NORMAL, COMPOUND_STRING(">"), 198), y + 1, FALSE, active);
+}
+
 // Frame type: draws "TYPE  N" on the right side
 static void DrawFrameTypeChoice(u8 selection, int y, bool8 active)
 {
@@ -901,6 +989,9 @@ static void OptionMenu_ItemPrintFunc(u8 windowId, u32 itemId, u8 y)
         break;
     case 4:
         DrawChoices_Four(items[itemId].choiceNames, sel, y, active);
+        break;
+    default:
+        DrawChoices_Many(items[itemId].choiceNames, sel, y, active);
         break;
     }
 }
@@ -1252,6 +1343,18 @@ static void Task_Save(u8 taskId)
     cs->bikeMusic          = *GetSelectionPtr(TAB_SOUND, ITEM_SOUND_BIKE_MUSIC);
     cs->surfMusic          = *GetSelectionPtr(TAB_SOUND, ITEM_SOUND_SURF_MUSIC);
 
+    // The options that live outside ChallengeSettings (SaveBlock3 tail).
+    struct SoundAndFieldOptions *sf = &gSaveBlock3Ptr->soundAndFieldOptions;
+    sf->fastHms            = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_FAST_HMS);
+    // The scripts read the flag; the field only survives ClearSav1() at new game.
+    if (sf->fastHms)
+        FlagSet(FLAG_FAST_HMS);
+    else
+        FlagClear(FLAG_FAST_HMS);
+    sf->battleMusicTheme   = *GetSelectionPtr(TAB_SOUND, ITEM_SOUND_BATTLE_MUSIC);
+    // sChoices_OnOff is ON first, so ON stores 0 and the field reads "no night theme".
+    sf->noNightCenterMusic = *GetSelectionPtr(TAB_SOUND, ITEM_SOUND_NIGHT_CENTER);
+
     BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);
     gTasks[taskId].func = Task_FadeOut;
 }
@@ -1367,6 +1470,11 @@ void CB2_InitOptionMenu(void)
         *GetSelectionPtr(TAB_SOUND, ITEM_SOUND_MUSIC)      = cs->musicOnOff;
         *GetSelectionPtr(TAB_SOUND, ITEM_SOUND_BIKE_MUSIC) = cs->bikeMusic;
         *GetSelectionPtr(TAB_SOUND, ITEM_SOUND_SURF_MUSIC) = cs->surfMusic;
+
+        struct SoundAndFieldOptions *sf = &gSaveBlock3Ptr->soundAndFieldOptions;
+        *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_FAST_HMS)           = sf->fastHms;
+        *GetSelectionPtr(TAB_SOUND, ITEM_SOUND_BATTLE_MUSIC)     = GetBattleMusicTheme();
+        *GetSelectionPtr(TAB_SOUND, ITEM_SOUND_NIGHT_CENTER)     = sf->noNightCenterMusic;
 
         gMain.state++;
         break;

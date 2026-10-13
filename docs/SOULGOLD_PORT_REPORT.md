@@ -16,7 +16,7 @@ qui c'è l'elenco, con il rimando al punto giusto.
 | --- | --- | --- |
 | `pokehns-expansion-plus` ← `PokemonHnS-Development/pokehns-expansion` | `167aa6d` (2.0.6) | 0 commit mancanti anche al 12/10, verificato con `git rev-list --count HEAD..upstream/master` |
 | `Marcogn/soulgold` ← `Eemeliri/soulgold` | `73a66207e` (08/10, SG 1.2) | merge pulito di 13 commit, `make modern` compila |
-| codice di Soulgold portato in Hasep | Soulgold **1.1.4** (`a374881df`) + i fix elencati al §4, valutato fino a `73a66207e` | dopo 1.1.4 in SG è cambiato solo `swsh_party_menu.c` (selezione squadra per le strutture lotta, fix applicato, §4); `dexnav.c`, `candy_jar.c`, `type_icons.c` e gli speed-up no |
+| codice di Soulgold portato in Hasep | Soulgold **1.1.4** (`a374881df`) + i fix elencati al §4 + le tre feature di SG 1.2 (Fast HMs, tema musica di lotta, musica notturna nei Centri, §1), valutato fino a `73a66207e` | dopo 1.1.4 in SG è cambiato solo `swsh_party_menu.c` (selezione squadra per le strutture lotta, fix applicato, §4); `dexnav.c`, `candy_jar.c`, `type_icons.c` e gli speed-up no |
 
 Il branch `claude/mega-type-stones` ha 3 commit **non ancora in master**
 (megaevoluzioni con le type stone di SG, due tasche nuove nella borsa). Vedi §5.
@@ -39,6 +39,9 @@ Il branch `claude/mega-type-stones` ha 3 commit **non ancora in master**
 | DexNav, metà "ricerca" | `ENHANCED DEXNAV` | `src/dexnav.c` | la metà "mostra tutti" **non** è di SG, §6 |
 | Icone dei tipi, comportamento | — | `src/type_icons.c`, `include/type_icons.h` | l'arte è di SG; layout in singola diverso, §6 |
 | Relearner solo dalla pagina mosse | — | `src/pokemon_summary_screen.c` | la feature è di expansion, la restrizione di SG |
+| Fast HMs (SG 1.2, `a9d41a7b9`) | `FAST HMS`, default OFF | `src/field_effect.c`, `src/fldeff_flash.c`, `src/fldeff_rocksmash.c`, `data/scripts/field_move_scripts_hns.inc`, `data/scripts/surf.inc` | salta domanda, messaggio "usato" e posa/banner. **Gli script sono quelli `_hns`**, non `field_move_scripts.inc` (quello è il ramo non-HnS): Taglio, Spaccaroccia, Forza, Cascata e Testata qui non avevano già né domanda né animazione, quindi per loro l'opzione toglie solo il messaggio. Surf, Sub, Scalaroccia e Defog hanno anche domanda e/o posa. Flag specchio `FLAG_FAST_HMS`, campo `soundAndFieldOptions.fastHms`, CLAUDE.md §4 |
+| Tema musica di lotta (SG 1.2, `f81a55ff3`) | `BATTLE MUSIC`: DEFAULT, HG JOHTO, HG KANTO, FRLG, RSE, DPPT, RANDOM | `src/pokemon.c` (`GetBattleBGM`), `include/pokemon.h`, `src/option_menu.c` | diverso da SG: DEFAULT è il tema **regionale** di Hasep, c'è HG JOHTO, e il tema vale anche per la **Superquattro**. Restano fissi boss, rivali, Rocket, campioni, leggendari, link, strutture e il Professor Oak (`PROFESSOR_HNS`, che prima condivideva il `case` con i capipalestra FRLG). 4 brani DP nuovi (`mus_dp_vs_wild/trainer/gym_leader`, `mus_dp_poke_center_night`) da SG, id derivati da Hasep |
+| Musica notturna nei Centri (SG 1.2, `c913c4a2d`) | `NIGHT CENTER`, default ON | `src/overworld.c` (`ApplyNightCenterMusic`) | in SG è sempre attiva, qui è un'opzione. Vale per le tre musiche di Centro (RSE, FRLG, HGSS) |
 
 ## 2. Accesi e completati qui (non scritti qui, non di Soulgold)
 
@@ -88,10 +91,10 @@ diff per diff:
 | Aura Shield / Omega / Infiltrator, Neutralizing Gas sui tratti, Ability Shield sui tratti (`c913c4a2d`) | non applicato | sistema a tratti multipli di SG |
 | `IsRuinStatusActive` senza l'eccezione Neutralizing Gas (`c913c4a2d`) | non applicato | conta solo se un Pokémon ha Neutralizing Gas **e** un'abilità Ruin insieme, cioè con i tratti di SG |
 | Maneuverability `<= 60` (`c913c4a2d`) | non applicato | abilità di SG |
-| Musica notturna nei Centri Pokémon (`c913c4a2d`) | non applicato | feature, candidato al §5 |
-| Tema della musica di lotta (`f81a55ff3`) | non applicato | feature, candidato al §5 |
+| Musica notturna nei Centri Pokémon (`c913c4a2d`) | **applicato** | come opzione, §1 |
+| Tema della musica di lotta (`f81a55ff3`) | **applicato** | adattato (regionale, HG JOHTO, Superquattro), §1 |
 | Palette del box PC con trasferimento parziale (`f81a55ff3`) | non applicato | SG toglie una sua ottimizzazione (`transferWholePlttFrames`) che in Hasep non è mai esistita |
-| Fast HMs (`a9d41a7b9`) | non applicato | feature, candidato al §5 |
+| Fast HMs (`a9d41a7b9`) | **applicato** | adattato agli script `_hns`, §1 |
 | Sprite di surf regionali (`73a66207e`) | **già presente** | SG li ha presi da HnS 2.0: i 30 PNG e le voci in `surfable_pokemon.h` ci sono già |
 | Level scaling dei rivali (`39f2cc303`), versione 1.2 (`20089aa08`), MT75 Agility, testi, squadre, learnset, tratti, documentazione (`1d09352b9`, `b7d1534e3`, `29b53d739`, `f6a7d7c2b`, `ad91d8aa5`, `23412857c`, `145247fb4`) | non applicato | contenuto di SG. Il refuso di Motor Drive sta in una `longDescription` che Hasep non ha |
 
@@ -118,20 +121,9 @@ minimo inferiore al massimo.
 - **Luci giorno/notte disattivabili** (`OW lighting`, `Battle lighting`, SG
   1.1.4): due opzioni che spengono la fusione dei colori per l'ora del giorno.
   In SG costano due flag. Da valutare: in Hasep le opzioni vivono in
-  `ChallengeSettings`, e resta un bit libero solo (§4 di CLAUDE.md), quindi
-  la strada più economica sono i flag come in SG.
-
-- **Fast HMs** (SG 1.2, `a9d41a7b9`): un'opzione che salta domanda,
-  messaggio e animazione delle MN (taglio, spaccaroccia, forza, surf, cascata,
-  sub, scalaroccia, volo, flash). In SG è un flag (`FLAG_FAST_HMS`) e tocca
-  `field_move_scripts.inc`, `surf.inc`, `field_effect.c`, `fldeff_*.c`.
-- **Tema della musica di lotta** (SG 1.2, `f81a55ff3`): sceglie fra le musiche
-  di lotta HGSS, RSE, FRLG, DPPT, HGSS Kanto o casuale per selvatici,
-  allenatori e capipalestra. Costa una var e i brani devono essere abilitati
-  in `songs_enabled.h` (spazio in ROM da misurare).
-- **Musica notturna nei Centri Pokémon** (`c913c4a2d`): di notte il Centro
-  suona il tema notturno di DP. Richiede di abilitare
-  `SONG_MUS_DP_POKE_CENTER_NIGHT` (spazio in ROM da misurare).
+  `ChallengeSettings`, che ora è piena; il posto più economico è
+  `soundAndFieldOptions` (3 bit liberi, CLAUDE.md §4) con un flag specchio come
+  per Fast HMs.
 
 **Contenuto e design di Soulgold, legati alle sue mappe e al suo bilanciamento**
 
