@@ -601,6 +601,13 @@ vuoti non è una verifica.** Controlla sempre che l'estratto non sia vuoto.
   (`personality ^ otId`), mosse negli 11 bit bassi dei primi quattro u16 della substruct
   indicata da `sSubstructOffsets[1][personality % 24]` (i 5 alti sono altro),
   checksum a somma di u16 da ricalcolare.
+- **Il riverbero di m4a è globale.** `MPlayStart` (`src/m4a.c`) scrive il
+  riverbero dell'header del brano in `SoundInfo` solo se il bit `0x80` è acceso,
+  e il valore resta finché un altro brano non lo riscrive. `mid2agb -R<n>` mette
+  sempre `0x80 | n`: tutti i brani di `midi.cfg` hanno un `-R`, quindi ognuno
+  imposta il suo (HG `-R0`, RSE/FRLG e i 4 DP nuovi `-R50`). Misurato: Centro di
+  notte (DP) riverbero 50, uscendo su Route 29 torna 0. Un brano nuovo **senza**
+  `-R` erediterebbe quello del brano precedente.
 
 - **Menu squadra SwSh**: due varianti compilate insieme. `tools/gen_party_menu_variant.py`
   rigenera `include/party_menu_variant.h` e `src/party_menu_dispatch.c`. Lo script è
