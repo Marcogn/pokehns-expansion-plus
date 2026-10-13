@@ -28,7 +28,8 @@ workflow**, si sceglie il branch e si scrive la versione (`2.0.6.PLUS.2` →
 tag `v2.0.6.PLUS.2`, creato dalla release stessa sul commit compilato). Il
 formato scelto dall'utente è quello del titolo, maiuscolo; la prima release è
 uscita come `v2.0.6.plus.1` (minuscolo) prima di questa scelta e resta così.
-Il numero nel titolo non segue il tag da solo: è grafica, vedi §7quater. In
+Il numero sul title screen segue la versione da solo: la release la passa a
+`make hns HNS_VERSION=...`, che la disegna nelle tile (§7quater). In
 alternativa basta pushare un tag `v*`. Il pulsante compare solo quando il file
 è sul branch di default.
 
@@ -847,12 +848,28 @@ PRESS START): è una striscia di 20 tile = 160×8 px, disposta nel foglio come
 riga 1 x40-127 seguita da riga 2 x0-71 (sono 5 sprite 32×8, tile 21-40).
 Una colonna x della striscia è la x 48+x a schermo. Il font ha **solo
 maiuscole e cifre**: per questo la versione è `v2.0.6.PLUS.1` e non "plus".
-Glifi: P e S copiati dall'arte di PRESS START, L, U e 1 disegnati nello
-stesso schema (forma su 5 righe colorata per riga: 5, 5, 4, 3, 3; contorno
-nero = gli 8 vicini; lettere separate da 1 colonna nera; il punto è un pixel
-della riga 5 fra due colonne nere). Testo centrato su 116 come il logo: x
-79-153. Per cambiare numero di versione si rifà la striscia, non si scrive
-un testo.
+Testo centrato su 116 come il logo: x 79-153.
+
+**La striscia si genera in build** (`tools/version_strip.py`, regola in
+`graphics_file_rules.mk`): gbagfx fa il `.4bpp` dal PNG e lo script ci
+ridisegna sopra la striscia, senza Pillow. La versione è `HNS_VERSION`; di
+default l'ultimo tag `v*` (`git describe`), e la release passa quella che sta
+per taggare. Senza né l'una né l'altro (clone senza tag, come la CI di build)
+resta la striscia disegnata nel PNG. Un file `build/hns_version.txt` cambia
+solo quando cambia la versione, ed è quello che fa rifare il foglio. Le
+minuscole vengono rese maiuscole; un carattere senza glifo ferma la build.
+
+Glifi, tutti nella tabella dello script: v, punto, 0 1 2 6, P L U S copiati
+dalla striscia fatta a mano (rigenerare `v2.0.6.PLUS.1` la riproduce **pixel
+per pixel**: è il test da rifare se si tocca la tabella); 3 4 5 7 8 9
+disegnati poi nello stesso schema (7 righe: contorno, corpo colorato per
+riga 5, 5, 4, 3, 3 con il 2 sugli angoli arrotondati, contorno). Glifi
+adiacenti condividono la colonna di contorno; il punto ha la sua.
+Spazio: 160 px di striscia, ma centrata su 116 ne stanno **137**. Oltre, lo
+script la sposta per restare dentro (verificato in mGBA con
+`1234.5678.9.PLUS.PLUS`, 147 px, x 48-194); oltre 160 si ferma.
+R, E, T e A di PRESS START non sono nella tabella: T e A hanno larghezze
+irregolari, e finora non servivano.
 
 ---
 

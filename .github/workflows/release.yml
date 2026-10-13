@@ -56,7 +56,9 @@ jobs:
           echo "TAG=$tag" >> "$GITHUB_ENV"
 
       - name: ROM (HnS)
-        run: make hns -j$(nproc) -O
+        # The title screen shows this version (tools/version_strip.py). It has
+        # to be passed: for a manual run the tag does not exist yet.
+        run: make hns -j$(nproc) -O HNS_VERSION="$TAG"
 
       - name: Patch
         run: |

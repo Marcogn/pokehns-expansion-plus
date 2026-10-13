@@ -287,6 +287,27 @@ $(TITLESCREENGFXDIR)/hns/pokemon_logo.gbapal: %.gbapal: %.pal
 $(TITLESCREENGFXDIR)/emerald_version.8bpp: %.8bpp: %.png
 	$(GFX) $< $@ -mwidth 8 -mheight 4
 
+# The version under PRESS START is drawn into the tiles at build time
+# (tools/version_strip.py). It defaults to the latest v* tag; the release
+# workflow passes the version it is about to tag. With neither (a clone
+# without tags) the strip already drawn in the PNG is kept.
+# The stamp is rewritten only when the version changes, so it rebuilds the
+# sheet exactly then. It must exist even when the version is empty, or make
+# has no rule for it. The `generated` sub-make that the Makefile runs inside
+# $(shell) does not see HNS_VERSION from the command line, so it leaves the
+# stamp alone: otherwise the two would flip it on every build.
+HNS_VERSION ?= $(shell git describe --tags --abbrev=0 --match 'v*' 2>/dev/null)
+HNS_VERSION_STAMP := $(BUILD_DIR)/hns_version.txt
+ifneq ($(MAKECMDGOALS),generated)
+$(shell mkdir -p $(BUILD_DIR); [ -f $(HNS_VERSION_STAMP) ] && [ "$$(cat $(HNS_VERSION_STAMP))" = '$(HNS_VERSION)' ] || echo '$(HNS_VERSION)' > $(HNS_VERSION_STAMP))
+endif
+
+$(TITLESCREENGFXDIR)/hns/press_start.4bpp: %.4bpp: %.png tools/version_strip.py $(HNS_VERSION_STAMP)
+	$(GFX) $< $@
+ifneq ($(HNS_VERSION),)
+	python3 tools/version_strip.py '$(HNS_VERSION)' $@
+endif
+
 graphics/pokemon_jump/bg.4bpp: %.4bpp: %.png
 	$(GFX) $< $@ -num_tiles 63 -Wnum_tiles
 
