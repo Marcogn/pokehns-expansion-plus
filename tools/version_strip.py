@@ -8,7 +8,7 @@ graphics/title_screen/hns/press_start.png as a strip of 20 tiles (160x8 px)
 laid out as sheet row 1 x40-127 followed by sheet row 2 x0-71. Strip column x
 is screen x 48+x. This script clears that strip in the .4bpp that gbagfx made
 from the PNG, and composes VERSION from the glyph table below, centred on
-screen x 116 like the logo (CLAUDE.md §7quater). It edits the tiles rather
+screen x 116 like the logo (.claude/rules/title_screen.md). It edits the tiles rather
 than the PNG so the build needs nothing beyond python3.
 
 Glyphs are 7 rows: outline, five body rows coloured 5, 5, 4, 3, 3 (2 marks a

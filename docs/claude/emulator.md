@@ -1,0 +1,68 @@
+# Emulatore: guida completa
+
+Letta su richiesta da `CLAUDE.md` §3. Non è caricata in automatico.
+
+mGBA gira headless e si pilota. Vale l'investimento: è così che sono stati trovati
+i bug che l'analisi statica non vedeva.
+
+```sh
+apt-get install -y --no-install-recommends mgba-sdl xvfb xdotool imagemagick
+Xvfb :99 -screen 0 800x600x24 &
+DISPLAY=:99 SDL_AUDIODRIVER=dummy /usr/games/mgba pokehns.gba &   # in background
+```
+
+- Tasti: A=`x`, B=`z`, Start=`Return`, Select=`BackSpace`, L=`a`, R=`s`, frecce.
+- Input: `xdotool windowfocus --sync $(xdotool search --class mgba|head -1)` e poi
+  `xdotool keydown/keyup` (non `--window`: SDL ignora XSendEvent).
+- Screenshot: `import -window root out.png`, poi
+  `convert out.png -crop 240x160+280+220 +repage -scale 400% zoom.png`.
+- L'emulatore è lento sotto Xvfb: servono attese di 2-3 s fra i tasti.
+- Menu debug in overworld: tieni **R** e premi **START**
+  (`DEBUG_OVERWORLD_MENU` in `include/config/debug.h`, già TRUE).
+  Da lì: `Trainers… → Try Battle` entra in lotta in pochi passi.
+- Il salvataggio dell'utente è un `.srm`: copialo come `pokehns.sav` accanto alla ROM.
+
+**Misura i pixel invece di fidarti dell'occhio.** Campionare i colori del crop e
+risalire alle entry (`#292929` → `RGB(5,5,5)`) ha risolto in un colpo un problema su
+cui l'analisi statica girava a vuoto da un'ora.
+
+Con un salvataggio dell'utente già su una rotta con erba la lotta selvatica si
+raggiunge camminando avanti e indietro (~15-20 passi). Attenzione: se l'opzione
+`WILD BATTLES` è su OFF non succede niente e sembra un bug dell'emulatore.
+
+Due accorgimenti che fanno risparmiare molto tempo:
+
+- avvia `Xvfb` e `mgba` con `setsid nohup ... &`, altrimenti muoiono con la shell
+  e ci si ritrova senza display a metà sessione;
+- dopo **ogni** passaggio di menu fai uno screenshot e guardalo prima del passo
+  successivo. Contare i `Down` alla cieca porta ad aprire le opzioni dal *title
+  screen* invece che dal gioco, e te ne accorgi tre schermate dopo.
+
+**ROM strumentata**: quando una feature non si vede e l'analisi statica non
+conclude, la via più rapida è una build usa-e-getta con una condizione forzata
+(es. `return FALSE;` in cima a `ShouldHideTypeIcon`) o una posizione forzata al
+centro schermo. Due build da tre minuti hanno chiuso un problema su cui il
+ragionamento girava a vuoto da un'ora. Ricordati di `cp` del file prima.
+
+## Memoria, musica e ora via GDB
+
+- **Leggere il brano in riproduzione, per verificare la musica.** Con
+  `mgba -g` (stub GDB, porta 2345) si legge la memoria con un client di dieci
+  righe in Python (`$` + `m<addr>,<len>` + checksum). `gMPlayInfo_BGM` (da
+  `nm pokehns.elf`) ha il puntatore all'header del brano al primo campo: lo si
+  confronta con gli indirizzi dei simboli `mus_*` (`nm`) e si ha il nome. Per
+  l'ora, `mgba` non ha opzioni RTC: si lancia con `faketime -f "@2026-10-12
+  23:00:00" /usr/games/mgba ...`. Le stesse due scritture in RAM (`M<addr>,...`)
+  permettono di dare mosse a un Pokémon: struct a bitfield cifrata
+  (`personality ^ otId`), mosse negli 11 bit bassi dei primi quattro u16 della substruct
+  indicata da `sSubstructOffsets[1][personality % 24]` (i 5 alti sono altro),
+  checksum a somma di u16 da ricalcolare.
+
+## Nuova partita per i test
+
+**Nuova partita in mGBA, per i test**: la camera della camera da letto è sul
+bordo della mappa (metà schermo nera) e la scena aspetta input: **non è un
+freeze**, l'ho scambiato per uno e ho perso tempo con un A/B. Il personaggio
+però non cammina finché la scena non finisce; conviene saltare con il debug:
+`Flags & Vars → Toggle Fly Flags`, poi `Utilities → Warp to map warp` (gruppo e
+numero da `data/maps/map_groups.json`, es. Violet Gym = 3/5).
