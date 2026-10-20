@@ -53,7 +53,8 @@ DexNav (`DEXNAV_ENABLED` era FALSE), relearner dal riassunto
 
 Pokédex dal menu squadra, `EASY CATCH`, `NICKNAMES`, `WILD BATTLES`, toggle del
 follower nel menu SwSh, badge `SEL`/`HM` leggibili nei due temi (difetto
-presente anche in SG), prezzi e negozi (README).
+presente anche in SG), prezzi e negozi (README), `SORT` e `SEARCH` nei box
+del PC (SG non li ha; CLAUDE.md §7quinquies).
 
 ---
 

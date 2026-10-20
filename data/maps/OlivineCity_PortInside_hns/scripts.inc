@@ -79,7 +79,9 @@ OlivineCity_PortInside_Text_Nationaldex3:
 	.string "PROF.OAK: It won't be easy to\n"
 	.string "complete the NATIONAL POKéDEX...\p"
 	.string "However, I'm sure you will make\n"
-	.string "honest attempt on our behalf!$"
+	.string "honest attempt on our behalf!\p"
+	.string "Oh, and your PC BOXES will now\n"
+	.string "sort POKéMON in NATIONAL order!$"
 OlivineCity_PortInside_Text_Nationaldex4:
 	.string "Oh, time flies!\p"
 	.string "I have a radio show to record at\n"

@@ -873,6 +873,44 @@ irregolari, e finora non servivano.
 
 ---
 
+## 7quinquies. Box del PC: `SORT` e `SEARCH`
+
+Non vengono da Soulgold. Tutto in `src/pokemon_storage_system.c`, sezione
+"Box sort and search"; nessun campo nel salvataggio, i Pokémon cambiano solo
+casella. Voci nel menu del nome del box (A sul titolo), **nascoste** con un
+Pokémon in mano, in multi-move e in MOVE ITEMS (`CanSortOrSearchBoxes`).
+
+- **Indirizzo piatto.** `boxes[][]` è contiguo: `&boxes[0][0] + slot` con
+  `slot = box * 30 + posizione` percorre tutti i box in ordine. `BoxPokemon`
+  si cifra da solo, quindi spostarlo è una copia di 80 byte.
+- **Non leggere i dati nei confronti.** Ogni `GetBoxMonData` decifra il
+  Pokémon: le chiavi (numero, specie, livello) si leggono una volta in un
+  array, si ordina quello (shell sort, chiave totale con lo slot in fondo) e
+  si applica la permutazione per cicli con un solo `BoxPokemon` di appoggio.
+  La ricerca fa lo stesso con `slotSpecies[]`.
+- **Ordine numerico**: Johto finché `IsNationalPokedexEnabled()` è falso,
+  poi nazionale; le specie fuori dal Johto dex vanno dopo, in ordine
+  nazionale. Oak lo dice consegnando il nazionale al porto di Olivine; col
+  randomizer il nazionale arriva in silenzio da Mr. Pokémon, e lì la frase non
+  serve. A parità di specie, livello più alto prima; uova e caselle vuote in
+  fondo. `ALL` riempie dal box 1 e chiede conferma.
+- **Ricerca per nome**, gruppi di lettere del Pokédex, uova escluse. Le forme
+  condividono il nome (RATTATA di Alola è RATTATA), quindi si confronta il
+  nome e non la specie.
+- **La finestra messaggi copre l'ultima riga del box**, cursore compreso
+  (righe tile 16-19). Un risultato lì non si vedeva: la riga dei risultati sta
+  quindi in alto, **righe tile 0-1, sopra i pulsanti PARTY/CLOSE BOX**, con
+  `SetWindowAttribute(WIN_MESSAGE, WINDOW_TILEMAP_TOP, 0)` e il ritorno a 17
+  in uscita. Senza cornice sopra/sotto: la riga 2 coprirebbe il titolo del
+  box, che è uno sprite a priorità 2 e finisce sotto BG0. I due lati della
+  cornice chiudono gli 8 px di pulsante che la finestra (18 tile) non copre.
+- Verificato in mGBA con i box riempiti dal debug (`PC/Bag → Fill…`) e 5 ABRA
+  clonati via GDB in box 4, 4, 6, 10, 10: `ABRA 1/6 … 6/6` e ritorno al
+  primo; ordine Johto e, dopo `Toggle National Dex`, nazionale; riassunto di
+  un Pokémon spostato integro.
+
+---
+
 ## 8. Rotture preesistenti (non tue)
 
 Verificate su `master` pulito, **prima** di qualunque modifica:
