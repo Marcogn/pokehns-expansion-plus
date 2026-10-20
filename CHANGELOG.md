@@ -6,6 +6,15 @@ tag `v2.0.6.PLUS.3`) as the release notes, and refuses to run without one:
 add the section before releasing. Feature details live in the tables of
 [`README.md`](README.md).
 
+## 2.0.6.PLUS.4
+
+### Fixed
+- **DexNav in Dark Cave after Flash.** Flash only widens the light to level
+  1, never back to 0, and the DexNav treated anything above 0 as too dark:
+  searches and hidden Pokémon stayed off in a Flash-lit cave. Reported in
+  Mikeagan's fork, which fixed the search but not the hidden Pokémon.
+  Soulgold never showed it because there Flash lights caves fully.
+
 ## 2.0.6.PLUS.3
 
 ### Added

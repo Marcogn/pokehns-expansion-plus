@@ -1021,6 +1021,14 @@ static void DexNavSearchBail(const u8 *script)
     ScriptContext_SetupScript(script);
 }
 
+// Flash does not light a cave fully: EventScript_UseFlash and SetDefaultFlashLevel
+// both leave the level at 1 (the widest radius), never 0. Checking "> 0" therefore
+// kept the DexNav dark in Dark Cave even after Flash.
+static bool32 IsTooDarkToSearch(void)
+{
+    return GetFlashLevel() > 1;
+}
+
 static bool8 InitDexNavSearch(u32 species, u32 environment)
 {
 #if USE_DEXNAV_SEARCH_LEVELS == DEXNAV_SEARCH_LEVELS_REGISTERED_SPECIES
@@ -1042,7 +1050,7 @@ static bool8 InitDexNavSearch(u32 species, u32 environment)
     sDexNavSearchDataPtr->isHiddenMon = (environment == ENCOUNTER_TYPE_HIDDEN) ? TRUE : FALSE;
     sDexNavSearchDataPtr->monLevel = DexNavTryGenerateMonLevel(species, environment);
 
-    if (GetFlashLevel() > 0)
+    if (IsTooDarkToSearch())
     {
         DexNavSearchBail(EventScript_TooDark);
         return TRUE;
@@ -2859,7 +2867,7 @@ bool32 TryFindHiddenPokemon(void)
     if (DEXNAV_ENABLED == 0
             || !FlagGet(DN_FLAG_DETECTOR_MODE)
             || FlagGet(DN_FLAG_SEARCHING)
-            || GetFlashLevel() > 0)
+            || IsTooDarkToSearch())
     {
         if (stepPtr != NULL)
             (*stepPtr) = 0;
