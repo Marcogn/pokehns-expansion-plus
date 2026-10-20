@@ -128,10 +128,15 @@ what stops someone from re-evaluating them.
    If job C was cut short, set it to where you stopped, not to upstream's tip.
 3. If something new was ported, add its files to `PORTED` in
    `upstream_status.py`, so the next run reads their diffs in full.
-4. Commit, push, open draft PRs (one per repo that changed), as per the
+4. `CHANGELOG.md`: under the next unreleased `## <version>` heading (add it
+   if the top section is already released, i.e. has a `v<version>` tag), one
+   line per fix or feature that came in, plus the `### Upstream` line with
+   both upstream positions. The release workflow publishes that section and
+   refuses to run without it.
+5. Commit, push, open draft PRs (one per repo that changed), as per the
    session's git rules.
-5. Hasep ROM: `zip -9 pokemonHnS_upstream-sync_<sha>.zip pokehns.gba`, full
+6. Hasep ROM: `zip -9 pokemonHnS_upstream-sync_<sha>.zip pokehns.gba`, full
    32 MB ROM (CLAUDE.md §1), sent to the user.
-6. Final message to the user, in Italian, short: what came in from each
+7. Final message to the user, in Italian, short: what came in from each
    upstream, what was ported into Hasep and how it was verified, what was
    deliberately not ported, what needs their decision.
