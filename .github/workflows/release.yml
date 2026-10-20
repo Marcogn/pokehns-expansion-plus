@@ -55,6 +55,11 @@ jobs:
           [[ $tag =~ ^v[0-9A-Za-z._-]+$ ]] || { echo "invalid version: $tag"; exit 1; }
           echo "TAG=$tag" >> "$GITHUB_ENV"
 
+      - name: Release notes from CHANGELOG.md
+        # Before the build on purpose: a version without its "## <version>"
+        # section in CHANGELOG.md stops here, not after minutes of compiling.
+        run: python3 tools/changelog_section.py "$TAG" CHANGELOG.md > changes.md
+
       - name: ROM (HnS)
         # The title screen shows this version (tools/version_strip.py). It has
         # to be passed: for a manual run the tag does not exist yet.
@@ -73,6 +78,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           {
+            cat changes.md
+            echo
+            echo "## How to apply"
+            echo
             echo "Apply to a clean **Pokémon Emerald (USA)** ROM,"
             echo "SHA-1 \`f3ae088181bf583e55daf962a92bb46f4f1d07b7\`, with any BPS patcher"
             echo "(Flips, Rom Patcher JS). The result is a 32 MiB ROM."
@@ -82,6 +91,7 @@ jobs:
           # --target: for a manual run the tag does not exist yet, and this makes
           # the release create it on the commit that was just built.
           # --generate-notes appends GitHub's changelog: the PRs merged since the
-          # previous release, by title. Our notes-file is prepended to it.
+          # previous release, by title. Our notes-file (the CHANGELOG.md section,
+          # then how to apply the patch) is prepended to it.
           gh release create "$TAG" "$PATCH" --target "$GITHUB_SHA" --title "$TAG" \
             --notes-file notes.md --generate-notes

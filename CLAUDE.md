@@ -33,6 +33,14 @@ Il numero sul title screen segue la versione da solo: la release la passa a
 alternativa basta pushare un tag `v*`. Il pulsante compare solo quando il file
 è sul branch di default.
 
+**Le note della release vengono da `CHANGELOG.md`** (in radice, ora il
+changelog del fork; quello di pokeemerald-expansion è in fondo allo stesso
+file). Il workflow pubblica la sezione `## <versione>` (senza la `v` del tag)
+estratta da `tools/changelog_section.py`, seguita da come applicare la patch e
+dall'elenco delle PR di GitHub. **Senza quella sezione la release si ferma
+subito**, prima della build: va scritta nel commit che si rilascia. Un port o
+una feature nuova si annotano lì sotto la prossima versione, a titoletti.
+
 La base è **Emerald USA pulito**, e non la deve fornire nessuno: lo script lo
 ricompila da pret/pokeemerald (commit fissati nello script, ~1 min, in cache in
 `~/.cache/hasep-patch`) e si ferma se lo SHA-1 non è
