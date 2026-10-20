@@ -113,6 +113,11 @@ enum {
     MSG_CANT_STORE_MAIL,
     MSG_NUZLOCKE_FAINTED,
     MSG_ONE_TYPE_BLOCKED,
+    MSG_SORT_HOW,
+    MSG_SORT_ALL_CONFIRM,
+    MSG_BOX_SORTED,
+    MSG_ALL_BOXES_SORTED,
+    MSG_SEARCH_NOTHING,
 };
 
 // IDs for how to resolve variables in the above messages
@@ -169,6 +174,12 @@ enum {
     MENU_MACHINE,
     MENU_SIMPLE,
     MENU_SELECT,
+    MENU_SORT,
+    MENU_SEARCH,
+    MENU_SORT_BOX_DEX,
+    MENU_SORT_BOX_ABC,
+    MENU_SORT_ALL_DEX,
+    MENU_SORT_ALL_ABC,
 };
 #define MENU_WALLPAPER_SETS_START MENU_SCENERY_1
 #define MENU_WALLPAPERS_START MENU_FOREST
@@ -590,6 +601,11 @@ static void Task_ReleaseMon(u8);
 static void Task_ReshowPokeStorage(u8);
 static void Task_PokeStorageMain(u8);
 static void Task_JumpBox(u8);
+static void Task_SortBoxes(u8);
+static void Task_SearchBoxes(u8);
+static void CreateBoxMonIconAtPos(u8);
+static void DestroyBoxMonIconAtPosition(u8);
+static void SetCursorPosition(u8, u8);
 static void Task_HandleWallpapers(u8);
 static void Task_NameBox(u8);
 static void Task_PrintCantStoreMail(u8);
@@ -1085,6 +1101,11 @@ static const struct StorageMessage sMessages[] =
     [MSG_CANT_STORE_MAIL]      = {COMPOUND_STRING("MAIL can't be stored!"),      MSG_VAR_NONE},
     [MSG_NUZLOCKE_FAINTED]     = {COMPOUND_STRING("fainted in Nuzlocke!"),       MSG_VAR_NONE},
     [MSG_ONE_TYPE_BLOCKED]     = {COMPOUND_STRING("Wrong type!"), MSG_VAR_NONE},
+    [MSG_SORT_HOW]             = {COMPOUND_STRING("Sort the POKéMON how?"),      MSG_VAR_NONE},
+    [MSG_SORT_ALL_CONFIRM]     = {COMPOUND_STRING("Rearrange ALL the BOXES?"),   MSG_VAR_NONE},
+    [MSG_BOX_SORTED]           = {COMPOUND_STRING("The BOX has been sorted."),   MSG_VAR_NONE},
+    [MSG_ALL_BOXES_SORTED]     = {COMPOUND_STRING("All the BOXES are sorted."),  MSG_VAR_NONE},
+    [MSG_SEARCH_NOTHING]       = {COMPOUND_STRING("The BOXES are empty."),       MSG_VAR_NONE},
 };
 
 static bool8 IsBoxMonNuzlockeDead(u8 boxId, u8 position)
@@ -3501,6 +3522,14 @@ static void Task_HandleBoxOptions(u8 taskId)
             ClearBottomWindow();
             SetPokeStorageTask(Task_JumpBox);
             break;
+        case MENU_SORT:
+            PlaySE(SE_SELECT);
+            SetPokeStorageTask(Task_SortBoxes);
+            break;
+        case MENU_SEARCH:
+            PlaySE(SE_SELECT);
+            SetPokeStorageTask(Task_SearchBoxes);
+            break;
         }
         break;
     }
@@ -3633,6 +3662,678 @@ static void Task_JumpBox(u8 taskId)
             SetCurrentBox(sStorage->newCurrBoxId);
             SetPokeStorageTask(Task_PokeStorageMain);
         }
+        break;
+    }
+}
+
+//------------------------------------------------------------------------------
+//  SECTION: Box sort and search (Hasep)
+//
+//  Slots are addressed by a flat index into boxes[][]: the array is contiguous,
+//  so box * IN_BOX_COUNT + position walks every box in order.
+//------------------------------------------------------------------------------
+
+#define BOX_SLOTS_COUNT (TOTAL_BOXES_COUNT * IN_BOX_COUNT)
+
+enum {
+    SORT_KIND_MON,
+    SORT_KIND_EGG,
+    SORT_KIND_EMPTY,
+};
+
+struct BoxSortEntry
+{
+    u16 slot;
+    u16 dexNum;
+    u16 species;
+    u8 level;
+    u8 kind;
+};
+
+static struct BoxPokemon *GetBoxSlotPtr(u32 slot)
+{
+    return &gPokemonStoragePtr->boxes[0][0] + slot;
+}
+
+// Johto order until the National Dex is unlocked (Oak says so when he hands
+// it over); species outside the Johto dex follow, in national order.
+static u16 GetBoxSortDexNum(u16 species)
+{
+    u16 nationalNum = SpeciesToNationalPokedexNum(species);
+    u16 johtoNum;
+
+    if (IsNationalPokedexEnabled())
+        return nationalNum;
+    johtoNum = NationalToJohtoOrder(nationalNum);
+    return johtoNum != 0 ? johtoNum : JOHTO_DEX_COUNT + nationalNum;
+}
+
+// Every key ends on the original slot, so the order is total and the
+// (unstable) shell sort below always gives the same result.
+static s32 CompareBoxSortEntries(const struct BoxSortEntry *a, const struct BoxSortEntry *b, bool32 byName)
+{
+    s32 diff;
+
+    if (a->kind != b->kind)
+        return a->kind - b->kind;
+    if (a->kind == SORT_KIND_MON)
+    {
+        if (byName)
+        {
+            diff = StringCompare(GetSpeciesName(a->species), GetSpeciesName(b->species));
+            if (diff != 0)
+                return diff;
+        }
+        else if (a->dexNum != b->dexNum)
+        {
+            return a->dexNum - b->dexNum;
+        }
+        if (a->species != b->species)
+            return a->species - b->species;
+        if (a->level != b->level)
+            return b->level - a->level; // highest level first
+    }
+    return a->slot - b->slot;
+}
+
+static void SortBoxSlots(u32 firstSlot, u32 count, bool32 byName)
+{
+    static const u16 sGaps[] = {301, 132, 57, 23, 10, 4, 1};
+    struct BoxSortEntry *entries = Alloc(count * sizeof(*entries));
+    u8 *done = AllocZeroed(count);
+    struct BoxPokemon temp;
+    u32 i, j, gap;
+
+    if (entries == NULL || done == NULL)
+    {
+        TRY_FREE_AND_SET_NULL(entries);
+        TRY_FREE_AND_SET_NULL(done);
+        return;
+    }
+
+    // Read every key once: each GetBoxMonData decrypts the mon, which is far
+    // too slow to repeat inside the comparisons
+    for (i = 0; i < count; i++)
+    {
+        struct BoxPokemon *boxMon = GetBoxSlotPtr(firstSlot + i);
+
+        entries[i].slot = i;
+        entries[i].species = GetBoxMonData(boxMon, MON_DATA_SPECIES);
+        if (entries[i].species == SPECIES_NONE)
+        {
+            entries[i].kind = SORT_KIND_EMPTY;
+        }
+        else if (GetBoxMonData(boxMon, MON_DATA_IS_EGG) || GetBoxMonData(boxMon, MON_DATA_SANITY_IS_BAD_EGG))
+        {
+            entries[i].kind = SORT_KIND_EGG;
+        }
+        else
+        {
+            entries[i].kind = SORT_KIND_MON;
+            entries[i].level = GetLevelFromBoxMonExp(boxMon);
+            if (!byName)
+                entries[i].dexNum = GetBoxSortDexNum(entries[i].species);
+        }
+    }
+
+    for (gap = 0; gap < ARRAY_COUNT(sGaps); gap++)
+    {
+        u32 g = sGaps[gap];
+
+        for (i = g; i < count; i++)
+        {
+            struct BoxSortEntry key = entries[i];
+
+            for (j = i; j >= g && CompareBoxSortEntries(&entries[j - g], &key, byName) > 0; j -= g)
+                entries[j] = entries[j - g];
+            entries[j] = key;
+        }
+    }
+
+    // Slot i now takes the mon from entries[i].slot: follow each cycle of
+    // that permutation with a single spare BoxPokemon
+    for (i = 0; i < count; i++)
+    {
+        if (done[i] || entries[i].slot == i)
+            continue;
+
+        temp = *GetBoxSlotPtr(firstSlot + i);
+        j = i;
+        while (entries[j].slot != i)
+        {
+            *GetBoxSlotPtr(firstSlot + j) = *GetBoxSlotPtr(firstSlot + entries[j].slot);
+            done[j] = TRUE;
+            j = entries[j].slot;
+        }
+        *GetBoxSlotPtr(firstSlot + j) = temp;
+        done[j] = TRUE;
+    }
+
+    Free(entries);
+    Free(done);
+}
+
+static void RefreshCurrentBoxIcons(void)
+{
+    u32 i;
+
+    for (i = 0; i < IN_BOX_COUNT; i++)
+    {
+        DestroyBoxMonIconAtPosition(i);
+        CreateBoxMonIconAtPos(i);
+    }
+    TryRefreshDisplayMon();
+}
+
+#define tSortAll  data[0]
+#define tByName   data[1]
+
+static void Task_SortBoxes(u8 taskId)
+{
+    s16 *data = gTasks[taskId].data;
+
+    switch (sStorage->state)
+    {
+    case 0:
+        PrintMessage(MSG_SORT_HOW);
+        InitMenu();
+        SetMenuText(MENU_SORT_BOX_DEX);
+        SetMenuText(MENU_SORT_BOX_ABC);
+        SetMenuText(MENU_SORT_ALL_DEX);
+        SetMenuText(MENU_SORT_ALL_ABC);
+        SetMenuText(MENU_CANCEL);
+        AddMenu();
+        sStorage->state++;
+        break;
+    case 1:
+    {
+        s16 input = HandleMenuInput();
+
+        switch (input)
+        {
+        case MENU_B_PRESSED:
+        case MENU_CANCEL:
+            ClearBottomWindow();
+            AnimateBoxScrollArrows(TRUE);
+            SetPokeStorageTask(Task_PokeStorageMain);
+            return;
+        case MENU_SORT_BOX_DEX:
+        case MENU_SORT_BOX_ABC:
+        case MENU_SORT_ALL_DEX:
+        case MENU_SORT_ALL_ABC:
+            tSortAll = (input == MENU_SORT_ALL_DEX || input == MENU_SORT_ALL_ABC);
+            tByName = (input == MENU_SORT_BOX_ABC || input == MENU_SORT_ALL_ABC);
+            sStorage->state = tSortAll ? 2 : 4;
+            break;
+        }
+        break;
+    }
+    case 2:
+        // Sorting every box throws away any arrangement made by hand
+        PrintMessage(MSG_SORT_ALL_CONFIRM);
+        ShowYesNoWindow(1);
+        sStorage->state++;
+        break;
+    case 3:
+        switch (Menu_ProcessInputNoWrapClearOnChoose())
+        {
+        case MENU_B_PRESSED:
+        case 1: // No
+            ClearBottomWindow();
+            AnimateBoxScrollArrows(TRUE);
+            SetPokeStorageTask(Task_PokeStorageMain);
+            break;
+        case 0: // Yes
+            sStorage->state++;
+            break;
+        }
+        break;
+    case 4:
+        PlaySE(SE_PC_LOGIN);
+        if (tSortAll)
+            SortBoxSlots(0, BOX_SLOTS_COUNT, tByName);
+        else
+            SortBoxSlots(StorageGetCurrentBox() * IN_BOX_COUNT, IN_BOX_COUNT, tByName);
+        RefreshCurrentBoxIcons();
+        PrintMessage(tSortAll ? MSG_ALL_BOXES_SORTED : MSG_BOX_SORTED);
+        sStorage->state++;
+        break;
+    case 5:
+        if (JOY_NEW(A_BUTTON | B_BUTTON))
+        {
+            ClearBottomWindow();
+            AnimateBoxScrollArrows(TRUE);
+            SetPokeStorageTask(Task_PokeStorageMain);
+        }
+        break;
+    }
+}
+
+#undef tSortAll
+#undef tByName
+
+// Same letter groups as the Pokédex search screen
+static const u8 sBoxSearchGroupFirstLetter[] = {CHAR_A, CHAR_D, CHAR_G, CHAR_J, CHAR_M, CHAR_P, CHAR_S, CHAR_V, CHAR_Y};
+static const u8 sBoxSearchGroupLength[]      = {3,      3,      3,      3,      3,      3,      3,      3,      2};
+
+#define BOX_SEARCH_GROUPS_COUNT ARRAY_COUNT(sBoxSearchGroupFirstLetter)
+
+struct BoxSearch
+{
+    u16 slotSpecies[BOX_SLOTS_COUNT]; // SPECIES_NONE for empty slots and eggs
+    u16 species[BOX_SLOTS_COUNT]; // one per distinct name, alphabetical
+    u16 count[BOX_SLOTS_COUNT];   // mons in the boxes with that name
+    u16 numSpecies;
+    u16 speciesIdx;
+    s16 slot;                     // last slot jumped to, -1 before the first
+    u8 group;
+    u8 resultWindowId;
+    u16 groupCount[BOX_SEARCH_GROUPS_COUNT];
+};
+
+static EWRAM_DATA struct BoxSearch *sBoxSearch = NULL;
+
+// Forms share a name (Alolan RATTATA is still RATTATA), and the search is by
+// name, so a mon matches when its name is the chosen one
+static const u8 *GetBoxSlotSearchName(u32 slot)
+{
+    if (sBoxSearch->slotSpecies[slot] == SPECIES_NONE)
+        return NULL;
+    return GetSpeciesName(sBoxSearch->slotSpecies[slot]);
+}
+
+static bool32 IsNameInSearchGroup(const u8 *name, u32 group)
+{
+    u8 first = name[0];
+
+    if (first >= CHAR_a && first <= CHAR_z)
+        first = first - CHAR_a + CHAR_A;
+    return first >= sBoxSearchGroupFirstLetter[group]
+        && first < sBoxSearchGroupFirstLetter[group] + sBoxSearchGroupLength[group];
+}
+
+// The boxes can't change while searching, so every mon is decrypted once here
+// instead of on each key press
+static void InitBoxSearchSlots(void)
+{
+    u32 slot, group;
+
+    for (slot = 0; slot < BOX_SLOTS_COUNT; slot++)
+    {
+        struct BoxPokemon *boxMon = GetBoxSlotPtr(slot);
+        u16 species = GetBoxMonData(boxMon, MON_DATA_SPECIES);
+
+        if (species != SPECIES_NONE && !GetBoxMonData(boxMon, MON_DATA_IS_EGG)
+         && !GetBoxMonData(boxMon, MON_DATA_SANITY_IS_BAD_EGG))
+        {
+            sBoxSearch->slotSpecies[slot] = species;
+            for (group = 0; group < BOX_SEARCH_GROUPS_COUNT; group++)
+            {
+                if (IsNameInSearchGroup(GetSpeciesName(species), group))
+                    sBoxSearch->groupCount[group]++;
+            }
+        }
+    }
+}
+
+// Steps through the groups that have at least one mon; returns FALSE if none do
+static bool32 StepBoxSearchGroup(s32 direction)
+{
+    u32 i, group = sBoxSearch->group;
+
+    for (i = 0; i < BOX_SEARCH_GROUPS_COUNT; i++)
+    {
+        group = (group + BOX_SEARCH_GROUPS_COUNT + direction) % BOX_SEARCH_GROUPS_COUNT;
+        if (sBoxSearch->groupCount[group] != 0)
+        {
+            sBoxSearch->group = group;
+            return TRUE;
+        }
+    }
+    return FALSE;
+}
+
+static void BuildBoxSearchSpeciesList(void)
+{
+    u32 slot, i, j;
+
+    sBoxSearch->numSpecies = 0;
+    for (slot = 0; slot < BOX_SLOTS_COUNT; slot++)
+    {
+        const u8 *name = GetBoxSlotSearchName(slot);
+
+        if (name == NULL || !IsNameInSearchGroup(name, sBoxSearch->group))
+            continue;
+        for (i = 0; i < sBoxSearch->numSpecies; i++)
+        {
+            if (StringCompare(GetSpeciesName(sBoxSearch->species[i]), name) == 0)
+                break;
+        }
+        if (i == sBoxSearch->numSpecies)
+        {
+            sBoxSearch->species[i] = sBoxSearch->slotSpecies[slot];
+            sBoxSearch->count[i] = 0;
+            sBoxSearch->numSpecies++;
+        }
+        sBoxSearch->count[i]++;
+    }
+
+    // Insertion sort: a letter group holds a few dozen names at most
+    for (i = 1; i < sBoxSearch->numSpecies; i++)
+    {
+        u16 species = sBoxSearch->species[i];
+        u16 count = sBoxSearch->count[i];
+
+        for (j = i; j > 0 && StringCompare(GetSpeciesName(sBoxSearch->species[j - 1]), GetSpeciesName(species)) > 0; j--)
+        {
+            sBoxSearch->species[j] = sBoxSearch->species[j - 1];
+            sBoxSearch->count[j] = sBoxSearch->count[j - 1];
+        }
+        sBoxSearch->species[j] = species;
+        sBoxSearch->count[j] = count;
+    }
+}
+
+static bool32 DoesBoxSlotMatchSearch(u32 slot)
+{
+    const u8 *name = GetBoxSlotSearchName(slot);
+
+    return name != NULL && StringCompare(name, GetSpeciesName(sBoxSearch->species[sBoxSearch->speciesIdx])) == 0;
+}
+
+// Next match after the last one, wrapping from the last box back to the first
+static s16 FindNextBoxSearchSlot(void)
+{
+    u32 i, slot;
+
+    for (i = 1; i <= BOX_SLOTS_COUNT; i++)
+    {
+        slot = (sBoxSearch->slot + i + BOX_SLOTS_COUNT) % BOX_SLOTS_COUNT;
+        if (DoesBoxSlotMatchSearch(slot))
+            return slot;
+    }
+    return -1;
+}
+
+static void PrintBoxSearchText(const u8 *text)
+{
+    u32 fontId = GetFontIdToFit(text, FONT_NORMAL, 0, sWindowTemplates[WIN_MESSAGE].width * 8);
+
+    FillWindowPixelBuffer(WIN_MESSAGE, PIXEL_FILL(1));
+    AddTextPrinterParameterized(WIN_MESSAGE, fontId, text, 0, 1, TEXT_SKIP_DRAW, NULL);
+    DrawTextBorderOuter(WIN_MESSAGE, 2, 14);
+    PutWindowTilemap(WIN_MESSAGE);
+    CopyWindowToVram(WIN_MESSAGE, COPYWIN_GFX);
+    ScheduleBgCopyTilemapToVram(0);
+}
+
+static void PrintBoxSearchGroup(void)
+{
+    static const u8 sText_Format[] = _("Letters: {LEFT_ARROW} {STR_VAR_1} {RIGHT_ARROW}");
+    u8 *end = gStringVar1;
+    u32 i;
+
+    for (i = 0; i < sBoxSearchGroupLength[sBoxSearch->group]; i++)
+        *end++ = sBoxSearchGroupFirstLetter[sBoxSearch->group] + i;
+    *end = EOS;
+    StringExpandPlaceholders(sStorage->messageText, sText_Format);
+    PrintBoxSearchText(sStorage->messageText);
+}
+
+static void PrintBoxSearchSpecies(void)
+{
+    static const u8 sText_Format[] = _("{LEFT_ARROW} {STR_VAR_1} ×{STR_VAR_2} {RIGHT_ARROW}");
+
+    StringCopy(gStringVar1, GetSpeciesName(sBoxSearch->species[sBoxSearch->speciesIdx]));
+    ConvertIntToDecimalStringN(gStringVar2, sBoxSearch->count[sBoxSearch->speciesIdx], STR_CONV_MODE_LEFT_ALIGN, 3);
+    StringExpandPlaceholders(sStorage->messageText, sText_Format);
+    PrintBoxSearchText(sStorage->messageText);
+}
+
+// The message window covers the bottom row of the box, hiding a match found
+// there together with the cursor, and above the box there is no room for a
+// framed window: the buttons end at y 15 and the box title starts at y 17.
+// The result goes in a framed window over the display mon picture instead,
+// which shows the species being searched anyway. Name and level stay visible
+// in the panel below it.
+static const struct WindowTemplate sWindowTemplate_SearchResult =
+{
+    .bg = 0,
+    .tilemapLeft = 1,
+    .tilemapTop = 3,  // frame on tile rows 2-10, between PKMN DATA and the info panel
+    .width = 8,
+    .height = 7,
+    .paletteNum = 15,
+    .baseBlock = 0x5C, // the menu and yes/no windows' tiles, never shown meanwhile
+};
+
+#define SEARCH_RESULT_LINE_HEIGHT 14
+
+// The search window covers the display mon picture, which was the only place
+// a shiny showed (by its colours), so it gets the summary screen's sparkle.
+// Its pixels use indices 4 (red) and 5 (outline); text_windows.gbapal leaves
+// those entries of BG palette 15 unused, so they get the sparkle's own colours.
+static const u8 sSearchShinySparkle_Gfx[] = INCBIN_U8("graphics/summary_screen/shiny_icon.4bpp");
+static const u16 sSearchShinySparkle_Pal[] = INCBIN_U16("graphics/summary_screen/heart.gbapal");
+#define SPARKLE_PAL_FIRST 4
+
+static void HideBoxSearchResultMon(void)
+{
+    // The display mon is a priority 0 sprite and would be drawn over BG0
+    if (sStorage->displayMonSprite != NULL)
+        sStorage->displayMonSprite->invisible = TRUE;
+}
+
+static void ClearBoxSearchText(void)
+{
+    if (sBoxSearch != NULL && sBoxSearch->resultWindowId != WINDOW_NONE)
+    {
+        ClearStdWindowAndFrameToTransparent(sBoxSearch->resultWindowId, FALSE);
+        RemoveWindow(sBoxSearch->resultWindowId);
+        sBoxSearch->resultWindowId = WINDOW_NONE;
+        if (sStorage->displayMonSprite != NULL)
+            sStorage->displayMonSprite->invisible = (sStorage->displayMonSpecies == SPECIES_NONE);
+        ScheduleBgCopyTilemapToVram(0);
+    }
+    else
+    {
+        ClearBottomWindow();
+    }
+}
+
+static void PrintBoxSearchResultLine(const u8 *text, u32 line)
+{
+    u32 width = sWindowTemplate_SearchResult.width * 8;
+
+    AddTextPrinterParameterized(sBoxSearch->resultWindowId, GetFontIdToFit(text, FONT_NORMAL, 0, width),
+                                text, 0, 1 + line * SEARCH_RESULT_LINE_HEIGHT, TEXT_SKIP_DRAW, NULL);
+}
+
+static void PrintBoxSearchResult(void)
+{
+    static const u8 sText_Count[] = _("{STR_VAR_2}/{STR_VAR_3}");
+    static const u8 sText_Next[] = _("{A_BUTTON}NEXT");
+    static const u8 sText_Exit[] = _("{B_BUTTON}EXIT");
+    u32 slot, ordinal = 0;
+
+    if (sBoxSearch->resultWindowId == WINDOW_NONE)
+    {
+        ClearBottomWindow();
+        sBoxSearch->resultWindowId = AddWindow(&sWindowTemplate_SearchResult);
+        DrawTextBorderOuter(sBoxSearch->resultWindowId, 2, 14); // as PrintMessage
+        LoadPalette(&sSearchShinySparkle_Pal[SPARKLE_PAL_FIRST], BG_PLTT_ID(15) + SPARKLE_PAL_FIRST, 2 * sizeof(u16));
+    }
+
+    for (slot = 0; slot <= (u32)sBoxSearch->slot; slot++)
+    {
+        if (DoesBoxSlotMatchSearch(slot))
+            ordinal++;
+    }
+    ConvertIntToDecimalStringN(gStringVar2, ordinal, STR_CONV_MODE_LEFT_ALIGN, 3);
+    ConvertIntToDecimalStringN(gStringVar3, sBoxSearch->count[sBoxSearch->speciesIdx], STR_CONV_MODE_LEFT_ALIGN, 3);
+    StringExpandPlaceholders(sStorage->messageText, sText_Count);
+
+    FillWindowPixelBuffer(sBoxSearch->resultWindowId, PIXEL_FILL(1));
+    PrintBoxSearchResultLine(GetSpeciesName(sBoxSearch->species[sBoxSearch->speciesIdx]), 0);
+    PrintBoxSearchResultLine(sStorage->messageText, 1);
+    if (GetBoxMonData(GetBoxSlotPtr(sBoxSearch->slot), MON_DATA_IS_SHINY))
+    {
+        // Right end of the count line: counts are at most "420/420", 7 digits wide
+        BlitBitmapToWindow(sBoxSearch->resultWindowId, sSearchShinySparkle_Gfx,
+                           sWindowTemplate_SearchResult.width * 8 - 8, 1 + SEARCH_RESULT_LINE_HEIGHT + 4, 8, 8);
+    }
+    PrintBoxSearchResultLine(sText_Next, 2);
+    PrintBoxSearchResultLine(sText_Exit, 3);
+    PutWindowTilemap(sBoxSearch->resultWindowId);
+    CopyWindowToVram(sBoxSearch->resultWindowId, COPYWIN_FULL);
+    ScheduleBgCopyTilemapToVram(0);
+    HideBoxSearchResultMon();
+}
+
+enum {
+    SEARCH_STATE_INIT,
+    SEARCH_STATE_GROUP,
+    SEARCH_STATE_SPECIES,
+    SEARCH_STATE_JUMP,
+    SEARCH_STATE_SCROLL,
+    SEARCH_STATE_MOVE_CURSOR,
+    SEARCH_STATE_WAIT_CURSOR,
+    SEARCH_STATE_RESULT,
+    SEARCH_STATE_NOTHING,
+    SEARCH_STATE_EXIT,
+};
+
+static void Task_SearchBoxes(u8 taskId)
+{
+    switch (sStorage->state)
+    {
+    case SEARCH_STATE_INIT:
+        sBoxSearch = AllocZeroed(sizeof(*sBoxSearch));
+        if (sBoxSearch == NULL)
+        {
+            sStorage->state = SEARCH_STATE_EXIT;
+            break;
+        }
+        sBoxSearch->resultWindowId = WINDOW_NONE;
+        InitBoxSearchSlots();
+        // Start one before A and step forward, landing on the first group in use
+        sBoxSearch->group = BOX_SEARCH_GROUPS_COUNT - 1;
+        if (!StepBoxSearchGroup(1))
+        {
+            PrintMessage(MSG_SEARCH_NOTHING);
+            sStorage->state = SEARCH_STATE_NOTHING;
+            break;
+        }
+        PrintBoxSearchGroup();
+        sStorage->state = SEARCH_STATE_GROUP;
+        break;
+    case SEARCH_STATE_GROUP:
+        if (JOY_NEW(B_BUTTON))
+        {
+            PlaySE(SE_SELECT);
+            sStorage->state = SEARCH_STATE_EXIT;
+        }
+        else if (JOY_NEW(A_BUTTON))
+        {
+            PlaySE(SE_SELECT);
+            BuildBoxSearchSpeciesList();
+            sBoxSearch->speciesIdx = 0;
+            PrintBoxSearchSpecies();
+            sStorage->state = SEARCH_STATE_SPECIES;
+        }
+        else if (JOY_REPEAT(DPAD_LEFT | DPAD_RIGHT))
+        {
+            PlaySE(SE_SELECT);
+            StepBoxSearchGroup(JOY_REPEAT(DPAD_LEFT) ? -1 : 1);
+            PrintBoxSearchGroup();
+        }
+        break;
+    case SEARCH_STATE_SPECIES:
+        if (JOY_NEW(B_BUTTON))
+        {
+            PlaySE(SE_SELECT);
+            PrintBoxSearchGroup();
+            sStorage->state = SEARCH_STATE_GROUP;
+        }
+        else if (JOY_NEW(A_BUTTON))
+        {
+            PlaySE(SE_SELECT);
+            sBoxSearch->slot = -1;
+            sStorage->state = SEARCH_STATE_JUMP;
+        }
+        else if (JOY_REPEAT(DPAD_LEFT | DPAD_RIGHT))
+        {
+            PlaySE(SE_SELECT);
+            if (JOY_REPEAT(DPAD_LEFT))
+                sBoxSearch->speciesIdx = (sBoxSearch->speciesIdx == 0) ? sBoxSearch->numSpecies - 1 : sBoxSearch->speciesIdx - 1;
+            else
+                sBoxSearch->speciesIdx = (sBoxSearch->speciesIdx + 1) % sBoxSearch->numSpecies;
+            PrintBoxSearchSpecies();
+        }
+        break;
+    case SEARCH_STATE_JUMP:
+        sBoxSearch->slot = FindNextBoxSearchSlot();
+        if (sBoxSearch->slot < 0) // can't happen: the list was built from these slots
+        {
+            sStorage->state = SEARCH_STATE_EXIT;
+            break;
+        }
+        if (sBoxSearch->slot / IN_BOX_COUNT != StorageGetCurrentBox())
+        {
+            SetUpScrollToBox(sBoxSearch->slot / IN_BOX_COUNT);
+            sStorage->state = SEARCH_STATE_SCROLL;
+        }
+        else
+        {
+            sStorage->state = SEARCH_STATE_MOVE_CURSOR;
+        }
+        break;
+    case SEARCH_STATE_SCROLL:
+        if (!ScrollToBox())
+        {
+            SetCurrentBox(sBoxSearch->slot / IN_BOX_COUNT);
+            sStorage->state = SEARCH_STATE_MOVE_CURSOR;
+        }
+        break;
+    case SEARCH_STATE_MOVE_CURSOR:
+        sStorage->cursorHorizontalWrap = 0;
+        sStorage->cursorVerticalWrap = 0;
+        sStorage->cursorFlipTimer = 0;
+        SetCursorPosition(CURSOR_AREA_IN_BOX, sBoxSearch->slot % IN_BOX_COUNT);
+        sStorage->state++;
+        // fallthrough
+    case SEARCH_STATE_WAIT_CURSOR:
+        if (!UpdateCursorPos())
+        {
+            // Also covers landing on the same position in a new box, where
+            // the cursor does not move and nothing else refreshes the panel
+            TryRefreshDisplayMon();
+            StartDisplayMonMosaicEffect();
+            PrintBoxSearchResult();
+            sStorage->state = SEARCH_STATE_RESULT;
+        }
+        break;
+    case SEARCH_STATE_RESULT:
+        if (JOY_NEW(A_BUTTON))
+        {
+            PlaySE(SE_SELECT);
+            sStorage->state = SEARCH_STATE_JUMP;
+        }
+        else if (JOY_NEW(B_BUTTON))
+        {
+            PlaySE(SE_SELECT);
+            sStorage->state = SEARCH_STATE_EXIT;
+        }
+        break;
+    case SEARCH_STATE_NOTHING:
+        if (JOY_NEW(A_BUTTON | B_BUTTON))
+            sStorage->state = SEARCH_STATE_EXIT;
+        break;
+    case SEARCH_STATE_EXIT:
+        ClearBoxSearchText();
+        TRY_FREE_AND_SET_NULL(sBoxSearch);
+        AnimateBoxScrollArrows(TRUE);
+        SetPokeStorageTask(Task_PokeStorageMain);
         break;
     }
 }
@@ -7874,9 +8575,23 @@ static u8 HandleInput(void)
     return INPUT_NONE;
 }
 
+// Sorting rewrites slots and searching moves the cursor into the box, so both
+// stay out of the way while something is held or item mode is drawing icons.
+static bool32 CanSortOrSearchBoxes(void)
+{
+    return !sIsMonBeingMoved
+        && sStorage->inBoxMovingMode == MOVE_MODE_NORMAL
+        && sStorage->boxOption != OPTION_MOVE_ITEMS;
+}
+
 static void AddBoxOptionsMenu(void)
 {
     InitMenu();
+    if (CanSortOrSearchBoxes())
+    {
+        SetMenuText(MENU_SEARCH);
+        SetMenuText(MENU_SORT);
+    }
     SetMenuText(MENU_JUMP);
     SetMenuText(MENU_WALLPAPER);
     SetMenuText(MENU_NAME);
@@ -8249,6 +8964,12 @@ static const u8 *const sMenuTexts[] =
     [MENU_MACHINE]    = COMPOUND_STRING("MACHINE"),
     [MENU_SIMPLE]     = COMPOUND_STRING("SIMPLE"),
     [MENU_SELECT]     = COMPOUND_STRING("SELECT"),
+    [MENU_SORT]         = COMPOUND_STRING("SORT"),
+    [MENU_SEARCH]       = COMPOUND_STRING("SEARCH"),
+    [MENU_SORT_BOX_DEX] = COMPOUND_STRING("BOX: NO."),
+    [MENU_SORT_BOX_ABC] = COMPOUND_STRING("BOX: A-Z"),
+    [MENU_SORT_ALL_DEX] = COMPOUND_STRING("ALL: NO."),
+    [MENU_SORT_ALL_ABC] = COMPOUND_STRING("ALL: A-Z"),
 };
 
 static void SetMenuText(u8 textId)
