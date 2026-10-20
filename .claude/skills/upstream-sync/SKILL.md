@@ -21,7 +21,9 @@ Italian, write commits and code comments in English (CLAUDE.md §9).
   `/home/user/soulgold`. If one is missing, attach it with `add_repo` and clone it;
   the job needs both.
 - Read `CLAUDE.md` (all of it: the traps in §2, §4, §6 are exactly the ones a
-  sync walks into) and `docs/SOULGOLD_PORT_REPORT.md` §0, §4, §5.
+  sync walks into), the `.claude/rules/` file of every area the sync touches
+  (they load on their own only when a matching file is opened, and triage
+  mostly greps) and `docs/SOULGOLD_PORT_REPORT.md` §0, §4, §5.
 - Work on the branch the session assigned, in both repos. Never on `master`.
 - If the fork `Marcogn/soulgold` ever gets commits of its own
   (`git log upstream/master..origin/master --no-merges` non-empty), job B stops
