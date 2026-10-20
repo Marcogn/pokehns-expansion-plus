@@ -77,6 +77,7 @@ is running.
 | Full party editor (debug) | Debug menu → Party → Edit Pokemon → Edit All… | Level, shininess, nature (the stat one, as a Mint sets it), ability, Tera type, IVs, EVs and moves of a party Pokémon, each screen starting from its current values. |
 | Force Shiny (debug) | Debug menu → Flags & Vars → Toggle Force Shiny | Every wild, gift and hatched Pokémon comes out shiny while it is on. |
 | Title screen | — | A "+" after the HEART & SOUL banner and the fork's version under PRESS START. |
+| Box sort and search | A on the box name → `SORT` / `SEARCH` | **Sort** this box or all boxes, by Pokédex number or by species name. Numbers follow the Johto Pokédex until the National Dex is unlocked (Prof. Oak says so when he hands it over), then the national one; within a species the highest level comes first, Eggs and empty slots go last. Sorting all boxes asks first. **Search** picks a letter group, then a species present in the boxes, then A jumps to each one box after box, with a shiny sparkle on shiny ones. Both are hidden while holding a Pokémon. Only slots change: nothing new in the save. |
 
 ### Switched on and finished here
 
