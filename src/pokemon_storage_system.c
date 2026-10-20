@@ -4109,6 +4109,14 @@ static const struct WindowTemplate sWindowTemplate_SearchResult =
 
 #define SEARCH_RESULT_LINE_HEIGHT 14
 
+// The search window covers the display mon picture, which was the only place
+// a shiny showed (by its colours), so it gets the summary screen's sparkle.
+// Its pixels use indices 4 (red) and 5 (outline); text_windows.gbapal leaves
+// those entries of BG palette 15 unused, so they get the sparkle's own colours.
+static const u8 sSearchShinySparkle_Gfx[] = INCBIN_U8("graphics/summary_screen/shiny_icon.4bpp");
+static const u16 sSearchShinySparkle_Pal[] = INCBIN_U16("graphics/summary_screen/heart.gbapal");
+#define SPARKLE_PAL_FIRST 4
+
 static void HideBoxSearchResultMon(void)
 {
     // The display mon is a priority 0 sprite and would be drawn over BG0
@@ -4153,6 +4161,7 @@ static void PrintBoxSearchResult(void)
         ClearBottomWindow();
         sBoxSearch->resultWindowId = AddWindow(&sWindowTemplate_SearchResult);
         DrawTextBorderOuter(sBoxSearch->resultWindowId, 2, 14); // as PrintMessage
+        LoadPalette(&sSearchShinySparkle_Pal[SPARKLE_PAL_FIRST], BG_PLTT_ID(15) + SPARKLE_PAL_FIRST, 2 * sizeof(u16));
     }
 
     for (slot = 0; slot <= (u32)sBoxSearch->slot; slot++)
@@ -4167,6 +4176,12 @@ static void PrintBoxSearchResult(void)
     FillWindowPixelBuffer(sBoxSearch->resultWindowId, PIXEL_FILL(1));
     PrintBoxSearchResultLine(GetSpeciesName(sBoxSearch->species[sBoxSearch->speciesIdx]), 0);
     PrintBoxSearchResultLine(sStorage->messageText, 1);
+    if (GetBoxMonData(GetBoxSlotPtr(sBoxSearch->slot), MON_DATA_IS_SHINY))
+    {
+        // Right end of the count line: counts are at most "420/420", 7 digits wide
+        BlitBitmapToWindow(sBoxSearch->resultWindowId, sSearchShinySparkle_Gfx,
+                           sWindowTemplate_SearchResult.width * 8 - 8, 1 + SEARCH_RESULT_LINE_HEIGHT + 4, 8, 8);
+    }
     PrintBoxSearchResultLine(sText_Next, 2);
     PrintBoxSearchResultLine(sText_Exit, 3);
     PutWindowTilemap(sBoxSearch->resultWindowId);

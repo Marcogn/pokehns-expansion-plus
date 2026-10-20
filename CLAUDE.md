@@ -909,6 +909,11 @@ Pokémon in mano, in multi-move e in MOVE ITEMS (`CanSortOrSearchBoxes`).
   non è mai aperto insieme. Lo sprite del Pokémon ha **priorità 0** e
   starebbe sopra BG0: va reso invisibile dopo ogni refresh e ripristinato in
   uscita. Nome e livello restano visibili sotto.
+  Coprendo l'immagine si perdeva l'unico indizio di shininess (i colori):
+  accanto al contatore c'è quindi la scintilla del riassunto
+  (`summary_screen/shiny_icon.4bpp`), blittata nella finestra. Usa gli indici
+  4 e 5, che in `text_windows.gbapal` (BG pal 15) sono neri e inutilizzati:
+  ci si caricano le entry 4-5 di `heart.gbapal`, la sua palette originale.
 - Verificato in mGBA con i box riempiti dal debug (`PC/Bag → Fill…`) e 5 ABRA
   clonati via GDB in box 4, 4, 6, 10, 10: `ABRA 1/6 … 6/6` e ritorno al
   primo; MAROWAK nell'ultima riga del box 7 visibile col cursore; ordine Johto e, dopo `Toggle National Dex`, nazionale; riassunto di
