@@ -898,15 +898,20 @@ Pokémon in mano, in multi-move e in MOVE ITEMS (`CanSortOrSearchBoxes`).
   condividono il nome (RATTATA di Alola è RATTATA), quindi si confronta il
   nome e non la specie.
 - **La finestra messaggi copre l'ultima riga del box**, cursore compreso
-  (righe tile 16-19). Un risultato lì non si vedeva: la riga dei risultati sta
-  quindi in alto, **righe tile 0-1, sopra i pulsanti PARTY/CLOSE BOX**, con
-  `SetWindowAttribute(WIN_MESSAGE, WINDOW_TILEMAP_TOP, 0)` e il ritorno a 17
-  in uscita. Senza cornice sopra/sotto: la riga 2 coprirebbe il titolo del
-  box, che è uno sprite a priorità 2 e finisce sotto BG0. I due lati della
-  cornice chiudono gli 8 px di pulsante che la finestra (18 tile) non copre.
+  (righe tile 16-19), e sopra il box **non c'è spazio per una cornice**:
+  misurato, i pulsanti PARTY/CLOSE BOX finiscono a y 15 e la barra del titolo
+  parte da y 17, mentre le cornici occupano 6-8 righe del tile in tutti e 20 i
+  tipi di `graphics/text_window/`. Un primo tentativo con la riga in alto
+  aveva i soli bordi laterali e all'utente non piaceva. I risultati stanno
+  quindi in una finestra con cornice completa **sopra l'immagine del pannello
+  sinistro** (`sWindowTemplate_SearchResult`, tile 1-8 × 3-9, cornice sulle
+  righe 2-10): nome, `n/N`, ⒶNEXT, ⒷEXIT. Riusa i tile del menu (`0x5C`), che
+  non è mai aperto insieme. Lo sprite del Pokémon ha **priorità 0** e
+  starebbe sopra BG0: va reso invisibile dopo ogni refresh e ripristinato in
+  uscita. Nome e livello restano visibili sotto.
 - Verificato in mGBA con i box riempiti dal debug (`PC/Bag → Fill…`) e 5 ABRA
   clonati via GDB in box 4, 4, 6, 10, 10: `ABRA 1/6 … 6/6` e ritorno al
-  primo; ordine Johto e, dopo `Toggle National Dex`, nazionale; riassunto di
+  primo; MAROWAK nell'ultima riga del box 7 visibile col cursore; ordine Johto e, dopo `Toggle National Dex`, nazionale; riassunto di
   un Pokémon spostato integro.
 
 ---

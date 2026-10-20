@@ -3927,7 +3927,7 @@ struct BoxSearch
     u16 speciesIdx;
     s16 slot;                     // last slot jumped to, -1 before the first
     u8 group;
-    bool8 resultAtTop;
+    u8 resultWindowId;
     u16 groupCount[BOX_SEARCH_GROUPS_COUNT];
 };
 
@@ -4091,34 +4091,41 @@ static void PrintBoxSearchSpecies(void)
 }
 
 // The message window covers the bottom row of the box, hiding a match found
-// there together with the cursor. While jumping between matches the line
-// moves over the PARTY/CLOSE BOX buttons instead: they are unused meanwhile,
-// and the box title below them is a priority 2 sprite that BG0 would cover,
-// hence no frame (it would reach the title).
-#define SEARCH_RESULT_TILEMAP_TOP 0
-
-static void MoveBoxSearchTextToTop(void)
+// there together with the cursor, and above the box there is no room for a
+// framed window: the buttons end at y 15 and the box title starts at y 17.
+// The result goes in a framed window over the display mon picture instead,
+// which shows the species being searched anyway. Name and level stay visible
+// in the panel below it.
+static const struct WindowTemplate sWindowTemplate_SearchResult =
 {
-    if (sBoxSearch->resultAtTop)
-        return;
-    ClearBottomWindow();
-    SetWindowAttribute(WIN_MESSAGE, WINDOW_TILEMAP_TOP, SEARCH_RESULT_TILEMAP_TOP);
-    sBoxSearch->resultAtTop = TRUE;
+    .bg = 0,
+    .tilemapLeft = 1,
+    .tilemapTop = 3,  // frame on tile rows 2-10, between PKMN DATA and the info panel
+    .width = 8,
+    .height = 7,
+    .paletteNum = 15,
+    .baseBlock = 0x5C, // the menu and yes/no windows' tiles, never shown meanwhile
+};
+
+#define SEARCH_RESULT_LINE_HEIGHT 14
+
+static void HideBoxSearchResultMon(void)
+{
+    // The display mon is a priority 0 sprite and would be drawn over BG0
+    if (sStorage->displayMonSprite != NULL)
+        sStorage->displayMonSprite->invisible = TRUE;
 }
 
 static void ClearBoxSearchText(void)
 {
-    if (sBoxSearch != NULL && sBoxSearch->resultAtTop)
+    if (sBoxSearch != NULL && sBoxSearch->resultWindowId != WINDOW_NONE)
     {
-        // ClearBottomWindow also clears the frame row above the window,
-        // which does not exist up here
-        FillWindowPixelBuffer(WIN_MESSAGE, PIXEL_FILL(0));
-        ClearWindowTilemap(WIN_MESSAGE);
-        FillBgTilemapBufferRect(0, 0, sWindowTemplates[WIN_MESSAGE].tilemapLeft - 1, SEARCH_RESULT_TILEMAP_TOP,
-                                sWindowTemplates[WIN_MESSAGE].width + 2, sWindowTemplates[WIN_MESSAGE].height, 17);
-        SetWindowAttribute(WIN_MESSAGE, WINDOW_TILEMAP_TOP, sWindowTemplates[WIN_MESSAGE].tilemapTop);
+        ClearStdWindowAndFrameToTransparent(sBoxSearch->resultWindowId, FALSE);
+        RemoveWindow(sBoxSearch->resultWindowId);
+        sBoxSearch->resultWindowId = WINDOW_NONE;
+        if (sStorage->displayMonSprite != NULL)
+            sStorage->displayMonSprite->invisible = (sStorage->displayMonSpecies == SPECIES_NONE);
         ScheduleBgCopyTilemapToVram(0);
-        sBoxSearch->resultAtTop = FALSE;
     }
     else
     {
@@ -4126,32 +4133,46 @@ static void ClearBoxSearchText(void)
     }
 }
 
+static void PrintBoxSearchResultLine(const u8 *text, u32 line)
+{
+    u32 width = sWindowTemplate_SearchResult.width * 8;
+
+    AddTextPrinterParameterized(sBoxSearch->resultWindowId, GetFontIdToFit(text, FONT_NORMAL, 0, width),
+                                text, 0, 1 + line * SEARCH_RESULT_LINE_HEIGHT, TEXT_SKIP_DRAW, NULL);
+}
+
 static void PrintBoxSearchResult(void)
 {
-    static const u8 sText_Format[] = _("{STR_VAR_1} {STR_VAR_2}/{STR_VAR_3} {A_BUTTON}NEXT {B_BUTTON}EXIT");
+    static const u8 sText_Count[] = _("{STR_VAR_2}/{STR_VAR_3}");
+    static const u8 sText_Next[] = _("{A_BUTTON}NEXT");
+    static const u8 sText_Exit[] = _("{B_BUTTON}EXIT");
     u32 slot, ordinal = 0;
+
+    if (sBoxSearch->resultWindowId == WINDOW_NONE)
+    {
+        ClearBottomWindow();
+        sBoxSearch->resultWindowId = AddWindow(&sWindowTemplate_SearchResult);
+        DrawTextBorderOuter(sBoxSearch->resultWindowId, 2, 14); // as PrintMessage
+    }
 
     for (slot = 0; slot <= (u32)sBoxSearch->slot; slot++)
     {
         if (DoesBoxSlotMatchSearch(slot))
             ordinal++;
     }
-    StringCopy(gStringVar1, GetSpeciesName(sBoxSearch->species[sBoxSearch->speciesIdx]));
     ConvertIntToDecimalStringN(gStringVar2, ordinal, STR_CONV_MODE_LEFT_ALIGN, 3);
     ConvertIntToDecimalStringN(gStringVar3, sBoxSearch->count[sBoxSearch->speciesIdx], STR_CONV_MODE_LEFT_ALIGN, 3);
-    StringExpandPlaceholders(sStorage->messageText, sText_Format);
-    FillWindowPixelBuffer(WIN_MESSAGE, PIXEL_FILL(1));
-    AddTextPrinterParameterized(WIN_MESSAGE, GetFontIdToFit(sStorage->messageText, FONT_NORMAL, 0, sWindowTemplates[WIN_MESSAGE].width * 8),
-                                sStorage->messageText, 0, 1, TEXT_SKIP_DRAW, NULL);
-    PutWindowTilemap(WIN_MESSAGE);
-    // The window is 8px short of the buttons on each side: close it with the
-    // side pieces of the message frame (tile 2, palette 14, as PrintMessage)
-    FillBgTilemapBufferRect(0, 2 + 3, sWindowTemplates[WIN_MESSAGE].tilemapLeft - 1, SEARCH_RESULT_TILEMAP_TOP,
-                            1, sWindowTemplates[WIN_MESSAGE].height, 14);
-    FillBgTilemapBufferRect(0, 2 + 5, sWindowTemplates[WIN_MESSAGE].tilemapLeft + sWindowTemplates[WIN_MESSAGE].width, SEARCH_RESULT_TILEMAP_TOP,
-                            1, sWindowTemplates[WIN_MESSAGE].height, 14);
-    CopyWindowToVram(WIN_MESSAGE, COPYWIN_FULL);
+    StringExpandPlaceholders(sStorage->messageText, sText_Count);
+
+    FillWindowPixelBuffer(sBoxSearch->resultWindowId, PIXEL_FILL(1));
+    PrintBoxSearchResultLine(GetSpeciesName(sBoxSearch->species[sBoxSearch->speciesIdx]), 0);
+    PrintBoxSearchResultLine(sStorage->messageText, 1);
+    PrintBoxSearchResultLine(sText_Next, 2);
+    PrintBoxSearchResultLine(sText_Exit, 3);
+    PutWindowTilemap(sBoxSearch->resultWindowId);
+    CopyWindowToVram(sBoxSearch->resultWindowId, COPYWIN_FULL);
     ScheduleBgCopyTilemapToVram(0);
+    HideBoxSearchResultMon();
 }
 
 enum {
@@ -4178,6 +4199,7 @@ static void Task_SearchBoxes(u8 taskId)
             sStorage->state = SEARCH_STATE_EXIT;
             break;
         }
+        sBoxSearch->resultWindowId = WINDOW_NONE;
         InitBoxSearchSlots();
         // Start one before A and step forward, landing on the first group in use
         sBoxSearch->group = BOX_SEARCH_GROUPS_COUNT - 1;
@@ -4235,7 +4257,6 @@ static void Task_SearchBoxes(u8 taskId)
         }
         break;
     case SEARCH_STATE_JUMP:
-        MoveBoxSearchTextToTop();
         sBoxSearch->slot = FindNextBoxSearchSlot();
         if (sBoxSearch->slot < 0) // can't happen: the list was built from these slots
         {
