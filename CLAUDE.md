@@ -476,6 +476,21 @@ Vale più di qualunque stima. Cose date per mancanti che invece c'erano, spente:
   `flashLevel` 0x34, `flags` 0x198C, `vars` 0x1ABC — i commenti in
   `global.h` (0x30, 0x1270…) sono vecchi, non fidarti. `FLAG_SYS_USE_FLASH` si
   azzera uscendo all'aperto: va alzato fuori e poi si entra.
+- **L'ordine di `.evolutions` non è solo estetica.** `GetEvolutionTargetSpecies`
+  (`pokemon.c`, modo normale) si ferma alla **prima** voce che soddisfa le
+  condizioni: fra evoluzioni per livello che si sovrappongono vince quella più
+  in alto. Per Eevee oggi Leafeon/Glaceon per luogo stanno prima di
+  Espeon/Umbreon per amicizia, quindi un Eevee affezionato nel Bosco di Lecci
+  diventa Leafeon. Spostare le voci per farle vedere nel Pokédex cambierebbe
+  questo. Le pietre passano da `EVO_MODE_ITEM_USE` e non hanno il problema.
+  La pagina EVO (`PrintEvolutionTargetSpeciesAndMethod`) stampa al massimo 10
+  metodi (`MAX_EVO_METHOD_LINES`): ora mette prima il primo metodo di ogni
+  evoluzione e poi i doppioni, così restano fuori i doppioni e non una specie.
+  Verificato in mGBA su Eevee: Espeon e Umbreon visibili, freccia e A (CHECK)
+  sulla riga giusta. Per arrivare alla pagina in fretta: `dexSeen` 0x39C0 e
+  `dexCaught` 0x3A7F in SaveBlock1 (bit = numero nazionale - 1), poi nel
+  Pokédex SELECT → OK lista solo le specie viste. Il puntatore a SaveBlock1
+  **cambia** a ogni caricamento di mappa: rileggilo prima di ogni scrittura.
 - **Mente**: tutte e 21 già in vendita al negozio di fiori di Goldenrod, dietro
   medaglia 3 e dietro il toggle `MODE_MINTS` del challenge menu.
 - **Candy Jar**: portato da Soulgold così com'è (`src/candy_jar.c`,
