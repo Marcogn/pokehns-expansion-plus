@@ -14,6 +14,14 @@ add the section before releasing. Feature details live in the tables of
   searches and hidden Pokémon stayed off in a Flash-lit cave. Reported in
   Mikeagan's fork, which fixed the search but not the hidden Pokémon.
   Soulgold never showed it because there Flash lights caves fully.
+- **Pokédex: Espeon and Umbreon on Eevee's EVO page.** The page prints at
+  most 10 methods and Eevee has 12 in HnS, Espeon and Umbreon last: they
+  had an icon but no method. Each evolution's first method now comes before
+  any second method for the same one, and Eevee's Johto spots come before
+  the Kanto ones, so the lines that drop are Viridian Forest and Seafoam
+  Islands. Evolutions themselves are unchanged. Day
+  and Night read D and N. Also reported in Mikeagan's fork, which fixed it
+  by adding Sun and Moon Stone evolutions instead.
 
 ## 2.0.6.PLUS.3
 

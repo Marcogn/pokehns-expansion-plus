@@ -288,6 +288,7 @@ static const u32 sPokedexPlusHGSS_ScreenSearchNational_Tilemap[] = INCBIN_U32("g
 
 // for evolution method listings
 #define MAX_EVO_METHOD_LINES 10
+#define MAX_EVO_DISPLAY_ENTRIES 32 // more than any species has; past 10 lines nothing is printed anyway
 
 // Coordinates of the Pokémon sprite on its page (info/cry screens)
 #define MON_PAGE_X 48
@@ -6694,9 +6695,37 @@ static void PrintEvolutionTargetSpeciesAndMethod(u8 taskId, u16 species, u8 dept
     if (times > 9 && species == SPECIES_MILCERY)
         times = 9;
 
-    //If there are evolutions find out which and print them 1 by 1
-    for (i = 0; i < times; i++)
+    // Print every target's first method before any second method for the same
+    // target, so a long list runs out of lines on duplicates instead of hiding
+    // a whole evolution: Eevee has 12 entries in HnS and Espeon and Umbreon,
+    // last in the table, never got a line. Only the display order changes;
+    // GetEvolutionTargetSpecies still walks the table as written, and there the
+    // order decides which level-up evolution wins.
+    u8 order[MAX_EVO_DISPLAY_ENTRIES];
+    u32 numOrdered = 0;
+    for (u32 pass = 0; pass < 2; pass++)
     {
+        for (u32 k = 0; k < times && numOrdered < ARRAY_COUNT(order); k++)
+        {
+            bool32 isRepeat = FALSE;
+            for (u32 m = 0; m < k; m++)
+            {
+                if (evolutions[m].targetSpecies == evolutions[k].targetSpecies)
+                {
+                    isRepeat = TRUE;
+                    break;
+                }
+            }
+            if (isRepeat == (pass == 1))
+                order[numOrdered++] = k;
+        }
+    }
+    times = numOrdered;
+
+    //If there are evolutions find out which and print them 1 by 1
+    for (u32 o = 0; o < times; o++)
+    {
+        i = order[o];
         targetSpecies = evolutions[i].targetSpecies;
         if (!IsSpeciesEnabled(targetSpecies))
             continue;
@@ -6831,18 +6860,18 @@ static void PrintEvolutionTargetSpeciesAndMethod(u8 taskId, u16 species, u8 dept
                     switch (evolutions[i].params[j].arg1)
                     {
                     case TIME_MORNING: StringAppend(gStringVar4, COMPOUND_STRING("Morning")); break;
-                    case TIME_DAY:     StringAppend(gStringVar4, COMPOUND_STRING("Day"));     break;
+                    case TIME_DAY:     StringAppend(gStringVar4, COMPOUND_STRING("D"));       break; // D/N keep the line short
                     case TIME_EVENING: StringAppend(gStringVar4, COMPOUND_STRING("Evening")); break;
-                    case TIME_NIGHT:   StringAppend(gStringVar4, COMPOUND_STRING("Night"));   break;
+                    case TIME_NIGHT:   StringAppend(gStringVar4, COMPOUND_STRING("N"));   break;
                     }
                     break;
                 case IF_NOT_TIME:
                     switch (evolutions[i].params[j].arg1)
                     {
                     case TIME_MORNING: StringAppend(gStringVar4, COMPOUND_STRING("NOT Morning")); break;
-                    case TIME_DAY:     StringAppend(gStringVar4, COMPOUND_STRING("NOT Day"));     break;
+                    case TIME_DAY:     StringAppend(gStringVar4, COMPOUND_STRING("NOT D"));       break;
                     case TIME_EVENING: StringAppend(gStringVar4, COMPOUND_STRING("NOT Evening")); break;
-                    case TIME_NIGHT:   StringAppend(gStringVar4, COMPOUND_STRING("Day"));         break; // More intuitive than "NOT Night"
+                    case TIME_NIGHT:   StringAppend(gStringVar4, COMPOUND_STRING("D"));           break; // More intuitive than "NOT N"
                     }
                     break;
                 case IF_HOLD_ITEM:

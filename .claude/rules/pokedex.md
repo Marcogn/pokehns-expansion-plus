@@ -4,6 +4,7 @@ paths:
   - "include/pokedex*.h"
   - "src/reshow_battle_screen.c"
   - "graphics/pokedex/**"
+  - "src/data/pokemon/species_info/**"
 ---
 
 # Pokédex e schermate aperte da altre schermate
@@ -72,3 +73,26 @@ paths:
      volta: **strumentare, non dedurre** — una build che congela invece di
      saltare quando `sExternalReturnCallback` è NULL separa in un colpo
      "callback a zero" da "reshow che crasha".
+
+## Pagina EVO e ordine di `.evolutions`
+
+- **L'ordine di `.evolutions` non è solo estetica.** `GetEvolutionTargetSpecies`
+  (`pokemon.c`, modo normale) si ferma alla **prima** voce che soddisfa le
+  condizioni: fra evoluzioni per livello che si sovrappongono vince quella più
+  in alto. Per Eevee oggi Leafeon/Glaceon per luogo stanno prima di
+  Espeon/Umbreon per amicizia, quindi un Eevee affezionato nel Bosco di Lecci
+  diventa Leafeon. Spostare le voci per farle vedere nel Pokédex cambierebbe
+  questo. Le pietre passano da `EVO_MODE_ITEM_USE` e non hanno il problema.
+- La pagina EVO (`PrintEvolutionTargetSpeciesAndMethod`) stampa al massimo 10
+  metodi (`MAX_EVO_METHOD_LINES`): ora mette prima il primo metodo di ogni
+  evoluzione e poi i doppioni, così restano fuori i doppioni e non una specie.
+  Per Eevee i luoghi di Johto (Bosco di Lecci, Tunnel di Ghiaccio) stanno
+  prima di quelli di Kanto, così restano fuori Bosco Smeraldo e Isole
+  Spumarine: fra loro l'ordine è libero perché le mapsec non si sovrappongono.
+  Giorno e notte si scrivono D e N (scelta dell'utente).
+  Verificato in mGBA su Eevee: Espeon e Umbreon visibili, freccia e A (CHECK)
+  sulla riga giusta.
+- Per arrivare alla pagina in fretta: `dexSeen` 0x39C0 e `dexCaught` 0x3A7F
+  in SaveBlock1 (bit = numero nazionale - 1), poi nel Pokédex SELECT → OK
+  lista solo le specie viste. Il puntatore a SaveBlock1 **cambia** a ogni
+  caricamento di mappa: rileggilo prima di ogni scrittura.
