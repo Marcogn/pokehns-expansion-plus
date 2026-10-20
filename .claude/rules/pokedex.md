@@ -86,6 +86,9 @@ paths:
 - La pagina EVO (`PrintEvolutionTargetSpeciesAndMethod`) stampa al massimo 10
   metodi (`MAX_EVO_METHOD_LINES`): ora mette prima il primo metodo di ogni
   evoluzione e poi i doppioni, così restano fuori i doppioni e non una specie.
+  Per Eevee i luoghi di Johto (Bosco di Lecci, Tunnel di Ghiaccio) stanno
+  prima di quelli di Kanto, così restano fuori Bosco Smeraldo e Isole
+  Spumarine: fra loro l'ordine è libero perché le mapsec non si sovrappongono.
   Giorno e notte si scrivono D e N (scelta dell'utente).
   Verificato in mGBA su Eevee: Espeon e Umbreon visibili, freccia e A (CHECK)
   sulla riga giusta.

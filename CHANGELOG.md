@@ -17,8 +17,9 @@ add the section before releasing. Feature details live in the tables of
 - **Pokédex: Espeon and Umbreon on Eevee's EVO page.** The page prints at
   most 10 methods and Eevee has 12 in HnS, Espeon and Umbreon last: they
   had an icon but no method. Each evolution's first method now comes before
-  any second method for the same one, so the lines that drop are Glaceon's
-  Ice Path and Seafoam Islands. Evolutions themselves are unchanged. Day
+  any second method for the same one, and Eevee's Johto spots come before
+  the Kanto ones, so the lines that drop are Viridian Forest and Seafoam
+  Islands. Evolutions themselves are unchanged. Day
   and Night read D and N. Also reported in Mikeagan's fork, which fixed it
   by adding Sun and Moon Stone evolutions instead.
 
