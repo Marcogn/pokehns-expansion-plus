@@ -10,13 +10,13 @@ qui c'è l'elenco, con il rimando al punto giusto.
 
 ---
 
-## 0. Stato della sincronizzazione (12/10/2026)
+## 0. Stato della sincronizzazione (20/10/2026)
 
 | repo | allineato a | note |
 | --- | --- | --- |
-| `pokehns-expansion-plus` ← `PokemonHnS-Development/pokehns-expansion` | `167aa6d` (2.0.6) | 0 commit mancanti anche al 12/10, verificato con `git rev-list --count HEAD..upstream/master` |
-| `Marcogn/soulgold` ← `Eemeliri/soulgold` | `73a66207e` (08/10, SG 1.2) | merge pulito di 13 commit, `make modern` compila |
-| codice di Soulgold portato in Hasep | Soulgold **1.1.4** (`a374881df`) + i fix elencati al §4 + le tre feature di SG 1.2 (Fast HMs, tema musica di lotta, musica notturna nei Centri, §1), valutato fino a `73a66207e` | dopo 1.1.4 in SG è cambiato solo `swsh_party_menu.c` (selezione squadra per le strutture lotta, fix applicato, §4); `dexnav.c`, `candy_jar.c`, `type_icons.c` e gli speed-up no |
+| `pokehns-expansion-plus` ← `PokemonHnS-Development/pokehns-expansion` | `167aa6d` (2.0.6) | 0 commit mancanti anche al 20/10, verificato con `git rev-list --count HEAD..upstream/master` |
+| `Marcogn/soulgold` ← `Eemeliri/soulgold` | `4d4acbe98` (20/10) | merge pulito di 18 commit, `make modern` compila |
+| codice di Soulgold portato in Hasep | Soulgold **1.1.4** (`a374881df`) + i fix elencati al §4 + le tre feature di SG 1.2 (Fast HMs, tema musica di lotta, musica notturna nei Centri, §1), valutato fino a `4d4acbe98` | dopo 1.1.4 in SG è cambiato solo `swsh_party_menu.c` (selezione squadra per le strutture lotta, fix applicato, §4); `dexnav.c`, `candy_jar.c`, `type_icons.c` e gli speed-up no |
 
 Il branch `claude/mega-type-stones` ha 3 commit **non ancora in master**
 (megaevoluzioni con le type stone di SG, due tasche nuove nella borsa). Vedi §5.
@@ -97,6 +97,17 @@ diff per diff:
 | Fast HMs (`a9d41a7b9`) | **applicato** | adattato agli script `_hns`, §1 |
 | Sprite di surf regionali (`73a66207e`) | **già presente** | SG li ha presi da HnS 2.0: i 30 PNG e le voci in `surfable_pokemon.h` ci sono già |
 | Level scaling dei rivali (`39f2cc303`), versione 1.2 (`20089aa08`), MT75 Agility, testi, squadre, learnset, tratti, documentazione (`1d09352b9`, `b7d1534e3`, `29b53d739`, `f6a7d7c2b`, `ad91d8aa5`, `23412857c`, `145247fb4`) | non applicato | contenuto di SG. Il refuso di Motor Drive sta in una `longDescription` che Hasep non ha |
+
+Sync del 20/10/2026, commit di SG da `8033e448c` a `4d4acbe98`, letti diff
+per diff:
+
+| cambio in SG | in Hasep | perché |
+| --- | --- | --- |
+| `animCmdIndex` azzerato quando il follower rientra nella ball (`c279a23b1`, crash di Mega Greninja dopo il surf) | **applicato** | stesso codice in Hasep, che ha anche lui gli sprite di surf (`surfable_pokemon_graphics.h`): `FollowerSetGraphics` cambia la tabella di animazioni e un indice rimasto da quella vecchia può leggere oltre la fine della nuova. `ExitPokeball_Step1` faceva già lo stesso azzeramento. Letto dal codice, non riprodotto in gioco |
+| Palette dell'icona tenuta in mano tornando dal riassunto nel PC (`2fab8e856`) | non applicato | corregge il sistema di palette per-Pokémon del PC di SG (`LoadMovingMonIconPalette`, `GetStorageMonIconPalette`, `chooseBoxSwapPal`), che Hasep non ha: qui `CreateMovingMonIcon` non forza nessuna palette |
+| Sfondo Rayquaza anche per Zapdos (`11667e07c`) | non applicato | scelta estetica di SG; Hasep ha gli override di Emerald (Groudon/Kyogre/Rayquaza), non quelli di SG |
+| Icona di Mega Staraptor (`f55a6fc89`) | non applicato | megaevoluzioni spente in Hasep (CLAUDE.md §7bis) |
+| Docs del sito, CSS, export della squadra (`8033e448c`, `c98530c7d`, `1d304cea2`, `3a378f5e7`, `4d4acbe98`), refusi nelle abilità, testi, mappe, squadre, learnset, tratti (`d039d054b`, `08c15c8ea`, `11a7a74f7`, `a984e5913`, `acfbed1df`, `c37387967`, `16db3f5dc`, `c159c5bf6`, `2672ba3e4`) | non applicato | contenuto di SG |
 
 Trovato e **non** corretto (non è nel diff di SG, presente in entrambi):
 `CheckBattleEntriesAndGetMessage` in `swsh_party_menu.c` confronta specie e
