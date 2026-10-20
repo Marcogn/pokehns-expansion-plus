@@ -166,6 +166,11 @@ l'unione dei messaggi di aumento/calo statistiche.
 - **DexNav**: la divergenza va nei due sensi. Hasep ha la riga dei nascosti, il
   Pokéblock della Safari, il movimento in acqua/grotta, che SG non ha; SG ha la
   ricerca che non fallisce, che qui sta dietro `ENHANCED DEXNAV` (§6).
+- **Flash e DexNav**: in SG avere la MN Flash in borsa illumina del tutto le
+  grotte buie (livello 0), qui Flash si usa e lascia il raggio (livello 1),
+  come in HGSS. Il controllo "troppo buio" del DexNav, identico nei due repo
+  (`> 0`), in SG quindi non scatta mai, qui bloccava Dark Cave anche con
+  Flash: ora rifiuta solo sopra 1 (`IsTooDarkToSearch`, CLAUDE.md §6).
 - **Icone dei tipi in singola**: a sinistra della healthbox e non specchiate;
   in doppia come SG (§6).
 - **Evoluzioni regionali**: restano legate alla regione. Raichu/Exeggutor/Marowak

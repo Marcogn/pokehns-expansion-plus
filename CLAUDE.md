@@ -461,6 +461,21 @@ Vale più di qualunque stima. Cose date per mancanti che invece c'erano, spente:
   ricerca avviata, avvicinamento **di corsa** senza tenere A, bersaglio fermo,
   "You encountered a wild MAGMAR!". Senza opzione, stesso punto, non ci si
   arriva.
+- **DexNav e Flash: il livello 1 è "illuminato".** `GetFlashLevel()` vale
+  0 fuori dalle grotte buie, 7 al buio e **1** dopo Flash
+  (`EventScript_UseFlash` e `SetDefaultFlashLevel`): mai 0. Il controllo di
+  upstream `> 0` lasciava quindi il DexNav "troppo buio" a Dark Cave anche
+  con Flash. Ora `IsTooDarkToSearch()` (`> 1`) in `InitDexNavSearch` **e**
+  in `TryFindHiddenPokemon`: il fork di Mikeagan, da cui arriva la
+  segnalazione, aveva corretto solo il primo. In Soulgold il bug non si vede
+  perché lì `SetDefaultFlashLevel` mette 0 se hai la MN in borsa.
+  Verificato in mGBA, nuova partita + Cheat start + warp di debug (Dark Cave
+  = gruppo 24, mappa 0), flag e var scritti via GDB: senza Flash "too dark",
+  con Flash (flag alzato su Route 31, poi dentro) livello 1, ricerca avviata
+  e ZUBAT incontrato. Offset misurati compilando `offsetof` con la toolchain:
+  `flashLevel` 0x34, `flags` 0x198C, `vars` 0x1ABC — i commenti in
+  `global.h` (0x30, 0x1270…) sono vecchi, non fidarti. `FLAG_SYS_USE_FLASH` si
+  azzera uscendo all'aperto: va alzato fuori e poi si entra.
 - **Mente**: tutte e 21 già in vendita al negozio di fiori di Goldenrod, dietro
   medaglia 3 e dietro il toggle `MODE_MINTS` del challenge menu.
 - **Candy Jar**: portato da Soulgold così com'è (`src/candy_jar.c`,
