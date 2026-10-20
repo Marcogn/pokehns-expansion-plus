@@ -5,7 +5,7 @@ Documento vivo. Sostituisce come riferimento
 che resta com'era: è l'analisi fatta **prima** del port (HnS 2.0.5) e serve a
 capire da dove si è partiti, non lo stato attuale.
 
-I dettagli tecnici, le trappole e le misure stanno in `CLAUDE.md` (§5–§7bis);
+I dettagli tecnici, le trappole e le misure stanno in `.claude/rules/` (un file per area, indice in `CLAUDE.md` §7);
 qui c'è l'elenco, con il rimando al punto giusto.
 
 ---
@@ -29,17 +29,17 @@ Il branch `claude/mega-type-stones` ha 3 commit **non ancora in master**
 | --- | --- | --- | --- |
 | Speed-up overworld | `OW SPEED` 1×–4× | `src/overworld.c`, `src/battle_transition.c`, `include/overworld.h` | le cutscene restano a 1× |
 | Speed-up lotta | `BATTLE SPEED` 1×–3× | `src/battle_main.c`, `src/battle_controllers.c`, `src/palette.c` | più tick software per frame |
-| Menu squadra SwSh | `PARTY MENU` | `src/swsh_party_menu.c`, `src/party_menu_dispatch.c`, `include/party_menu_variant.h` | due varianti compilate insieme, CLAUDE.md §7 |
+| Menu squadra SwSh | `PARTY MENU` | `src/swsh_party_menu.c`, `src/party_menu_dispatch.c`, `include/party_menu_variant.h` | due varianti compilate insieme, `.claude/rules/party_menu.md` |
 | Schermata borsa | — | `src/item_menu.c`, `src/item_menu_icons.c`, `graphics/bag/soulgold/` | |
-| Tema scuro | `DARK UI` | `battle_bg.c`, `battle_interface.c`, `battle_gfx_sfx_util.c`, `item_menu.c` | mappa completa in CLAUDE.md §5 |
+| Tema scuro | `DARK UI` | `battle_bg.c`, `battle_interface.c`, `battle_gfx_sfx_util.c`, `item_menu.c` | mappa completa in `.claude/rules/battle_ui.md` |
 | Healthbox shiny | — | `src/battle_gfx_sfx_util.c` | in tema scuro diventa scura anche lei, diversamente da SG (voluto, §6) |
 | Shiny Genome | — | `swsh_party_menu.c` (`Task_ShinGenome`), Mart di Viridian | |
 | Start menu compatto | — | `src/menu.c`, `src/start_menu.c` | da SG 1.1.4 |
-| Candy Jar | — | `src/candy_jar.c`, `src/item_use.c`, `src/save.c` (migrazione `saveVersion < 6`) | CLAUDE.md §4 e §6 |
+| Candy Jar | — | `src/candy_jar.c`, `src/item_use.c`, `src/save.c` (migrazione `saveVersion < 6`) | `.claude/rules/save.md` e `.claude/rules/candy_jar.md` |
 | DexNav, metà "ricerca" | `ENHANCED DEXNAV` | `src/dexnav.c` | la metà "mostra tutti" **non** è di SG, §6 |
 | Icone dei tipi, comportamento | — | `src/type_icons.c`, `include/type_icons.h` | l'arte è di SG; layout in singola diverso, §6 |
 | Relearner solo dalla pagina mosse | — | `src/pokemon_summary_screen.c` | la feature è di expansion, la restrizione di SG |
-| Fast HMs (SG 1.2, `a9d41a7b9`) | `FAST HMS`, default OFF | `src/field_effect.c`, `src/fldeff_flash.c`, `src/fldeff_rocksmash.c`, `data/scripts/field_move_scripts_hns.inc`, `data/scripts/surf.inc` | salta domanda, messaggio "usato" e posa/banner. **Gli script sono quelli `_hns`**, non `field_move_scripts.inc` (quello è il ramo non-HnS): Taglio, Spaccaroccia, Forza, Cascata e Testata qui non avevano già né domanda né animazione, quindi per loro l'opzione toglie solo il messaggio. Surf, Sub, Scalaroccia e Defog hanno anche domanda e/o posa. Flag specchio `FLAG_FAST_HMS`, campo `soundAndFieldOptions.fastHms`, CLAUDE.md §4 |
+| Fast HMs (SG 1.2, `a9d41a7b9`) | `FAST HMS`, default OFF | `src/field_effect.c`, `src/fldeff_flash.c`, `src/fldeff_rocksmash.c`, `data/scripts/field_move_scripts_hns.inc`, `data/scripts/surf.inc` | salta domanda, messaggio "usato" e posa/banner. **Gli script sono quelli `_hns`**, non `field_move_scripts.inc` (quello è il ramo non-HnS): Taglio, Spaccaroccia, Forza, Cascata e Testata qui non avevano già né domanda né animazione, quindi per loro l'opzione toglie solo il messaggio. Surf, Sub, Scalaroccia e Defog hanno anche domanda e/o posa. Flag specchio `FLAG_FAST_HMS`, campo `soundAndFieldOptions.fastHms`, `.claude/rules/save.md` |
 | Tema musica di lotta (SG 1.2, `f81a55ff3`) | `BATTLE MUSIC`: DEFAULT, HG JOHTO, HG KANTO, FRLG, RSE, DPPT, RANDOM | `src/pokemon.c` (`GetBattleBGM`), `include/pokemon.h`, `src/option_menu.c` | diverso da SG: DEFAULT è il tema **regionale** di Hasep, c'è HG JOHTO, e il tema vale anche per la **Superquattro**. Restano fissi boss, rivali, Rocket, campioni, leggendari, link, strutture e il Professor Oak (`PROFESSOR_HNS`, che prima condivideva il `case` con i capipalestra FRLG). 4 brani DP nuovi (`mus_dp_vs_wild/trainer/gym_leader`, `mus_dp_poke_center_night`) da SG, id derivati da Hasep |
 | Musica notturna nei Centri (SG 1.2, `c913c4a2d`) | `NIGHT CENTER`, default ON | `src/overworld.c` (`ApplyNightCenterMusic`) | in SG è sempre attiva, qui è un'opzione. Vale per le tre musiche di Centro (RSE, FRLG, HGSS) |
 
@@ -47,14 +47,14 @@ Il branch `claude/mega-type-stones` ha 3 commit **non ancora in master**
 
 DexNav (`DEXNAV_ENABLED` era FALSE), relearner dal riassunto
 (`P_ENABLE_MOVE_RELEARNERS`, mancava la gestione di START), icone dei tipi
-(`B_SHOW_TYPES` era NEVER), Pokédex HGSS. Dettagli in CLAUDE.md §6.
+(`B_SHOW_TYPES` era NEVER), Pokédex HGSS. Dettagli in `.claude/rules/` (`dexnav.md`, `battle_ui.md`, `relearner.md`).
 
 ## 3. Aggiunto qui
 
 Pokédex dal menu squadra, `EASY CATCH`, `NICKNAMES`, `WILD BATTLES`, toggle del
 follower nel menu SwSh, badge `SEL`/`HM` leggibili nei due temi (difetto
 presente anche in SG), prezzi e negozi (README), `SORT` e `SEARCH` nei box
-del PC (SG non li ha; CLAUDE.md §7quinquies).
+del PC (SG non li ha; `.claude/rules/pc_box.md`).
 
 ---
 
@@ -107,7 +107,7 @@ per diff:
 | `animCmdIndex` azzerato quando il follower rientra nella ball (`c279a23b1`, crash di Mega Greninja dopo il surf) | **applicato** | stesso codice in Hasep, che ha anche lui gli sprite di surf (`surfable_pokemon_graphics.h`): `FollowerSetGraphics` cambia la tabella di animazioni e un indice rimasto da quella vecchia può leggere oltre la fine della nuova. `ExitPokeball_Step1` faceva già lo stesso azzeramento. Letto dal codice, non riprodotto in gioco |
 | Palette dell'icona tenuta in mano tornando dal riassunto nel PC (`2fab8e856`) | non applicato | corregge il sistema di palette per-Pokémon del PC di SG (`LoadMovingMonIconPalette`, `GetStorageMonIconPalette`, `chooseBoxSwapPal`), che Hasep non ha: qui `CreateMovingMonIcon` non forza nessuna palette |
 | Sfondo Rayquaza anche per Zapdos (`11667e07c`) | non applicato | scelta estetica di SG; Hasep ha gli override di Emerald (Groudon/Kyogre/Rayquaza), non quelli di SG |
-| Icona di Mega Staraptor (`f55a6fc89`) | non applicato | megaevoluzioni spente in Hasep (CLAUDE.md §7bis) |
+| Icona di Mega Staraptor (`f55a6fc89`) | non applicato | megaevoluzioni spente in Hasep (`.claude/rules/megas.md`) |
 | Docs del sito, CSS, export della squadra (`8033e448c`, `c98530c7d`, `1d304cea2`, `3a378f5e7`, `4d4acbe98`), refusi nelle abilità, testi, mappe, squadre, learnset, tratti (`d039d054b`, `08c15c8ea`, `11a7a74f7`, `a984e5913`, `acfbed1df`, `c37387967`, `16db3f5dc`, `c159c5bf6`, `2672ba3e4`) | non applicato | contenuto di SG |
 
 Trovato e **non** corretto (non è nel diff di SG, presente in entrambi):
@@ -123,10 +123,10 @@ minimo inferiore al massimo.
 
 **Bloccato o rimandato per un motivo misurato**
 
-- **Megaevoluzioni**: la ROM passa al 99,46% dei 32 MB (CLAUDE.md §7bis). Il
+- **Megaevoluzioni**: la ROM passa al 99,46% dei 32 MB (`.claude/rules/megas.md`). Il
   lavoro sta su `claude/mega-type-stones`, non ancora unito.
 - **Pokédex completo dalla pagina della cattura**: in lotta non c'è abbastanza
-  memoria (misura in CLAUDE.md §7). Anche SG, su quella pagina, esce e basta.
+  memoria (misura in `.claude/rules/pokedex.md`). Anche SG, su quella pagina, esce e basta.
 
 **Candidati non ancora fatti**
 
@@ -134,7 +134,7 @@ minimo inferiore al massimo.
   1.1.4): due opzioni che spengono la fusione dei colori per l'ora del giorno.
   In SG costano due flag. Da valutare: in Hasep le opzioni vivono in
   `ChallengeSettings`, che ora è piena; il posto più economico è
-  `soundAndFieldOptions` (3 bit liberi, CLAUDE.md §4) con un flag specchio come
+  `soundAndFieldOptions` (3 bit liberi, `.claude/rules/save.md`) con un flag specchio come
   per Fast HMs.
 
 **Contenuto e design di Soulgold, legati alle sue mappe e al suo bilanciamento**
@@ -170,7 +170,7 @@ l'unione dei messaggi di aumento/calo statistiche.
   grotte buie (livello 0), qui Flash si usa e lascia il raggio (livello 1),
   come in HGSS. Il controllo "troppo buio" del DexNav, identico nei due repo
   (`> 0`), in SG quindi non scatta mai, qui bloccava Dark Cave anche con
-  Flash: ora rifiuta solo sopra 1 (`IsTooDarkToSearch`, CLAUDE.md §6).
+  Flash: ora rifiuta solo sopra 1 (`IsTooDarkToSearch`, `.claude/rules/dexnav.md`).
 - **Icone dei tipi in singola**: a sinistra della healthbox e non specchiate;
   in doppia come SG (§6).
 - **Evoluzioni regionali**: restano legate alla regione. Raichu/Exeggutor/Marowak

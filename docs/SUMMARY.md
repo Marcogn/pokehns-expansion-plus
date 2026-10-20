@@ -26,6 +26,7 @@
     - [Pre-port inventory (HnS 2.0.5)](./INVENTORY_SOULGOLD_VS_HNS_EXPANDED.md)
     - [Plan: Soulgold 1.2 options](./plans/sg-1.2-options.md)
 - [Test plan](./TEST_PLAN.md)
+- [Emulator guide (for Claude)](./claude/emulator.md)
 - [Tutorials]()
   - [What are AI Flags?](tutorials/ai_flags.md)
     - [How to add new AI Flags](tutorials/ai_logic.md)

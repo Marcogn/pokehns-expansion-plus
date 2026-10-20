@@ -60,7 +60,7 @@ jobs:
         run: |
           # The ROM is padded to 32 MiB, so measure the used part: everything
           # before the trailing run of 0xFF padding. Warn from 98%, fail from
-          # 99.5%: megas alone would take it to 99.46% (CLAUDE.md 7bis), which
+          # 99.5%: megas alone would take it to 99.46% (.claude/rules/megas.md), which
           # must be visible but is still a ROM that fits.
           set -o pipefail  # or tee would hide python's exit code
           python3 - <<'PY' | tee -a "$GITHUB_STEP_SUMMARY"
