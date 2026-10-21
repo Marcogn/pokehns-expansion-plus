@@ -1509,6 +1509,7 @@ static const u8 *const sPCNameStrings[] =
     gText_LanettesPC,
     gText_PlayersPC,
     gText_Challenges,
+    gText_WildPokemon,
     gText_LogOff,
 };
 

@@ -47,7 +47,8 @@ EventScript_AccessPC_BeforeLeague::
 	case 0, EventScript_AccessPokemonStorage
 	case 1, EventScript_AccessPlayersPC
 	case 2, EventScript_ChallengeViewer
-	case 3, EventScript_TurnOffPC
+	case 3, EventScript_WildPokemonSwitch
+	case 4, EventScript_TurnOffPC
 	case MULTI_B_PRESSED, EventScript_TurnOffPC
 	end
 
@@ -56,7 +57,8 @@ EventScript_AccessFakePC_BeforeLeague::
 	case 0, EventScript_AccessFakePokemonStorage
 	case 1, EventScript_AccessPlayersFakePC
 	case 2, EventScript_FakeChallengeViewer
-	case 3, EventScript_TurnOffFakePC
+	case 3, EventScript_FakeWildPokemonSwitch
+	case 4, EventScript_TurnOffFakePC
 	case MULTI_B_PRESSED, EventScript_TurnOffFakePC
 	end
 
@@ -66,7 +68,8 @@ EventScript_AccessPC_AfterLeague::
 	case 1, EventScript_AccessPlayersPC
 	case 2, EventScript_AccessHallOfFame
 	case 3, EventScript_ChallengeViewer
-	case 4, EventScript_TurnOffPC
+	case 4, EventScript_WildPokemonSwitch
+	case 5, EventScript_TurnOffPC
 	case MULTI_B_PRESSED, EventScript_TurnOffPC
 	end
 
@@ -76,7 +79,8 @@ EventScript_AccessFakePC_AfterLeague::
 	case 1, EventScript_AccessPlayersFakePC
 	case 2, EventScript_AccessFakeHallOfFame
 	case 3, EventScript_FakeChallengeViewer
-	case 4, EventScript_TurnOffFakePC
+	case 4, EventScript_FakeWildPokemonSwitch
+	case 5, EventScript_TurnOffFakePC
 	case MULTI_B_PRESSED, EventScript_TurnOffFakePC
 	end
 
@@ -91,6 +95,23 @@ EventScript_FakeChallengeViewer::
 	playse SE_PC_LOGIN
 	callnative Script_OpenChallengeMenu
 	delay 30
+	goto EventScript_FakePCMainMenu
+	end
+
+@ Hasep: visible wild Pokémon on/off (docs/plans/overworld-encounters.md,
+@ phase 5). YES = on; the setting takes effect on the next map, which is
+@ outdoors since PCs are indoors.
+EventScript_WildPokemonSwitch::
+	playse SE_PC_LOGIN
+	msgbox gText_ShowWildPokemonOverworld, MSGBOX_YESNO
+	special SetOverworldMonsFromYesNo
+	goto EventScript_PCMainMenu
+	end
+
+EventScript_FakeWildPokemonSwitch::
+	playse SE_PC_LOGIN
+	msgbox gText_ShowWildPokemonOverworld, MSGBOX_YESNO
+	special SetOverworldMonsFromYesNo
 	goto EventScript_FakePCMainMenu
 	end
 

@@ -286,16 +286,25 @@ static u32 GetOWESpawnCap(void)
     return OWE_SPAWNS_MAX_LAND;
 }
 
-// Hasep: where generated OWEs may appear. WILD BATTLES OFF (challenge
-// settings) turns them off like step encounters, or the visible Pokémon would
-// still start battles. Phase 3 of docs/plans/overworld-encounters.md only
-// switches them on in Route 29; the PC option of phase 5 replaces the map check.
-static bool32 HasepAreOWEsAllowedHere(void)
+// Hasep: the single switch between visible wild Pokémon and step encounters
+// (decision D2: ON by default, also in existing saves, which read the stored
+// bit as 0). WILD BATTLES OFF (challenge settings) turns both off, or the
+// visible Pokémon would still start battles. The user may later drop the PC
+// option and keep only OWEs: then remove the PC entry and return TRUE here
+// after the WILD BATTLES check.
+bool32 AreOverworldMonsEnabled(void)
 {
-    if (AreWildEncountersDisabledByOption())
+    if (!WE_OW_ENCOUNTERS || AreWildEncountersDisabledByOption())
         return FALSE;
-    return gSaveBlock1Ptr->location.mapGroup == MAP_GROUP(MAP_ROUTE29_HNS)
-        && gSaveBlock1Ptr->location.mapNum == MAP_NUM(MAP_ROUTE29_HNS);
+    return !gSaveBlock3Ptr->soundAndFieldOptions.noOverworldMons;
+}
+
+// Hasep: "WILD POKéMON" in the Pokémon Center PC (data/scripts/pc.inc). It is
+// changed indoors, so the next outdoor map loads with the new setting.
+void SetOverworldMonsFromYesNo(void)
+{
+    // MSGBOX_YESNO leaves YES (1) or NO (0) in VAR_RESULT (asm/macros/event.inc).
+    gSaveBlock3Ptr->soundAndFieldOptions.noOverworldMons = (gSpecialVar_Result != 1);
 }
 
 void UpdateOverworldWildEncounter(void)
@@ -308,7 +317,7 @@ void UpdateOverworldWildEncounter(void)
         return;
 
     if (!WE_OW_ENCOUNTERS
-     || !HasepAreOWEsAllowedHere()
+     || !AreOverworldMonsEnabled()
      || FlagGet(WE_OWE_FLAG_DISABLED)
      || FlagGet(OW_FLAG_NO_ENCOUNTER)
      || FlagGet(DN_FLAG_SEARCHING)

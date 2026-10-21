@@ -99,7 +99,7 @@ quando tocchi `save.c`, `global.h`, `new_game.c`, `oak_speech_hns.c` o il menu
 opzioni.
 
 - `struct ChallengeSettings` è fissata a 32 byte e ha **0 bit liberi**. Una
-  nuova opzione va in `soundAndFieldOptions` (3 bit liberi), in un flag, oppure
+  nuova opzione va in `soundAndFieldOptions` (2 bit liberi), in un flag, oppure
   ingrandisce la struct spostando il layout.
 - **Polarità**: un salvataggio vecchio legge zero, quindi zero deve essere il
   comportamento di prima (o il default). L'etichetta del valore zero viene prima

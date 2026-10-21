@@ -958,6 +958,21 @@ static bool32 ShouldDisableRandomEncounters(void)
     if (FlagGet(OW_FLAG_NO_ENCOUNTER))
         return TRUE;
 
+    // Hasep: WE_VANILLA_RANDOM is a build switch; the PC option decides at
+    // runtime. With visible wild Pokémon on, tall grass, water and caves stop
+    // starting battles (decision D3); fishing, Rock Smash and Headbutt trees
+    // do not go through here and keep working.
+    if (AreOverworldMonsEnabled())
+    {
+        if (gMapHeader.mapLayoutId == LAYOUT_BATTLE_FRONTIER_BATTLE_PIKE_ROOM_WILD_MONS && !WE_OWE_BATTLE_PIKE)
+            return FALSE;
+
+        if (gMapHeader.mapLayoutId == LAYOUT_BATTLE_FRONTIER_BATTLE_PYRAMID_FLOOR && !WE_OWE_BATTLE_PYRAMID)
+            return FALSE;
+
+        return TRUE;
+    }
+
     if (!WE_VANILLA_RANDOM && WE_OW_ENCOUNTERS)
     {
         if (gMapHeader.mapLayoutId == LAYOUT_BATTLE_FRONTIER_BATTLE_PIKE_ROOM_WILD_MONS && !WE_OWE_BATTLE_PIKE)

@@ -3,10 +3,10 @@
 Stato (21/10): **tabella delle indoli compilata** ed esportata in
 [`overworld-encounters/temperaments.json`](overworld-encounters/temperaments.json)
 (§2bis); fase 1 fatta (diff vero della PR e prova di applicazione, §5);
-decisioni D2–D5 prese (§6); **fasi 2, 3 e 4 fatte** (port, accensione su
-Route 29, tiro pesato; misure, trappole e prove in
+decisioni D2–D5 prese (§6); **fasi 2-5 fatte** (port, accensione, tiro
+pesato, interruttore `WILD POKéMON` nel PC; misure, trappole e prove in
 [`.claude/rules/overworld_encounters.md`](../../.claude/rules/overworld_encounters.md)).
-Prossima: fase 5. Se la tabella cambia: `python3 tools/owe_temperaments.py`.
+Prossima: fase 6. Se la tabella cambia: `python3 tools/owe_temperaments.py`.
 
 ## 1. Cosa vuole l'utente
 
@@ -300,7 +300,8 @@ Ogni fase finisce con build `make hns` verde e, dove detto, una prova in mGBA
    blocchi `#if P_FAMILY_X` danno al generatore anche gli altri. Alias
    (`SPECIES_CASTFORM`) e forme risolti allo stesso modo. Specie di
    famiglie assenti dalla tabella = NEUTRO.
-5. **Interruttore `OVERWORLD MONS` dal PC del Centro Pokémon** (D2): ON =
+5. **Fatto il 21/10**, voce `WILD POKéMON` (testi confermati dall'utente).
+   **Interruttore `OVERWORLD MONS` dal PC del Centro Pokémon** (D2): ON =
    OWE accesi e incontri a passi spenti su terra, acqua e grotta (D3); OFF =
    come oggi. `WILD BATTLES` OFF spegne entrambi. **Default ON anche per i
    salvataggi esistenti**, quindi il campo in `soundAndFieldOptions` è

@@ -26,23 +26,48 @@ più un tiro pesato per indole,
 sul modello del mod Wilds of Kanto. Le indoli scelte dall'utente sono in
 `docs/plans/overworld-encounters/temperaments.json`.
 
-## Stato: fase 4 fatta (21/10), OWE accesi solo su Route 29
+## Stato: fase 5 fatta (21/10), OWE accesi ovunque, interruttore nel PC
 
-Fase 2: codice della PR più #9925, #9968, #10066, #10753, tutto spento. ROM
-31 832 868 → 31 855 284 byte (+22 416, 94,87% → 94,94%).
+Fase 2: codice della PR più #9925, #9968, #10066, #10753. Fase 3: config di
+D3-D5 (6 OWE, ricambio, shiny con scintilla e che non spariscono, tetti
+6/3/3 con grotta = `MAP_TYPE_UNDERGROUND` o `MAP_TYPE_INDOOR`).
 
-Fase 3: `WE_OW_ENCOUNTERS TRUE` con le config di D4/D5
-(`WE_OWE_SPAWN_REPLACEMENT`, `WE_OWE_SHINY_SPARKLE`,
-`WE_OWE_PREVENT_SHINY_DESPAWN` a TRUE), `OWE_SPAWNS_MAX` 6 e tetti per area
-`OWE_SPAWNS_MAX_LAND/WATER/CAVE` 6/3/3 (D3; grotta = `MAP_TYPE_UNDERGROUND`
-**o** `MAP_TYPE_INDOOR`, confermato dall'utente). Dove compaiono lo decide
-`HasepAreOWEsAllowedHere()` in `wild_encounter_ow.c`: WILD BATTLES OFF li
-spegne sempre, e per ora vale solo Route 29. **La fase 5 sostituisce il
-controllo della mappa con l'opzione del PC.** Gli incontri a passi sono
-ancora accesi (`WE_VANILLA_RANDOM TRUE`): li spegne la fase 5. ROM
-31 857 828 byte (+2 544 sulla fase 2, 94,94%). Nessun warning nuovo.
+Fase 5: **`AreOverworldMonsEnabled()`** (`wild_encounter_ow.c`) è l'unico
+interruttore. Falso con WILD BATTLES OFF; altrimenti legge
+`soundAndFieldOptions.noOverworldMons` (bit 5 del byte a offset 56 di
+SaveBlock3, **invertito**: 0 = ON). I 3 bit liberi valevano 0 in ogni
+salvataggio a `SAVE_VERSION` 8 (la migrazione `< 8` azzera il byte, le
+partite nuove nascono a 0): nessuna migrazione, default ON anche per i
+salvataggi vecchi (D2). Lo usano lo spawn e `ShouldDisableRandomEncounters()`
+(`field_control_avatar.c`): con ON niente incontri a passi su erba, acqua e
+grotta; pesca, Spaccaroccia, Testata e Profumino non passano di lì.
+`WE_VANILLA_RANDOM` resta TRUE (vale solo con l'opzione OFF).
+Per togliere l'interruttore in futuro: togliere la voce del PC e far
+restituire TRUE ad `AreOverworldMonsEnabled()` dopo il controllo su WILD
+BATTLES.
 
-**Non rilasciare da questo stato**: Route 29 ha sia OWE sia incontri a passi.
+PC: voce `WILD POKéMON` (`gText_WildPokemon`) dopo CHALLENGES nelle quattro
+liste di `data/scripts/pc.inc` (case rinumerati) e in `CreatePCMultichoice`
+(`script_menu.c`, finestra 10/12 righe); sì/no con
+`gText_ShowWildPokemonOverworld` (`data/text/pc.inc`, testi approvati
+dall'utente) e `special SetOverworldMonsFromYesNo` (in fondo a
+`data/specials.inc`). Il menu opzioni scrive `soundAndFieldOptions` campo per
+campo, quindi non tocca il bit.
+
+**Prima del rilascio manca la fase 6** (Gara Pigliamosche, Safari, grotte
+buie, acqua, roamer, città): oggi gli OWE compaiono su ogni mappa con una
+tabella di erba o acqua.
+
+### Prove della fase 5 (mGBA, breakpoint GDB su `StandardWildEncounter`)
+
+`StandardWildEncounter` è chiamata solo se `ShouldDisableRandomEncounters()`
+dice di no, quindi il conteggio dei passaggi misura gli incontri a passi.
+- Salvataggio scritto dalla ROM della fase 2 (bit mai toccato): OWE presenti
+  su Route 29, 40 passi nell'erba = **0** chiamate; la lotta avvenuta era da
+  contatto.
+- PC di Cherrygrove: voce e domanda leggibili (il testo sta nelle due righe).
+  NO → byte `0x20`; Route 30: nessun OWE, **39** chiamate e lotta a passi.
+- YES → byte `0x00`; Route 30: 5 OWE (Caterpie, Ledyba, Pidgey).
 
 ## Fase 4 fatta (21/10): tiro pesato per indole
 
