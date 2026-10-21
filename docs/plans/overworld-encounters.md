@@ -1,8 +1,10 @@
 # Piano: Pokémon selvatici visibili nell'overworld (OWE)
 
-Stato: **bozza, in attesa della tabella delle indoli compilata dall'utente**
-(passo 0). Quando la tabella è pronta, questo piano va rifinito (§7) e poi
-eseguito da una sessione nuova (prompt di handoff in fondo).
+Stato (21/10): **tabella delle indoli compilata** ed esportata in
+[`overworld-encounters/temperaments.json`](overworld-encounters/temperaments.json)
+(§2bis); fase 1 fatta (diff vero della PR e prova di applicazione, §5).
+Il resto va eseguito da una sessione nuova (prompt di handoff in fondo),
+dopo le risposte alle decisioni aperte del §6.
 
 ## 1. Cosa vuole l'utente
 
@@ -90,13 +92,42 @@ scritti a memoria sul carattere generale dei Pokémon. Quattro contraddicono il
 mod (Kangaskhan, Scyther, Tauros, Pinsir: nel mod scappano nel Safari, qui
 AGGRESSIVO, segnate "da decidere").
 
+## 2bis. La tabella compilata (21/10)
+
+`temperaments.json` = proposte di `proposals.py` fuse con le scelte salvate
+(`export_temperaments.py <dump>/families`, dump fatto con
+`ArtifactData list families out_dir=...`). Formato: `behaviours` (ordine dei
+sei pesi), `profiles` (pesi per indole: **quelli proposti**, l'utente non li
+ha cambiati, `config/profiles` assente), `families` (per famiglia `profile`,
+`species` = eccezioni complete, `source` = `user` o `proposal`).
+
+- **23 famiglie cambiate dall'utente**, 147 lasciate sulla proposta. Nessuna
+  marcata "rivista" (la casella non è stata usata) e nessuna nota.
+- Indoli delle famiglie: NEUTRO 47, PLACIDO 43, AGGRESSIVO 29, CURIOSO 23,
+  TIMIDO 19, SFUGGENTE 9. Eccezioni per specie: 49.
+- Scelte dell'utente da ricordare: i tre starter di Kanto e Chikorita
+  CURIOSO da piccoli (Charizard e Blastoise AGGRESSIVO, Venusaur PLACIDO);
+  Mudkip TIMIDO, Treecko PLACIDO; Chansey e Dratini **TIMIDO** invece di
+  SFUGGENTE; Yanma SFUGGENTE; Electrike CURIOSO; Tangela TIMIDO (Tangrowth
+  PLACIDO); Zubat TIMIDO in una famiglia AGGRESSIVO; Growlithe di Hisui
+  CURIOSO; Sneasel di Hisui PLACIDO; Rattata di Alola AGGRESSIVO; Sandslash
+  AGGRESSIVO; Alakazam PLACIDO; Pidgeotto CURIOSO; Butterfree, Wurmple,
+  Elekid e Magby TIMIDO; Ledian CURIOSO.
+- I quattro "da decidere" contro il mod (Kangaskhan, Scyther, Tauros,
+  Pinsir) sono rimasti AGGRESSIVO.
+- Il bug della pagina corretto il 21/10 (stato sostituito invece che
+  aggiornato, commit `2b10f1d7`) può aver perso modifiche fatte prima di quel
+  giorno su famiglie riaperte: l'utente è stato avvisato. Se segnala una
+  famiglia che non torna, la si corregge a mano in `temperaments.json`.
+
 ## 3. Fatti verificati su upstream (non ri-scoprirli)
 
 - La feature è **PR #8434** di rh-hideout/pokeemerald-expansion ("Overworld
   Encounters", Bivurnum + HashtagMarky, crediti a Emerald Rogue di Pokabbie),
   mergiata in `upcoming` il 29/04/2026, **prima release: expansion 1.16.0**
   (assente in 1.15.3). Noi siamo su 1.15.2.
-- **Sorgente del port: tag `expansion/1.16.4`, non `master`.**
+- **Sorgente del port: il diff del merge della PR (`10ae7f9`, §5 fase 1) più le
+  correzioni fino a `expansion/1.16.4`; non `master`.**
   `src/wild_encounter_ow.c` è identico fra 1.16.0 e 1.16.4 (2183 righe, 0
   differenze); su `master`/1.17.1 è stato riscritto (1795 righe) e include
   `mass_outbreak.h`, che da noi non esiste. Da 1.16.x niente outbreak.
@@ -195,15 +226,64 @@ AGGRESSIVO, segnate "da decidere").
 Ogni fase finisce con build `make hns` verde e, dove detto, una prova in mGBA
 (CLAUDE.md §3).
 
-1. **Diff vero della PR.** `git diff expansion/1.15.3 expansion/1.16.4` limitato
-   ai file della §3 + quelli che il diff rivela; tenere solo le parti OWE (la
-   1.16 porta anche altro). Elenco in questo file prima di scrivere codice.
-2. **Port con tutto spento** (`WE_OW_ENCOUNTERS FALSE` o equivalente
-   `OW_`): la ROM deve comportarsi come prima. Misurare la ROM.
+1. **Diff vero della PR — fatto il 21/10.** Il merge è il commit
+   **`10ae7f9`** di `upcoming` ("Overworld Encounters (#8434)", padre
+   `39842afc`). Per riottenerlo senza clonare tutto expansion:
+
+   ```sh
+   git init up && cd up
+   git fetch --filter=blob:none --depth=1 https://github.com/rh-hideout/pokeemerald-expansion.git 10ae7f9f54a806497ac42e744968a5c9e2378785 39842afcb63be3fbf31e6d99971d1f65d5f2add1
+   git diff 39842afcb63be3fbf31e6d99971d1f65d5f2add1 10ae7f9f54a806497ac42e744968a5c9e2378785 > pr8434.diff
+   ```
+
+   **46 file, +3641/−181**, come dice il devlog. Prova a secco sul nostro
+   albero (`patch -p1 --dry-run -F3`, file per file): **falliscono solo 7
+   hunk in 6 file**, il resto entra con offset/fuzz.
+
+   | file | hunk | falliti |
+   | --- | --- | --- |
+   | `src/event_object_movement.c` | 29 | 2 |
+   | `include/event_object_movement.h` | 4 | 1 |
+   | `include/constants/event_object_movement.h` | 1 | 1 |
+   | `include/wild_encounter.h` | 3 | 1 |
+   | `src/battle_pyramid.c` | 4 | 1 |
+   | `src/pokemon.c` | 5 | 1 |
+   | `graphics/field_effects/pics/shiny_sparkle.png` | binario | va copiato |
+
+   Entrano con fuzz/offset (da rileggere hunk per hunk, perché sono file che
+   HnS ha modificato): `src/wild_encounter.c` (14 hunk),
+   `include/pokemon.h`, `src/sprite.c`, `src/field_effect_helpers.c`,
+   `include/config/overworld.h`, `include/sprite.h`, `data/event_scripts.s`.
+   Puliti: gli altri 33, fra cui `src/wild_encounter_ow.c` (nuovo, 2178
+   righe), `src/field_control_avatar.c`, `src/dexnav.c`,
+   `src/follower_npc.c`, `src/overworld.c`, `asm/macros/event.inc`, e la
+   guida `docs/tutorials/how_to_overworld_wild_encounters.md` (134 righe, da
+   leggere prima di tutto).
+
+   **Base del port: il diff della PR, non il tag 1.16.4.** Il merge usa
+   ancora i nomi `OW_` (`OW_FLAG_NO_ENCOUNTER`), come la nostra base; fra
+   `10ae7f9` e `expansion/1.16.4` i file OWE cambiano poco
+   (`wild_encounter_ow.c` +30/−25, `include/config/wild_encounter.h`
+   +36/−25, `wild_encounter_ow.h` +2/−1) e sono in gran parte la
+   rinomina `OW_` → `WE_` e `gParties[B_TRAINER_1]` →
+   `gParties[B_TRAINER_OPPONENT_A]`. Dopo il port si guarda quel diff e si
+   prendono **solo le correzioni vere** (es. `GetOverworlWildEncounterScript`
+   che usa lo script dell'oggetto solo per gli OWE `OWE_MANUAL`).
+
+   **API più nuove della nostra base**, da adattare a mano dove il
+   compilatore le segnala: `gParties[B_TRAINER_1][0]` (da noi
+   `gEnemyParty[0]`), `gWildFeebas` (struct nuova: da noi Feebas passa da
+   `CheckFeebas`/`sFeebasRngValue` in `wild_encounter.c`), `sqrt`. Un
+   confronto grezzo dei simboli chiamati dal codice aggiunto contro il nostro
+   albero ne trova 28 mancanti, ma quasi tutti sono definiti dalla PR stessa
+   attraverso macro (`movement_type_def`): l'elenco vero lo dà il primo
+   build.
+2. **Port con tutto spento** (`WE_OW_ENCOUNTERS FALSE`, o il nome che il
+   diff della PR usa): la ROM deve comportarsi come prima. Misurare la ROM.
 3. **Accensione su una mappa** (Route 29): spawn, movimento, lotta al
    contatto, cattura (aprire la squadra dopo: lezione del Bad Egg, §7ter),
    VRAM con il follower, ricerca DexNav con OWE presenti.
-4. **Tiro pesato**: tabella generata dai dati della pagina
+4. **Tiro pesato**: tabella generata da `temperaments.json`
    (`tools/owe_temperaments.py` → `src/data/pokemon/owe_temperaments.h`,
    array per specie di indole + pesi delle indoli) e sostituzione di
    `OWE_GetMovementTypeFromSpecies()` con il tiro al momento dello spawn.
@@ -252,29 +332,26 @@ upstream), alfa.
   (`WE_OWE_PREVENT_SHINY_DESPAWN`), suono del despawn, despawn entrando in
   città, collisioni con Repel/DexNav attivi.
 
-## 7. Da fare quando la tabella è compilata
+## 7. Tabella compilata: fatto il 21/10
 
-1. `ArtifactData list` su `families` (e `get config/profiles`), leggere le
-   `note`.
-2. Contare: famiglie rivedute, cambiate, eccezioni per specie, distribuzione
-   delle indoli; segnalare all'utente le famiglie non rivedute.
-3. Esportare in `docs/plans/overworld-encounters/temperaments.json` (proposta
-   + scelte fuse: è l'input del generatore della fase 4) e committarlo.
-4. Rifinire questo piano: fase 1 con il diff vero, D2–D5 con le risposte,
-   stime per fase.
+Lettura, conteggi ed export fatti (§2bis), fase 1 fatta (§5). Restano D2–D5
+del §6: chiederle all'utente all'inizio della sessione nuova, se non sono già
+scritte qui. Se l'utente torna a cambiare la tabella, rifare il dump e
+`export_temperaments.py`.
 
 ## Prompt di handoff per la sessione nuova
 
-> Leggi `docs/plans/overworld-encounters.md` e `CLAUDE.md`. La tabella delle
-> indoli è in `docs/plans/overworld-encounters/temperaments.json` (oppure, se
-> manca, leggila dall'artifact https://claude.ai/artifact/5wJUsUmXQhwuyvNksf4uBc
-> come descritto al §2). Esegui le fasi del §5 in ordine, partendo dalla 1, e
-> fermati a chiedermi le decisioni aperte del §6 che non hanno ancora
-> risposta.
+> Leggi `docs/plans/overworld-encounters.md`, `CLAUDE.md` e
+> `.claude/rules/overworld_encounters.md`. La tabella delle indoli è in
+> `docs/plans/overworld-encounters/temperaments.json`. La fase 1 del §5 è
+> fatta: chiedimi prima le decisioni aperte del §6 che non hanno ancora
+> risposta, poi parti dalla fase 2 (port con tutto spento) e fermati alla
+> fine di ogni fase per farmi vedere build e prove.
 
 Fonti: [PR #8434](https://github.com/rh-hideout/pokeemerald-expansion/pull/8434),
 [devlog di HashtagMarky](https://hashtagmarky.com/devlog/overworld-encounters/),
 `include/config/wild_encounter.h` e `src/wild_encounter_ow.c` dei tag
-`expansion/1.16.0`, `1.16.4`, `1.17.1` (letti direttamente),
+`expansion/1.16.0`, `1.16.4`, `1.17.1` e il diff del merge `10ae7f9` (letti
+direttamente),
 [overworld-spawn-mod](https://github.com/YoDrehDenSwagAuf/overworld-spawn-mod)
 (`lib/behavior.lua`, `lib/safari_compat.lua`, `lib/config.lua`).
