@@ -14,7 +14,8 @@ Stato (21/10, dopo la fase 7):
 
 Tutto sul ramo `claude/overworld-encounters-fase-2-jomv77`, PR #19 (bozza),
 CI verde. Fasi 1-7 chiuse; dopo, su richiesta dell'utente: interruttore del
-PC tolto, spawn a 4 caselle per tentativo, OWE in acqua con gli sprite da
+PC tolto, spawn a 6 caselle per tentativo (8 da provare), niente comparse su
+caselle in uscita, OWE in acqua con gli sprite da
 nuoto di `src/surfable.c`, tetto 4 nel Safari.
 Misure, trappole, prove in emulatore e ricette (GDB su mGBA, breakpoint per
 contare gli incontri a passi) in

@@ -1389,6 +1389,21 @@ static bool32 TrySelectTilesForOWE(s32 *outX, s32 *outY)
     return FALSE;
 }
 
+// Hasep: GetObjectEventIdByPosition only looks at where objects are, so a
+// Pokémon could appear on the tile another object is still walking off and
+// overlap it for the rest of that step. Movement collision
+// (GetObjectObjectCollidesWith) already counts that tile as taken.
+static bool32 IsTileBeingLeftByObject(s32 x, s32 y)
+{
+    for (u32 i = 0; i < OBJECT_EVENTS_COUNT; i++)
+    {
+        if (gObjectEvents[i].active
+         && gObjectEvents[i].previousCoords.x == x && gObjectEvents[i].previousCoords.y == y)
+            return TRUE;
+    }
+    return FALSE;
+}
+
 static bool32 TrySelectTileForOWE(s32* outX, s32* outY)
 {
     u32 elevation;
@@ -1447,7 +1462,7 @@ static bool32 TrySelectTileForOWE(s32* outX, s32* outY)
         *outX = x;
         *outY = y;
 
-        if (GetObjectEventIdByPosition(x, y, 0) == OBJECT_EVENTS_COUNT)
+        if (GetObjectEventIdByPosition(x, y, 0) == OBJECT_EVENTS_COUNT && !IsTileBeingLeftByObject(x, y))
             return TRUE;
     }
 

@@ -11,9 +11,11 @@
 // cave keep the caps above). With 6 there, many of them AGGRESSIVE (Tauros,
 // Rhyhorn), a test run had 18 battles in about 8 minutes.
 #define OWE_SPAWNS_MAX_SAFARI           4
-// Hasep: random tiles tried per spawn attempt (upstream: 1). 4 asked by the
-// user as a first step; see TrySelectTilesForOWE.
-#define OWE_SPAWN_TILE_TRIES            4
+// Hasep: random tiles tried per spawn attempt (upstream: 1); see
+// TrySelectTilesForOWE. Game time to fill 6 on Route 31 from a warp, 3 runs:
+// 4 tries 17-31 s, 6 tries 11-29 s, 8 tries 9-13 s (the spawn countdowns
+// alone take about 10 s). The user chose 6 for now, 8 to try later.
+#define OWE_SPAWN_TILE_TRIES            6
 // Hasep: sprite tiles a spawn must leave free for icons and field effects
 // ("!", "?", follower emotes, grass, splashes). With OW_GFX_COMPRESS every
 // object keeps its whole sheet in VRAM, and in the Johto Safari Zone the OWEs

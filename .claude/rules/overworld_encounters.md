@@ -37,9 +37,27 @@ D3-D5 (6 OWE, ricambio, shiny con scintilla e che non spariscono, tetti
 Tetto Safari 4 (`OWE_SPAWNS_MAX_SAFARI`, richiesto dall'utente dopo la
 fase 6; solo sulla terra, controllato con `GetSafariZoneFlag()`): verificato
 in Low Mid, mai più di 4 in 50 letture.
-Tentativi di spawn: `OWE_SPAWN_TILE_TRIES` 4 caselle per tentativo (upstream 1,
-`TrySelectTilesForOWE`): su Route 31, fermo, prima 4 OWE e non oltre in ~85 s,
-dopo 6 al 47° campione (~65 s). L'utente può chiedere 8.
+Tentativi di spawn: `OWE_SPAWN_TILE_TRIES` **6** caselle per tentativo
+(upstream 1, `TrySelectTilesForOWE`), scelto dall'utente; 8 da provare dopo il
+suo test. Tempo **di gioco** per arrivare a 6 su Route 31 dal warp, fermo, 3
+giri: 4 caselle 17-31 s, 6 caselle 11-29 s, 8 caselle 9-13 s; con 6 e la
+correzione sotto, 16 e 19 s. Le attese fra uno spawn e l'altro da sole fanno
+~10 s (30 + 30 × attivi frame), quindi oltre 8 non si guadagna.
+**Misurare in frame, non con l'orologio**: ogni lettura via GDB ferma il gioco
+~0,7 s, e i primi tempi "da orologio" (65 s) erano circa il doppio del vero.
+Contatore: `gMain.vblankCounter1` (`gMain` + 0x20).
+
+Comparsa su una casella in uscita: `GetObjectEventIdByPosition` guarda solo
+`currentCoords`, quindi un OWE poteva nascere sulla casella che un altro
+oggetto stava lasciando e sovrapporsi per il resto del passo. Ora
+`IsTileBeingLeftByObject` scarta anche le `previousCoords`, come fa già la
+collisione del movimento (`GetObjectObjectCollidesWith`). ROM strumentata con
+un contatore: 2 casi evitati in ~4 minuti su Route 31.
+Per il resto gli OWE non si compenetrano: ogni passo controlla la casella di
+arrivo contro `currentCoords` e `previousCoords` di tutti gli oggetti. Due
+eccezioni di upstream: un NPC che cammina addosso a un OWE lo fa sparire
+(`DespawnOWEDueToNPCCollision`), e il follower non controlla le collisioni
+quando si muove (ma gli altri si fermano davanti a lui).
 
 **OWE in acqua: sprite da nuoto** (richiesta dell'utente, 21/10).
 `UpdateOWESwimSprites()` (`wild_encounter_ow.c`, a ogni frame in testa a
