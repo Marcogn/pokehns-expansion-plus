@@ -193,20 +193,10 @@ In `.claude/rules/`, caricate da sole quando apri i file indicati.
 | `megas.md` | spazio in ROM delle megaevoluzioni |
 | `title_screen.md` | "+" e versione sulla schermata del titolo |
 | `pc_box.md` | `SORT` e `SEARCH` nei box del PC |
+| `overworld_encounters.md` | Pokémon visibili nell'overworld (in corso, piano in `docs/plans/`) |
 
 Fuori dalle regole, da leggere quando serve: `docs/claude/emulator.md`,
 `docs/SOULGOLD_PORT_REPORT.md`.
-
----
-
-## 7sexies. Pokémon visibili nell'overworld: in corso
-
-Piano e stato in [`docs/plans/overworld-encounters.md`](docs/plans/overworld-encounters.md):
-port della PR #8434 di expansion (dal tag `expansion/1.16.4`, **non** da
-`master`, che dipende da `mass_outbreak.h`) più un tiro pesato per indole,
-sul modello del mod Wilds of Kanto. Le indoli le sceglie l'utente su una
-pagina artifact con database; lì c'è come leggerle. Non ancora iniziato nel
-codice.
 
 ---
 

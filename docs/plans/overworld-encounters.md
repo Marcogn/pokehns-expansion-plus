@@ -207,8 +207,13 @@ Ogni fase finisce con build `make hns` verde e, dove detto, una prova in mGBA
    (`tools/owe_temperaments.py` → `src/data/pokemon/owe_temperaments.h`,
    array per specie di indole + pesi delle indoli) e sostituzione di
    `OWE_GetMovementTypeFromSpecies()` con il tiro al momento dello spawn.
-   Specie fuori tabella = NEUTRO. Alias (`SPECIES_CASTFORM`) e forme risolti
-   dal generatore.
+   **Ereditarietà per famiglia** (decisa dall'utente il 21/10): ogni membro
+   di una famiglia della tabella prende l'indole della famiglia anche se non
+   è selvatico (Pidgeot = indole di Pidgey, Raichu = di Pikachu), salvo
+   un'eccezione per specie. La tabella elenca solo i membri selvatici: i
+   blocchi `#if P_FAMILY_X` danno al generatore anche gli altri. Alias
+   (`SPECIES_CASTFORM`) e forme risolti allo stesso modo. Specie di
+   famiglie assenti dalla tabella = NEUTRO.
 5. **Opzione `OVERWORLD MONS`** (§4): ON = OWE accesi e incontri a passi
    spenti su terra (e acqua/grotta secondo D3); OFF = come oggi.
    `WILD BATTLES` OFF spegne entrambi.
@@ -218,12 +223,23 @@ Ogni fase finisce con build `make hns` verde e, dove detto, una prova in mGBA
    CLAUDE.md (nuovo paragrafo con trappole e misure),
    `docs/SOULGOLD_PORT_REPORT.md` solo per dire che non viene da Soulgold.
 
-Fuori da questo piano: lancio della ball dall'overworld (c'è nel mod, non in
+Fuori da questo piano, da fare in futuro:
+
+- **Randomizer completo.** Con il randomizer può comparire qualsiasi specie.
+  Le famiglie senza alcun membro selvatico in Hasep (leggendari, Mew, fossili
+  mai selvatici, famiglie di gen 4+) oggi ricadono su NEUTRO. Per dare loro
+  un'indole propria basta estendere `extract_families.py` a tutte le
+  famiglie (opzione "includi anche le non selvatiche") e farle passare dalla
+  stessa pagina; il generatore della fase 4 non cambia, perché legge già per
+  famiglia. Lo si fa quando l'utente lo chiede.
+
+Fuori da questo piano anche: lancio della ball dall'overworld (c'è nel mod, non in
 upstream), alfa.
 
 ## 6. Decisioni aperte
 
-- **D1 indoli**: la tabella (passo 0).
+- **D1 indoli**: la tabella (passo 0). Deciso: i membri non selvatici
+  ereditano l'indole della famiglia (fase 4).
 - **D2 default per i salvataggi esistenti**: con il campo invertito un
   salvataggio vecchio legge ON e chi aggiorna si trova gli incontri cambiati.
   Alternativa: ON solo per le partite nuove (migrazione che scrive OFF).
