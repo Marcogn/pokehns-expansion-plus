@@ -16,7 +16,7 @@ paths:
   - "docs/plans/overworld-encounters/**"
 ---
 
-# Pokémon visibili nell'overworld: in corso (fasi 1-6 fatte)
+# Pokémon visibili nell'overworld (fasi 1-7 fatte)
 
 Piano, stato, fatti verificati e decisioni in
 [`docs/plans/overworld-encounters.md`](../../docs/plans/overworld-encounters.md):
@@ -27,11 +27,16 @@ più un tiro pesato per indole,
 sul modello del mod Wilds of Kanto. Le indoli scelte dall'utente sono in
 `docs/plans/overworld-encounters/temperaments.json`.
 
-## Stato: fasi 2-6 fatte (21/10); cosa manca nel piano (tabella in cima)
+## Stato: fasi 2-7 fatte (21/10); cosa resta nel piano (tabella in cima)
 
 Fase 2: codice della PR più #9925, #9968, #10066, #10753. Fase 3: config di
 D3-D5 (6 OWE, ricambio, shiny con scintilla e che non spariscono, tetti
 6/3/3 con grotta = `MAP_TYPE_UNDERGROUND` o `MAP_TYPE_INDOOR`).
+Tetto Safari 4 (`OWE_SPAWNS_MAX_SAFARI`, richiesto dall'utente dopo la
+fase 6; solo sulla terra, controllato con `GetSafariZoneFlag()`): verificato
+in Low Mid, mai più di 4 in 50 letture.
+Resta da fare: togliere l'interruttore del PC (con conferma dell'utente) e,
+se l'utente lo vuole, l'aspetto degli OWE in acqua (oggi sprite intero).
 
 Fase 5: **`AreOverworldMonsEnabled()`** (`wild_encounter_ow.c`) è l'unico
 interruttore. Falso con WILD BATTLES OFF; altrimenti legge

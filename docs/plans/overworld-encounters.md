@@ -1,6 +1,6 @@
 # Piano: Pokémon selvatici visibili nell'overworld (OWE)
 
-Stato (21/10, dopo la fase 6):
+Stato (21/10, dopo la fase 7):
 
 | fase | stato | commit |
 | --- | --- | --- |
@@ -10,10 +10,12 @@ Stato (21/10, dopo la fase 6):
 | 4 tiro pesato per indole | fatta | `8ed39544` |
 | 5 interruttore `WILD POKéMON` nel PC | fatta | `158fb6cd` |
 | 6 casi speciali | fatta (prove nella regola dell'area) | `9ae6029a` (Gara) + commit successivo |
-| 7 documentazione | da fare | — |
+| 7 documentazione | fatta (`CHANGELOG.md` 2.0.6.PLUS.4, `README.md`, CLAUDE.md, report SG) | commit dopo `f15f4f3d` |
 
 Tutto sul ramo `claude/overworld-encounters-fase-2-jomv77`, PR #19 (bozza),
-CI verde. **Non mergiare né rilasciare prima di aver chiuso le fasi 6 e 7.**
+CI verde. Fasi 1-7 chiuse. Prima di mergiare restano le richieste dell'utente
+del 21/10: togliere l'interruttore del PC (con conferma), aspetto degli OWE in
+acqua, velocità di comparsa nell'erba.
 Misure, trappole, prove in emulatore e ricette (GDB su mGBA, breakpoint per
 contare gli incontri a passi) in
 [`.claude/rules/overworld_encounters.md`](../../.claude/rules/overworld_encounters.md):
