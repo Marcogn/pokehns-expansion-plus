@@ -362,8 +362,12 @@ upstream), alfa.
   Upstream non fa spawnare (o fa sparire il più vecchio) quando un limite è
   pieno (`CheckCanLoadOWE`, `TryAndDespawnOldestGeneratedOWE_ToFreeObject`),
   quindi 6 è un tetto, non una garanzia: va provato su una mappa piena di
-  NPC. Ripiego: 4. `WE_OWE_SPAWN_REPLACEMENT` (sostituzione dei vecchi)
-  resta da proporre: default upstream FALSE.
+  NPC. Ripiego: 4. **Sostituzione dei vecchi: sì** (confermato dall'utente
+  il 21/10): `WE_OWE_SPAWN_REPLACEMENT TRUE` (default upstream FALSE). A
+  tetto pieno il più vecchio sparisce dopo poco e al suo posto ne nasce uno
+  nuovo; gli shiny ne sono esclusi grazie a `WE_OWE_PREVENT_SHINY_DESPAWN`
+  (D5). Da verificare in fase 3 che il ricambio con i tetti per area (D3)
+  conti per area e non sul totale.
 - **D5 — deciso il 21/10**: scintilla e suono shiny **sì**
   (`WE_OWE_SHINY_SPARKLE TRUE`); shiny che **non spariscono**
   (`WE_OWE_PREVENT_SHINY_DESPAWN TRUE`: non spariscono fuori schermo né per
@@ -431,8 +435,8 @@ comunque, così il difetto non torna se un giorno il suono si accende.
 ## 7. Tabella compilata: fatto il 21/10
 
 Lettura, conteggi ed export fatti (§2bis), fase 1 fatta (§5), D2–D5 decise
-(§6), compresi voce propria del PC e tetti 6/3/3. Resta da proporre solo
-la sostituzione dei vecchi OWE (D4). Se l'utente torna a cambiare la tabella, rifare il dump e
+(§6), compresi voce propria del PC, tetti 6/3/3 e sostituzione dei vecchi
+OWE: non resta niente da chiedere prima di partire. Se l'utente torna a cambiare la tabella, rifare il dump e
 `export_temperaments.py`.
 
 ## Prompt di handoff per la sessione nuova
