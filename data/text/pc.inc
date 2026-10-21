@@ -4,10 +4,6 @@ Text_BootUpPC:
 gText_WhichPCShouldBeAccessed::
 	.string "Which PC should be accessed?$"
 
-gText_ShowWildPokemonOverworld::
-	.string "Show wild Pokémon in the overworld?\n"
-	.string "(Off: random encounters in tall grass.)$"
-
 gText_AccessedSomeonesPC::
 	.string "Accessed SOMEONE'S PC.$"
 

@@ -64,7 +64,7 @@ Centri) c'è un secondo contenitore, **in coda a SaveBlock3 dopo `candyJarExp`**
 | `fastHms` | 1 | 0 = OFF (default) |
 | `battleMusicTheme` | 3 | `enum BattleMusicTheme`, 0 = DEFAULT (regionale) |
 | `noNightCenterMusic` | 1 | **invertito**: 0 = musica notturna ON (default) |
-| `noOverworldMons` | 1 | **invertito**: 0 = Pokémon selvatici visibili ON (default; voce `WILD POKéMON` del PC, `.claude/rules/overworld_encounters.md`) |
+| `unusedOverworldMonsBit` | 1 | ex `noOverworldMons` (voce `WILD POKéMON` del PC, tolta il 21/10): ignorato, ma nei salvataggi passati per quelle build può valere 1; prima di riusarlo azzerarlo con una migrazione |
 | `unused` | 2 | liberi |
 
 - **Flag specchio.** `FLAG_FAST_HMS` (`ENGINE_FLAGS_START + 13`) è lo stato a

@@ -51,7 +51,7 @@ DexNav (`DEXNAV_ENABLED` era FALSE), relearner dal riassunto
 
 Pokémon selvatici visibili nell'overworld: **non vengono da Soulgold** (SG
 non li ha) ma da pokeemerald-expansion (PR #8434, 1.16), portati qui con
-le indoli per famiglia, l'interruttore del PC e le correzioni di VRAM.
+le indoli per famiglia, i tetti per zona e le correzioni di VRAM.
 Dettagli in `.claude/rules/overworld_encounters.md` e
 `docs/plans/overworld-encounters.md`.
 

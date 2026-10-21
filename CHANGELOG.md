@@ -24,10 +24,8 @@ add the section before releasing. Feature details live in the tables of
 - Shiny ones sparkle and play the shiny sound when they appear, and do not
   disappear while you stay on the map. Roamers can show up among them, and
   a battle with one is a normal roamer battle.
-- `WILD POKéMON` in the Pokémon Center PC turns the visible Pokémon on or
-  off; off brings back the random battles in grass, water and caves. On by
-  default, saves from earlier versions included. `WILD BATTLES` OFF still
-  turns off both.
+- Always on, saves from earlier versions included. `WILD BATTLES` OFF in the
+  challenge settings still turns off all wild battles, visible ones too.
 - Bug-Catching Contest: the National Park keeps the classic random
   encounters during the contest, and the gate attendant says so after the
   rules.

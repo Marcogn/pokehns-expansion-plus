@@ -291,12 +291,11 @@ static u32 GetOWESpawnCap(void)
     return OWE_SPAWNS_MAX_LAND;
 }
 
-// Hasep: the single switch between visible wild Pokémon and step encounters
-// (decision D2: ON by default, also in existing saves, which read the stored
-// bit as 0). WILD BATTLES OFF (challenge settings) turns both off, or the
-// visible Pokémon would still start battles. The user may later drop the PC
-// option and keep only OWEs: then remove the PC entry and return TRUE here
-// after the WILD BATTLES check.
+// Hasep: the single switch between visible wild Pokémon and step encounters.
+// Always on since the user dropped the WILD POKéMON entry of the PC (it read
+// soundAndFieldOptions.noOverworldMons, now unusedOverworldMonsBit). WILD
+// BATTLES OFF (challenge settings) turns both off, or the visible Pokémon
+// would still start battles.
 bool32 AreOverworldMonsEnabled(void)
 {
     if (!WE_OW_ENCOUNTERS || AreWildEncountersDisabledByOption())
@@ -305,22 +304,14 @@ bool32 AreOverworldMonsEnabled(void)
     // encounters there; the gate attendant warns about it (Gate_NationalPark).
     if (GetBugContestFlag())
         return FALSE;
-    return !gSaveBlock3Ptr->soundAndFieldOptions.noOverworldMons;
+    return TRUE;
 }
 
-// Hasep: the player's choice alone, for scripts (the contest notice).
+// Hasep: whether the player sees visible wild Pokémon outside the contest,
+// for the contest notice (Gate_NationalPark).
 void GetOverworldMonsOption(void)
 {
-    gSpecialVar_Result = WE_OW_ENCOUNTERS && !AreWildEncountersDisabledByOption()
-                      && !gSaveBlock3Ptr->soundAndFieldOptions.noOverworldMons;
-}
-
-// Hasep: "WILD POKéMON" in the Pokémon Center PC (data/scripts/pc.inc). It is
-// changed indoors, so the next outdoor map loads with the new setting.
-void SetOverworldMonsFromYesNo(void)
-{
-    // MSGBOX_YESNO leaves YES (1) or NO (0) in VAR_RESULT (asm/macros/event.inc).
-    gSaveBlock3Ptr->soundAndFieldOptions.noOverworldMons = (gSpecialVar_Result != 1);
+    gSpecialVar_Result = WE_OW_ENCOUNTERS && !AreWildEncountersDisabledByOption();
 }
 
 void UpdateOverworldWildEncounter(void)

@@ -8,14 +8,14 @@ Stato (21/10, dopo la fase 7):
 | 2 port, tutto spento | fatta | `499d0c82` |
 | 3 accensione (Route 29) | fatta | `d2bb0232` |
 | 4 tiro pesato per indole | fatta | `8ed39544` |
-| 5 interruttore `WILD POKéMON` nel PC | fatta | `158fb6cd` |
+| 5 interruttore `WILD POKéMON` nel PC | fatta, poi **tolta** su richiesta dell'utente (21/10) | `158fb6cd`, tolta dopo `3d8e9393` |
 | 6 casi speciali | fatta (prove nella regola dell'area) | `9ae6029a` (Gara) + commit successivo |
 | 7 documentazione | fatta (`CHANGELOG.md` 2.0.6.PLUS.4, `README.md`, CLAUDE.md, report SG) | commit dopo `f15f4f3d` |
 
 Tutto sul ramo `claude/overworld-encounters-fase-2-jomv77`, PR #19 (bozza),
-CI verde. Fasi 1-7 chiuse. Prima di mergiare restano le richieste dell'utente
-del 21/10: togliere l'interruttore del PC (con conferma), aspetto degli OWE in
-acqua, velocità di comparsa nell'erba.
+CI verde. Fasi 1-7 chiuse; interruttore del PC tolto, spawn a 4 caselle per
+tentativo. Prima di mergiare resta l'aspetto degli OWE in acqua (sprite da
+nuoto di `src/surfable.c`, richiesta dell'utente del 21/10).
 Misure, trappole, prove in emulatore e ricette (GDB su mGBA, breakpoint per
 contare gli incontri a passi) in
 [`.claude/rules/overworld_encounters.md`](../../.claude/rules/overworld_encounters.md):
@@ -503,12 +503,10 @@ comunque, così il difetto non torna se un giorno il suono si accende.
 ## Prompt di handoff per la sessione nuova
 
 > Leggi `docs/plans/overworld-encounters.md`, `CLAUDE.md` e
-> `.claude/rules/overworld_encounters.md`. Le fasi 1-6 sono fatte (tabella in
-> cima al piano). Lavora sul ramo della PR #19
+> `.claude/rules/overworld_encounters.md`. Le fasi 1-7 sono fatte e
+> l'interruttore del PC è tolto. Lavora sul ramo della PR #19
 > (`claude/overworld-encounters-fase-2-jomv77`) se è ancora aperta,
-> altrimenti chiedimi. Fai la fase 7 (documentazione) e fermati per farmi
-> vedere. Poi c'è da togliere l'interruttore `WILD POKéMON` dal PC (§5):
-> chiedimi conferma prima di farlo.
+> altrimenti chiedimi. Resta l'aspetto degli OWE in acqua (vedi la regola).
 
 Fonti: [PR #8434](https://github.com/rh-hideout/pokeemerald-expansion/pull/8434),
 [devlog di HashtagMarky](https://hashtagmarky.com/devlog/overworld-encounters/),

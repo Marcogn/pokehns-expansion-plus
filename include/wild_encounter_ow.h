@@ -138,7 +138,6 @@ struct SpritePalette GetOWESpawnDespawnAnimFldEffPalette(enum SpawnDespawnTypeOW
 u32 RemoveOldestGeneratedOWE(void);
 bool32 CanRemoveObjectForOWEMovement(struct ObjectEvent *objectEvent);
 bool32 AreOverworldMonsEnabled(void);
-void SetOverworldMonsFromYesNo(void);
 void GetOverworldMonsOption(void);
 
 // Hasep: upstream reads these from the species (OWE_Get*FromSpecies). With the

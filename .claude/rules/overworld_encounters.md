@@ -35,30 +35,24 @@ D3-D5 (6 OWE, ricambio, shiny con scintilla e che non spariscono, tetti
 Tetto Safari 4 (`OWE_SPAWNS_MAX_SAFARI`, richiesto dall'utente dopo la
 fase 6; solo sulla terra, controllato con `GetSafariZoneFlag()`): verificato
 in Low Mid, mai più di 4 in 50 letture.
-Resta da fare: togliere l'interruttore del PC (con conferma dell'utente) e,
-se l'utente lo vuole, l'aspetto degli OWE in acqua (oggi sprite intero).
+Tentativi di spawn: `OWE_SPAWN_TILE_TRIES` 4 caselle per tentativo (upstream 1,
+`TrySelectTilesForOWE`): su Route 31, fermo, prima 4 OWE e non oltre in ~85 s,
+dopo 6 al 47° campione (~65 s). L'utente può chiedere 8.
 
-Fase 5: **`AreOverworldMonsEnabled()`** (`wild_encounter_ow.c`) è l'unico
-interruttore. Falso con WILD BATTLES OFF; altrimenti legge
-`soundAndFieldOptions.noOverworldMons` (bit 5 del byte a offset 56 di
-SaveBlock3, **invertito**: 0 = ON). I 3 bit liberi valevano 0 in ogni
-salvataggio a `SAVE_VERSION` 8 (la migrazione `< 8` azzera il byte, le
-partite nuove nascono a 0): nessuna migrazione, default ON anche per i
-salvataggi vecchi (D2). Lo usano lo spawn e `ShouldDisableRandomEncounters()`
-(`field_control_avatar.c`): con ON niente incontri a passi su erba, acqua e
-grotta; pesca, Spaccaroccia, Testata e Profumino non passano di lì.
-`WE_VANILLA_RANDOM` resta TRUE (vale solo con l'opzione OFF).
-Per togliere l'interruttore (l'utente lo vuole, dopo la fase 7): togliere
-la voce del PC e far restituire TRUE ad `AreOverworldMonsEnabled()` dopo i
-controlli su WILD BATTLES e Gara; il bit resta nel salvataggio, ignorato.
-
-PC: voce `WILD POKéMON` (`gText_WildPokemon`) dopo CHALLENGES nelle quattro
-liste di `data/scripts/pc.inc` (case rinumerati) e in `CreatePCMultichoice`
-(`script_menu.c`, finestra 10/12 righe); sì/no con
-`gText_ShowWildPokemonOverworld` (`data/text/pc.inc`, testi approvati
-dall'utente) e `special SetOverworldMonsFromYesNo` (in fondo a
-`data/specials.inc`). Il menu opzioni scrive `soundAndFieldOptions` campo per
-campo, quindi non tocca il bit.
+Fase 5, poi rivista: **`AreOverworldMonsEnabled()`** (`wild_encounter_ow.c`)
+è l'unico interruttore. Falso con WILD BATTLES OFF e durante la Gara,
+altrimenti **sempre vero**: la voce `WILD POKéMON` del PC (fase 5) è stata
+tolta il 21/10 su richiesta dell'utente (PC di nuovo come prima: 4/5 voci,
+case originali, verificato in emulatore con LOG OFF e CHALLENGES). Il bit
+che la memorizzava è ora `unusedOverworldMonsBit` (bit 5 del byte a offset
+56 di SaveBlock3): **ignorato ma non libero**, nei salvataggi passati per le
+build con la voce può valere 1 (verificato: con il bit a 1 gli OWE compaiono
+lo stesso). Lo usano lo spawn e `ShouldDisableRandomEncounters()`
+(`field_control_avatar.c`): niente incontri a passi su erba, acqua e grotta;
+pesca, Spaccaroccia, Testata e Profumino non passano di lì.
+`WE_VANILLA_RANDOM` resta TRUE: serve alla Gara, l'unico posto in cui oggi
+gli incontri a passi restano. `special GetOverworldMonsOption` dice solo se
+WILD BATTLES è ON, per l'avviso della Gara.
 
 **Gara Pigliamosche (fase 6, D6)**: `AreOverworldMonsEnabled()` è falso con
 `GetBugContestFlag()` (`FLAG_SYS_BUG_CONTEST_MODE`), quindi niente OWE e
@@ -66,7 +60,7 @@ incontri a passi classici nella Gara. L'addetto del cancello
 (`Gate_NationalPark_hns/scripts.inc`, le quattro strade che spiegano le
 regole) chiama `Gate_NationalPark_EventScript_OverworldMonsNotice`: con
 `special GetOverworldMonsOption` (la sola scelta del giocatore, senza la
-Gara) dice l'avviso solo se l'opzione è ON. Verificato: avviso visto su due
+Gara) dice l'avviso solo se WILD BATTLES è ON. Verificato: avviso visto su due
 pagine, nel parco 0 OWE, `StandardWildEncounter` chiamata 4 volte in 12
 passi, lotta con Caterpie Lv14 della tabella della Gara. Per arrivare al
 punto: debug warp gruppo 22 mappa 7 warp 0, poi su 10 e sinistra 4, l'addetto
@@ -256,8 +250,8 @@ dice di no, quindi il conteggio dei passaggi misura gli incontri a passi.
   `WE_OW_ENCOUNTERS`: costo per frame anche a feature spenta. Non toccato
   (upstream), ma è il primo posto dove guardare se il frame rate cala.
 - `ShouldDisableRandomEncounters()` (`field_control_avatar.c`) usa
-  `WE_VANILLA_RANDOM`, di compilazione: l'interruttore della fase 5 ha
-  bisogno di un controllo a runtime lì.
+  `WE_VANILLA_RANDOM`, di compilazione: per la Gara serve il controllo a
+  runtime che c'è (`AreOverworldMonsEnabled`).
 
 ## Riflessi (#9925), l'unica modifica sempre attiva voluta
 
