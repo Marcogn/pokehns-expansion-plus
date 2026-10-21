@@ -199,6 +199,17 @@ Fuori dalle regole, da leggere quando serve: `docs/claude/emulator.md`,
 
 ---
 
+## 7sexies. Pokémon visibili nell'overworld: in corso
+
+Piano e stato in [`docs/plans/overworld-encounters.md`](docs/plans/overworld-encounters.md):
+port della PR #8434 di expansion (dal tag `expansion/1.16.4`, **non** da
+`master`, che dipende da `mass_outbreak.h`) più un tiro pesato per indole,
+sul modello del mod Wilds of Kanto. Le indoli le sceglie l'utente su una
+pagina artifact con database; lì c'è come leggerle. Non ancora iniziato nel
+codice.
+
+---
+
 ## 8. Rotture preesistenti (non tue)
 
 Verificate su `master` pulito, **prima** di qualunque modifica:

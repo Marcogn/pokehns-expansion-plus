@@ -1,0 +1,32 @@
+<div class="wrap">
+  <header>
+    <h1>Indole dei selvatici</h1>
+    <p class="lede">Come si comporta ogni famiglia di Pokémon selvatici quando compare nell'overworld di Hasep. Sono le 170 famiglie che si incontrano su erba, grotte e acqua delle mappe HnS (307 specie). Pesca e Spaccaroccia restano escluse.</p>
+  </header>
+
+  <ol class="steps">
+    <li><b>Una scelta per famiglia.</b> Dal menu a tendina scegli un'indole. È già impostata la mia proposta, con il motivo scritto sotto.</li>
+    <li><b>Eccezioni per specie, se servono.</b> Apri "specie" e cambia solo quelle diverse dalla famiglia (per esempio Magikarp placido, Gyarados aggressivo).</li>
+    <li><b>Percentuali solo nei profili.</b> Ogni indole è un mix di comportamenti. Se un'indole non ti convince, cambia i suoi numeri qui sotto e la modifica vale per tutte le famiglie che la usano.</li>
+  </ol>
+
+  <div id="banner" class="banner" hidden></div>
+  <div class="status" id="status"><span>Collegamento al salvataggio…</span></div>
+
+  <section aria-labelledby="h-prof" style="display:flex;flex-direction:column;gap:12px">
+    <h2 id="h-prof">Indoli e percentuali</h2>
+    <p class="lede" style="margin:0">Ogni Pokémon, quando compare, tira a sorte un comportamento con questi pesi (stesso sistema del mod <i>Wilds of Kanto</i>). <b>NEUTRO</b> sono i pesi base: valgono anche per le specie senza voce in tabella, per esempio quelle portate dal randomizer. I pesi non devono sommare a 100: conta la proporzione fra loro.</p>
+    <div class="legend-key" id="legend"></div>
+    <div class="profiles" id="profiles"></div>
+  </section>
+
+  <section aria-labelledby="h-fam" style="display:flex;flex-direction:column;gap:12px">
+    <h2 id="h-fam">Famiglie</h2>
+    <div class="toolbar">
+      <div class="seg" id="genseg" role="group" aria-label="Regione"></div>
+      <input type="search" id="q" placeholder="Cerca specie o mappa…" aria-label="Cerca specie o mappa">
+      <label class="tog"><input type="checkbox" id="onlyOpen"> solo da rivedere</label>
+    </div>
+    <div class="list" id="list"></div>
+  </section>
+</div>
