@@ -307,10 +307,12 @@ Ogni fase finisce con build `make hns` verde e, dove detto, una prova in mGBA
    **Dove**: il menu del PC sta in `data/scripts/pc.inc`
    (`EventScript_AccessPC_BeforeLeague` / `_AfterLeague` e le varianti
    `Fake`, che hanno già la voce `EventScript_ChallengeViewer` →
-   `Script_OpenChallengeMenu`). Proposta: una voce propria del PC con un
-   sì/no, non dentro il challenge menu, che ha la regola "dopo l'inizio si
-   può solo rendere più facile" e vive in `ChallengeSettings` (0 bit
-   liberi). Da far confermare all'utente all'inizio della fase.
+   `Script_OpenChallengeMenu`). **Confermato dall'utente: una voce propria
+   del PC** con un sì/no, non dentro il challenge menu (che ha la regola
+   "dopo l'inizio si può solo rendere più facile" e vive in
+   `ChallengeSettings`, 0 bit liberi). La voce va aggiunta in tutte e
+   quattro le liste (`AccessPC`/`AccessFakePC` × prima/dopo la Lega), con i
+   `case` rinumerati, e nel multichoice che le disegna.
    **Perché dal PC**: si cambia stando in un edificio, quindi la mappa
    all'aperto si ricarica uscendo e non serve gestire OWE nati con
    un'impostazione e una mappa già caricata con l'altra (l'utente lo dice
@@ -349,8 +351,8 @@ upstream), alfa.
   (`OWE_SPAWNS_MAX`, che dimensiona anche gli array di ordinamento per età):
   si tiene quello come massimo e si aggiunge un tetto per area al momento
   dello spawn (il controllo `GetNumberOfActiveOWEs(OWE_GENERATED) <
-  OWE_SPAWNS_MAX` in `wild_encounter_ow.c`). Proposta da confermare: erba 6,
-  acqua 3, grotta 3, con grotta = `MAP_TYPE_UNDERGROUND` (valutare
+  OWE_SPAWNS_MAX` in `wild_encounter_ow.c`). **Confermato dall'utente:
+  erba 6, acqua 3, grotta 3**, con grotta = `MAP_TYPE_UNDERGROUND` (valutare
   `MAP_TYPE_INDOOR` per Sprout Tower e simili, come fa il DexNav di SG).
 - **D4 — deciso il 21/10**: **6** OWE, "se il sistema regge". Limiti veri da
   misurare in fase 3: gli object event sono **16 in tutto**
@@ -367,18 +369,70 @@ upstream), alfa.
   (`WE_OWE_PREVENT_SHINY_DESPAWN TRUE`: non spariscono fuori schermo né per
   sostituzione finché resti **sulla stessa mappa**; cambiando mappa sì, va
   detto all'utente); **sprite shiny** sì: upstream usa già la palette shiny
-  dell'overworld (`overworldShinyPalette`), con un difetto noto nella PR
-  (palette sbagliata per gli shiny in acqua) da verificare; suono quando un
+  dell'overworld (`overworldShinyPalette`). Il difetto noto della PR
+  ("palette sbagliata per gli shiny in acqua") è **analizzato, vedi sotto**,
+  e la correzione va portata in fase 2; suono quando un
   OWE sparisce **no** per ora (`WE_OWE_DESPAWN_SOUND FALSE`). Restano ai
   default upstream: despawn entrando in città (`TRUE`), collisioni con
   Repel/DexNav attivi (`WE_OWE_NO_REPEL_DEXNAV_COLLISION FALSE`).
 
+### Palette shiny sbagliata vicino all'acqua: causa e correzione (21/10)
+
+La PR la elenca fra i problemi noti senza spiegarla. Causa, letta nel
+codice: **il tag della palette shiny di una specie coincide con il tag del
+riflesso della stessa specie non shiny.**
+
+- Tag della palette di un Pokémon in overworld: `species + OBJ_EVENT_MON`
+  (`1 << 14`), più `OBJ_EVENT_MON_SHINY` (`1 << 13`, cioè `0x2000`) se
+  shiny (`include/constants/event_objects.h`, righe 611-614; lo stesso
+  calcolo in `CheckCanLoadOWE_Palette` di upstream).
+- Tag della palette del riflesso sull'acqua: `tag + PAL_TAG_REFLECTION_OFFSET`,
+  che da noi vale **`0x2000`** (`src/field_effect_helpers.c`, riga 21).
+- Quindi riflesso di X normale = palette di X shiny. Se il riflesso è
+  caricato prima, lo shiny che compare trova il tag già presente e usa la
+  palette **filtrata del riflesso** (`ApplyPondFilter`): colori sfasati. Se
+  lo shiny c'è già, il riflesso del normale mostra i colori shiny. Con gli
+  OWE succede spesso, perché vicino all'acqua compaiono più individui della
+  stessa specie con riflessi attivi. Oggi in Hasep non si vede quasi mai:
+  servirebbero un follower e uno shiny della stessa specie insieme.
+- **Correzione upstream: PR #9925 di expansion** (commit `44b6958d`,
+  07/05/2026, "Prevent reflection tag palette collisions"), solo
+  `src/field_effect_helpers.c`: offset del riflesso a `0x0800`, offset raw a
+  `0x3000`, `STATIC_ASSERT(NUM_SPECIES <= PAL_TAG_REFLECTION_OFFSET, ...)`, e
+  i due controlli `paletteNum <= 16` / `>= 16` sostituiti con `== 0xFF` (il
+  primo era rovesciato: caricava la palette filtrata quando il tag c'era
+  **già**). **`git apply --check` passa pulito sul nostro albero.** Con i
+  nuovi offset i tag dei Pokémon stanno in `0x4000-0x7FFF` e il riflesso
+  accende il bit `0x0800`, che resta libero finché `NUM_SPECIES <= 0x800`:
+  l'assert lo controlla in build. Fuori dai Pokémon, nessun tag nel nostro
+  codice cade in `0x3000-0x30FF` (gli `0x3000` in `item_menu_icons.c`,
+  `dodrio_berry_picking.c`, `rayquaza_scene.c` sono dimensioni di sprite
+  sheet, non tag).
+- Verifica in fase 3, in emulatore: forzare uno shiny (`FLAG_FORCE_SHINY` o
+  il debug) su una specie d'acqua mentre c'è un individuo normale della
+  stessa specie con il riflesso, e misurare i colori dello sprite contro la
+  palette shiny vera, **prima e dopo** il fix (CLAUDE.md §6: un caso che
+  fallisce senza la modifica).
+
+### Correzioni upstream arrivate dopo la PR (da prendere in fase 2)
+
+Dal log di `upcoming` dopo `10ae7f9`, filtrato su OWE, palette e riflessi:
+
+| PR | commit | data | cosa | in 1.16.4? |
+| --- | --- | --- | --- | --- |
+| #9925 | `44b6958d` | 07/05 | palette dei riflessi (sopra) | da controllare; si applica comunque pulita |
+| #9968 | `17868675` | 12/05 | gli OWE "che non spariscono" non spariscono neanche per il loro movimento (`CanRemoveObjectForOWEMovement`) | sì |
+| #10066 | `da607f24` | 27/05 | OWE generati che leggevano dati spazzatura (lo script dell'oggetto solo per gli `OWE_MANUAL`) | sì |
+| #10753 | `7644501f` | 05/09 | suono di fuga a ogni passo nelle città | **no**, va presa a parte |
+
+Con `WE_OWE_DESPAWN_SOUND FALSE` (D5) #10753 cambia poco, ma va presa
+comunque, così il difetto non torna se un giorno il suono si accende.
+
 ## 7. Tabella compilata: fatto il 21/10
 
 Lettura, conteggi ed export fatti (§2bis), fase 1 fatta (§5), D2–D5 decise
-(§6). Restano da confermare all'inizio delle fasi giuste: voce propria del
-PC o challenge menu (fase 5), tetti per area 6/3/3 (D3), sostituzione dei
-vecchi OWE (D4). Se l'utente torna a cambiare la tabella, rifare il dump e
+(§6), compresi voce propria del PC e tetti 6/3/3. Resta da proporre solo
+la sostituzione dei vecchi OWE (D4). Se l'utente torna a cambiare la tabella, rifare il dump e
 `export_temperaments.py`.
 
 ## Prompt di handoff per la sessione nuova
