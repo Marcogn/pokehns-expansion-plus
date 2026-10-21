@@ -70,6 +70,21 @@ enum __attribute__((packed)) OverworldWildEncounterBehaviors
     OWE_SPECIES_BEHAVIOR_COUNT
 };
 
+// Hasep: each OWE rolls its behaviour when it spawns, weighted by its
+// species' temperament (docs/plans/overworld-encounters.md, phase 4; data
+// from tools/owe_temperaments.py). NEUTRO must stay 0: it is the default of
+// every species the table does not list.
+enum OverworldWildEncounterTemperament
+{
+    OWE_TEMPERAMENT_NEUTRO,
+    OWE_TEMPERAMENT_TIMIDO,
+    OWE_TEMPERAMENT_AGGRESSIVO,
+    OWE_TEMPERAMENT_CURIOSO,
+    OWE_TEMPERAMENT_PLACIDO,
+    OWE_TEMPERAMENT_SFUGGENTE,
+    OWE_TEMPERAMENT_COUNT
+};
+
 struct FieldEffectInfoOWE
 {
     s16 xOffset;
@@ -109,6 +124,41 @@ const struct ObjectEventTemplate TryGetObjectEventTemplateForOWE(const struct Ob
 struct SpritePalette GetOWESpawnDespawnAnimFldEffPalette(enum SpawnDespawnTypeOWE spawnAnim);
 u32 RemoveOldestGeneratedOWE(void);
 bool32 CanRemoveObjectForOWEMovement(struct ObjectEvent *objectEvent);
+
+// Hasep: upstream reads these from the species (OWE_Get*FromSpecies). With the
+// behaviour rolled per OWE they come from the object, through its movement
+// type: each behaviour has its own MOVEMENT_TYPE_*_OWE.
+extern const struct BehaviorOWE gOWESpeciesBehavior[OWE_SPECIES_BEHAVIOR_COUNT];
+const struct BehaviorOWE *OWE_GetBehaviorInfo(const struct ObjectEvent *owe);
+static inline u32 OWE_GetViewDistance(const struct ObjectEvent *owe)
+{
+    return OWE_GetBehaviorInfo(owe)->viewDistance;
+}
+
+static inline u32 OWE_GetViewWidth(const struct ObjectEvent *owe)
+{
+    return OWE_GetBehaviorInfo(owe)->viewWidth;
+}
+
+static inline u32 OWE_GetViewActiveDistance(const struct ObjectEvent *owe)
+{
+    return OWE_GetBehaviorInfo(owe)->activeDistance;
+}
+
+static inline enum SpeedOWE OWE_GetIdleSpeed(const struct ObjectEvent *owe)
+{
+    return OWE_GetBehaviorInfo(owe)->idleSpeed;
+}
+
+static inline enum SpeedOWE OWE_GetActiveSpeed(const struct ObjectEvent *owe)
+{
+    return OWE_GetBehaviorInfo(owe)->activeSpeed;
+}
+
+static inline enum ReturnToIdleOWE OWE_GetReturnToIdle(const struct ObjectEvent *owe)
+{
+    return OWE_GetBehaviorInfo(owe)->returnToIdle;
+}
 
 extern const u8 InteractWithOverworldWildEncounter[];
 

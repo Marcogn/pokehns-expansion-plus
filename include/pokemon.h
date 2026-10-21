@@ -527,7 +527,6 @@ struct SpeciesInfo /*0xC4*/
 #endif //P_GENDER_DIFFERENCES
 #endif //OW_PKMN_OBJECTS_SHARE_PALETTES
 #endif //OW_POKEMON_OBJECT_EVENTS
-    enum OverworldWildEncounterBehaviors overworldEncounterBehavior;
 };
 
 struct EggData
@@ -738,7 +737,6 @@ extern const struct SpriteTemplate gBattlerSpriteTemplates[];
 extern const u32 sExpCandyExperienceTable[];
 extern const struct AbilityInfo gAbilitiesInfo[];
 extern const struct NatureInfo gNaturesInfo[];
-extern const struct BehaviorOWE gOWESpeciesBehavior[OWE_SPECIES_BEHAVIOR_COUNT];
 
 u32 GetShinyOdds(void);
 void ZeroBoxMonData(struct BoxPokemon *boxMon);
@@ -988,54 +986,5 @@ bool32 IsSpeciesOfType(u32 species, enum Type type);
 struct BoxPokemon *GetSelectedBoxMonFromPcOrParty(void);
 u32 GiveScriptedMonToPlayer(struct Pokemon *mon, u8 slot);
 void ChangePokemonNicknameWithCallback(void (*callback)(void));
-
-static inline u32 OWE_GetMovementTypeFromSpecies(u32 speciesId)
-{
-    speciesId = SanitizeSpeciesId(speciesId);
-    enum OverworldWildEncounterBehaviors behavior = gSpeciesInfo[speciesId].overworldEncounterBehavior;
-    return gOWESpeciesBehavior[behavior].movementType;
-}
-
-static inline u32 OWE_GetViewDistanceFromSpecies(u32 speciesId)
-{
-    speciesId = SanitizeSpeciesId(speciesId);
-    enum OverworldWildEncounterBehaviors behavior = gSpeciesInfo[speciesId].overworldEncounterBehavior;
-    return gOWESpeciesBehavior[behavior].viewDistance;
-}
-
-static inline u32 OWE_GetViewWidthFromSpecies(u32 speciesId)
-{
-    speciesId = SanitizeSpeciesId(speciesId);
-    enum OverworldWildEncounterBehaviors behavior = gSpeciesInfo[speciesId].overworldEncounterBehavior;
-    return gOWESpeciesBehavior[behavior].viewWidth;
-}
-
-static inline u32 OWE_GetViewActiveDistanceFromSpecies(u32 speciesId)
-{
-    speciesId = SanitizeSpeciesId(speciesId);
-    enum OverworldWildEncounterBehaviors behavior = gSpeciesInfo[speciesId].overworldEncounterBehavior;
-    return gOWESpeciesBehavior[behavior].activeDistance;
-}
-
-static inline enum SpeedOWE OWE_GetIdleSpeedFromSpecies(u32 speciesId)
-{
-    speciesId = SanitizeSpeciesId(speciesId);
-    enum OverworldWildEncounterBehaviors behavior = gSpeciesInfo[speciesId].overworldEncounterBehavior;
-    return gOWESpeciesBehavior[behavior].idleSpeed;
-}
-
-static inline enum SpeedOWE OWE_GetActiveSpeedFromSpecies(u32 speciesId)
-{
-    speciesId = SanitizeSpeciesId(speciesId);
-    enum OverworldWildEncounterBehaviors behavior = gSpeciesInfo[speciesId].overworldEncounterBehavior;
-    return gOWESpeciesBehavior[behavior].activeSpeed;
-}
-
-static inline enum ReturnToIdleOWE OWE_GetReturnToIdleFromSpecies(u32 speciesId)
-{
-    speciesId = SanitizeSpeciesId(speciesId);
-    enum OverworldWildEncounterBehaviors behavior = gSpeciesInfo[speciesId].overworldEncounterBehavior;
-    return gOWESpeciesBehavior[behavior].returnToIdle;
-}
 
 #endif // GUARD_POKEMON_H

@@ -3,10 +3,10 @@
 Stato (21/10): **tabella delle indoli compilata** ed esportata in
 [`overworld-encounters/temperaments.json`](overworld-encounters/temperaments.json)
 (§2bis); fase 1 fatta (diff vero della PR e prova di applicazione, §5);
-decisioni D2–D5 prese (§6); **fasi 2 e 3 fatte** (port, accensione su
-Route 29; misure, trappole e prove in
+decisioni D2–D5 prese (§6); **fasi 2, 3 e 4 fatte** (port, accensione su
+Route 29, tiro pesato; misure, trappole e prove in
 [`.claude/rules/overworld_encounters.md`](../../.claude/rules/overworld_encounters.md)).
-Prossima: fase 4.
+Prossima: fase 5. Se la tabella cambia: `python3 tools/owe_temperaments.py`.
 
 ## 1. Cosa vuole l'utente
 
@@ -289,7 +289,7 @@ Ogni fase finisce con build `make hns` verde e, dove detto, una prova in mGBA
    `OWE_SPAWNS_MAX` 6 (D4): spawn, movimento, lotta al
    contatto, cattura (aprire la squadra dopo: lezione del Bad Egg, §7ter),
    VRAM con il follower, ricerca DexNav con OWE presenti.
-4. **Tiro pesato**: tabella generata da `temperaments.json`
+4. **Fatto il 21/10.** **Tiro pesato**: tabella generata da `temperaments.json`
    (`tools/owe_temperaments.py` → `src/data/pokemon/owe_temperaments.h`,
    array per specie di indole + pesi delle indoli) e sostituzione di
    `OWE_GetMovementTypeFromSpecies()` con il tiro al momento dello spawn.

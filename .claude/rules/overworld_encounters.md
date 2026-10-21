@@ -5,6 +5,8 @@ paths:
   - "include/wild_encounter_ow.h"
   - "include/config/wild_encounter.h"
   - "src/data/pokemon/wild_encounter_ow_behavior.h"
+  - "src/data/pokemon/owe_temperaments.h"
+  - "tools/owe_temperaments.py"
   - "src/event_object_movement.c"
   - "src/field_control_avatar.c"
   - "src/field_effect_helpers.c"
@@ -24,7 +26,7 @@ più un tiro pesato per indole,
 sul modello del mod Wilds of Kanto. Le indoli scelte dall'utente sono in
 `docs/plans/overworld-encounters/temperaments.json`.
 
-## Stato: fase 3 fatta (21/10), OWE accesi solo su Route 29
+## Stato: fase 4 fatta (21/10), OWE accesi solo su Route 29
 
 Fase 2: codice della PR più #9925, #9968, #10066, #10753, tutto spento. ROM
 31 832 868 → 31 855 284 byte (+22 416, 94,87% → 94,94%).
@@ -41,6 +43,35 @@ ancora accesi (`WE_VANILLA_RANDOM TRUE`): li spegne la fase 5. ROM
 31 857 828 byte (+2 544 sulla fase 2, 94,94%). Nessun warning nuovo.
 
 **Non rilasciare da questo stato**: Route 29 ha sia OWE sia incontri a passi.
+
+## Fase 4 fatta (21/10): tiro pesato per indole
+
+- `tools/owe_temperaments.py` legge `temperaments.json` e i blocchi
+  `#if P_FAMILY_X` e scrive `src/data/pokemon/owe_temperaments.h`
+  (`sOWETemperamentWeights`, `sOWESpeciesTemperament[NUM_SPECIES]`). **Si
+  rilancia a mano** dopo ogni modifica della tabella; il file generato è nel
+  git, la build non lo rigenera. Ereditarietà per famiglia; un'eccezione per
+  specie vale anche per le sue `_MEGA`, `_MEGA_X/Y`, `_GMAX` (Mega Charizard
+  = Charizard), le forme regionali no (vanno nominate nella tabella); fuori
+  tabella = NEUTRO (= 0). 426 specie non NEUTRO.
+- Corrispondenza indole → comportamento upstream: guarda `WATCH`, gira
+  `IGNORE` (vaga), si avvicina `APPROACH`, insegue `CHASE`, scappa `FLEE`,
+  sparisce `DESPAWN`. Parametri di vista e velocità quelli di upstream.
+- `OWE_RollMovementType()` sceglie allo spawn. Il comportamento non sta più
+  nella specie: il campo `overworldEncounterBehavior` di `SpeciesInfo` è
+  tolto (upstream non lo valorizzava mai) e i getter `OWE_Get*FromSpecies`
+  sono diventati `OWE_Get*(oggetto)`, che lo ricavano dal `movementType`
+  (uno per comportamento; upstream stesso lo usa così). ROM 94,93%, **più
+  piccola** della fase 3: il campo costava un byte per specie.
+- Verifica: il testo vero di `OWE_RollMovementType` estratto dal sorgente e
+  compilato sull'host con la tabella generata e i dati di comportamento
+  veri, 600 000 tiri per specie: percentuali uguali ai pesi entro ±0,1% per
+  tutte e sei le indoli, Pidgeot (eredità), Mega Charizard X (eccezione con
+  forma), Mew (fuori tabella). In emulatore (RAM via GDB, 80 letture su
+  Route 29): Pidgey e Sentret TIMIDO mai `CHASE`/`APPROACH` (peso 0), i
+  comportamenti cambiano fra individui della stessa specie. Le percentuali
+  in gioco non si misurano bene così: 20 spawn in 5 minuti, e chi scappa e
+  sparisce fra due letture sfugge al conteggio.
 
 ## Adattamenti alla nostra base (1.15.2)
 

@@ -31,6 +31,8 @@
 #include "constants/songs.h"
 #include "constants/vars.h"
 #include "constants/wild_encounter.h"
+#include "data/pokemon/wild_encounter_ow_behavior.h"
+#include "data/pokemon/owe_temperaments.h"
 
 
 #define sOverworldEncounterLevel        trainerRange_berryTreeId
@@ -240,6 +242,38 @@ const struct FieldEffectInfoOWE gOverworldWildEncounterFieldEffectInfo[] =
 };
 
 
+// Hasep: the behaviour of a generated OWE is rolled here, weighted by the
+// temperament of its species (temperaments.json via tools/owe_temperaments.py),
+// in place of upstream's fixed per-species behaviour. Model: the "Wilds of
+// Kanto" mod's weighted roll (lib/behavior.lua).
+static u32 OWE_RollMovementType(u32 speciesId)
+{
+    const u8 *weights = sOWETemperamentWeights[sOWESpeciesTemperament[SanitizeSpeciesId(speciesId)]];
+    u32 i, total = 0, roll;
+
+    for (i = 0; i < OWE_SPECIES_BEHAVIOR_COUNT; i++)
+        total += weights[i];
+
+    roll = Random() % total;
+    for (i = 0; i < OWE_SPECIES_BEHAVIOR_COUNT; i++)
+    {
+        if (roll < weights[i])
+            return gOWESpeciesBehavior[i].movementType;
+        roll -= weights[i];
+    }
+    return gOWESpeciesBehavior[OWE_IGNORE_PLAYER].movementType;
+}
+
+const struct BehaviorOWE *OWE_GetBehaviorInfo(const struct ObjectEvent *owe)
+{
+    for (u32 i = 0; i < OWE_SPECIES_BEHAVIOR_COUNT; i++)
+    {
+        if (gOWESpeciesBehavior[i].movementType == owe->movementType)
+            return &gOWESpeciesBehavior[i];
+    }
+    return &gOWESpeciesBehavior[OWE_IGNORE_PLAYER];
+}
+
 // Hasep (decision D3): fewer OWEs on water and in caves than in grass,
 // "there is the DexNav for those". Indoor maps (Sprout Tower, ...) count as
 // caves, as the user asked.
@@ -343,7 +377,7 @@ void UpdateOverworldWildEncounter(void)
         .x = x - MAP_OFFSET,
         .y = y - MAP_OFFSET,
         .elevation = MapGridGetElevationAt(x, y),
-        .movementType = OWE_GetMovementTypeFromSpecies(infoOWE.speciesId),
+        .movementType = OWE_RollMovementType(infoOWE.speciesId),
         .trainerType = TRAINER_TYPE_OW_WILD_ENCOUNTER,
     };
     // Hasep: a free slot has no object, see GetOWEBySpawnSlot.
@@ -1809,9 +1843,8 @@ bool32 CanAwareOWESeePlayer(struct ObjectEvent *owe)
         return TRUE;
 
     struct ObjectEvent *player = &gObjectEvents[gPlayerAvatar.objectEventId];
-    u32 speciesId = OW_SPECIES(owe);
-    u32 viewDistance = OWE_GetViewDistanceFromSpecies(speciesId);
-    u32 viewWidth = OWE_GetViewWidthFromSpecies(speciesId);
+    u32 viewDistance = OWE_GetViewDistance(owe);
+    u32 viewWidth = OWE_GetViewWidth(owe);
     s32 halfWidth = (viewWidth - 1) / 2;
     enum Direction direction = owe->facingDirection;
 
@@ -1870,7 +1903,7 @@ bool32 IsPlayerInsideOWEActiveDistance(struct ObjectEvent *owe)
     u32 speciesId = OW_SPECIES(owe);
 
     if (speciesId != SPECIES_NONE)
-        distance = OWE_GetViewActiveDistanceFromSpecies(speciesId);
+        distance = OWE_GetViewActiveDistance(owe);
 
     s32 absX = abs(player->currentCoords.x - owe->currentCoords.x);
     s32 absY = abs(player->currentCoords.y - owe->currentCoords.y);
@@ -2054,12 +2087,11 @@ static void Task_OWEApproachForBattle(u8 taskId)
             return;
         }
 
-        u32 speciesId = OW_SPECIES(OWE);
         enum Direction direction = DetermineObjectEventDirectionFromObject(player, OWE);
         u32 movementActionId;
     
         SetObjectEventDirection(OWE, direction);
-        movementActionId = GetOWEWalkMovementActionInDirectionWithSpeed(OWE->movementDirection, OWE_GetActiveSpeedFromSpecies(speciesId));
+        movementActionId = GetOWEWalkMovementActionInDirectionWithSpeed(OWE->movementDirection, OWE_GetActiveSpeed(OWE));
         
         if (CheckRestrictedOWEMovement(OWE, OWE->movementDirection))
         {
@@ -2094,7 +2126,7 @@ static void Task_OWEApproachForBattle(u8 taskId)
             {
                 direction = DirectionOfOWEToPlayerFromCollision(OWE);
                 SetObjectEventDirection(OWE, direction);
-                movementActionId = GetOWEWalkMovementActionInDirectionWithSpeed(OWE->movementDirection, OWE_GetActiveSpeedFromSpecies(speciesId));
+                movementActionId = GetOWEWalkMovementActionInDirectionWithSpeed(OWE->movementDirection, OWE_GetActiveSpeed(OWE));
             }
         }
         ObjectEventSetHeldMovement(OWE, movementActionId);
@@ -2178,7 +2210,7 @@ const struct ObjectEventTemplate TryGetObjectEventTemplateForOWE(const struct Ob
         info.isFemale = GetGenderFromSpeciesAndPersonality(info.speciesId, Random32()) == MON_FEMALE;
 
     if (templateOWE.movementType == MOVEMENT_TYPE_NONE)
-        templateOWE.movementType = OWE_GetMovementTypeFromSpecies(info.speciesId);
+        templateOWE.movementType = OWE_RollMovementType(info.speciesId);
 
     templateOWE.graphicsId = GetGraphicsIdForOWE(&info);
     templateOWE.sOverworldEncounterLevel = info.level;
