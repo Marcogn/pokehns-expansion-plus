@@ -31,6 +31,7 @@ Gate_NationalPark_EventScript_AttendantStart::
 	giveitem ITEM_SPORT_BALL, 30
 	closemessage
 	msgbox Route35NationalParkGate_Text_OfficerExplainRules, MSGBOX_DEFAULT
+	call Gate_NationalPark_EventScript_OverworldMonsNotice
 	closemessage
 	call_if_eq VAR_FACING, DIR_WEST, Gate_NationalPark_EventScript_AttendantEnterTop
 	call_if_eq VAR_FACING, DIR_NORTH, Gate_NationalPark_EventScript_AttendantEnterBot
@@ -50,6 +51,7 @@ Gate_NationalPark_EventScript_OnlyOneMon::
 	giveitem ITEM_SPORT_BALL, 30
 	closemessage
 	msgbox Route35NationalParkGate_Text_OfficerExplainRules, MSGBOX_DEFAULT
+	call Gate_NationalPark_EventScript_OverworldMonsNotice
 	closemessage
 	call_if_eq VAR_FACING, DIR_WEST, Gate_NationalPark_EventScript_AttendantEnterTop
 	call_if_eq VAR_FACING, DIR_NORTH, Gate_NationalPark_EventScript_AttendantEnterBot
@@ -61,6 +63,16 @@ Gate_NationalPark_EventScript_OnlyOneMon::
 	warp MAP_NATIONAL_PARK_BUG_CONTEST_HNS, 1
 	waitstate
 	end
+
+@ Hasep: visible wild Pokémon are off during the contest (AreOverworldMonsEnabled,
+@ src/wild_encounter_ow.c), so the contest keeps its step encounters. Said
+@ only when the player has them on: otherwise nothing changes in the park.
+Gate_NationalPark_EventScript_OverworldMonsNotice::
+	special GetOverworldMonsOption
+	goto_if_eq VAR_RESULT, FALSE, Gate_NationalPark_EventScript_OverworldMonsNoticeEnd
+	msgbox Route35NationalParkGate_Text_OverworldMonsHideInContest, MSGBOX_DEFAULT
+Gate_NationalPark_EventScript_OverworldMonsNoticeEnd::
+	return
 
 Gate_NationalPark_EventScript_AttendantEnterTop::
 	applymovement OBJ_EVENT_ID_PLAYER, Gate_NationalPark_Movement_Player_EnterParkTop
@@ -141,6 +153,7 @@ Gate_NationalPark_EventScript_BAttendantStart::
 	giveitem ITEM_SPORT_BALL, 30
 	closemessage
 	msgbox Route35NationalParkGate_Text_OfficerExplainRules, MSGBOX_DEFAULT
+	call Gate_NationalPark_EventScript_OverworldMonsNotice
 	closemessage
 	call_if_eq VAR_FACING, DIR_EAST, Gate_NationalPark_EventScript_AttendantBEnterTop
 	call_if_eq VAR_FACING, DIR_NORTH, Gate_NationalPark_EventScript_AttendantBEnterBot
@@ -160,6 +173,7 @@ Gate_NationalPark_EventScript_OnlyOneMonB::
 	giveitem ITEM_SPORT_BALL, 30
 	closemessage
 	msgbox Route35NationalParkGate_Text_OfficerExplainRules, MSGBOX_DEFAULT
+	call Gate_NationalPark_EventScript_OverworldMonsNotice
 	closemessage
 	call_if_eq VAR_FACING, DIR_EAST, Gate_NationalPark_EventScript_AttendantBEnterTop
 	call_if_eq VAR_FACING, DIR_NORTH, Gate_NationalPark_EventScript_AttendantBEnterBot
@@ -223,6 +237,11 @@ Route35NationalParkGate_Text_OfficerGiveSportBalls:
 
 Route35NationalParkGate_Text_ReceivedSportBalls:
 	.string "{PLAYER} received SPORT BALLS.$"
+
+Route35NationalParkGate_Text_OverworldMonsHideInContest:
+	.string "During the contest, POKéMON won't\n"
+	.string "show themselves easily.\p"
+	.string "They'll only appear in tall grass!$"
 
 Route35NationalParkGate_Text_OfficerExplainRules:
 	.string "The person who gets the strongest\n"

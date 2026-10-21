@@ -49,6 +49,12 @@ DexNav (`DEXNAV_ENABLED` era FALSE), relearner dal riassunto
 (`P_ENABLE_MOVE_RELEARNERS`, mancava la gestione di START), icone dei tipi
 (`B_SHOW_TYPES` era NEVER), Pokédex HGSS. Dettagli in `.claude/rules/` (`dexnav.md`, `battle_ui.md`, `relearner.md`).
 
+Pokémon selvatici visibili nell'overworld: **non vengono da Soulgold** (SG
+non li ha) ma da pokeemerald-expansion (PR #8434, 1.16), portati qui con
+le indoli per famiglia, i tetti per zona e le correzioni di VRAM.
+Dettagli in `.claude/rules/overworld_encounters.md` e
+`docs/plans/overworld-encounters.md`.
+
 ## 3. Aggiunto qui
 
 Pokédex dal menu squadra, `EASY CATCH`, `NICKNAMES`, `WILD BATTLES`, toggle del

@@ -20,7 +20,7 @@ paths:
   ALL` e `DEXNAV SOULGOLD`) ora è `trainerCatch`. **La prossima opzione deve
   ingrandire la struct**, e quello sposta il layout del salvataggio — oppure
   vivere in un flag, come fa Soulgold per le luci, oppure nel byte
-  `soundAndFieldOptions` (vedi sotto, 3 bit liberi).
+  `soundAndFieldOptions` (vedi sotto, 2 bit liberi).
   Riusare un bit che ha già avuto un significato vuol dire che nei salvataggi
   passati per quelle build può valere 1: per questo il passo
   `saveVersion < 7` lo azzera. Stessa cautela per `FLAG_FORCE_SHINY` (ex
@@ -64,7 +64,8 @@ Centri) c'è un secondo contenitore, **in coda a SaveBlock3 dopo `candyJarExp`**
 | `fastHms` | 1 | 0 = OFF (default) |
 | `battleMusicTheme` | 3 | `enum BattleMusicTheme`, 0 = DEFAULT (regionale) |
 | `noNightCenterMusic` | 1 | **invertito**: 0 = musica notturna ON (default) |
-| `unused` | 3 | liberi |
+| `unusedOverworldMonsBit` | 1 | ex `noOverworldMons` (voce `WILD POKéMON` del PC, tolta il 21/10): ignorato, ma nei salvataggi passati per quelle build può valere 1; prima di riusarlo azzerarlo con una migrazione |
+| `unused` | 2 | liberi |
 
 - **Flag specchio.** `FLAG_FAST_HMS` (`ENGINE_FLAGS_START + 13`) è lo stato a
   runtime, come `FLAG_EVEN_FASTER_JOY`: lo leggono gli script (`goto_if_set`) e

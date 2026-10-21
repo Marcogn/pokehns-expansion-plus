@@ -368,7 +368,8 @@ struct SoundAndFieldOptions
     u8 fastHms:1;            // 0 = off (default, as in Soulgold)
     u8 battleMusicTheme:3;   // enum BattleMusicTheme, 0 = DEFAULT
     u8 noNightCenterMusic:1; // stored inverted: 0 = night theme ON (default)
-    u8 unused:3;
+    u8 unusedOverworldMonsBit:1; // was noOverworldMons (PC switch, removed): can be 1 in saves, clear it before reuse
+    u8 unused:2;
 };
 
 struct SaveBlock3

@@ -1043,6 +1043,10 @@ static bool8 InitDexNavSearch(u32 species, u32 environment)
         return TRUE;
     }
     FlagSet(DN_FLAG_SEARCHING);
+    // Hasep: upstream clears generated OWEs only in Task_DexNavExitAndSearch,
+    // i.e. for searches started from the DexNav screen. Ours also start from R
+    // (TryStartDexNavSearch), which reaches here without passing through it.
+    DespawnAllOverworldWildEncounters(OWE_GENERATED, 0);
 
     // assign non-objects to struct
     sDexNavSearchDataPtr->species = species;
@@ -2098,6 +2102,7 @@ static void CB1_DexNavSearchCallback(void)
 
 static void Task_DexNavExitAndSearch(u8 taskId)
 {
+    DespawnAllOverworldWildEncounters(OWE_GENERATED, 0);
     DexNavGuiFreeResources();
     DestroyTask(taskId);
     SetMainCallback1(CB1_DexNavSearchCallback);

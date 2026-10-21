@@ -113,6 +113,7 @@ Switched on or finished, with nothing written for this fork except the wiring:
 | Move relearner from the summary | `P_ENABLE_MOVE_RELEARNERS`, a pokeemerald-expansion feature | HnS drew the prompt but nothing handled START. Wired up, and kept to the Battle Moves page the way Soulgold does. |
 | Types shown in battle | `src/type_icons.c`, with `B_SHOW_TYPES SHOW_TYPES_NEVER` | Turned on and aligned to Soulgold: the art is Soulgold's and is asymmetric, so the mirroring, the 4px stagger and the slide directions all had to match. |
 | HGSS Pokédex | `src/pokedex_plus_hgss.c`, already present | Used as-is. The party-menu entry point (see *Written from scratch*) is what was added. |
+| Wild Pokémon in the overworld | pokeemerald-expansion PR #8434 (expansion 1.16), ported with its fixes up to 1.16.4 | Always on; `WILD BATTLES` OFF turns them off too. Up to 6 on land, 4 in the Safari Zone, 3 on water, in caves and indoors; with it on, tall grass, surfing and caves stop starting random battles, while fishing, Rock Smash, Headbutt, Sweet Scent and the DexNav stay. Written here: a **temperament per species family** rolled at each spawn (wander, watch, come closer, chase, flee, vanish; weights modelled on the Wilds of Kanto mod), lower caps on water, in caves and in the Safari Zone, the Bug-Catching Contest left classic, the Safari Pokéblock bonus, faster spawning where grass is sparse, and fixes for full sprite memory (no crash screen, room kept for icons). On water they swim, with HnS's own surf-mount sprites. Shiny ones sparkle and stay on the map; roamers can appear among them. |
 
 ### Written from scratch
 
@@ -168,7 +169,11 @@ Soulgold credits are worth reading on their own: see the
 **Heart & Soul.** Everything in *Reworked from existing code* came with
 **`pokemonHnS-expansion`**, **`pokeemerald-expansion`** or both, and is the work
 of their authors, not of this fork: the DexNav, the HGSS Pokédex, the in-battle
-type icon code and the move relearner. The game itself, Johto, the story, the
+type icon code, the move relearner and the overworld wild Pokémon (by
+**Bivurnum** and **HashtagMarky**, who credit Pokabbie's *Emerald Rogue*). The
+temperament weights are modelled on
+[*Wilds of Kanto*](https://github.com/YoDrehDenSwagAuf/overworld-spawn-mod)
+(MIT). The game itself, Johto, the story, the
 art and the music are the work of the **Pokémon Heart & Soul** team and its
 contributors, listed in [`CREDITS.md`](CREDITS.md), which is inherited
 unchanged from upstream.

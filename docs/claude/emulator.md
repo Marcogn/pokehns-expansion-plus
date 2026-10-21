@@ -58,6 +58,12 @@ ragionamento girava a vuoto da un'ora. Ricordati di `cp` del file prima.
   indicata da `sSubstructOffsets[1][personality % 24]` (i 5 alti sono altro),
   checksum a somma di u16 da ricalcolare.
 
+**Più letture della RAM nella stessa sessione**: lo stub di `mgba -g`
+accetta una sola connessione e non fa detach. Serve un `gdb-multiarch`
+sempre aperto dietro una fifo; ricetta e trappole in
+`.claude/rules/overworld_encounters.md` ("GDB su mGBA, come funziona
+davvero").
+
 ## Nuova partita per i test
 
 **Nuova partita in mGBA, per i test**: la camera della camera da letto è sul

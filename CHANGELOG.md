@@ -8,7 +8,40 @@ add the section before releasing. Feature details live in the tables of
 
 ## 2.0.6.PLUS.4
 
+### Added
+- **Wild Pokémon visible in the overworld.** They walk in tall grass, on
+  water and in caves, up to 6 at a time on land, 4 in the Safari Zone and 3
+  on water, in caves and indoors. Walk into one, or let it reach you, to
+  battle it; tall grass, surfing and caves no longer start battles at
+  random. Fishing, Rock Smash, Headbutt trees, Sweet Scent and the DexNav
+  work as before. From pokeemerald-expansion (PR #8434, expansion 1.16),
+  with its fixes up to 1.16.4.
+- **Each wild Pokémon has a temperament**, rolled when it appears: some
+  wander, some watch you, some come to look, some chase you, some run away
+  and some vanish when they notice you. The odds depend on the species
+  family (a table reviewed by hand, modelled on the Wilds of Kanto mod), so
+  two Pidgey can behave differently.
+- On water they swim, half under the surface, with the same sprites HnS uses
+  for the Pokémon you surf on (37 of the 41 wild water species; Golbat,
+  Grimer, Muk and Magikarp keep their own sprite).
+- Shiny ones sparkle and play the shiny sound when they appear, and do not
+  disappear while you stay on the map. Roamers can show up among them, and
+  a battle with one is a normal roamer battle.
+- Always on, saves from earlier versions included. `WILD BATTLES` OFF in the
+  challenge settings still turns off all wild battles, visible ones too.
+- Bug-Catching Contest: the National Park keeps the classic random
+  encounters during the contest, and the gate attendant says so after the
+  rules.
+- Safari Zone: battles with visible Pokémon are Safari battles, and a
+  Pokéblock feeder affects them as it does random encounters (nature,
+  perfect IVs, Hidden Ability).
+
 ### Fixed
+- **The game could freeze when an icon had no room on screen.** If the
+  "!", "?", heart or a follower's emote could not get a sprite, the script
+  waiting for it (talking to the follower, a Trainer spotting you) waited
+  forever. The icon is now skipped. Rare before, likely with many sprites on
+  screen; found while testing the visible wild Pokémon.
 - **DexNav in Dark Cave after Flash.** Flash only widens the light to level
   1, never back to 0, and the DexNav treated anything above 0 as too dark:
   searches and hidden Pokémon stayed off in a Flash-lit cave. Reported in
@@ -22,6 +55,13 @@ add the section before releasing. Feature details live in the tables of
   Islands. Evolutions themselves are unchanged. Day
   and Night read D and N. Also reported in Mikeagan's fork, which fixed it
   by adding Sun and Moon Stone evolutions instead.
+- **Reflections on water could take another sprite's palette.** A Pokémon's
+  reflection used the same palette tag as the shiny form of that species,
+  and the high-bridge reflection the same as Pidgey's: whichever loaded
+  first coloured the other. From expansion (PR #9925); with visible wild
+  Pokémon it showed as a follower's reflection in shiny colours. The fix's
+  own tags for untagged palettes overlapped HnS's surf mount palettes and
+  were moved.
 
 ## 2.0.6.PLUS.3
 

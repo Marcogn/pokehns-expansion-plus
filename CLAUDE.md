@@ -99,7 +99,7 @@ quando tocchi `save.c`, `global.h`, `new_game.c`, `oak_speech_hns.c` o il menu
 opzioni.
 
 - `struct ChallengeSettings` è fissata a 32 byte e ha **0 bit liberi**. Una
-  nuova opzione va in `soundAndFieldOptions` (3 bit liberi), in un flag, oppure
+  nuova opzione va in `soundAndFieldOptions` (2 bit liberi), in un flag, oppure
   ingrandisce la struct spostando il layout.
 - **Polarità**: un salvataggio vecchio legge zero, quindi zero deve essere il
   comportamento di prima (o il default). L'etichetta del valore zero viene prima
@@ -169,6 +169,13 @@ Ognuna è costata ore; il racconto completo sta nella regola indicata.
   tarati su questo repo.
 - Una schermata che non installa il suo `SetVBlankCallback` eredita quello del
   chiamante.
+- **`make hns` non è una build RELEASE: un `assertf` che fallisce mostra al
+  giocatore una schermata blu.** Va bene solo per errori di programma, mai per
+  stati che il gioco raggiunge (VRAM piena, tabella oggetti piena)
+  (`overworld_encounters.md`).
+- Con `OW_GFX_COMPRESS` ogni oggetto tiene in VRAM tutto il suo foglio: una
+  mappa con molti Pokémon-oggetto più gli OWE può lasciare 10 tile libere su
+  1024, e uno sprite che non si crea non deve lasciare uno script in attesa.
 
 ---
 
@@ -193,7 +200,7 @@ In `.claude/rules/`, caricate da sole quando apri i file indicati.
 | `megas.md` | spazio in ROM delle megaevoluzioni |
 | `title_screen.md` | "+" e versione sulla schermata del titolo |
 | `pc_box.md` | `SORT` e `SEARCH` nei box del PC |
-| `overworld_encounters.md` | Pokémon visibili nell'overworld (in corso, piano in `docs/plans/`) |
+| `overworld_encounters.md` | Pokémon visibili nell'overworld: port, indoli, tetti, VRAM (piano in `docs/plans/`) |
 
 Fuori dalle regole, da leggere quando serve: `docs/claude/emulator.md`,
 `docs/SOULGOLD_PORT_REPORT.md`.

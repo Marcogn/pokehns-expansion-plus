@@ -14,6 +14,7 @@
 #include "save_location.h"
 #include "script_pokemon_util.h"
 #include "trainer_hill.h"
+#include "wild_encounter_ow.h"
 #include "gba/flash_internal.h"
 #include "decoration_inventory.h"
 #include "agb_flash.h"
@@ -238,6 +239,7 @@ void LoadObjectEvents(void)
             gObjectEvents[i].graphicsId & OBJ_EVENT_MON)
             gObjectEvents[i].active = TRUE;
     }
+    SetMinimumOWESpawnTimer();
 }
 
 void CopyPartyAndObjectsToSave(void)
