@@ -14,6 +14,7 @@
 #include "constants/field_effects.h"
 #include "constants/moves.h"
 #include "constants/species.h"
+#include "palette.h"
 
 extern const struct OamData gObjectEventBaseOam_32x32;
 extern const struct OamData gObjectEventBaseOam_64x64;
@@ -37,6 +38,93 @@ struct RideablePokemon
 #include "data/object_events/surfable/surfable_pokemon_templates.h"
 
 static EWRAM_DATA u16 sCurrentSurfMon = {0};
+
+// Hasep: overworld wild Pokémon on water use these swim sprites instead of
+// standing on the water (wild_encounter_ow.c). A shiny one gets its own tag:
+// the surf palettes share one tag between normal and shiny, which is fine for
+// the player's single mount but not for two wild ones of a species.
+#define OWE_SWIM_SHINY_PAL_TAG_OFFSET 0x200
+STATIC_ASSERT(PAL_TAG_CLODSIRE_SURF < PAL_RAW_REFLECTION_OFFSET, SurfPaletteTagsBelowRawReflectionTags);
+STATIC_ASSERT(PAL_TAG_SQUIRTLE_SURF + OWE_SWIM_SHINY_PAL_TAG_OFFSET > PAL_RAW_REFLECTION_OFFSET + 0x10, ShinySwimPaletteTagsAboveRawReflectionTags);
+
+static u16 GetSurfablePokemonIndex(u16 species)
+{
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(gSurfablePokemon); i++)
+    {
+        if (species == gSurfablePokemon[i].species)
+            return i;
+    }
+    return 0xFFFF;
+}
+
+bool32 HasSurfablePokemonSprite(u16 species)
+{
+    return GetSurfablePokemonIndex(species) != 0xFFFF;
+}
+
+// Returns MAX_SPRITES if the species has no swim sprite or nothing is free.
+u8 CreateSurfablePokemonSpriteForOWE(u16 species, bool32 isShiny, SpriteCallback callback)
+{
+    u32 index = GetSurfablePokemonIndex(species);
+    struct SpritePalette palette;
+    u8 paletteNum, spriteId;
+
+    if (index == 0xFFFF)
+        return MAX_SPRITES;
+
+    if (!isShiny)
+    {
+        palette = sSurfablePokemonPalettes[index];
+    }
+    else
+    {
+        if (gSaveBlock3Ptr != NULL && gSaveBlock3Ptr->challengeSettings.tx_Features_ShinyColors)
+            palette = sSurfablePokemonShinyModernPalettes[index];
+        else
+            palette = sSurfablePokemonShinyPalettes[index];
+        palette.tag += OWE_SWIM_SHINY_PAL_TAG_OFFSET;
+    }
+
+    if (IndexOfSpritePaletteTag(palette.tag) == 0xFF)
+    {
+        paletteNum = LoadSpritePalette(&palette);
+        if (paletteNum == 0xFF)
+            return MAX_SPRITES;
+        UpdateSpritePaletteWithWeather(paletteNum, TRUE);
+    }
+    paletteNum = IndexOfSpritePaletteTag(palette.tag);
+
+    spriteId = CreateSpriteAtEnd(isShiny ? &gSurfablePokemonOverworldShinySprites[index] : &gSurfablePokemonOverworldSprites[index], 0, 0, 0);
+    if (spriteId == MAX_SPRITES)
+    {
+        FreeOWESwimSpritePaletteIfUnused(palette.tag);
+        return MAX_SPRITES;
+    }
+
+    gSprites[spriteId].oam.paletteNum = paletteNum;
+    gSprites[spriteId].coordOffsetEnabled = TRUE;
+    gSprites[spriteId].callback = callback;
+    return spriteId;
+}
+
+// Frees a swim palette once no sprite uses it; the player's surf mount may
+// share the normal one.
+void FreeOWESwimSpritePaletteIfUnused(u16 tag)
+{
+    u32 i;
+    u8 paletteNum = IndexOfSpritePaletteTag(tag);
+
+    if (paletteNum == 0xFF)
+        return;
+    for (i = 0; i < MAX_SPRITES; i++)
+    {
+        if (gSprites[i].inUse && gSprites[i].oam.paletteNum == paletteNum)
+            return;
+    }
+    FreeSpritePaletteByTag(tag);
+}
 
 static u16 GetSurfMonSpecies(void)
 {

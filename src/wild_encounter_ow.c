@@ -20,6 +20,7 @@
 #include "script_movement.h"
 #include "sprite.h"
 #include "sound.h"
+#include "surfable.h"
 #include "task.h"
 #include "trainer_hill.h"
 #include "wild_encounter.h"
@@ -314,8 +315,125 @@ void GetOverworldMonsOption(void)
     gSpecialVar_Result = WE_OW_ENCOUNTERS && !AreWildEncountersDisabledByOption();
 }
 
+// Hasep: a visible wild Pokémon on water is drawn with HnS's swim sprite (the
+// one the player rides when surfing, src/surfable.c) instead of standing on
+// the water, as the user asked. The object stays as it is (collision,
+// battles, emotes all use it) and only its sprite is hidden; this sprite
+// follows it and bobs like a surf mount. Species without a swim sprite
+// (Golbat, Grimer, Muk, Magikarp among the wild water ones) keep their own.
+#define sSwimObjectId   data[0]
+#define sSwimLocalId    data[1]
+#define sSwimTimer      data[2]
+#define sSwimVelocity   data[3]
+#define sSwimPalTag     data[4]
+#define sSwimGraphicsId data[5]
+
+static void DestroyOWESwimSprite(struct Sprite *sprite)
+{
+    u16 tag = sprite->sSwimPalTag;
+
+    DestroySprite(sprite);
+    FreeOWESwimSpritePaletteIfUnused(tag);
+}
+
+static void SpriteCB_OWESwim(struct Sprite *sprite)
+{
+    // Indexes into gSurfablePokemonAnimTable
+    static const u8 directionAnims[] = {
+        [DIR_NONE] = 0,
+        [DIR_SOUTH] = 0,
+        [DIR_NORTH] = 1,
+        [DIR_WEST] = 2,
+        [DIR_EAST] = 3,
+        [DIR_SOUTHWEST] = 2,
+        [DIR_SOUTHEAST] = 3,
+        [DIR_NORTHWEST] = 2,
+        [DIR_NORTHEAST] = 3,
+    };
+    struct ObjectEvent *owe = &gObjectEvents[sprite->sSwimObjectId];
+    struct Sprite *oweSprite;
+
+    // A replacement spawn reuses the slot and the localId: the graphics tell
+    // the new Pokémon from the old one.
+    if (!IsOverworldWildEncounter(owe, OWE_GENERATED) || owe->localId != sprite->sSwimLocalId
+     || owe->graphicsId != (u16)sprite->sSwimGraphicsId
+     || !MetatileBehavior_IsSurfableWaterOrUnderwater(owe->currentMetatileBehavior))
+    {
+        // Back on land, or gone: UpdateOWESwimSprites shows the object again.
+        DestroyOWESwimSprite(sprite);
+        return;
+    }
+
+    oweSprite = &gSprites[owe->spriteId];
+    oweSprite->oam.affineMode = ST_OAM_AFFINE_ERASE;
+    StartSpriteAnimIfDifferent(sprite, directionAnims[owe->movementDirection]);
+
+    // Same anchor as the surf mount under the player (UpdateBobbingEffect):
+    // 8 pixels above the bottom of the object's sprite.
+    sprite->x = oweSprite->x;
+    sprite->y = oweSprite->y + GetObjectEventGraphicsInfo(owe->graphicsId)->height / 2 - 8;
+    sprite->x2 = oweSprite->x2;
+    // Same bob as the surf mount: a pixel every 4 frames, turning every 16.
+    if ((++sprite->sSwimTimer & 3) == 0)
+        sprite->y2 += sprite->sSwimVelocity;
+    if ((sprite->sSwimTimer & 15) == 0)
+        sprite->sSwimVelocity = -sprite->sSwimVelocity;
+    sprite->oam.priority = oweSprite->oam.priority;
+    sprite->subpriority = oweSprite->subpriority;
+    sprite->invisible = owe->offScreen;
+}
+
+static void UpdateOWESwimSprites(void)
+{
+    u32 hasSwimSprite = 0;
+    u32 i;
+
+    for (i = 0; i < MAX_SPRITES; i++)
+    {
+        if (gSprites[i].inUse && gSprites[i].callback == SpriteCB_OWESwim)
+            hasSwimSprite |= 1 << gSprites[i].sSwimObjectId;
+    }
+
+    for (i = 0; i < OBJECT_EVENTS_COUNT; i++)
+    {
+        struct ObjectEvent *owe = &gObjectEvents[i];
+        struct Sprite *oweSprite;
+        u8 spriteId;
+
+        if (!IsOverworldWildEncounter(owe, OWE_GENERATED) || owe->spriteId >= MAX_SPRITES)
+            continue;
+        oweSprite = &gSprites[owe->spriteId];
+        if (hasSwimSprite & (1 << i))
+            continue;
+        // No swim sprite (left the water, never had one, or the sprites were
+        // rebuilt after a battle): show the object's own sprite.
+        oweSprite->oam.affineMode = ST_OAM_AFFINE_OFF;
+        if (!MetatileBehavior_IsSurfableWaterOrUnderwater(owe->currentMetatileBehavior)
+         || !HasSurfablePokemonSprite(OW_SPECIES(owe)))
+            continue;
+        spriteId = CreateSurfablePokemonSpriteForOWE(OW_SPECIES(owe), OW_SHINY(owe) ? TRUE : FALSE, SpriteCB_OWESwim);
+        if (spriteId == MAX_SPRITES)
+            continue;
+        gSprites[spriteId].sSwimObjectId = i;
+        gSprites[spriteId].sSwimLocalId = owe->localId;
+        gSprites[spriteId].sSwimGraphicsId = owe->graphicsId;
+        gSprites[spriteId].sSwimVelocity = -1;
+        gSprites[spriteId].sSwimPalTag = GetSpritePaletteTagByPaletteNum(gSprites[spriteId].oam.paletteNum);
+        SpriteCB_OWESwim(&gSprites[spriteId]);
+    }
+}
+
+#undef sSwimObjectId
+#undef sSwimLocalId
+#undef sSwimTimer
+#undef sSwimVelocity
+#undef sSwimPalTag
+#undef sSwimGraphicsId
+
 void UpdateOverworldWildEncounter(void)
 {
+    UpdateOWESwimSprites();
+
     //Check if possible to spawn.
 
     bool32 shouldSpawnWaterMons = ShouldSpawnWaterOWE();
@@ -1444,6 +1562,10 @@ static bool32 CheckCanLoadOWE_Tiles(u32 speciesId, bool32 isFemale, bool32 isShi
     }
     
     tileCount += GetNumberOfSpawnAnimTiles(x, y) + OWE_SPRITE_TILE_HEADROOM;
+    // Hasep: room for the swim sprite too (one frame of 32x32 or 64x64, see
+    // UpdateOWESwimSprites); 64 covers both.
+    if (ShouldSpawnWaterOWE() && HasSurfablePokemonSprite(speciesId))
+        tileCount += 64;
     if (!CanAllocSpriteTiles(tileCount))
         return FALSE;
     
