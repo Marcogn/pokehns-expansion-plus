@@ -420,7 +420,7 @@ Dal log di `upcoming` dopo `10ae7f9`, filtrato su OWE, palette e riflessi:
 
 | PR | commit | data | cosa | in 1.16.4? |
 | --- | --- | --- | --- | --- |
-| #9925 | `44b6958d` | 07/05 | palette dei riflessi (sopra) | da controllare; si applica comunque pulita |
+| #9925 | `44b6958d` | 07/05 | palette dei riflessi (sopra) | sì (verificato su `field_effect_helpers.c` del tag) |
 | #9968 | `17868675` | 12/05 | gli OWE "che non spariscono" non spariscono neanche per il loro movimento (`CanRemoveObjectForOWEMovement`) | sì |
 | #10066 | `da607f24` | 27/05 | OWE generati che leggevano dati spazzatura (lo script dell'oggetto solo per gli `OWE_MANUAL`) | sì |
 | #10753 | `7644501f` | 05/09 | suono di fuga a ogni passo nelle città | **no**, va presa a parte |
