@@ -1,6 +1,12 @@
 #ifndef GUARD_FIELD_EFFECT_HELPERS_H
 #define GUARD_FIELD_EFFECT_HELPERS_H
 
+// Raw reflection tag is paletteNum + this, and the high-bridge tag this + 0x10
+// (field_effect_helpers.c). Hasep: expansion's PR #9925 uses 0x3000, but the
+// surf mount palettes of src/surfable.c take 0x3001-0x308B, so a reflection
+// and a surf mount could share a palette; 0x3100 is free in the overworld.
+#define PAL_RAW_REFLECTION_OFFSET 0x3100
+
 // States for bobbing up and down while surfing
 enum {
     // No bobbing

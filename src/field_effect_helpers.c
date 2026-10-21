@@ -21,7 +21,7 @@
 
 #define OBJ_EVENT_PAL_TAG_NONE 0x11FF // duplicate of define in event_object_movement.c
 #define PAL_TAG_REFLECTION_OFFSET 0x0800 // reflection tag value is paletteTag + 0x0800
-#define PAL_RAW_REFLECTION_OFFSET 0x3000 // raw reflection tag is paletteNum + 0x3000
+// PAL_RAW_REFLECTION_OFFSET is in field_effect_helpers.h (surfable.c checks it).
 #define HIGH_BRIDGE_PAL_TAG (PAL_RAW_REFLECTION_OFFSET + 0x10)
 STATIC_ASSERT(NUM_SPECIES <= PAL_TAG_REFLECTION_OFFSET, TooManySpeciesForReflectionPaletteTags);
 // Build a unique tag for reflection's palette based on based tag, or paletteNum
