@@ -15,6 +15,7 @@
 #include "overworld.h"
 #include "random.h"
 #include "roamer.h"
+#include "safari_zone.h"
 #include "script.h"
 #include "script_movement.h"
 #include "sprite.h"
@@ -277,13 +278,15 @@ const struct BehaviorOWE *OWE_GetBehaviorInfo(const struct ObjectEvent *owe)
 
 // Hasep (decision D3): fewer OWEs on water and in caves than in grass,
 // "there is the DexNav for those". Indoor maps (Sprout Tower, ...) count as
-// caves, as the user asked.
+// caves, as the user asked. The Safari Zone has its own, lower land cap.
 static u32 GetOWESpawnCap(void)
 {
     if (ShouldSpawnWaterOWE())
         return OWE_SPAWNS_MAX_WATER;
     if (gMapHeader.mapType == MAP_TYPE_UNDERGROUND || gMapHeader.mapType == MAP_TYPE_INDOOR)
         return OWE_SPAWNS_MAX_CAVE;
+    if (GetSafariZoneFlag())
+        return OWE_SPAWNS_MAX_SAFARI;
     return OWE_SPAWNS_MAX_LAND;
 }
 

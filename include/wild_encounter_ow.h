@@ -7,6 +7,10 @@
 #define OWE_SPAWNS_MAX_LAND             OWE_SPAWNS_MAX
 #define OWE_SPAWNS_MAX_WATER            3
 #define OWE_SPAWNS_MAX_CAVE             3
+// Hasep: the user asked for 4 in the Safari Zone (land only; its water and
+// cave keep the caps above). With 6 there, many of them AGGRESSIVE (Tauros,
+// Rhyhorn), a test run had 18 battles in about 8 minutes.
+#define OWE_SPAWNS_MAX_SAFARI           4
 // Hasep: sprite tiles a spawn must leave free for icons and field effects
 // ("!", "?", follower emotes, grass, splashes). With OW_GFX_COMPRESS every
 // object keeps its whole sheet in VRAM, and in the Johto Safari Zone the OWEs
