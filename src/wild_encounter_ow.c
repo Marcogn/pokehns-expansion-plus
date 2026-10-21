@@ -167,6 +167,7 @@ static u32 GetOldestActiveOWESlot(bool32 forceRemove);
 static u32 GetNextOWESpawnSlot(void);
 static u32 GetSpeciesByOWESpawnSlot(u32 spawnSlot);
 static bool32 TrySelectTileForOWE(s32* outX, s32* outY);
+static bool32 TrySelectTilesForOWE(s32 *outX, s32 *outY);
 static void SetSpeciesInfoForOWE(struct InfoOWE *info, u32 x, u32 y);
 static u32 GetGraphicsIdForOWE(const struct InfoOWE *info);
 static bool32 CheckCanLoadOWE(u32 speciesId, bool32 isFemale, bool32 isShiny, s32 x, s32 y);
@@ -369,7 +370,7 @@ void UpdateOverworldWildEncounter(void)
     s32 x, y;
     if (spawnSlot == OWE_INVALID_SPAWN_SLOT
      || (shouldSpawnWaterMons && AreLegendariesInSootopolisPreventingEncounters())
-     || !TrySelectTileForOWE(&x, &y))
+     || !TrySelectTilesForOWE(&x, &y))
     {
         SetMinimumOWESpawnTimer();
         return;
@@ -1262,6 +1263,21 @@ static u32 GetSpeciesByOWESpawnSlot(u32 spawnSlot)
         return SPECIES_NONE;
 
     return OW_SPECIES(owe);
+}
+
+// Hasep: upstream tries one random on-screen tile per spawn attempt, and an
+// attempt that misses waits OWE_SPAWN_TIME_MINIMUM frames: with little grass
+// on screen most attempts missed and the user found them slow to appear.
+// Several tiles per attempt change nothing where grass is plentiful (the
+// first try hits) and the caps stay the same.
+static bool32 TrySelectTilesForOWE(s32 *outX, s32 *outY)
+{
+    for (u32 i = 0; i < OWE_SPAWN_TILE_TRIES; i++)
+    {
+        if (TrySelectTileForOWE(outX, outY))
+            return TRUE;
+    }
+    return FALSE;
 }
 
 static bool32 TrySelectTileForOWE(s32* outX, s32* outY)

@@ -11,6 +11,9 @@
 // cave keep the caps above). With 6 there, many of them AGGRESSIVE (Tauros,
 // Rhyhorn), a test run had 18 battles in about 8 minutes.
 #define OWE_SPAWNS_MAX_SAFARI           4
+// Hasep: random tiles tried per spawn attempt (upstream: 1). 4 asked by the
+// user as a first step; see TrySelectTilesForOWE.
+#define OWE_SPAWN_TILE_TRIES            4
 // Hasep: sprite tiles a spawn must leave free for icons and field effects
 // ("!", "?", follower emotes, grass, splashes). With OW_GFX_COMPRESS every
 // object keeps its whole sheet in VRAM, and in the Johto Safari Zone the OWEs
