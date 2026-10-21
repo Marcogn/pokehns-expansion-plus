@@ -193,6 +193,7 @@ In `.claude/rules/`, caricate da sole quando apri i file indicati.
 | `megas.md` | spazio in ROM delle megaevoluzioni |
 | `title_screen.md` | "+" e versione sulla schermata del titolo |
 | `pc_box.md` | `SORT` e `SEARCH` nei box del PC |
+| `overworld_encounters.md` | Pokémon visibili nell'overworld (in corso, piano in `docs/plans/`) |
 
 Fuori dalle regole, da leggere quando serve: `docs/claude/emulator.md`,
 `docs/SOULGOLD_PORT_REPORT.md`.

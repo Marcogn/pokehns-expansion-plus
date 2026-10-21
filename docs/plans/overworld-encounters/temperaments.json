@@ -1,0 +1,998 @@
+{
+ "behaviours": [
+  "guarda",
+  "gira",
+  "avvicina",
+  "insegue",
+  "scappa",
+  "sparisce"
+ ],
+ "profiles": {
+  "NEUTRO": {
+   "guarda": 30,
+   "gira": 40,
+   "avvicina": 0,
+   "insegue": 15,
+   "scappa": 15,
+   "sparisce": 0
+  },
+  "TIMIDO": {
+   "guarda": 15,
+   "gira": 25,
+   "avvicina": 0,
+   "insegue": 0,
+   "scappa": 60,
+   "sparisce": 0
+  },
+  "AGGRESSIVO": {
+   "guarda": 15,
+   "gira": 25,
+   "avvicina": 0,
+   "insegue": 55,
+   "scappa": 5,
+   "sparisce": 0
+  },
+  "CURIOSO": {
+   "guarda": 20,
+   "gira": 20,
+   "avvicina": 45,
+   "insegue": 10,
+   "scappa": 5,
+   "sparisce": 0
+  },
+  "PLACIDO": {
+   "guarda": 65,
+   "gira": 25,
+   "avvicina": 0,
+   "insegue": 5,
+   "scappa": 5,
+   "sparisce": 0
+  },
+  "SFUGGENTE": {
+   "guarda": 15,
+   "gira": 15,
+   "avvicina": 0,
+   "insegue": 0,
+   "scappa": 30,
+   "sparisce": 40
+  }
+ },
+ "families": {
+  "BULBASAUR": {
+   "profile": "NEUTRO",
+   "species": {
+    "BULBASAUR": "CURIOSO",
+    "VENUSAUR": "PLACIDO"
+   },
+   "source": "user"
+  },
+  "CHARMANDER": {
+   "profile": "NEUTRO",
+   "species": {
+    "CHARIZARD": "AGGRESSIVO",
+    "CHARMANDER": "CURIOSO"
+   },
+   "source": "user"
+  },
+  "SQUIRTLE": {
+   "profile": "NEUTRO",
+   "species": {
+    "BLASTOISE": "AGGRESSIVO",
+    "SQUIRTLE": "CURIOSO"
+   },
+   "source": "user"
+  },
+  "CATERPIE": {
+   "profile": "NEUTRO",
+   "species": {
+    "BUTTERFREE": "TIMIDO",
+    "METAPOD": "PLACIDO"
+   },
+   "source": "user"
+  },
+  "WEEDLE": {
+   "profile": "NEUTRO",
+   "species": {
+    "KAKUNA": "PLACIDO",
+    "BEEDRILL": "AGGRESSIVO"
+   },
+   "source": "proposal"
+  },
+  "PIDGEY": {
+   "profile": "TIMIDO",
+   "species": {
+    "PIDGEOTTO": "CURIOSO"
+   },
+   "source": "user"
+  },
+  "RATTATA": {
+   "profile": "TIMIDO",
+   "species": {
+    "RATICATE": "AGGRESSIVO",
+    "RATICATE_ALOLA": "AGGRESSIVO",
+    "RATTATA_ALOLA": "AGGRESSIVO"
+   },
+   "source": "user"
+  },
+  "SPEAROW": {
+   "profile": "AGGRESSIVO",
+   "species": {},
+   "source": "proposal"
+  },
+  "EKANS": {
+   "profile": "AGGRESSIVO",
+   "species": {},
+   "source": "proposal"
+  },
+  "PIKACHU": {
+   "profile": "TIMIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "SANDSHREW": {
+   "profile": "TIMIDO",
+   "species": {
+    "SANDSLASH": "AGGRESSIVO"
+   },
+   "source": "user"
+  },
+  "NIDORAN": {
+   "profile": "NEUTRO",
+   "species": {
+    "NIDORINO": "AGGRESSIVO"
+   },
+   "source": "proposal"
+  },
+  "CLEFAIRY": {
+   "profile": "SFUGGENTE",
+   "species": {},
+   "source": "proposal"
+  },
+  "VULPIX": {
+   "profile": "TIMIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "JIGGLYPUFF": {
+   "profile": "CURIOSO",
+   "species": {},
+   "source": "proposal"
+  },
+  "ZUBAT": {
+   "profile": "AGGRESSIVO",
+   "species": {
+    "ZUBAT": "TIMIDO"
+   },
+   "source": "user"
+  },
+  "ODDISH": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "PARAS": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "VENONAT": {
+   "profile": "NEUTRO",
+   "species": {},
+   "source": "proposal"
+  },
+  "DIGLETT": {
+   "profile": "SFUGGENTE",
+   "species": {},
+   "source": "proposal"
+  },
+  "MEOWTH": {
+   "profile": "CURIOSO",
+   "species": {
+    "PERSIAN": "AGGRESSIVO",
+    "PERSIAN_ALOLA": "NEUTRO"
+   },
+   "source": "proposal"
+  },
+  "PSYDUCK": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "MANKEY": {
+   "profile": "AGGRESSIVO",
+   "species": {
+    "ANNIHILAPE": "AGGRESSIVO"
+   },
+   "source": "proposal"
+  },
+  "GROWLITHE": {
+   "profile": "AGGRESSIVO",
+   "species": {
+    "GROWLITHE_HISUI": "CURIOSO"
+   },
+   "source": "user"
+  },
+  "POLIWAG": {
+   "profile": "NEUTRO",
+   "species": {},
+   "source": "proposal"
+  },
+  "ABRA": {
+   "profile": "SFUGGENTE",
+   "species": {
+    "ALAKAZAM": "PLACIDO"
+   },
+   "source": "user"
+  },
+  "MACHOP": {
+   "profile": "AGGRESSIVO",
+   "species": {},
+   "source": "proposal"
+  },
+  "BELLSPROUT": {
+   "profile": "NEUTRO",
+   "species": {
+    "WEEPINBELL": "PLACIDO"
+   },
+   "source": "proposal"
+  },
+  "TENTACOOL": {
+   "profile": "AGGRESSIVO",
+   "species": {},
+   "source": "proposal"
+  },
+  "GEODUDE": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "PONYTA": {
+   "profile": "TIMIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "SLOWPOKE": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "MAGNEMITE": {
+   "profile": "NEUTRO",
+   "species": {},
+   "source": "proposal"
+  },
+  "FARFETCHD": {
+   "profile": "NEUTRO",
+   "species": {},
+   "source": "proposal"
+  },
+  "DODUO": {
+   "profile": "TIMIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "SEEL": {
+   "profile": "NEUTRO",
+   "species": {},
+   "source": "proposal"
+  },
+  "GRIMER": {
+   "profile": "NEUTRO",
+   "species": {
+    "MUK": "AGGRESSIVO"
+   },
+   "source": "proposal"
+  },
+  "SHELLDER": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "GASTLY": {
+   "profile": "CURIOSO",
+   "species": {},
+   "source": "proposal"
+  },
+  "ONIX": {
+   "profile": "AGGRESSIVO",
+   "species": {
+    "STEELIX": "AGGRESSIVO"
+   },
+   "source": "proposal"
+  },
+  "DROWZEE": {
+   "profile": "CURIOSO",
+   "species": {},
+   "source": "proposal"
+  },
+  "KRABBY": {
+   "profile": "NEUTRO",
+   "species": {
+    "KINGLER": "AGGRESSIVO"
+   },
+   "source": "proposal"
+  },
+  "VOLTORB": {
+   "profile": "AGGRESSIVO",
+   "species": {},
+   "source": "proposal"
+  },
+  "EXEGGCUTE": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "CUBONE": {
+   "profile": "TIMIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "HITMONS": {
+   "profile": "AGGRESSIVO",
+   "species": {},
+   "source": "proposal"
+  },
+  "LICKITUNG": {
+   "profile": "CURIOSO",
+   "species": {},
+   "source": "proposal"
+  },
+  "KOFFING": {
+   "profile": "NEUTRO",
+   "species": {},
+   "source": "proposal"
+  },
+  "RHYHORN": {
+   "profile": "AGGRESSIVO",
+   "species": {},
+   "source": "proposal"
+  },
+  "CHANSEY": {
+   "profile": "TIMIDO",
+   "species": {},
+   "source": "user"
+  },
+  "TANGELA": {
+   "profile": "TIMIDO",
+   "species": {
+    "TANGROWTH": "PLACIDO"
+   },
+   "source": "user"
+  },
+  "KANGASKHAN": {
+   "profile": "AGGRESSIVO",
+   "species": {},
+   "source": "proposal"
+  },
+  "HORSEA": {
+   "profile": "NEUTRO",
+   "species": {},
+   "source": "proposal"
+  },
+  "GOLDEEN": {
+   "profile": "NEUTRO",
+   "species": {},
+   "source": "proposal"
+  },
+  "STARYU": {
+   "profile": "NEUTRO",
+   "species": {},
+   "source": "proposal"
+  },
+  "MR_MIME": {
+   "profile": "NEUTRO",
+   "species": {},
+   "source": "proposal"
+  },
+  "SCYTHER": {
+   "profile": "AGGRESSIVO",
+   "species": {
+    "KLEAVOR": "AGGRESSIVO"
+   },
+   "source": "proposal"
+  },
+  "JYNX": {
+   "profile": "NEUTRO",
+   "species": {
+    "SMOOCHUM": "CURIOSO"
+   },
+   "source": "proposal"
+  },
+  "ELECTABUZZ": {
+   "profile": "NEUTRO",
+   "species": {
+    "ELEKID": "TIMIDO"
+   },
+   "source": "user"
+  },
+  "MAGMAR": {
+   "profile": "NEUTRO",
+   "species": {
+    "MAGBY": "TIMIDO",
+    "MAGMORTAR": "NEUTRO"
+   },
+   "source": "user"
+  },
+  "PINSIR": {
+   "profile": "AGGRESSIVO",
+   "species": {},
+   "source": "proposal"
+  },
+  "TAUROS": {
+   "profile": "AGGRESSIVO",
+   "species": {},
+   "source": "proposal"
+  },
+  "MAGIKARP": {
+   "profile": "PLACIDO",
+   "species": {
+    "GYARADOS": "AGGRESSIVO"
+   },
+   "source": "proposal"
+  },
+  "LAPRAS": {
+   "profile": "CURIOSO",
+   "species": {},
+   "source": "proposal"
+  },
+  "DITTO": {
+   "profile": "NEUTRO",
+   "species": {},
+   "source": "proposal"
+  },
+  "EEVEE": {
+   "profile": "TIMIDO",
+   "species": {
+    "LEAFEON": "NEUTRO"
+   },
+   "source": "proposal"
+  },
+  "OMANYTE": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "KABUTO": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "AERODACTYL": {
+   "profile": "AGGRESSIVO",
+   "species": {},
+   "source": "proposal"
+  },
+  "DRATINI": {
+   "profile": "TIMIDO",
+   "species": {},
+   "source": "user"
+  },
+  "CHIKORITA": {
+   "profile": "NEUTRO",
+   "species": {
+    "CHIKORITA": "CURIOSO"
+   },
+   "source": "user"
+  },
+  "CYNDAQUIL": {
+   "profile": "TIMIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "TOTODILE": {
+   "profile": "AGGRESSIVO",
+   "species": {},
+   "source": "proposal"
+  },
+  "SENTRET": {
+   "profile": "TIMIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "HOOTHOOT": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "LEDYBA": {
+   "profile": "TIMIDO",
+   "species": {
+    "LEDIAN": "CURIOSO"
+   },
+   "source": "user"
+  },
+  "SPINARAK": {
+   "profile": "PLACIDO",
+   "species": {
+    "ARIADOS": "AGGRESSIVO"
+   },
+   "source": "proposal"
+  },
+  "TOGEPI": {
+   "profile": "CURIOSO",
+   "species": {},
+   "source": "proposal"
+  },
+  "NATU": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "MAREEP": {
+   "profile": "NEUTRO",
+   "species": {},
+   "source": "proposal"
+  },
+  "MARILL": {
+   "profile": "NEUTRO",
+   "species": {},
+   "source": "proposal"
+  },
+  "HOPPIP": {
+   "profile": "NEUTRO",
+   "species": {},
+   "source": "proposal"
+  },
+  "AIPOM": {
+   "profile": "CURIOSO",
+   "species": {},
+   "source": "proposal"
+  },
+  "SUNKERN": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "YANMA": {
+   "profile": "SFUGGENTE",
+   "species": {},
+   "source": "user"
+  },
+  "WOOPER": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "MURKROW": {
+   "profile": "CURIOSO",
+   "species": {},
+   "source": "proposal"
+  },
+  "MISDREAVUS": {
+   "profile": "CURIOSO",
+   "species": {},
+   "source": "proposal"
+  },
+  "UNOWN": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "WOBBUFFET": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "GIRAFARIG": {
+   "profile": "NEUTRO",
+   "species": {},
+   "source": "proposal"
+  },
+  "PINECO": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "DUNSPARCE": {
+   "profile": "SFUGGENTE",
+   "species": {},
+   "source": "proposal"
+  },
+  "GLIGAR": {
+   "profile": "AGGRESSIVO",
+   "species": {},
+   "source": "proposal"
+  },
+  "SNUBBULL": {
+   "profile": "TIMIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "QWILFISH": {
+   "profile": "AGGRESSIVO",
+   "species": {},
+   "source": "proposal"
+  },
+  "SHUCKLE": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "HERACROSS": {
+   "profile": "NEUTRO",
+   "species": {},
+   "source": "proposal"
+  },
+  "SNEASEL": {
+   "profile": "AGGRESSIVO",
+   "species": {
+    "SNEASEL_HISUI": "PLACIDO",
+    "SNEASLER": "AGGRESSIVO"
+   },
+   "source": "user"
+  },
+  "TEDDIURSA": {
+   "profile": "CURIOSO",
+   "species": {
+    "URSARING": "AGGRESSIVO",
+    "URSALUNA": "AGGRESSIVO"
+   },
+   "source": "proposal"
+  },
+  "SLUGMA": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "SWINUB": {
+   "profile": "NEUTRO",
+   "species": {
+    "PILOSWINE": "PLACIDO",
+    "MAMOSWINE": "AGGRESSIVO"
+   },
+   "source": "proposal"
+  },
+  "CORSOLA": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "REMORAID": {
+   "profile": "NEUTRO",
+   "species": {},
+   "source": "proposal"
+  },
+  "DELIBIRD": {
+   "profile": "CURIOSO",
+   "species": {},
+   "source": "proposal"
+  },
+  "MANTINE": {
+   "profile": "NEUTRO",
+   "species": {},
+   "source": "proposal"
+  },
+  "SKARMORY": {
+   "profile": "AGGRESSIVO",
+   "species": {},
+   "source": "proposal"
+  },
+  "HOUNDOUR": {
+   "profile": "AGGRESSIVO",
+   "species": {},
+   "source": "proposal"
+  },
+  "PHANPY": {
+   "profile": "CURIOSO",
+   "species": {
+    "DONPHAN": "AGGRESSIVO"
+   },
+   "source": "proposal"
+  },
+  "STANTLER": {
+   "profile": "TIMIDO",
+   "species": {
+    "WYRDEER": "NEUTRO"
+   },
+   "source": "proposal"
+  },
+  "MILTANK": {
+   "profile": "NEUTRO",
+   "species": {},
+   "source": "proposal"
+  },
+  "LARVITAR": {
+   "profile": "NEUTRO",
+   "species": {
+    "PUPITAR": "PLACIDO"
+   },
+   "source": "proposal"
+  },
+  "TREECKO": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "user"
+  },
+  "TORCHIC": {
+   "profile": "CURIOSO",
+   "species": {},
+   "source": "proposal"
+  },
+  "MUDKIP": {
+   "profile": "TIMIDO",
+   "species": {},
+   "source": "user"
+  },
+  "POOCHYENA": {
+   "profile": "AGGRESSIVO",
+   "species": {},
+   "source": "proposal"
+  },
+  "ZIGZAGOON": {
+   "profile": "CURIOSO",
+   "species": {},
+   "source": "proposal"
+  },
+  "WURMPLE": {
+   "profile": "NEUTRO",
+   "species": {
+    "WURMPLE": "TIMIDO"
+   },
+   "source": "user"
+  },
+  "LOTAD": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "SEEDOT": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "TAILLOW": {
+   "profile": "AGGRESSIVO",
+   "species": {},
+   "source": "proposal"
+  },
+  "WINGULL": {
+   "profile": "NEUTRO",
+   "species": {},
+   "source": "proposal"
+  },
+  "RALTS": {
+   "profile": "SFUGGENTE",
+   "species": {},
+   "source": "proposal"
+  },
+  "SURSKIT": {
+   "profile": "NEUTRO",
+   "species": {},
+   "source": "proposal"
+  },
+  "SHROOMISH": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "SLAKOTH": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "NINCADA": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "WHISMUR": {
+   "profile": "TIMIDO",
+   "species": {
+    "LOUDRED": "AGGRESSIVO"
+   },
+   "source": "proposal"
+  },
+  "MAKUHITA": {
+   "profile": "AGGRESSIVO",
+   "species": {},
+   "source": "proposal"
+  },
+  "NOSEPASS": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "SKITTY": {
+   "profile": "CURIOSO",
+   "species": {},
+   "source": "proposal"
+  },
+  "SABLEYE": {
+   "profile": "SFUGGENTE",
+   "species": {},
+   "source": "proposal"
+  },
+  "MAWILE": {
+   "profile": "NEUTRO",
+   "species": {},
+   "source": "proposal"
+  },
+  "ARON": {
+   "profile": "NEUTRO",
+   "species": {},
+   "source": "proposal"
+  },
+  "MEDITITE": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "ELECTRIKE": {
+   "profile": "CURIOSO",
+   "species": {},
+   "source": "user"
+  },
+  "PLUSLE": {
+   "profile": "CURIOSO",
+   "species": {},
+   "source": "proposal"
+  },
+  "MINUN": {
+   "profile": "CURIOSO",
+   "species": {},
+   "source": "proposal"
+  },
+  "VOLBEAT_ILLUMISE": {
+   "profile": "NEUTRO",
+   "species": {},
+   "source": "proposal"
+  },
+  "ROSELIA": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "GULPIN": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "CARVANHA": {
+   "profile": "AGGRESSIVO",
+   "species": {},
+   "source": "proposal"
+  },
+  "WAILMER": {
+   "profile": "CURIOSO",
+   "species": {},
+   "source": "proposal"
+  },
+  "NUMEL": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "TORKOAL": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "SPOINK": {
+   "profile": "NEUTRO",
+   "species": {},
+   "source": "proposal"
+  },
+  "SPINDA": {
+   "profile": "NEUTRO",
+   "species": {},
+   "source": "proposal"
+  },
+  "TRAPINCH": {
+   "profile": "PLACIDO",
+   "species": {
+    "VIBRAVA": "NEUTRO"
+   },
+   "source": "proposal"
+  },
+  "CACNEA": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "SWABLU": {
+   "profile": "CURIOSO",
+   "species": {},
+   "source": "proposal"
+  },
+  "ZANGOOSE": {
+   "profile": "AGGRESSIVO",
+   "species": {},
+   "source": "proposal"
+  },
+  "SEVIPER": {
+   "profile": "AGGRESSIVO",
+   "species": {},
+   "source": "proposal"
+  },
+  "LUNATONE": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "SOLROCK": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "BARBOACH": {
+   "profile": "NEUTRO",
+   "species": {},
+   "source": "proposal"
+  },
+  "BALTOY": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "LILEEP": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "ANORITH": {
+   "profile": "NEUTRO",
+   "species": {},
+   "source": "proposal"
+  },
+  "CASTFORM": {
+   "profile": "NEUTRO",
+   "species": {},
+   "source": "proposal"
+  },
+  "KECLEON": {
+   "profile": "SFUGGENTE",
+   "species": {},
+   "source": "proposal"
+  },
+  "SHUPPET": {
+   "profile": "CURIOSO",
+   "species": {},
+   "source": "proposal"
+  },
+  "DUSKULL": {
+   "profile": "CURIOSO",
+   "species": {},
+   "source": "proposal"
+  },
+  "TROPIUS": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "CHIMECHO": {
+   "profile": "NEUTRO",
+   "species": {},
+   "source": "proposal"
+  },
+  "ABSOL": {
+   "profile": "SFUGGENTE",
+   "species": {},
+   "source": "proposal"
+  },
+  "SNORUNT": {
+   "profile": "NEUTRO",
+   "species": {},
+   "source": "proposal"
+  },
+  "SPHEAL": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "RELICANTH": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  },
+  "BAGON": {
+   "profile": "AGGRESSIVO",
+   "species": {},
+   "source": "proposal"
+  },
+  "BELDUM": {
+   "profile": "PLACIDO",
+   "species": {},
+   "source": "proposal"
+  }
+ }
+}
