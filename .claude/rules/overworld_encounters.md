@@ -24,12 +24,23 @@ più un tiro pesato per indole,
 sul modello del mod Wilds of Kanto. Le indoli scelte dall'utente sono in
 `docs/plans/overworld-encounters/temperaments.json`.
 
-## Stato: fase 2 fatta (21/10), tutto spento
+## Stato: fase 3 fatta (21/10), OWE accesi solo su Route 29
 
-Codice della PR più #9925, #9968, #10066, #10753 nel ramo, con
-`WE_OW_ENCOUNTERS FALSE` (`include/config/wild_encounter.h`, tutti i valori
-ai default upstream). ROM: 31 832 868 → 31 855 284 byte (+22 416, 94,87% →
-94,94%). Build pulita senza warning nuovi.
+Fase 2: codice della PR più #9925, #9968, #10066, #10753, tutto spento. ROM
+31 832 868 → 31 855 284 byte (+22 416, 94,87% → 94,94%).
+
+Fase 3: `WE_OW_ENCOUNTERS TRUE` con le config di D4/D5
+(`WE_OWE_SPAWN_REPLACEMENT`, `WE_OWE_SHINY_SPARKLE`,
+`WE_OWE_PREVENT_SHINY_DESPAWN` a TRUE), `OWE_SPAWNS_MAX` 6 e tetti per area
+`OWE_SPAWNS_MAX_LAND/WATER/CAVE` 6/3/3 (D3; grotta = `MAP_TYPE_UNDERGROUND`
+**o** `MAP_TYPE_INDOOR`, confermato dall'utente). Dove compaiono lo decide
+`HasepAreOWEsAllowedHere()` in `wild_encounter_ow.c`: WILD BATTLES OFF li
+spegne sempre, e per ora vale solo Route 29. **La fase 5 sostituisce il
+controllo della mappa con l'opzione del PC.** Gli incontri a passi sono
+ancora accesi (`WE_VANILLA_RANDOM TRUE`): li spegne la fase 5. ROM
+31 857 828 byte (+2 544 sulla fase 2, 94,94%). Nessun warning nuovo.
+
+**Non rilasciare da questo stato**: Route 29 ha sia OWE sia incontri a passi.
 
 ## Adattamenti alla nostra base (1.15.2)
 
@@ -59,10 +70,17 @@ ai default upstream). ROM: 31 832 868 → 31 855 284 byte (+22 416, 94,87% →
   e indicizzava `gObjectEvents` con il risultato "non trovato"
   (`OBJECT_EVENTS_COUNT`): lettura, e potenziale `ClearObjectEvent`, dei
   `.sbss` di `field_region_map.o`/`field_specials.o` che seguono l'array.
-  Guardia aggiunta. Lo stesso schema (`&gObjectEvents[GetObjectEventIdByLocalId(...)]`
-  senza controllo) resta in `wild_encounter_ow.c` nelle funzioni sugli slot
-  OWE (`GetOldestActiveOWESlot`, `SortOWEAges` e vicine): girano solo con OWE
-  accesi, **da guardare in fase 3**.
+  Guardia aggiunta. Lo stesso schema c'era nei loop sugli slot OWE
+  (`GetOldestActiveOWESlot`, `SortOWEAges`): uno slot vuoto leggeva
+  `gObjectEvents[16]`, e `SortOWEAges` ci **scriveva** l'età; lo stesso
+  nello spawn (`ShouldDespawnGeneratedForNewOWE` su uno slot libero, che
+  poteva finire in `RemoveObjectEvent`). Corretto in fase 3 con
+  `GetOWEBySpawnSlot()`, che restituisce NULL per uno slot vuoto. Restano
+  come upstream `SetOverworldObjectSpecies` (comando di script) e il percorso
+  degli OWE manuali, che Hasep non usa.
+- **Tetti per area e sostituzione**: a tetto pieno il ricambio è uno per
+  uno, quindi entrando in acqua con 6 OWE di terra il totale non scende
+  subito a 3: scende man mano che quelli di terra escono di vista.
 - `GetAvailableObjectEventId`: con la tabella piena e un `localId` di OWE
   generato, cade su `*objectEventId = 16` e restituisce `FALSE`. Upstream
   non ci arriva perché controlla prima `CheckCanLoadOWE`; da tenere presente
@@ -80,10 +98,19 @@ ai default upstream). ROM: 31 832 868 → 31 855 284 byte (+22 416, 94,87% →
 - **DexNav**: l'aggancio upstream (`DespawnAllOverworldWildEncounters` in
   `Task_DexNavExitAndSearch`) copre solo la ricerca dalla schermata. Da noi
   la ricerca parte anche da **R** (`TryStartDexNavSearch` →
-  `InitDexNavSearch`, `field_control_avatar.c`) e c'è la ricerca dei nascosti
-  (`FlagSet(DN_FLAG_SEARCHING)` in `dexnav.c`, ~riga 2957): nessuno dei due
-  fa sparire gli OWE. Da sistemare in fase 3, probabilmente in
-  `InitDexNavSearch`.
+  `InitDexNavSearch`): in fase 3 il despawn è anche in `InitDexNavSearch`.
+  La ricerca passiva dei nascosti (`FlagSet(DN_FLAG_SEARCHING)` in
+  `dexnav.c`, ~riga 2960) resta come upstream: niente despawn, ma con il
+  flag acceso non ne nascono di nuovi.
+- **Il menu debug fa sparire gli OWE**: si apre con R tenuto + START, e R
+  avvia la ricerca DexNav sulla specie registrata. Non è un bug; ma per una
+  prova sugli OWE non si può passare dal debug con una specie registrata.
+- La lotta con un OWE ricrea il Pokémon da specie, livello, sesso e shiny
+  salvati nell'oggetto: upstream usava `NATURE_RANDOM`, cioè niente
+  Sincronismo e niente Pokéblock del Safari. Ora usa `PickWildMonNature`
+  (resa non statica in `wild_encounter.c`) come `CreateWildMon`. Il bonus
+  agli IV del Pokéblock (`TryApplyPokeblockBonus`) resta perso: da vedere
+  con il Safari in fase 6.
 - `UpdateOverworldWildEncounter` (ogni frame, da `OverworldBasic`) chiama
   `CheckCurrentWildMonHeaderForOWE` **prima** di guardare
   `WE_OW_ENCOUNTERS`: costo per frame anche a feature spenta. Non toccato
@@ -103,7 +130,47 @@ Verifica (mGBA, ora finta con `faketime`, stesso salvataggio caricato nelle
 due ROM): Violet City, isolotto del ponte (26,25), giocatore + follower
 Bulbasaur + NPC sopra il laghetto. Riquadro dei riflessi di giocatore e
 follower: **0 pixel diversi** fra base e nuova (39 colori nel riquadro).
-Il caso shiny + normale della stessa specie resta da provare in fase 3.
+Il caso shiny + normale della stessa specie resta da provare: serve acqua,
+quindi in fase 6 (gli OWE generati non hanno riflesso, `SetUpReflection`;
+la collisione possibile è fra il riflesso del follower e uno shiny OWE).
+
+## Prove della fase 3 in emulatore (21/10)
+
+Dopo le prove una terza guardia sugli slot (spawn): ricompilata e riprovata
+in breve (spawn, lotta al contatto, fuga, nuovi spawn). Per separare le lotte
+da OWE da quelle a passi, una ROM strumentata con `WE_VANILLA_RANDOM FALSE`.
+Letture della RAM con `gdb-multiarch` (vedi sotto).
+
+- Spawn su Route 29: fino a 6 OWE insieme (localId 247-252), più follower e
+  NPC; picco palette sprite **10 su 16** (6 OWE di 3 specie, alcuni shiny,
+  follower, 2 NPC). Nessun difetto grafico visto con `OW_GFX_COMPRESS` acceso.
+- Lotta premendo A e lotta al contatto (il Pokémon che cammina addosso al
+  giocatore, con il «!»); cattura di un Pidgey sicuramente da OWE; squadra e
+  scheda aperte: dati integri (OT, livello, sesso uguale allo sprite, luogo).
+- DexNav da R con 5 OWE in campo: spariscono, nessuno spawn durante la
+  ricerca, lotta DexNav regolare, OWE di nuovo presenti dopo.
+- Shiny (Force Shiny): scintilla allo spawn, palette shiny (0 pixel del rosa
+  della palette normale sul corpo di Hoppip, 47 sul normale), shiny anche in
+  lotta, catturato con la stella. D5: 6 shiny, Force Shiny spento, giocatore
+  a 17-21 caselle e ritorno: stessi 6 localId, nessuno spawn normale.
+- Uscendo verso New Bark Town (città) spariscono tutti; i Pokémon-oggetto
+  della mappa (Wooper, Pineco) no.
+- **Non provato** (Route 29 non ha acqua né è una grotta): tetti 3/3 per
+  acqua e grotta, collisione palette riflesso/shiny. Vanno in fase 6.
+
+### GDB su mGBA, come funziona davvero
+
+Lo stub di `mgba -g` (porta 2345) accetta **una sola connessione** per
+sessione e non supporta il detach (`E07`): un `gdb -batch` per ogni
+lettura non va, la seconda connessione resta appesa. Funziona un solo
+`gdb-multiarch` sempre aperto, alimentato da una fifo (`tail -f fifo |
+gdb-multiarch`), con `continue &` dopo il collegamento e `interrupt` / `dump
+binary memory` / `continue &` per ogni lettura. `pokehns.elf` non ha
+informazioni di debug: gli indirizzi si prendono con `nm`, gli offset dei
+campi compilando un `offsetof` con i flag del Makefile (`-mthumb -mabi=apcs-gnu
+-march=armv4t -iquote include -DPOKEMON_HNS`). `gSaveBlock1Ptr` punta dentro
+`gSaveblock1` con uno spostamento casuale: si legge il puntatore.
+Mai `pkill -f` con una parola che compare nel comando stesso: uccide la shell.
 
 ## Prove della fase 2 in emulatore
 

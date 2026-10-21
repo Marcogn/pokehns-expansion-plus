@@ -104,6 +104,18 @@ static inline u32 GetSpawnSlotByOWELocalId(u32 localId)
     return LOCALID_OW_ENCOUNTER_END - localId;
 }
 
+// Hasep: upstream indexes gObjectEvents with GetObjectEventIdByLocalId() for
+// every slot, and an empty slot yields OBJECT_EVENTS_COUNT: the loops below
+// then read (SortOWEAges also writes) whatever follows the array in EWRAM.
+static struct ObjectEvent *GetOWEBySpawnSlot(u32 spawnSlot)
+{
+    u32 objectEventId = GetObjectEventIdByLocalId(GetLocalIdByOWESpawnSlot(spawnSlot));
+
+    if (objectEventId >= OBJECT_EVENTS_COUNT)
+        return NULL;
+    return &gObjectEvents[objectEventId];
+}
+
 static inline u32 GetOWECategory(const struct ObjectEvent *owe)
 {
     return owe->sOverworldEncounterCategory & ~OWE_SAVED_MOVEMENT_STATE_FLAG;
@@ -228,6 +240,30 @@ const struct FieldEffectInfoOWE gOverworldWildEncounterFieldEffectInfo[] =
 };
 
 
+// Hasep (decision D3): fewer OWEs on water and in caves than in grass,
+// "there is the DexNav for those". Indoor maps (Sprout Tower, ...) count as
+// caves, as the user asked.
+static u32 GetOWESpawnCap(void)
+{
+    if (ShouldSpawnWaterOWE())
+        return OWE_SPAWNS_MAX_WATER;
+    if (gMapHeader.mapType == MAP_TYPE_UNDERGROUND || gMapHeader.mapType == MAP_TYPE_INDOOR)
+        return OWE_SPAWNS_MAX_CAVE;
+    return OWE_SPAWNS_MAX_LAND;
+}
+
+// Hasep: where generated OWEs may appear. WILD BATTLES OFF (challenge
+// settings) turns them off like step encounters, or the visible Pokémon would
+// still start battles. Phase 3 of docs/plans/overworld-encounters.md only
+// switches them on in Route 29; the PC option of phase 5 replaces the map check.
+static bool32 HasepAreOWEsAllowedHere(void)
+{
+    if (AreWildEncountersDisabledByOption())
+        return FALSE;
+    return gSaveBlock1Ptr->location.mapGroup == MAP_GROUP(MAP_ROUTE29_HNS)
+        && gSaveBlock1Ptr->location.mapNum == MAP_NUM(MAP_ROUTE29_HNS);
+}
+
 void UpdateOverworldWildEncounter(void)
 {
     //Check if possible to spawn.
@@ -238,6 +274,7 @@ void UpdateOverworldWildEncounter(void)
         return;
 
     if (!WE_OW_ENCOUNTERS
+     || !HasepAreOWEsAllowedHere()
      || FlagGet(WE_OWE_FLAG_DISABLED)
      || FlagGet(OW_FLAG_NO_ENCOUNTER)
      || FlagGet(DN_FLAG_SEARCHING)
@@ -309,11 +346,11 @@ void UpdateOverworldWildEncounter(void)
         .movementType = OWE_GetMovementTypeFromSpecies(infoOWE.speciesId),
         .trainerType = TRAINER_TYPE_OW_WILD_ENCOUNTER,
     };
-    u32 objectEventId = GetObjectEventIdByLocalId(infoOWE.localId);
-    struct ObjectEvent *owe = &gObjectEvents[objectEventId];
-    if (ShouldDespawnGeneratedForNewOWE(owe))
+    // Hasep: a free slot has no object, see GetOWEBySpawnSlot.
+    struct ObjectEvent *owe = GetOWEBySpawnSlot(spawnSlot);
+    if (owe != NULL && ShouldDespawnGeneratedForNewOWE(owe))
         RemoveObjectEvent(owe);
-    objectEventId = SpawnSpecialObjectEvent(&objectEventTemplate);
+    u32 objectEventId = SpawnSpecialObjectEvent(&objectEventTemplate);
 
     assertf(objectEventId < OBJECT_EVENTS_COUNT, "could not spawn generated overworld encounter. too many object events exist")
     {
@@ -392,7 +429,9 @@ void StartWildBattleWithOWE(struct ScriptContext *ctx)
     }
 
     ZeroEnemyPartyMons();
-    personality = GetMonPersonality(speciesId, gender, NATURE_RANDOM, RANDOM_UNOWN_LETTER);
+    // Hasep: PickWildMonNature, as CreateWildMon does for step encounters, so
+    // Synchronize and the Safari Pokéblock nature bias still apply.
+    personality = GetMonPersonality(speciesId, gender, PickWildMonNature(speciesId), RANDOM_UNOWN_LETTER);
     CreateMonWithIVs(&gEnemyParty[0], speciesId, level, personality, OTID_STRUCT_PLAYER_ID, USE_RANDOM_IVS);
     GiveMonInitialMoveset(&gEnemyParty[0]);
     SetMonData(&gEnemyParty[0], MON_DATA_IS_SHINY, &shiny);
@@ -1016,7 +1055,7 @@ void SetMinimumOWESpawnTimer(void)
         return;
 
     sOWESpawnCountdown = OWE_SPAWN_TIME_MINIMUM;
-    if (LURE_STEP_COUNT && GetNumberOfActiveOWEs(OWE_GENERATED) < OWE_SPAWNS_MAX)
+    if (LURE_STEP_COUNT && GetNumberOfActiveOWEs(OWE_GENERATED) < GetOWESpawnCap())
         sOWESpawnCountdown = OWE_SPAWN_TIME_LURE;
 }
 
@@ -1096,13 +1135,13 @@ static bool32 CheckCurrentWildMonHeaderForOWE(bool32 shouldSpawnWaterMons)
 
 static u32 GetOldestActiveOWESlot(bool32 forceRemove)
 {
-    struct ObjectEvent *slotMon, *oldest = &gObjectEvents[GetObjectEventIdByLocalId(LOCALID_OW_ENCOUNTER_END)];
+    struct ObjectEvent *slotMon, *oldest = NULL;
     u32 spawnSlot;
 
     for (spawnSlot = 0; spawnSlot < OWE_SPAWNS_MAX; spawnSlot++)
     {
-        slotMon = &gObjectEvents[GetObjectEventIdByLocalId(GetLocalIdByOWESpawnSlot(spawnSlot))];
-        if (OW_SPECIES(slotMon) != SPECIES_NONE && (!HasOWENoDespawnFlag(slotMon) || forceRemove == TRUE))
+        slotMon = GetOWEBySpawnSlot(spawnSlot);
+        if (slotMon != NULL && OW_SPECIES(slotMon) != SPECIES_NONE && (!HasOWENoDespawnFlag(slotMon) || forceRemove == TRUE))
         {
             oldest = slotMon;
             break;
@@ -1114,8 +1153,8 @@ static u32 GetOldestActiveOWESlot(bool32 forceRemove)
 
     for (u32 i = spawnSlot; i < OWE_SPAWNS_MAX; i++)
     {
-        slotMon = &gObjectEvents[GetObjectEventIdByLocalId(GetLocalIdByOWESpawnSlot(i))];
-        if (OW_SPECIES(slotMon) != SPECIES_NONE && (!HasOWENoDespawnFlag(slotMon) || forceRemove == TRUE))
+        slotMon = GetOWEBySpawnSlot(i);
+        if (slotMon != NULL && OW_SPECIES(slotMon) != SPECIES_NONE && (!HasOWENoDespawnFlag(slotMon) || forceRemove == TRUE))
         {
             if (slotMon->sOverworldEncounterAge > oldest->sOverworldEncounterAge)
                 oldest = slotMon;
@@ -1129,8 +1168,8 @@ static u32 GetNextOWESpawnSlot(void)
 {
     u32 spawnSlot;
 
-    // All mon slots are in use
-    if (GetNumberOfActiveOWEs(OWE_GENERATED) >= OWE_SPAWNS_MAX)
+    // All mon slots are in use (Hasep: up to this area's cap)
+    if (GetNumberOfActiveOWEs(OWE_GENERATED) >= GetOWESpawnCap())
     {
         if (WE_OWE_SPAWN_REPLACEMENT)
         {
@@ -1359,9 +1398,9 @@ static void SortOWEAges(void)
 
     for (i = 0; i < OWE_SPAWNS_MAX; i++)
     {
-        slotMon = &gObjectEvents[GetObjectEventIdByLocalId(GetLocalIdByOWESpawnSlot(i))];
+        slotMon = GetOWEBySpawnSlot(i);
         // OWE_ANY can be used here as localId is guarenteed to be in the OWE_GENERATED range by GetLocalIdByOWESpawnSlot.
-        if (IsOverworldWildEncounter(slotMon, OWE_ANY) && OW_SPECIES(slotMon) != SPECIES_NONE)
+        if (slotMon != NULL && IsOverworldWildEncounter(slotMon, OWE_ANY) && OW_SPECIES(slotMon) != SPECIES_NONE)
         {
             array[count].slot = i;
             array[count].age = slotMon->sOverworldEncounterAge;
@@ -1371,7 +1410,7 @@ static void SortOWEAges(void)
             break;
     }
 
-    for (i = 1; i < numActive; i++)
+    for (i = 1; i < count; i++)
     {
         current = array[i];
         j = i - 1;
@@ -1385,10 +1424,10 @@ static void SortOWEAges(void)
         array[j + 1] = current;
     }
     
-    for (i = 0; i < numActive; i++)
+    for (i = 0; i < count; i++)
     {
-        slotMon = &gObjectEvents[GetObjectEventIdByLocalId(GetLocalIdByOWESpawnSlot(array[i].slot))];
-        slotMon->sOverworldEncounterAge = numActive - i;
+        slotMon = GetOWEBySpawnSlot(array[i].slot);
+        slotMon->sOverworldEncounterAge = count - i;
     }
 }
 
@@ -1542,16 +1581,16 @@ static bool32 ShouldDespawnGeneratedForNewOWE(struct ObjectEvent *owe)
     if (!IsOverworldWildEncounter(owe, OWE_GENERATED))
         return FALSE;
 
-    return WE_OWE_SPAWN_REPLACEMENT && GetNumberOfActiveOWEs(OWE_GENERATED) >= OWE_SPAWNS_MAX;
+    return WE_OWE_SPAWN_REPLACEMENT && GetNumberOfActiveOWEs(OWE_GENERATED) >= GetOWESpawnCap();
 }
 
 static void SetNewOWESpawnCountdown(void)
 {
     u32 numActive = GetNumberOfActiveOWEs(OWE_GENERATED);
 
-    if (WE_OWE_SPAWN_REPLACEMENT && numActive >= OWE_SPAWNS_MAX)
+    if (WE_OWE_SPAWN_REPLACEMENT && numActive >= GetOWESpawnCap())
         sOWESpawnCountdown = OWE_SPAWN_TIME_REPLACEMENT;
-    else if (LURE_STEP_COUNT && numActive < OWE_SPAWNS_MAX)
+    else if (LURE_STEP_COUNT && numActive < GetOWESpawnCap())
         sOWESpawnCountdown = OWE_SPAWN_TIME_LURE;
     else
         sOWESpawnCountdown = OWE_SPAWN_TIME_MINIMUM + (OWE_SPAWN_TIME_PER_ACTIVE * numActive);

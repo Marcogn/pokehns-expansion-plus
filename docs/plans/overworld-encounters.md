@@ -3,9 +3,10 @@
 Stato (21/10): **tabella delle indoli compilata** ed esportata in
 [`overworld-encounters/temperaments.json`](overworld-encounters/temperaments.json)
 (§2bis); fase 1 fatta (diff vero della PR e prova di applicazione, §5);
-decisioni D2–D5 prese (§6); **fase 2 fatta** (port con tutto spento, misure,
-trappole e prove in [`.claude/rules/overworld_encounters.md`](../../.claude/rules/overworld_encounters.md)).
-Prossima: fase 3.
+decisioni D2–D5 prese (§6); **fasi 2 e 3 fatte** (port, accensione su
+Route 29; misure, trappole e prove in
+[`.claude/rules/overworld_encounters.md`](../../.claude/rules/overworld_encounters.md)).
+Prossima: fase 4.
 
 ## 1. Cosa vuole l'utente
 
@@ -282,7 +283,9 @@ Ogni fase finisce con build `make hns` verde e, dove detto, una prova in mGBA
 2. **Port con tutto spento — fatto il 21/10.** `WE_OW_ENCOUNTERS FALSE`;
    ROM +22 416 byte (94,94%). Due bug della PR sui percorsi che girano anche
    a feature spenta corretti, adattamenti e prove nella regola dell'area.
-3. **Accensione su una mappa** (Route 29), con le config del §6 D5 e
+3. **Fatto il 21/10** (prove nella regola; acqua e grotta rimandate alla
+   fase 6 perché Route 29 non le ha).
+   **Accensione su una mappa** (Route 29), con le config del §6 D5 e
    `OWE_SPAWNS_MAX` 6 (D4): spawn, movimento, lotta al
    contatto, cattura (aprire la squadra dopo: lezione del Bad Egg, §7ter),
    VRAM con il follower, ricerca DexNav con OWE presenti.
@@ -354,8 +357,8 @@ upstream), alfa.
   si tiene quello come massimo e si aggiunge un tetto per area al momento
   dello spawn (il controllo `GetNumberOfActiveOWEs(OWE_GENERATED) <
   OWE_SPAWNS_MAX` in `wild_encounter_ow.c`). **Confermato dall'utente:
-  erba 6, acqua 3, grotta 3**, con grotta = `MAP_TYPE_UNDERGROUND` (valutare
-  `MAP_TYPE_INDOOR` per Sprout Tower e simili, come fa il DexNav di SG).
+  erba 6, acqua 3, grotta 3**, con grotta = `MAP_TYPE_UNDERGROUND` **e
+  `MAP_TYPE_INDOOR`** (Sprout Tower e simili; confermato dall'utente il 21/10).
 - **D4 — deciso il 21/10**: **6** OWE, "se il sistema regge". Limiti veri da
   misurare in fase 3: gli object event sono **16 in tutto**
   (`OBJECT_EVENTS_COUNT`, `include/constants/global.h`) e li condividono

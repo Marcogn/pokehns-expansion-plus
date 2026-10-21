@@ -1,7 +1,12 @@
 #ifndef GUARD_WILD_ENCOUNTER_OW_H
 #define GUARD_WILD_ENCOUNTER_OW_H
 
-#define OWE_SPAWNS_MAX                  4
+#define OWE_SPAWNS_MAX                  6   // Hasep: 6 (decision D4), was 4. Also the land cap, see below.
+// Hasep: per-area caps (decision D3). OWE_SPAWNS_MAX stays the hard limit and
+// sizes the slot arrays; these lower it while surfing or in caves/indoors.
+#define OWE_SPAWNS_MAX_LAND             OWE_SPAWNS_MAX
+#define OWE_SPAWNS_MAX_WATER            3
+#define OWE_SPAWNS_MAX_CAVE             3
 #define OWE_APPROACH_DISTANCE           2
 #define OWE_APPROACH_JUMP_TIMER_MIN     16
 #define OWE_APPROACH_JUMP_TIMER_MAX     64
