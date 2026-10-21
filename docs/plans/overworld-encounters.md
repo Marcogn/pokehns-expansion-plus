@@ -13,9 +13,9 @@ Stato (21/10, dopo la fase 7):
 | 7 documentazione | fatta (`CHANGELOG.md` 2.0.6.PLUS.4, `README.md`, CLAUDE.md, report SG) | commit dopo `f15f4f3d` |
 
 Tutto sul ramo `claude/overworld-encounters-fase-2-jomv77`, PR #19 (bozza),
-CI verde. Fasi 1-7 chiuse; interruttore del PC tolto, spawn a 4 caselle per
-tentativo. Prima di mergiare resta l'aspetto degli OWE in acqua (sprite da
-nuoto di `src/surfable.c`, richiesta dell'utente del 21/10).
+CI verde. Fasi 1-7 chiuse; dopo, su richiesta dell'utente: interruttore del
+PC tolto, spawn a 4 caselle per tentativo, OWE in acqua con gli sprite da
+nuoto di `src/surfable.c`, tetto 4 nel Safari.
 Misure, trappole, prove in emulatore e ricette (GDB su mGBA, breakpoint per
 contare gli incontri a passi) in
 [`.claude/rules/overworld_encounters.md`](../../.claude/rules/overworld_encounters.md):
@@ -504,9 +504,9 @@ comunque, così il difetto non torna se un giorno il suono si accende.
 
 > Leggi `docs/plans/overworld-encounters.md`, `CLAUDE.md` e
 > `.claude/rules/overworld_encounters.md`. Le fasi 1-7 sono fatte e
-> l'interruttore del PC è tolto. Lavora sul ramo della PR #19
-> (`claude/overworld-encounters-fase-2-jomv77`) se è ancora aperta,
-> altrimenti chiedimi. Resta l'aspetto degli OWE in acqua (vedi la regola).
+> anche le richieste successive (PC, spawn, acqua). Lavora sul ramo della PR
+> #19 (`claude/overworld-encounters-fase-2-jomv77`) se è ancora aperta,
+> altrimenti chiedimi.
 
 Fonti: [PR #8434](https://github.com/rh-hideout/pokeemerald-expansion/pull/8434),
 [devlog di HashtagMarky](https://hashtagmarky.com/devlog/overworld-encounters/),

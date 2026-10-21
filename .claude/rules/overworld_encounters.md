@@ -11,6 +11,8 @@ paths:
   - "src/field_control_avatar.c"
   - "src/field_effect_helpers.c"
   - "src/trainer_see.c"
+  - "src/surfable.c"
+  - "include/field_effect_helpers.h"
   - "include/config/overworld.h"
   - "docs/plans/overworld-encounters.md"
   - "docs/plans/overworld-encounters/**"
@@ -38,6 +40,38 @@ in Low Mid, mai più di 4 in 50 letture.
 Tentativi di spawn: `OWE_SPAWN_TILE_TRIES` 4 caselle per tentativo (upstream 1,
 `TrySelectTilesForOWE`): su Route 31, fermo, prima 4 OWE e non oltre in ~85 s,
 dopo 6 al 47° campione (~65 s). L'utente può chiedere 8.
+
+**OWE in acqua: sprite da nuoto** (richiesta dell'utente, 21/10).
+`UpdateOWESwimSprites()` (`wild_encounter_ow.c`, a ogni frame in testa a
+`UpdateOverworldWildEncounter`): un OWE generato su acqua surfabile la cui
+specie ha uno sprite "surfable" di HnS (`src/surfable.c`, 139 specie; 37 delle
+41 selvatiche d'acqua, mancano Golbat, Grimer, Muk, Magikarp, che all'utente
+vanno bene così) ha lo sprite proprio nascosto con `ST_OAM_AFFINE_ERASE` e uno
+sprite da nuoto che lo segue (`SpriteCB_OWESwim`: direzione, dondolio del
+Surf, ancora 8 px sopra il fondo dello sprite dell'oggetto). **Non** si usa
+`objectEvent->invisible`: `facetogether` (`ObjectEventsTurnToEachOther`) salta
+gli oggetti invisibili. Trappole:
+- un ricambio riusa slot **e** `localId`: lo sprite da nuoto confronta anche
+  il `graphicsId`, altrimenti resta quello della specie vecchia (visto in
+  emulatore: Tentacool sopra uno Shellder);
+- le palette del Surf hanno lo stesso tag per normale e shiny (va bene per il
+  giocatore, non per due selvatici): lo shiny usa tag + `0x200`
+  (`OWE_SWIM_SHINY_PAL_TAG_OFFSET`), la palette si libera quando nessuno sprite
+  la usa (`FreeOWESwimSpritePaletteIfUnused`; quella normale può essere anche
+  del giocatore in Surf);
+- **i tag del Surf vanno da `0x3001` a `0x308B`** (enum in
+  `surfable_pokemon_templates.h`): si sovrapponevano ai tag grezzi dei
+  riflessi di #9925 (`0x3000-0x3010`). `PAL_RAW_REFLECTION_OFFSET` è ora
+  `0x3100`, in `field_effect_helpers.h`, con `STATIC_ASSERT` in `surfable.c`;
+- palette: l'oggetto nascosto tiene la sua, quindi un OWE in acqua ne usa 2
+  (13 su 16 occupate in una prova con 3 OWE e il giocatore in Surf). Se non ce
+  n'è una libera lo sprite da nuoto non si crea e il Pokémon resta in piedi;
+- lo spawn in acqua conta 64 tile in più per lo sprite da nuoto;
+- i Pokémon-oggetto che HnS mette sulle mappe (Tentacool di Route 40, Poliwag
+  dei laghetti) non sono OWE e restano com'erano.
+Verificato su Route 40 in Surf: specie giuste a ogni campione, lotta da
+contatto, sprite ricostruiti dopo la lotta, normale + shiny della stessa
+specie insieme (shiny tolto via GDB a uno dei tre) con palette uguali ai file.
 
 Fase 5, poi rivista: **`AreOverworldMonsEnabled()`** (`wild_encounter_ow.c`)
 è l'unico interruttore. Falso con WILD BATTLES OFF e durante la Gara,

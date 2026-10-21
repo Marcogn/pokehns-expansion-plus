@@ -21,6 +21,9 @@ add the section before releasing. Feature details live in the tables of
   and some vanish when they notice you. The odds depend on the species
   family (a table reviewed by hand, modelled on the Wilds of Kanto mod), so
   two Pidgey can behave differently.
+- On water they swim, half under the surface, with the same sprites HnS uses
+  for the Pokémon you surf on (37 of the 41 wild water species; Golbat,
+  Grimer, Muk and Magikarp keep their own sprite).
 - Shiny ones sparkle and play the shiny sound when they appear, and do not
   disappear while you stay on the map. Roamers can show up among them, and
   a battle with one is a normal roamer battle.
@@ -56,7 +59,9 @@ add the section before releasing. Feature details live in the tables of
   reflection used the same palette tag as the shiny form of that species,
   and the high-bridge reflection the same as Pidgey's: whichever loaded
   first coloured the other. From expansion (PR #9925); with visible wild
-  Pokémon it showed as a follower's reflection in shiny colours.
+  Pokémon it showed as a follower's reflection in shiny colours. The fix's
+  own tags for untagged palettes overlapped HnS's surf mount palettes and
+  were moved.
 
 ## 2.0.6.PLUS.3
 
