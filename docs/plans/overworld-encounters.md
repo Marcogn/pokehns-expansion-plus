@@ -2,9 +2,9 @@
 
 Stato (21/10): **tabella delle indoli compilata** ed esportata in
 [`overworld-encounters/temperaments.json`](overworld-encounters/temperaments.json)
-(§2bis); fase 1 fatta (diff vero della PR e prova di applicazione, §5).
-Il resto va eseguito da una sessione nuova (prompt di handoff in fondo),
-dopo le risposte alle decisioni aperte del §6.
+(§2bis); fase 1 fatta (diff vero della PR e prova di applicazione, §5);
+decisioni D2–D5 prese (§6). Il resto va eseguito da una sessione nuova
+(prompt di handoff in fondo).
 
 ## 1. Cosa vuole l'utente
 
@@ -18,8 +18,8 @@ dopo le risposte alle decisioni aperte del §6.
   moltiplicati per un'affinità di specie (`lib/behavior.lua`,
   `DEFAULT_WEIGHTS`, `SPECIES_AFFINITY`, `Behavior.pick`).
 - **Incontri a passi nell'erba spenti**: nell'erba alta resta solo il DexNav.
-- **Di default ON, se si riesce** (vedi decisione aperta D2 sui salvataggi
-  esistenti).
+- **Di default ON**, anche nei salvataggi esistenti; per ora si accende e
+  spegne dal PC del Centro Pokémon (D2).
 - La "fuga" (21/10) è approvata: il Pokémon ti nota e si allontana
   camminando; se resta bloccato sparisce. Non è la fuga dalla lotta.
 
@@ -280,7 +280,8 @@ Ogni fase finisce con build `make hns` verde e, dove detto, una prova in mGBA
    build.
 2. **Port con tutto spento** (`WE_OW_ENCOUNTERS FALSE`, o il nome che il
    diff della PR usa): la ROM deve comportarsi come prima. Misurare la ROM.
-3. **Accensione su una mappa** (Route 29): spawn, movimento, lotta al
+3. **Accensione su una mappa** (Route 29), con le config del §6 D5 e
+   `OWE_SPAWNS_MAX` 6 (D4): spawn, movimento, lotta al
    contatto, cattura (aprire la squadra dopo: lezione del Bad Egg, §7ter),
    VRAM con il follower, ricerca DexNav con OWE presenti.
 4. **Tiro pesato**: tabella generata da `temperaments.json`
@@ -294,9 +295,29 @@ Ogni fase finisce con build `make hns` verde e, dove detto, una prova in mGBA
    blocchi `#if P_FAMILY_X` danno al generatore anche gli altri. Alias
    (`SPECIES_CASTFORM`) e forme risolti allo stesso modo. Specie di
    famiglie assenti dalla tabella = NEUTRO.
-5. **Opzione `OVERWORLD MONS`** (§4): ON = OWE accesi e incontri a passi
-   spenti su terra (e acqua/grotta secondo D3); OFF = come oggi.
-   `WILD BATTLES` OFF spegne entrambi.
+5. **Interruttore `OVERWORLD MONS` dal PC del Centro Pokémon** (D2): ON =
+   OWE accesi e incontri a passi spenti su terra, acqua e grotta (D3); OFF =
+   come oggi. `WILD BATTLES` OFF spegne entrambi. **Default ON anche per i
+   salvataggi esistenti**, quindi il campo in `soundAndFieldOptions` è
+   memorizzato invertito (es. `noOverworldMons`, 0 = ON: un salvataggio
+   vecchio legge 0 e si ritrova la feature accesa, come vuole l'utente).
+   Niente migrazione per il default; `SAVE_VERSION` resta 8 se non serve
+   altro. Il campo va anche salvato e ripristinato in `NewGameInitData`
+   (CLAUDE.md §4).
+   **Dove**: il menu del PC sta in `data/scripts/pc.inc`
+   (`EventScript_AccessPC_BeforeLeague` / `_AfterLeague` e le varianti
+   `Fake`, che hanno già la voce `EventScript_ChallengeViewer` →
+   `Script_OpenChallengeMenu`). Proposta: una voce propria del PC con un
+   sì/no, non dentro il challenge menu, che ha la regola "dopo l'inizio si
+   può solo rendere più facile" e vive in `ChallengeSettings` (0 bit
+   liberi). Da far confermare all'utente all'inizio della fase.
+   **Perché dal PC**: si cambia stando in un edificio, quindi la mappa
+   all'aperto si ricarica uscendo e non serve gestire OWE nati con
+   un'impostazione e una mappa già caricata con l'altra (l'utente lo dice
+   esplicitamente: "così sistemiamo anche il caricamento delle mappe").
+   **In prospettiva** l'utente pensa di tenere solo gli OW e togliere
+   l'interruttore: scrivere il codice in modo che spegnerlo sia togliere la
+   voce del PC e fissare il valore.
 6. **Casi speciali**: Gara Pigliamosche, Safari, grotte buie/Flash, acqua,
    roamer, città (`WE_OWE_DESPAWN_ON_ENTER_TOWN`), mappe senza tabella.
 7. **Documentazione**: `CHANGELOG.md` (prossima versione), `README.md`,
@@ -320,23 +341,44 @@ upstream), alfa.
 
 - **D1 indoli**: la tabella (passo 0). Deciso: i membri non selvatici
   ereditano l'indole della famiglia (fase 4).
-- **D2 default per i salvataggi esistenti**: con il campo invertito un
-  salvataggio vecchio legge ON e chi aggiorna si trova gli incontri cambiati.
-  Alternativa: ON solo per le partite nuove (migrazione che scrive OFF).
-- **D3 acqua e grotte**: solo OWE anche lì, o incontri casuali dove non c'è
-  erba?
-- **D4 numero di spawn** (`OWE_SPAWNS_MAX` 4) e sostituzione dei vecchi
-  (`WE_OWE_SPAWN_REPLACEMENT`, default FALSE upstream).
-- **D5 config minori** da proporre all'utente con default: scintilla shiny
-  (`WE_OWE_SHINY_SPARKLE`), shiny che non spariscono
-  (`WE_OWE_PREVENT_SHINY_DESPAWN`), suono del despawn, despawn entrando in
-  città, collisioni con Repel/DexNav attivi.
+- **D2 — deciso il 21/10**: feature **accesa** anche nei salvataggi
+  esistenti. Per ora si accende e si spegne **dal PC del Centro Pokémon**
+  (fase 5); più avanti l'utente pensa di tenere solo gli OW.
+- **D3 — deciso il 21/10**: OWE **anche in acqua e in grotta**, ma **meno
+  numerosi** che sull'erba ("tanto c'è il DexNav"). Upstream ha un solo tetto
+  (`OWE_SPAWNS_MAX`, che dimensiona anche gli array di ordinamento per età):
+  si tiene quello come massimo e si aggiunge un tetto per area al momento
+  dello spawn (il controllo `GetNumberOfActiveOWEs(OWE_GENERATED) <
+  OWE_SPAWNS_MAX` in `wild_encounter_ow.c`). Proposta da confermare: erba 6,
+  acqua 3, grotta 3, con grotta = `MAP_TYPE_UNDERGROUND` (valutare
+  `MAP_TYPE_INDOOR` per Sprout Tower e simili, come fa il DexNav di SG).
+- **D4 — deciso il 21/10**: **6** OWE, "se il sistema regge". Limiti veri da
+  misurare in fase 3: gli object event sono **16 in tutto**
+  (`OBJECT_EVENTS_COUNT`, `include/constants/global.h`) e li condividono
+  giocatore, follower, NPC e i Pokémon che, dice l'utente, sono già messi come
+  oggetti sulle mappe vicino ai percorsi; le palette sprite sono 16 e ogni specie diversa ne vuole una.
+  Upstream non fa spawnare (o fa sparire il più vecchio) quando un limite è
+  pieno (`CheckCanLoadOWE`, `TryAndDespawnOldestGeneratedOWE_ToFreeObject`),
+  quindi 6 è un tetto, non una garanzia: va provato su una mappa piena di
+  NPC. Ripiego: 4. `WE_OWE_SPAWN_REPLACEMENT` (sostituzione dei vecchi)
+  resta da proporre: default upstream FALSE.
+- **D5 — deciso il 21/10**: scintilla e suono shiny **sì**
+  (`WE_OWE_SHINY_SPARKLE TRUE`); shiny che **non spariscono**
+  (`WE_OWE_PREVENT_SHINY_DESPAWN TRUE`: non spariscono fuori schermo né per
+  sostituzione finché resti **sulla stessa mappa**; cambiando mappa sì, va
+  detto all'utente); **sprite shiny** sì: upstream usa già la palette shiny
+  dell'overworld (`overworldShinyPalette`), con un difetto noto nella PR
+  (palette sbagliata per gli shiny in acqua) da verificare; suono quando un
+  OWE sparisce **no** per ora (`WE_OWE_DESPAWN_SOUND FALSE`). Restano ai
+  default upstream: despawn entrando in città (`TRUE`), collisioni con
+  Repel/DexNav attivi (`WE_OWE_NO_REPEL_DEXNAV_COLLISION FALSE`).
 
 ## 7. Tabella compilata: fatto il 21/10
 
-Lettura, conteggi ed export fatti (§2bis), fase 1 fatta (§5). Restano D2–D5
-del §6: chiederle all'utente all'inizio della sessione nuova, se non sono già
-scritte qui. Se l'utente torna a cambiare la tabella, rifare il dump e
+Lettura, conteggi ed export fatti (§2bis), fase 1 fatta (§5), D2–D5 decise
+(§6). Restano da confermare all'inizio delle fasi giuste: voce propria del
+PC o challenge menu (fase 5), tetti per area 6/3/3 (D3), sostituzione dei
+vecchi OWE (D4). Se l'utente torna a cambiare la tabella, rifare il dump e
 `export_temperaments.py`.
 
 ## Prompt di handoff per la sessione nuova
@@ -344,9 +386,10 @@ scritte qui. Se l'utente torna a cambiare la tabella, rifare il dump e
 > Leggi `docs/plans/overworld-encounters.md`, `CLAUDE.md` e
 > `.claude/rules/overworld_encounters.md`. La tabella delle indoli è in
 > `docs/plans/overworld-encounters/temperaments.json`. La fase 1 del §5 è
-> fatta: chiedimi prima le decisioni aperte del §6 che non hanno ancora
-> risposta, poi parti dalla fase 2 (port con tutto spento) e fermati alla
-> fine di ogni fase per farmi vedere build e prove.
+> fatta e le decisioni D2–D5 del §6 sono prese. Parti dalla fase 2 (port con
+> tutto spento) e fermati alla fine di ogni fase per farmi vedere build e
+> prove; chiedimi i punti ancora "da confermare" quando arrivi alla fase
+> che li usa.
 
 Fonti: [PR #8434](https://github.com/rh-hideout/pokeemerald-expansion/pull/8434),
 [devlog di HashtagMarky](https://hashtagmarky.com/devlog/overworld-encounters/),
