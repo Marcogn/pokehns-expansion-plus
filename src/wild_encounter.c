@@ -542,7 +542,7 @@ static u32 GetDominantPokeblockFlavor(struct Pokeblock *pokeblock)
 // A Pokeblock feeder in range lures out Pokemon with their Hidden Ability, and
 // perfects the IVs its Pokeblock's color calls for. The block's nature influence
 // is handled separately, in PickWildMonNature.
-static void TryApplyPokeblockBonus(struct Pokemon *mon, u16 species)
+void TryApplyPokeblockBonus(struct Pokemon *mon, u16 species)
 {
     u32 i, color, numIvs;
     u8 perfectIv = MAX_PER_STAT_IVS;

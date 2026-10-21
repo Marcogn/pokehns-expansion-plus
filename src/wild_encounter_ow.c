@@ -407,7 +407,13 @@ void UpdateOverworldWildEncounter(void)
         RemoveObjectEvent(owe);
     u32 objectEventId = SpawnSpecialObjectEvent(&objectEventTemplate);
 
-    assertf(objectEventId < OBJECT_EVENTS_COUNT, "could not spawn generated overworld encounter. too many object events exist")
+    // Hasep: no assertf here or in CheckCanLoadOWE. `make hns` is not a
+    // RELEASE build, so a failed assertf shows the player a blue crash screen,
+    // and these are game states, not programmer errors: a full object table,
+    // or sprite VRAM/palettes taken by the map's own Pokémon objects (with
+    // OW_GFX_COMPRESS on, which we keep for ROM space). Seen in the Johto
+    // Safari Zone (Low Mid: 11 Pokémon objects + 3 OWEs + follower).
+    if (objectEventId >= OBJECT_EVENTS_COUNT)
     {
         SetMinimumOWESpawnTimer();
         return;
@@ -484,10 +490,12 @@ void StartWildBattleWithOWE(struct ScriptContext *ctx)
     }
 
     ZeroEnemyPartyMons();
-    // Hasep: PickWildMonNature, as CreateWildMon does for step encounters, so
-    // Synchronize and the Safari Pokéblock nature bias still apply.
+    // Hasep: PickWildMonNature and TryApplyPokeblockBonus, as CreateWildMon
+    // does for step encounters, so Synchronize and a Safari Pokéblock feeder
+    // (nature, perfect IVs, Hidden Ability) still apply.
     personality = GetMonPersonality(speciesId, gender, PickWildMonNature(speciesId), RANDOM_UNOWN_LETTER);
     CreateMonWithIVs(&gEnemyParty[0], speciesId, level, personality, OTID_STRUCT_PLAYER_ID, USE_RANDOM_IVS);
+    TryApplyPokeblockBonus(&gEnemyParty[0], speciesId);
     GiveMonInitialMoveset(&gEnemyParty[0]);
     SetMonData(&gEnemyParty[0], MON_DATA_IS_SHINY, &shiny);
     
@@ -1359,17 +1367,10 @@ static u32 GetGraphicsIdForOWE(const struct InfoOWE *info)
 
 static bool32 CheckCanLoadOWE(u32 speciesId, bool32 isFemale, bool32 isShiny, s32 x, s32 y)
 {
-    assertf(CheckCanLoadOWE_Palette(speciesId, isFemale, isShiny, x, y), "could not load palette for overworld encounter\nspecies: %d\nfemale: %d\nshiny: %d\ncoords: %d %d", speciesId, isFemale, isShiny, x, y)
-    {
-        return FALSE;
-    }
-
-    assertf(CheckCanLoadOWE_Tiles(speciesId, isFemale, isShiny, x, y), "could not load sprite tiles for overworld encounter\nspecies: %d\nfemale: %d\nshiny: %d\ncoords: %d %d", speciesId, isFemale, isShiny, x, y)
-    {
-        return FALSE;
-    }
-
-    return TRUE;
+    // Hasep: plain checks, not assertf (see UpdateOverworldWildEncounter):
+    // running out of palettes or sprite tiles just skips this spawn.
+    return CheckCanLoadOWE_Palette(speciesId, isFemale, isShiny, x, y)
+        && CheckCanLoadOWE_Tiles(speciesId, isFemale, isShiny, x, y);
 }
 
 static bool32 CheckCanLoadOWE_Palette(u32 speciesId, bool32 isFemale, bool32 isShiny, s32 x, s32 y)
@@ -1432,7 +1433,7 @@ static bool32 CheckCanLoadOWE_Tiles(u32 speciesId, bool32 isFemale, bool32 isShi
         tileCount *= frames;
     }
     
-    tileCount += GetNumberOfSpawnAnimTiles(x, y);
+    tileCount += GetNumberOfSpawnAnimTiles(x, y) + OWE_SPRITE_TILE_HEADROOM;
     if (!CanAllocSpriteTiles(tileCount))
         return FALSE;
     

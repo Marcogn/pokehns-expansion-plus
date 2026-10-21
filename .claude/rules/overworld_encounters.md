@@ -10,12 +10,13 @@ paths:
   - "src/event_object_movement.c"
   - "src/field_control_avatar.c"
   - "src/field_effect_helpers.c"
+  - "src/trainer_see.c"
   - "include/config/overworld.h"
   - "docs/plans/overworld-encounters.md"
   - "docs/plans/overworld-encounters/**"
 ---
 
-# Pokémon visibili nell'overworld: in corso (fasi 1-5 fatte, 6 in parte)
+# Pokémon visibili nell'overworld: in corso (fasi 1-6 fatte)
 
 Piano, stato, fatti verificati e decisioni in
 [`docs/plans/overworld-encounters.md`](../../docs/plans/overworld-encounters.md):
@@ -26,7 +27,7 @@ più un tiro pesato per indole,
 sul modello del mod Wilds of Kanto. Le indoli scelte dall'utente sono in
 `docs/plans/overworld-encounters/temperaments.json`.
 
-## Stato: fasi 2-5 fatte, fase 6 in parte (21/10); cosa manca nel piano (tabella in cima)
+## Stato: fasi 2-6 fatte (21/10); cosa manca nel piano (tabella in cima)
 
 Fase 2: codice della PR più #9925, #9968, #10066, #10753. Fase 3: config di
 D3-D5 (6 OWE, ricambio, shiny con scintilla e che non spariscono, tetti
@@ -68,9 +69,74 @@ punto: debug warp gruppo 22 mappa 7 warp 0, poi su 10 e sinistra 4, l'addetto
 destra 4, su 14). Nel debug il numero si cambia anche a passi di 10 con
 destra/sinistra.
 
-**Prima del rilascio manca il resto della fase 6** (Safari, grotte buie,
-tetti acqua/grotta, palette riflesso/shiny, roamer): oggi gli OWE compaiono
-su ogni mappa con una tabella di erba o acqua.
+## Fase 6 fatta (21/10): prove e tre correzioni
+
+**Tre difetti trovati in emulatore, tutti nel Safari di Johto** (Low Mid ha
+11 Pokémon-oggetto propri: con `OW_GFX_COMPRESS` ognuno tiene tutto il suo
+foglio in VRAM, e con 6 OWE restavano **10 tile libere su 1024**):
+
+- **Schermata blu "could not load sprite tiles"**: `CheckCanLoadOWE` usava
+  `assertf`. `make hns` non è una build RELEASE, quindi un `assertf` fallito
+  mostra al giocatore la schermata di crash (riprendibile). VRAM o palette
+  piene, o tabella dei 16 oggetti piena, sono stati del gioco e non errori
+  di programma: ora sono `if` semplici e lo spawn salta. Upstream (anche
+  `upcoming` di oggi) ha ancora gli `assertf`: loro raccomandano la grafica
+  non compressa. **Regola**: un `assertf` su una condizione che il gioco può
+  raggiungere, in questa ROM, è una schermata di crash.
+- **Gioco bloccato parlando al follower**: lo script del follower aspetta
+  `waitfieldeffect FLDEFF_EMOTE`; se `CreateSpriteAtEnd` dell'icona fallisce,
+  l'effetto non arriva mai a `FieldEffectStop` e resta attivo per sempre.
+  Vale per tutte le icone di `trainer_see.c` («!», «?», cuore, «!!», X,
+  emozioni), quindi anche per allenatori e OWE. Ora `IconSpriteNotCreated()`
+  toglie l'effetto dalla lista: senza sprite l'icona semplicemente non si
+  vede. Provato con due ROM strumentate (sprite dell'emozione che fallisce
+  sempre): con la correzione il messaggio del follower compare e il gioco
+  va avanti; con il vecchio `return 0` resta su `WaitForFieldEffectFinish`.
+- **Riserva di VRAM**: `OWE_SPRITE_TILE_HEADROOM` 32 (`wild_encounter_ow.h`)
+  si somma alle tile chieste da `CheckCanLoadOWE_Tiles`, così gli OWE non
+  prendono le ultime tile che servono a icone ed effetti di campo. Un foglio
+  OWE è 112 tile o più (32x32, 7 fotogrammi). Nella prova lunga dopo la
+  correzione: minimo 276 tile libere, quasi sempre 6 OWE.
+
+Prove (mGBA, salvataggio nuovo, RAM via GDB):
+- **Safari**: lotta OWE = lotta Safari (Safari Ball, POKéBLOCK, GO NEAR).
+  Bonus della mangiatoia (`TryApplyPokeblockBonus`, reso pubblico e chiamato
+  in `StartWildBattleWithOWE`): mangiatoia scritta in `sPokeblockFeeders`
+  con un Pokéblock ROSSO, due Teddiursa OWE con PS/Attacco/Velocità 31,
+  `abilityNum` 2 e natura +Attacco (LONELY, BRAVE); prima della mangiatoia
+  un Aipom con IV casuali e `abilityNum` 1. 0 schermate blu in ~12 minuti
+  con la ROM corretta (la vecchia ci era andata). Nel Safari le lotte sono
+  frequenti: molti AGGRESSIVO (Tauros, Rhyhorn) e 6 OWE attorno.
+- **Grotta buia** (Dark Cave, senza Flash): massimo 3 OWE; si vedono solo
+  nel cerchio di luce. **Acqua** (Route 40 in Surf): 3 per 10 letture,
+  lotta in acqua regolare (Tentacool). **Interno** (Sprout Tower 2F): 3;
+  1F non ha tabella: 0.
+- **Riflesso/shiny**: Route 30, laghetto in basso (giocatore a (44,49) della
+  mappa), follower Caterpie normale riflesso, Force Shiny, Caterpie OWE
+  shiny. Tag: follower `0x400A`, riflesso `0x480A`, shiny `0x600A`; palette
+  in RAM uguali ai `.gbapal` (normale, normale filtrata, shiny). ROM di
+  controllo senza #9925: il riflesso usa `0x600A`, cioè i colori shiny.
+- **Roamer**: debug Script 5 (`InitKantoRoamers`, Latias Lv60),
+  `sRoamerLocation[0]` portato sulla mappa corrente via GDB (dopo il warp:
+  cambiare mappa lo sposta). Latias compare come OWE, la lotta ha
+  `BATTLE_TYPE_ROAMER`, dopo la fuga il roamer va su un'altra mappa.
+
+Ricette e trappole della sessione:
+- **`gdb` su un file con `sed -i` perde l'output**: `sed -i` crea un file
+  nuovo e `gdb` continua a scrivere su quello cancellato. Leggere da
+  `/proc/<pid di gdb>/fd/1`.
+- **I breakpoint con `commands ... continue &` perdono colpi**: alcuni non
+  scattano mai pur passando di lì (`StartWildBattleWithOWE`). Non usarli
+  come prova di "non chiamato": guardare i dati in RAM (o un watchpoint).
+- **Decodificare un Pokémon in RAM**: `struct Pokemon` 100 byte, sicuri a
+  +32, 4 sottostrutture da 12 byte cifrate con `personality ^ otId`, ordine
+  `sSubstructOffsets[tipo][personality % 24]`; IV nel secondo u32 della
+  sottostruttura 3, `abilityNum` bit 29-30 del terzo.
+- **Force Shiny resta nel salvataggio** (è un flag) e gli shiny che non
+  spariscono occupano i posti: per una prova senza shiny spegnerlo e
+  cambiare mappa.
+- Uscire dal Safari con il warp del debug lascia acceso
+  `FLAG_SYS_SAFARI_MODE`: le lotte restano Safari.
 
 ### Prove della fase 5 (mGBA, breakpoint GDB su `StandardWildEncounter`)
 
@@ -179,8 +245,7 @@ dice di no, quindi il conteggio dei passaggi misura gli incontri a passi.
   salvati nell'oggetto: upstream usava `NATURE_RANDOM`, cioè niente
   Sincronismo e niente Pokéblock del Safari. Ora usa `PickWildMonNature`
   (resa non statica in `wild_encounter.c`) come `CreateWildMon`. Il bonus
-  agli IV del Pokéblock (`TryApplyPokeblockBonus`) resta perso: da vedere
-  con il Safari in fase 6.
+  agli IV del Pokéblock (`TryApplyPokeblockBonus`) è collegato dalla fase 6.
 - `UpdateOverworldWildEncounter` (ogni frame, da `OverworldBasic`) chiama
   `CheckCurrentWildMonHeaderForOWE` **prima** di guardare
   `WE_OW_ENCOUNTERS`: costo per frame anche a feature spenta. Non toccato

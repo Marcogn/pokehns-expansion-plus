@@ -7,6 +7,12 @@
 #define OWE_SPAWNS_MAX_LAND             OWE_SPAWNS_MAX
 #define OWE_SPAWNS_MAX_WATER            3
 #define OWE_SPAWNS_MAX_CAVE             3
+// Hasep: sprite tiles a spawn must leave free for icons and field effects
+// ("!", "?", follower emotes, grass, splashes). With OW_GFX_COMPRESS every
+// object keeps its whole sheet in VRAM, and in the Johto Safari Zone the OWEs
+// filled it down to 10 free tiles of 1024. 32 = room for several 16x16 icons;
+// one OWE sheet is 112 tiles (32x32, 7 frames) or more.
+#define OWE_SPRITE_TILE_HEADROOM        32
 #define OWE_APPROACH_DISTANCE           2
 #define OWE_APPROACH_JUMP_TIMER_MIN     16
 #define OWE_APPROACH_JUMP_TIMER_MAX     64

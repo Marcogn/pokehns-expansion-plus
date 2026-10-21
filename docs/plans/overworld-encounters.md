@@ -1,6 +1,6 @@
 # Piano: Pokémon selvatici visibili nell'overworld (OWE)
 
-Stato (21/10, fine della sessione che ha fatto le fasi 2-5):
+Stato (21/10, dopo la fase 6):
 
 | fase | stato | commit |
 | --- | --- | --- |
@@ -9,7 +9,7 @@ Stato (21/10, fine della sessione che ha fatto le fasi 2-5):
 | 3 accensione (Route 29) | fatta | `d2bb0232` |
 | 4 tiro pesato per indole | fatta | `8ed39544` |
 | 5 interruttore `WILD POKéMON` nel PC | fatta | `158fb6cd` |
-| 6 casi speciali | **in parte**: Gara Pigliamosche fatta, il resto da fare (§5, punto 6) | commit dopo `158fb6cd` |
+| 6 casi speciali | fatta (prove nella regola dell'area) | `9ae6029a` (Gara) + commit successivo |
 | 7 documentazione | da fare | — |
 
 Tutto sul ramo `claude/overworld-encounters-fase-2-jomv77`, PR #19 (bozza),
@@ -346,32 +346,30 @@ Ogni fase finisce con build `make hns` verde e, dove detto, una prova in mGBA
      dice "During the contest, POKéMON won't show themselves easily. They'll
      only appear in tall grass!". Verificato in mGBA: avviso visto, nel
      parco 0 OWE, `StandardWildEncounter` chiamata, lotta (Caterpie Lv14).
-   - **Zona Safari di Johto: da fare.** Deciso ON. Provare in emulatore che
-     la lotta con un OWE nel Safari sia una lotta Safari (Safari Ball, niente
-     squadra) e che la natura del Pokéblock valga (`PickWildMonNature`, già
-     collegato in fase 3). Il **bonus agli IV del Pokéblock**
-     (`TryApplyPokeblockBonus`, statico in `wild_encounter.c`) oggi si perde
-     con gli OWE: collegarlo in `StartWildBattleWithOWE` come la natura.
-     Se qualcosa non regge, spegnere gli OWE solo nel Safari (stesso schema
-     della Gara, in `AreOverworldMonsEnabled`). Mappe: `MAP_FUCHSIA_CITY_SAFARI_ZONE_*_HNS`.
-   - **Grotte buie senza Flash: da verificare, deciso ON.** Gli OWE restano
-     come gli NPC. Provare in una grotta buia (Dark Cave) che si vedano e che
-     la lotta parta.
-   - **Acqua e grotte, tetti 3/3: da verificare** (Route 29 non li aveva).
-     Mappa con acqua surfabile + grotta (`MAP_TYPE_UNDERGROUND`) +
-     un interno con tabella (Sprout Tower, `MAP_TYPE_INDOOR`): leggere il
-     numero di OWE via GDB. Nota già scritta nella regola: entrando in acqua
-     con 6 OWE di terra il totale scende a 3 solo man mano che quelli di
-     terra escono di vista.
-   - **Palette riflesso/shiny: da verificare.** Follower di specie X normale
-     che si riflette in acqua + OWE shiny della stessa specie (Force Shiny
-     dal debug **senza** una specie registrata nel DexNav: R+START avvia
-     la ricerca). Misurare i colori. Il fix (#9925) è già nel ramo.
-   - **Roamer: da verificare.** Upstream li fa comparire come OWE
-     (`OWE_CATEGORY` < `ROAMER_COUNT`): Raikou/Entei in HnS.
-   - **Città: fatto** (spariscono entrando a New Bark Town, fase 3).
-   - **Mappe senza tabella**: nessuno spawn (`CheckCurrentWildMonHeaderForOWE`),
-     da confermare con un'occhiata in una città.
+   - **Zona Safari: fatta.** Deciso ON (D7). Lotta con un OWE = lotta Safari
+     (Safari Ball, POKéBLOCK, GO NEAR). Il bonus della mangiatoia
+     (`TryApplyPokeblockBonus`, ora pubblico) è collegato in
+     `StartWildBattleWithOWE` come la natura: con un Pokéblock ROSSO due
+     Teddiursa OWE di fila con PS/Attacco/Velocità 31, abilità nascosta e
+     natura +Attacco.
+   - **Grotte buie: fatta** (D8). Dark Cave senza Flash: gli OWE si vedono
+     solo nel cerchio di luce, come gli NPC.
+   - **Acqua e grotte, tetti 3/3: fatti.** Route 40 in Surf, Dark Cave,
+     Sprout Tower 2F: mai più di 3. Lotta in acqua regolare.
+   - **Palette riflesso/shiny: fatta.** Follower Caterpie riflesso + Caterpie
+     OWE shiny: tag distinti e colori giusti; con il fix #9925 tolto (ROM di
+     controllo) il riflesso prende la palette shiny.
+   - **Roamer: fatta.** Latias (script debug 5) portato sulla mappa via GDB:
+     compare come OWE, la lotta è da roamer (`BATTLE_TYPE_ROAMER`), dopo la
+     fuga il roamer cambia mappa.
+   - **Città e mappe senza tabella: fatte** (New Bark in fase 3, Sprout
+     Tower 1F: 0 OWE).
+   - **Trovati nelle prove, corretti**: schermata blu di `assertf` quando la
+     VRAM degli sprite è piena (la nostra ROM non è RELEASE); blocco del gioco
+     quando un'icona («!», «?», emozione del follower) non trova spazio; riserva
+     di 32 tile VRAM per gli OWE. Dettagli nella regola dell'area.
+   - **Da decidere con l'utente**: aspetto degli OWE in acqua (oggi sprite
+     intero, come sulla terra).
 7. **Documentazione**: `CHANGELOG.md` (prossima versione: oggi c'è solo
    il fix delle palette dei riflessi), `README.md`, CLAUDE.md (una riga
    nell'indice esiste già; la regola dell'area passa da "in corso" a
@@ -503,15 +501,12 @@ comunque, così il difetto non torna se un giorno il suono si accende.
 ## Prompt di handoff per la sessione nuova
 
 > Leggi `docs/plans/overworld-encounters.md`, `CLAUDE.md` e
-> `.claude/rules/overworld_encounters.md`. Le fasi 1-5 sono fatte e la 6 è
-> fatta per la Gara Pigliamosche (tabella in cima al piano). Lavora sul ramo
-> della PR #19 (`claude/overworld-encounters-fase-2-jomv77`) se è ancora
-> aperta, altrimenti chiedimi. Finisci la fase 6 (Safari, grotte buie,
-> tetti acqua/grotta, palette riflesso/shiny, roamer; decisioni D6-D8 già
-> prese), poi la fase 7 (documentazione). Fermati alla fine di ogni fase
-> per farmi vedere build e prove. Dopo la fase 7 c'è da togliere
-> l'interruttore `WILD POKéMON` dal PC (§5): chiedimi conferma prima di
-> farlo.
+> `.claude/rules/overworld_encounters.md`. Le fasi 1-6 sono fatte (tabella in
+> cima al piano). Lavora sul ramo della PR #19
+> (`claude/overworld-encounters-fase-2-jomv77`) se è ancora aperta,
+> altrimenti chiedimi. Fai la fase 7 (documentazione) e fermati per farmi
+> vedere. Poi c'è da togliere l'interruttore `WILD POKéMON` dal PC (§5):
+> chiedimi conferma prima di farlo.
 
 Fonti: [PR #8434](https://github.com/rh-hideout/pokeemerald-expansion/pull/8434),
 [devlog di HashtagMarky](https://hashtagmarky.com/devlog/overworld-encounters/),
