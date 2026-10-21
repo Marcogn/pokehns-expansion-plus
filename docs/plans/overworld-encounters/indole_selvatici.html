@@ -216,6 +216,6 @@ $('#onlyOpen').addEventListener('change',e=>{state.onlyOpen=e.target.checked;app
   if(!db){showBanner('Il salvataggio non è disponibile in questa vista (serve aver fatto l\'accesso a claude.ai). Puoi guardare la tabella, ma le scelte non verranno salvate.');setStatus();return}
   setStatus();
   db.doc('config/profiles').onSnapshot(snap=>{const d=snap.exists&&snap.data();if(!d)return;for(const p of PROF)if(d[p.k])state.profiles[p.k]={...state.profiles[p.k],...d[p.k]};if(!document.activeElement||!document.activeElement.id.startsWith('w-'))renderProfiles()});
-  db.collection('families').onSnapshot(snap=>{for(const d of snap.docs){const v=d.data();if(!v||!state.fam[d.id])continue;state.fam[d.id]={profile:v.profile||state.fam[d.id].profile,species:v.species||{},reviewed:!!v.reviewed,note:v.note||''};rows[d.id]&&rows[d.id]._paint()}renderProfiles();applyFilter()},e=>showBanner('Lettura del salvataggio non riuscita ('+(e&&e.code)+').'));
+  db.collection('families').onSnapshot(snap=>{for(const d of snap.docs){const v=d.data();if(!v||!state.fam[d.id])continue;Object.assign(state.fam[d.id],{profile:v.profile||state.fam[d.id].profile,species:v.species||{},reviewed:!!v.reviewed,note:v.note||''});rows[d.id]&&rows[d.id]._paint()}renderProfiles();applyFilter()},e=>showBanner('Lettura del salvataggio non riuscita ('+(e&&e.code)+').'));
 })();
 </script>
