@@ -3,8 +3,9 @@
 Stato (21/10): **tabella delle indoli compilata** ed esportata in
 [`overworld-encounters/temperaments.json`](overworld-encounters/temperaments.json)
 (§2bis); fase 1 fatta (diff vero della PR e prova di applicazione, §5);
-decisioni D2–D5 prese (§6). Il resto va eseguito da una sessione nuova
-(prompt di handoff in fondo).
+decisioni D2–D5 prese (§6); **fase 2 fatta** (port con tutto spento, misure,
+trappole e prove in [`.claude/rules/overworld_encounters.md`](../../.claude/rules/overworld_encounters.md)).
+Prossima: fase 3.
 
 ## 1. Cosa vuole l'utente
 
@@ -278,8 +279,9 @@ Ogni fase finisce con build `make hns` verde e, dove detto, una prova in mGBA
    albero ne trova 28 mancanti, ma quasi tutti sono definiti dalla PR stessa
    attraverso macro (`movement_type_def`): l'elenco vero lo dà il primo
    build.
-2. **Port con tutto spento** (`WE_OW_ENCOUNTERS FALSE`, o il nome che il
-   diff della PR usa): la ROM deve comportarsi come prima. Misurare la ROM.
+2. **Port con tutto spento — fatto il 21/10.** `WE_OW_ENCOUNTERS FALSE`;
+   ROM +22 416 byte (94,94%). Due bug della PR sui percorsi che girano anche
+   a feature spenta corretti, adattamenti e prove nella regola dell'area.
 3. **Accensione su una mappa** (Route 29), con le config del §6 D5 e
    `OWE_SPAWNS_MAX` 6 (D4): spawn, movimento, lotta al
    contatto, cattura (aprire la squadra dopo: lezione del Bad Egg, §7ter),

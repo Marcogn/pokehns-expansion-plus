@@ -22,6 +22,12 @@ add the section before releasing. Feature details live in the tables of
   Islands. Evolutions themselves are unchanged. Day
   and Night read D and N. Also reported in Mikeagan's fork, which fixed it
   by adding Sun and Moon Stone evolutions instead.
+- **Reflections on water could take another sprite's palette.** A Pokémon's
+  reflection used the same palette tag as the shiny form of that species,
+  and the high-bridge reflection the same as Pidgey's: whichever loaded
+  first coloured the other. From expansion (PR #9925), brought in with the
+  groundwork for wild Pokémon visible in the overworld, which is not
+  switched on yet.
 
 ## 2.0.6.PLUS.3
 
