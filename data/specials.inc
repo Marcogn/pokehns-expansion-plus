@@ -711,3 +711,4 @@ gSpecials::
 	def_special GetMaxPartySize
 	def_special IsPartyLimitChallengeActive
 	def_special SetOverworldMonsFromYesNo
+	def_special GetOverworldMonsOption

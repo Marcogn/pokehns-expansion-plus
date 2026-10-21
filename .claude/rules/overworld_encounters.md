@@ -15,7 +15,7 @@ paths:
   - "docs/plans/overworld-encounters/**"
 ---
 
-# Pokémon visibili nell'overworld: in corso
+# Pokémon visibili nell'overworld: in corso (fasi 1-5 fatte, 6 in parte)
 
 Piano, stato, fatti verificati e decisioni in
 [`docs/plans/overworld-encounters.md`](../../docs/plans/overworld-encounters.md):
@@ -26,7 +26,7 @@ più un tiro pesato per indole,
 sul modello del mod Wilds of Kanto. Le indoli scelte dall'utente sono in
 `docs/plans/overworld-encounters/temperaments.json`.
 
-## Stato: fase 5 fatta (21/10), OWE accesi ovunque, interruttore nel PC
+## Stato: fasi 2-5 fatte, fase 6 in parte (21/10); cosa manca nel piano (tabella in cima)
 
 Fase 2: codice della PR più #9925, #9968, #10066, #10753. Fase 3: config di
 D3-D5 (6 OWE, ricambio, shiny con scintilla e che non spariscono, tetti
@@ -42,9 +42,9 @@ salvataggi vecchi (D2). Lo usano lo spawn e `ShouldDisableRandomEncounters()`
 (`field_control_avatar.c`): con ON niente incontri a passi su erba, acqua e
 grotta; pesca, Spaccaroccia, Testata e Profumino non passano di lì.
 `WE_VANILLA_RANDOM` resta TRUE (vale solo con l'opzione OFF).
-Per togliere l'interruttore in futuro: togliere la voce del PC e far
-restituire TRUE ad `AreOverworldMonsEnabled()` dopo il controllo su WILD
-BATTLES.
+Per togliere l'interruttore (l'utente lo vuole, dopo la fase 7): togliere
+la voce del PC e far restituire TRUE ad `AreOverworldMonsEnabled()` dopo i
+controlli su WILD BATTLES e Gara; il bit resta nel salvataggio, ignorato.
 
 PC: voce `WILD POKéMON` (`gText_WildPokemon`) dopo CHALLENGES nelle quattro
 liste di `data/scripts/pc.inc` (case rinumerati) e in `CreatePCMultichoice`
@@ -54,9 +54,23 @@ dall'utente) e `special SetOverworldMonsFromYesNo` (in fondo a
 `data/specials.inc`). Il menu opzioni scrive `soundAndFieldOptions` campo per
 campo, quindi non tocca il bit.
 
-**Prima del rilascio manca la fase 6** (Gara Pigliamosche, Safari, grotte
-buie, acqua, roamer, città): oggi gli OWE compaiono su ogni mappa con una
-tabella di erba o acqua.
+**Gara Pigliamosche (fase 6, D6)**: `AreOverworldMonsEnabled()` è falso con
+`GetBugContestFlag()` (`FLAG_SYS_BUG_CONTEST_MODE`), quindi niente OWE e
+incontri a passi classici nella Gara. L'addetto del cancello
+(`Gate_NationalPark_hns/scripts.inc`, le quattro strade che spiegano le
+regole) chiama `Gate_NationalPark_EventScript_OverworldMonsNotice`: con
+`special GetOverworldMonsOption` (la sola scelta del giocatore, senza la
+Gara) dice l'avviso solo se l'opzione è ON. Verificato: avviso visto su due
+pagine, nel parco 0 OWE, `StandardWildEncounter` chiamata 4 volte in 12
+passi, lotta con Caterpie Lv14 della tabella della Gara. Per arrivare al
+punto: debug warp gruppo 22 mappa 7 warp 0, poi su 10 e sinistra 4, l'addetto
+è sopra; nel parco l'erba grande è alle righe 27-35 (dall'ingresso: su 1,
+destra 4, su 14). Nel debug il numero si cambia anche a passi di 10 con
+destra/sinistra.
+
+**Prima del rilascio manca il resto della fase 6** (Safari, grotte buie,
+tetti acqua/grotta, palette riflesso/shiny, roamer): oggi gli OWE compaiono
+su ogni mappa con una tabella di erba o acqua.
 
 ### Prove della fase 5 (mGBA, breakpoint GDB su `StandardWildEncounter`)
 

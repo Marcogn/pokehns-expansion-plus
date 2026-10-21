@@ -126,6 +126,7 @@ u32 RemoveOldestGeneratedOWE(void);
 bool32 CanRemoveObjectForOWEMovement(struct ObjectEvent *objectEvent);
 bool32 AreOverworldMonsEnabled(void);
 void SetOverworldMonsFromYesNo(void);
+void GetOverworldMonsOption(void);
 
 // Hasep: upstream reads these from the species (OWE_Get*FromSpecies). With the
 // behaviour rolled per OWE they come from the object, through its movement

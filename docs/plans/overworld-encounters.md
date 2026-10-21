@@ -1,12 +1,24 @@
 # Piano: Pokémon selvatici visibili nell'overworld (OWE)
 
-Stato (21/10): **tabella delle indoli compilata** ed esportata in
-[`overworld-encounters/temperaments.json`](overworld-encounters/temperaments.json)
-(§2bis); fase 1 fatta (diff vero della PR e prova di applicazione, §5);
-decisioni D2–D5 prese (§6); **fasi 2-5 fatte** (port, accensione, tiro
-pesato, interruttore `WILD POKéMON` nel PC; misure, trappole e prove in
-[`.claude/rules/overworld_encounters.md`](../../.claude/rules/overworld_encounters.md)).
-Prossima: fase 6. Se la tabella cambia: `python3 tools/owe_temperaments.py`.
+Stato (21/10, fine della sessione che ha fatto le fasi 2-5):
+
+| fase | stato | commit |
+| --- | --- | --- |
+| 1 diff della PR | fatta | — |
+| 2 port, tutto spento | fatta | `499d0c82` |
+| 3 accensione (Route 29) | fatta | `d2bb0232` |
+| 4 tiro pesato per indole | fatta | `8ed39544` |
+| 5 interruttore `WILD POKéMON` nel PC | fatta | `158fb6cd` |
+| 6 casi speciali | **in parte**: Gara Pigliamosche fatta, il resto da fare (§5, punto 6) | commit dopo `158fb6cd` |
+| 7 documentazione | da fare | — |
+
+Tutto sul ramo `claude/overworld-encounters-fase-2-jomv77`, PR #19 (bozza),
+CI verde. **Non mergiare né rilasciare prima di aver chiuso le fasi 6 e 7.**
+Misure, trappole, prove in emulatore e ricette (GDB su mGBA, breakpoint per
+contare gli incontri a passi) in
+[`.claude/rules/overworld_encounters.md`](../../.claude/rules/overworld_encounters.md):
+leggerla prima di toccare il codice. Se la tabella delle indoli cambia:
+`python3 tools/owe_temperaments.py` (il file generato è nel git).
 
 ## 1. Cosa vuole l'utente
 
@@ -326,11 +338,54 @@ Ogni fase finisce con build `make hns` verde e, dove detto, una prova in mGBA
    **In prospettiva** l'utente pensa di tenere solo gli OW e togliere
    l'interruttore: scrivere il codice in modo che spegnerlo sia togliere la
    voce del PC e fissare il valore.
-6. **Casi speciali**: Gara Pigliamosche, Safari, grotte buie/Flash, acqua,
-   roamer, città (`WE_OWE_DESPAWN_ON_ENTER_TOWN`), mappe senza tabella.
-7. **Documentazione**: `CHANGELOG.md` (prossima versione), `README.md`,
-   CLAUDE.md (nuovo paragrafo con trappole e misure),
-   `docs/SOULGOLD_PORT_REPORT.md` solo per dire che non viene da Soulgold.
+6. **Casi speciali** — decisioni prese dall'utente il 21/10 (D6-D8, §6).
+   - **Gara Pigliamosche: fatta.** Durante la Gara (`FLAG_SYS_BUG_CONTEST_MODE`)
+     `AreOverworldMonsEnabled()` è falso: niente OWE, incontri a passi
+     classici con la tabella della Gara. L'addetto del cancello
+     (`Gate_NationalPark_hns`), dopo le regole e solo se l'opzione è ON,
+     dice "During the contest, POKéMON won't show themselves easily. They'll
+     only appear in tall grass!". Verificato in mGBA: avviso visto, nel
+     parco 0 OWE, `StandardWildEncounter` chiamata, lotta (Caterpie Lv14).
+   - **Zona Safari di Johto: da fare.** Deciso ON. Provare in emulatore che
+     la lotta con un OWE nel Safari sia una lotta Safari (Safari Ball, niente
+     squadra) e che la natura del Pokéblock valga (`PickWildMonNature`, già
+     collegato in fase 3). Il **bonus agli IV del Pokéblock**
+     (`TryApplyPokeblockBonus`, statico in `wild_encounter.c`) oggi si perde
+     con gli OWE: collegarlo in `StartWildBattleWithOWE` come la natura.
+     Se qualcosa non regge, spegnere gli OWE solo nel Safari (stesso schema
+     della Gara, in `AreOverworldMonsEnabled`). Mappe: `MAP_FUCHSIA_CITY_SAFARI_ZONE_*_HNS`.
+   - **Grotte buie senza Flash: da verificare, deciso ON.** Gli OWE restano
+     come gli NPC. Provare in una grotta buia (Dark Cave) che si vedano e che
+     la lotta parta.
+   - **Acqua e grotte, tetti 3/3: da verificare** (Route 29 non li aveva).
+     Mappa con acqua surfabile + grotta (`MAP_TYPE_UNDERGROUND`) +
+     un interno con tabella (Sprout Tower, `MAP_TYPE_INDOOR`): leggere il
+     numero di OWE via GDB. Nota già scritta nella regola: entrando in acqua
+     con 6 OWE di terra il totale scende a 3 solo man mano che quelli di
+     terra escono di vista.
+   - **Palette riflesso/shiny: da verificare.** Follower di specie X normale
+     che si riflette in acqua + OWE shiny della stessa specie (Force Shiny
+     dal debug **senza** una specie registrata nel DexNav: R+START avvia
+     la ricerca). Misurare i colori. Il fix (#9925) è già nel ramo.
+   - **Roamer: da verificare.** Upstream li fa comparire come OWE
+     (`OWE_CATEGORY` < `ROAMER_COUNT`): Raikou/Entei in HnS.
+   - **Città: fatto** (spariscono entrando a New Bark Town, fase 3).
+   - **Mappe senza tabella**: nessuno spawn (`CheckCurrentWildMonHeaderForOWE`),
+     da confermare con un'occhiata in una città.
+7. **Documentazione**: `CHANGELOG.md` (prossima versione: oggi c'è solo
+   il fix delle palette dei riflessi), `README.md`, CLAUDE.md (una riga
+   nell'indice esiste già; la regola dell'area passa da "in corso" a
+   definitiva), `docs/SOULGOLD_PORT_REPORT.md` solo per dire che non viene
+   da Soulgold. Nel CHANGELOG dire anche: interruttore `WILD POKéMON` nel PC,
+   default ON anche sui salvataggi vecchi, avviso della Gara.
+
+Dopo, **richiesto dall'utente**: togliere l'interruttore dal PC ("non mi
+piace lì dov'è, voglio proprio toglierlo"). Come: togliere la voce
+`WILD POKéMON` (`data/scripts/pc.inc`, `CreatePCMultichoice`, i due script
+`EventScript_*WildPokemonSwitch`, la special) e far restituire TRUE ad
+`AreOverworldMonsEnabled()` dopo i controlli su WILD BATTLES e Gara. Il bit
+`noOverworldMons` resta nel salvataggio, ignorato (non riusarlo: nei
+salvataggi può valere 1). L'avviso della Gara allora va detto sempre.
 
 Fuori da questo piano, da fare in futuro:
 
@@ -351,7 +406,14 @@ upstream), alfa.
   ereditano l'indole della famiglia (fase 4).
 - **D2 — deciso il 21/10**: feature **accesa** anche nei salvataggi
   esistenti. Per ora si accende e si spegne **dal PC del Centro Pokémon**
-  (fase 5); più avanti l'utente pensa di tenere solo gli OW.
+  (fase 5). Il 21/10, vista la voce, l'utente ha detto che non gli piace lì
+  e che **vuole toglierla** in futuro (§5, dopo il punto 7).
+- **D6 — deciso il 21/10, fatto**: Gara Pigliamosche senza OWE, incontri a
+  passi classici; avviso dell'addetto con il testo del punto 6 (l'utente ha
+  chiesto "un NPC esistente con dialogo modificato o il tizio che fa iniziare
+  la gara", proponendo il senso del testo).
+- **D7 — deciso il 21/10**: Zona Safari di Johto con OWE, da provare.
+- **D8 — deciso il 21/10**: grotte buie senza Flash con OWE, come gli NPC.
 - **D3 — deciso il 21/10**: OWE **anche in acqua e in grotta**, ma **meno
   numerosi** che sull'erba ("tanto c'è il DexNav"). Upstream ha un solo tetto
   (`OWE_SPAWNS_MAX`, che dimensiona anche gli array di ordinamento per età):
@@ -438,22 +500,18 @@ Dal log di `upcoming` dopo `10ae7f9`, filtrato su OWE, palette e riflessi:
 Con `WE_OWE_DESPAWN_SOUND FALSE` (D5) #10753 cambia poco, ma va presa
 comunque, così il difetto non torna se un giorno il suono si accende.
 
-## 7. Tabella compilata: fatto il 21/10
-
-Lettura, conteggi ed export fatti (§2bis), fase 1 fatta (§5), D2–D5 decise
-(§6), compresi voce propria del PC, tetti 6/3/3 e sostituzione dei vecchi
-OWE: non resta niente da chiedere prima di partire. Se l'utente torna a cambiare la tabella, rifare il dump e
-`export_temperaments.py`.
-
 ## Prompt di handoff per la sessione nuova
 
 > Leggi `docs/plans/overworld-encounters.md`, `CLAUDE.md` e
-> `.claude/rules/overworld_encounters.md`. La tabella delle indoli è in
-> `docs/plans/overworld-encounters/temperaments.json`. La fase 1 del §5 è
-> fatta e le decisioni D2–D5 del §6 sono prese. Parti dalla fase 2 (port con
-> tutto spento) e fermati alla fine di ogni fase per farmi vedere build e
-> prove; chiedimi i punti ancora "da confermare" quando arrivi alla fase
-> che li usa.
+> `.claude/rules/overworld_encounters.md`. Le fasi 1-5 sono fatte e la 6 è
+> fatta per la Gara Pigliamosche (tabella in cima al piano). Lavora sul ramo
+> della PR #19 (`claude/overworld-encounters-fase-2-jomv77`) se è ancora
+> aperta, altrimenti chiedimi. Finisci la fase 6 (Safari, grotte buie,
+> tetti acqua/grotta, palette riflesso/shiny, roamer; decisioni D6-D8 già
+> prese), poi la fase 7 (documentazione). Fermati alla fine di ogni fase
+> per farmi vedere build e prove. Dopo la fase 7 c'è da togliere
+> l'interruttore `WILD POKéMON` dal PC (§5): chiedimi conferma prima di
+> farlo.
 
 Fonti: [PR #8434](https://github.com/rh-hideout/pokeemerald-expansion/pull/8434),
 [devlog di HashtagMarky](https://hashtagmarky.com/devlog/overworld-encounters/),

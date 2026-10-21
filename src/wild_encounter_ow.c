@@ -4,6 +4,7 @@
 #include "battle_main.h"
 #include "battle_pike.h"
 #include "battle_pyramid.h"
+#include "bug_contest.h"
 #include "event_data.h"
 #include "event_object_movement.h"
 #include "fieldmap.h"
@@ -296,7 +297,18 @@ bool32 AreOverworldMonsEnabled(void)
 {
     if (!WE_OW_ENCOUNTERS || AreWildEncountersDisabledByOption())
         return FALSE;
+    // Bug-Catching Contest: the user chose to keep the classic step
+    // encounters there; the gate attendant warns about it (Gate_NationalPark).
+    if (GetBugContestFlag())
+        return FALSE;
     return !gSaveBlock3Ptr->soundAndFieldOptions.noOverworldMons;
+}
+
+// Hasep: the player's choice alone, for scripts (the contest notice).
+void GetOverworldMonsOption(void)
+{
+    gSpecialVar_Result = WE_OW_ENCOUNTERS && !AreWildEncountersDisabledByOption()
+                      && !gSaveBlock3Ptr->soundAndFieldOptions.noOverworldMons;
 }
 
 // Hasep: "WILD POKéMON" in the Pokémon Center PC (data/scripts/pc.inc). It is
