@@ -101,7 +101,7 @@ dice 28.
    il livello scalato (coerente con quello che incontri) o no.
 5. **Soldi**: `GetTrainerMoneyToGive` usa il livello **scritto** dell'ultimo
    Pokémon (`battle_script_commands.c` ~6232). Con lo scaling la ricompensa
-   resta quella di HnS. Va bene così o va scalata (decisione).
+   resta quella di HnS. Deciso in D6: va scalata.
 6. **Mirror Mode** (`battle_main.c` ~667) copia la squadra nemica **dopo** la
    creazione, quindi il giocatore riceve la copia scalata: coerente, da
    verificare in emulatore.
@@ -111,7 +111,8 @@ dice 28.
    `TRAINER CATCH`: un Pokémon catturato arriva al livello scalato, anche
    oltre il level cap (non guadagna esperienza finché il tetto non sale).
 8. **Lotte di script** (`setwildbattle`: Gyarados rosso, Sudowoodo, Snorlax,
-   leggendari) **non** passano da `CreateWildMon`: restano come sono. Vedi D4.
+   leggendari) **non** passano da `CreateWildMon`: serve un aggancio a parte
+   (deciso in D4: scalate sul level cap, leggendari esclusi).
 9. **Spazio nel salvataggio**: due bit ON/OFF. In Hasep `ChallengeSettings`
    ha 0 bit liberi; `soundAndFieldOptions` ne ha esattamente **2**
    (`unused:2`, `include/global.h` ~372), azzerati dalla migrazione
@@ -125,17 +126,64 @@ dice 28.
     lotta con allenatore. Ricalcolare a ogni generazione costa sei
     `GetMonData`: niente cache, o invalidazione anche lì.
 
-## Decisioni per l'utente (prima della sessione)
+## Decisioni dell'utente (22/10)
 
-| # | domanda | consiglio |
+| # | domanda | risposta |
 | --- | --- | --- |
-| D1 | Riferimento: media senza passeggeri (SG), minimo, massimo, level cap? | media senza passeggeri |
-| D2 | Allenatori: mai sotto il livello di HnS (pavimento) o anche più facili? | pavimento |
-| D3 | Scarti: allenatori +1, selvatici −8 (valori di SG) o altro? | partire da SG, ritoccare dopo una prova |
-| D4 | Lotte di script (Gyarados rosso, Snorlax, leggendari): scalate? | no ai leggendari; gli altri da decidere |
-| D5 | Allenatori che si evolvono quando salgono di livello (Pidgey Lv40 → Pidgeot)? Solo evoluzioni a livello non ambigue (`EvolveSpeciesForLevel` di SG) | sì per gli allenatori, no per i selvatici |
-| D6 | Soldi in base al livello scalato? | no (lasciare HnS) |
-| D7 | Dove nel menu: opzioni (dove stanno già i campi di `soundAndFieldOptions`) o Challenges → Difficulty? Deve potersi accendere **a partita iniziata** | menu opzioni |
+| D1 | Riferimento | **media senza passeggeri** (quella di SG, spiegata sotto) |
+| D2 | Allenatori più facili se sei indietro? | **no: mai sotto il livello scritto** |
+| D3 | Scarti | **allenatori +1, selvatici −2** (non −8 come SG) |
+| D4 | Lotte di script | **scalate sul level cap; i leggendari no** |
+| D5 | Evoluzioni | **sì per gli allenatori, no per i selvatici** |
+| D6 | Soldi | **sì, sul livello scalato**; resta da chiarire il bonus (D6-bis) |
+| D7 | Dove | **menu opzioni** |
+
+**"Senza passeggeri"** (D1): la media esclude i Pokémon della squadra che
+stanno **7 o più livelli sotto il più alto** (`GetPlayerPartyAverageLevel` in
+SG). Squadra 41, 40, 40, 39, 38 + un Abra Lv5 appena catturato: la media
+conta solo i primi cinque (≈40), non scende a 34. Il portatore di MN o il
+nuovo arrivato non abbassano tutto, e allenare un solo asso non alza tutto.
+
+### Cosa ne segue (specifica)
+
+- **Allenatori** (D2, D3, D5): asso = media **+1**, meno 0..1 deterministico
+  (stessa squadra a ogni lotta); gli altri tengono il distacco dall'asso
+  (massimo 2); **mai sotto il livello di HnS** per nessun Pokémon, quindi con
+  una squadra indietro si gioca HnS com'è. Evoluzioni solo per allenatori e
+  solo quelle a livello non ambigue (`EvolveSpeciesForLevel` di SG): Pidgey
+  Lv40 → Pidgeot sì; Eevee, Poliwhirl, Slowpoke, evoluzioni a scambio o pietra
+  no. Le mosse scritte da HnS restano.
+- **Selvatici** (D3, D5): media **−2**, meno 0..2, mai sotto la tabella. Con
+  la squadra di oggi (media ~40): 36-38 dove la tabella dice 28.
+  **Avvertenza onesta**: è molto più alto di SG (−8) e di HnS (oggi i
+  selvatici stanno circa 9 sotto il tetto HARD). Gli incontri a passi
+  diventano quasi lotte con allenatori, e anche la cattura e la fuga
+  cambiano. Lo scarto è una costante di `include/config/level_scaling.h`:
+  si prova −2 e lo si ritocca con un numero, senza riscrivere nulla.
+- **Lotte di script** (D4): `setwildbattle` → `CreateScriptedWildMon`
+  (`script_pokemon_util.c`; `scrcmd.c` ~3362), cioè Gyarados rosso, Snorlax,
+  Sudowoodo, Electrode e simili. Livello = **level cap attuale**, mai sotto il
+  livello scritto. **Esclusi** leggendari, sub-leggendari, mitici e Ultra
+  Beast (flag di `SpeciesInfo`: `isRestrictedLegendary`, `isSubLegendary`,
+  `isMythical`, `isUltraBeast`) e i roamer. Le bacche (`berry.c` ~2359, il
+  Pokémon che esce dall'albero) passano dalla stessa funzione: da escludere o
+  includere esplicitamente in sessione, non per caso.
+  **Trappola già vista**: con `LEVEL CAP` OFF, `GetCurrentLevelCap()`
+  restituisce `MAX_LEVEL` (`B_LEVEL_CAP_TYPE` è `LEVEL_CAP_NONE`), quindi un
+  Gyarados rosso Lv100. Senza tetto acceso si usa la tabella NORMAL per
+  medaglie (`sLevelCapTable_Normal`, stessa fonte del tetto). Le lotte di
+  script seguono l'opzione dei **selvatici**.
+- **Soldi** (D6): `GetTrainerMoneyToGive` legge il livello scritto dell'ultimo
+  Pokémon (`battle_script_commands.c` ~6232): va letto quello vero, da
+  `gEnemyParty`. Questo da solo fa già crescere i soldi con il livello.
+
+**D6-bis, da chiarire**: "moltiplicato per una piccola percentuale a seconda
+del level cap" può voler dire due cose:
+1. niente di più: il livello scalato fa già salire la ricompensa
+   (proporzionale al livello), e il level cap sale con le medaglie;
+2. un bonus in più, per esempio **+1% per medaglia** sopra la ricompensa
+   scalata (8 medaglie = +8%).
+Senza risposta, la sessione fa la 1.
 
 ## Fasi
 
@@ -150,7 +198,7 @@ dice 28.
 2. **Allenatori**: aggancio in `battle_main.c`, pavimento (D2), esclusioni,
    evoluzioni (D5).
 3. **Selvatici**: `CreateWildMon`, DexNav (punto 2), OWE (punto 3), repellente
-   (punto 4), Gara esclusa.
+   (punto 4), Gara esclusa; lotte di script sul level cap (D4).
 4. **Opzioni**: due voci, i 2 bit, `oak_speech_hns.c`.
 5. **Verifica in emulatore** (`docs/claude/emulator.md`), con il salvataggio
    dell'utente:
@@ -161,6 +209,9 @@ dice 28.
    - selvatici a passi, OWE, DexNav (livello mostrato = livello in lotta),
      pesca; repellente;
    - squadra con un passeggero Lv5: il riferimento non cambia;
+   - Gyarados rosso: livello = tetto con LEVEL CAP acceso, tabella NORMAL
+     con LEVEL CAP spento (mai 100); un leggendario resta al suo livello;
+   - soldi dopo una lotta scalata: calcolati sul livello vero;
    - OFF: livelli identici a prima, byte per byte;
    - **aprire la squadra** dopo una cattura (`TRAINER CATCH`) di un Pokémon
      scalato (`.claude/rules/trainer_catch.md`).
@@ -179,12 +230,12 @@ dice 28.
   il **`.srm` di Mahogany** dell'utente caricato all'inizio, e un clone di
   sola lettura di Soulgold (`GIT_LFS_SKIP_SMUDGE=1 git clone --depth 1
   https://github.com/Marcogn/soulgold /home/user/marcogn/soulgold`).
-- Prima di iniziare: le risposte a D1-D7.
+- Le decisioni sono in questo file; prima di iniziare serve solo D6-bis.
 - Se il TcloneR (`docs/plans/tcloner.md`) va prima, il bit `trainerCatch`
   liberato lì **non** serve qui: questo piano usa solo `soundAndFieldOptions`.
 
 Prompt da incollare:
 
-> Implementa `docs/plans/level-scaling.md`. Decisioni: D1=…, D2=…, D3=…,
-> D4=…, D5=…, D6=…, D7=…. Ti allego il mio salvataggio a Mahogany: parti
-> dalla fase 0. Consegna la ROM zippata e apri la PR.
+> Implementa `docs/plans/level-scaling.md` con le decisioni scritte nel
+> piano (D6-bis: …). Ti allego il mio salvataggio a Mahogany: parti dalla
+> fase 0. Consegna la ROM zippata e apri la PR.

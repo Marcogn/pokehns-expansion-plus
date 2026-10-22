@@ -182,7 +182,7 @@ Mahogany (presentazione + resto della tappa 2) e quello di Azalea sparisce.
 scienziato lo dice e se ne va lo stesso; lo dà all'incontro successivo
 (Pallet c'è sempre).
 
-## Testi in inglese (bozza da rivedere, D5)
+## Testi in inglese (approvati dall'utente il 22/10, D5)
 
 Tradotti dalla bozza e rivisti: refusi corretti ("c'è l'ha"), qualche frase
 accorciata per il box di testo. Maiuscole come negli script di HnS (`ELM`,
@@ -326,6 +326,9 @@ qua" della bozza non dipende da nulla di verificabile):
    incontro a Mahogany e a Goldenrod (presentazione e riga di recupero); un
    incontro saltato fa sparire quelli precedenti; salvataggio dell'utente a
    Mahogany (caso vecchio reale); screenshot di ogni dialogo.
+   **Consegnare all'utente gli screenshot dei casi con la sequenza rotta**
+   (primo incontro a Mahogany, primo incontro a Goldenrod): li ha approvati
+   sulla carta ma ha chiesto di vedere come vengono davvero.
 
 ## Sessione consigliata
 
