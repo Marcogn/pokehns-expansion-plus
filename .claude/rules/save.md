@@ -65,11 +65,11 @@ Centri) c'è un secondo contenitore, **in coda a SaveBlock3 dopo `candyJarExp`**
 | `battleMusicTheme` | 3 | `enum BattleMusicTheme`, 0 = DEFAULT (regionale) |
 | `noNightCenterMusic` | 1 | **invertito**: 0 = musica notturna ON (default) |
 | `unusedOverworldMonsBit` | 1 | ex `noOverworldMons` (voce `WILD POKéMON` del PC, tolta il 21/10): ignorato, ma nei salvataggi passati per quelle build può valere 1; prima di riusarlo azzerarlo con una migrazione |
-| `trainerLevelScaling` | 1 | 0 = OFF (default). Ex `unused`: nessuna build l'ha mai scritto, la migrazione `< 8` l'ha azzerato, quindi nessuna migrazione nuova |
-| `wildLevelScaling` | 1 | 0 = OFF (default), vale anche per `setwildbattle` |
+| `levelScaling` | 1 | 0 = OFF (default): allenatori, selvatici e lotte di script. Ex `unused`: nessuna build l'aveva scritto, la migrazione `< 8` l'ha azzerato, quindi nessuna migrazione nuova |
+| `unusedLevelScalingBit` | 1 | era `wildLevelScaling`, quando il level scaling era due opzioni (una build di poche ore): ignorato, ma un salvataggio di quella build può averlo a 1; prima di riusarlo azzerarlo con una migrazione |
 
-**Il byte è pieno** (l'unico bit non usato è `unusedOverworldMonsBit`, che va
-prima azzerato con una migrazione). La prossima opzione: un flag, o un byte nuovo
+**Il byte è pieno** (i due bit non usati, `unusedOverworldMonsBit` e
+`unusedLevelScalingBit`, vanno prima azzerati con una migrazione). La prossima opzione: un flag, o un byte nuovo
 in coda a SaveBlock3 con il suo `STATIC_ASSERT` e il suo passo di migrazione.
 
 - **Flag specchio.** `FLAG_FAST_HMS` (`ENGINE_FLAGS_START + 13`) è lo stato a

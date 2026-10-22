@@ -24,12 +24,12 @@
 
 bool32 IsTrainerLevelScalingEnabled(void)
 {
-    return gSaveBlock3Ptr->soundAndFieldOptions.trainerLevelScaling;
+    return gSaveBlock3Ptr->soundAndFieldOptions.levelScaling;
 }
 
 bool32 IsWildLevelScalingEnabled(void)
 {
-    if (!gSaveBlock3Ptr->soundAndFieldOptions.wildLevelScaling)
+    if (!gSaveBlock3Ptr->soundAndFieldOptions.levelScaling)
         return FALSE;
     if (GetBugContestFlag())
         return FALSE;

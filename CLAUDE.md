@@ -99,9 +99,9 @@ quando tocchi `save.c`, `global.h`, `new_game.c`, `oak_speech_hns.c` o il menu
 opzioni.
 
 - `struct ChallengeSettings` è fissata a 32 byte e ha **0 bit liberi**, e
-  anche `soundAndFieldOptions` è pieno (gli ultimi 2 li usa il level scaling).
-  Una nuova opzione va in un flag, oppure in un campo nuovo in coda a
-  SaveBlock3 (vedi sotto).
+  anche `soundAndFieldOptions` è pieno (restano 2 bit ignorati, da azzerare
+  con una migrazione prima di riusarli). Una nuova opzione va in un flag,
+  oppure in un campo nuovo in coda a SaveBlock3 (vedi sotto).
 - **Polarità**: un salvataggio vecchio legge zero, quindi zero deve essere il
   comportamento di prima (o il default). L'etichetta del valore zero viene prima
   nella lista di scelte, anche se il nome del campo viene brutto.

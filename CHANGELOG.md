@@ -9,10 +9,9 @@ add the section before releasing. Feature details live in the tables of
 ## 2.0.6.PLUS.5
 
 ### Added
-- **Level scaling for Trainers and wild Pokémon**, two options in the
-  BATTLE page of the options menu (`TRAINER LEVELS`, `WILD LEVELS`), both
-  OFF by default: with them off the game plays exactly as before, saves from
-  earlier versions included.
+- **Level scaling for Trainers and wild Pokémon**, one option in the BATTLE
+  page of the options menu (`LEVEL SCALING`), OFF by default: with it off
+  the game plays exactly as before, saves from earlier versions included.
 - Both follow the average level of your team, leaving out any Pokémon 7 or
   more levels below your strongest, so a fresh catch or an HM carrier does
   not pull everything down.
@@ -34,7 +33,7 @@ add the section before releasing. Feature details live in the tables of
   battle). Repel and Keen Eye compare the level you would actually meet.
   The Bug-Catching Contest is left as it is.
 - **Scripted battles** (the red Gyarados, Snorlax, Sudowoodo, Lapras, the
-  Rocket Electrode…) follow `WILD LEVELS` and come at the current level cap,
+  Rocket Electrode…) come at the current level cap,
   never below their own level. With `LEVEL CAP` off in the challenge
   settings the cap is the NORMAL one for your badges. Legendary, mythical
   and Ultra Beast Pokémon, roamers, the Fighting Dojo training battles and

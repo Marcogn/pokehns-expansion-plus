@@ -14,9 +14,13 @@ paths:
 Motore da Soulgold (`src/level_scaling.c` di SG, che viene dal branch
 `feature/level-scaling` di fisham-org), regole di HnS. Le regole per
 allenatore di SG (`level_scaling_rules.h`) **non** sono portate: in SG non le
-legge nessuno. Opzioni `TRAINER LEVELS` e `WILD LEVELS` nella pagina BATTLE
-del menu opzioni, bit 6 e 7 di `soundAndFieldOptions` (0 = OFF, nessuna
-migrazione: erano `unused`, mai scritti). Numeri tutti in
+legge nessuno. **Un'unica opzione** `LEVEL SCALING` nella pagina BATTLE del
+menu opzioni (richiesta dell'utente: SG ne ha due, trainer e selvatici; il
+piano ne prevedeva due), bit 6 di `soundAndFieldOptions` (`levelScaling`,
+0 = OFF, nessuna migrazione: era `unused`, mai scritto). Il bit 7 (che per
+poche ore è stato `wildLevelScaling`) resta `unusedLevelScalingBit`, ignorato.
+`IsTrainerLevelScalingEnabled` e `IsWildLevelScalingEnabled` leggono lo stesso
+bit; la seconda in più esclude Gara, Pike e Pyramid. Numeri tutti in
 `include/config/level_scaling.h`.
 
 ## Dove si aggancia (e perché lì)
@@ -52,8 +56,9 @@ allenatori non usa l'RNG (seed da `playerTrainerId` e id allenatore, come SG).
   Snorunt restano. Lickitung resta (evolve con una mossa).
 - Niente cache del riferimento: in SG si invalidava solo all'inizio delle
   lotte con allenatore.
-- Uova escluse dalla media (in SG un uovo contava come Lv1... di solito
-  scartato comunque dalla regola dei 7 livelli).
+- Uova escluse dalla media (`IsPartySlotCounted`). In SG la media guarda solo
+  `SPECIES_NONE` e non ho verificato cosa faccia con un uovo: qui un uovo non
+  conta, punto.
 
 ## Verifiche in emulatore (salvataggio dell'utente, Route 43, 6 medaglie, NORMAL, squadra tutta Lv38)
 
@@ -79,10 +84,12 @@ GDB a `gSaveBlock3Ptr + 0x38` (`0xC1` = FAST HMS + entrambe ON).
   30; Zapdos 20 resta 20; Steelix del Dojo resta 1.
 - Cattura con `TRAINER CATCH` del Venusaur scalato e di un Girafarig OWE:
   squadra e scheda aperte, dati integri.
-- Opzioni: menu disegnato, descrizioni nelle due righe, `0xC1` scritto nel
-  `.sav` dopo SALVA.
+- Opzione unica (rifatta dopo la richiesta dell'utente): descrizione su due
+  righe in entrambi gli stati; con il bit acceso Brent 38/38 in una lotta vera
+  (non da debug) e nuovi OWE Lv34-35 dove la tabella dice 21-23; dopo SALVA il `.sav` legge `0x41`
+  (FAST HMS + `levelScaling`).
 
 **Non provato in emulatore**: pesca (stesso percorso di `ChooseWildMonLevel`),
 Mirror Mode (copia `gEnemyParty` dopo la creazione, quindi riceve la copia
-scalata), lotte con due avversari, opzioni scelte dal titolo prima di una
+scalata), lotte in doppio e con due avversari (l'utente le prova), le esclusioni del primo rivale di Cherrygrove e del partner in lotta multi (scritte, mai viste girare), opzioni scelte dal titolo prima di una
 nuova partita (`NewGameInitData` salva e ripristina già tutto il byte).

@@ -74,8 +74,7 @@ enum {
     ITEM_BATTLE_BALL_PROMPT,
     ITEM_BATTLE_RUN_TYPE,
     ITEM_BATTLE_LR_RUN,
-    ITEM_BATTLE_TRAINER_LEVELS,
-    ITEM_BATTLE_WILD_LEVELS,
+    ITEM_BATTLE_LEVEL_SCALING,
     ITEM_BATTLE_COUNT,
 };
 
@@ -449,13 +448,9 @@ static const u8 *const sDesc_LRRun[] = {
     COMPOUND_STRING("Enables a prompt to show that you\ncan run away from battles."),
     COMPOUND_STRING("Disables said prompt to flee.\nButton combo still works."),
 };
-static const u8 *const sDesc_TrainerLevels[] = {
-    COMPOUND_STRING("TRAINERS use the levels\nthey always had."),
-    COMPOUND_STRING("TRAINERS rise to your team's level,\nnever below their usual one."),
-};
-static const u8 *const sDesc_WildLevels[] = {
-    COMPOUND_STRING("Wild {PKMN} use the levels\nof each area."),
-    COMPOUND_STRING("Wild {PKMN} rise close to your team's\nlevel, never below the area's."),
+static const u8 *const sDesc_LevelScaling[] = {
+    COMPOUND_STRING("Trainers and wild {PKMN} keep the\nlevels they always had."),
+    COMPOUND_STRING("Trainers and wild {PKMN} follow your\nteam's level, never below their own."),
 };
 static const u8 *const sDesc_FastHms[] = {
     COMPOUND_STRING("Show the prompt and animation\nwhen using a field move."),
@@ -683,15 +678,9 @@ static const struct OptionMenuItem sTabItems_Battle[] = {
         .numChoices   = 2,
         .choiceNames  = sChoices_OnOff,
     },
-    [ITEM_BATTLE_TRAINER_LEVELS] = {
-        .name         = COMPOUND_STRING("TRAINER LEVELS"),
-        .descriptions = sDesc_TrainerLevels,
-        .numChoices   = 2,
-        .choiceNames  = sChoices_OffOn,
-    },
-    [ITEM_BATTLE_WILD_LEVELS] = {
-        .name         = COMPOUND_STRING("WILD LEVELS"),
-        .descriptions = sDesc_WildLevels,
+    [ITEM_BATTLE_LEVEL_SCALING] = {
+        .name         = COMPOUND_STRING("LEVEL SCALING"),
+        .descriptions = sDesc_LevelScaling,
         .numChoices   = 2,
         .choiceNames  = sChoices_OffOn,
     },
@@ -1376,8 +1365,7 @@ static void Task_Save(u8 taskId)
     sf->battleMusicTheme   = *GetSelectionPtr(TAB_SOUND, ITEM_SOUND_BATTLE_MUSIC);
     // sChoices_OnOff is ON first, so ON stores 0 and the field reads "no night theme".
     sf->noNightCenterMusic = *GetSelectionPtr(TAB_SOUND, ITEM_SOUND_NIGHT_CENTER);
-    sf->trainerLevelScaling = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_TRAINER_LEVELS);
-    sf->wildLevelScaling    = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_WILD_LEVELS);
+    sf->levelScaling       = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_LEVEL_SCALING);
 
     BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);
     gTasks[taskId].func = Task_FadeOut;
@@ -1499,8 +1487,7 @@ void CB2_InitOptionMenu(void)
         *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_FAST_HMS)           = sf->fastHms;
         *GetSelectionPtr(TAB_SOUND, ITEM_SOUND_BATTLE_MUSIC)     = GetBattleMusicTheme();
         *GetSelectionPtr(TAB_SOUND, ITEM_SOUND_NIGHT_CENTER)     = sf->noNightCenterMusic;
-        *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_TRAINER_LEVELS) = sf->trainerLevelScaling;
-        *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_WILD_LEVELS)    = sf->wildLevelScaling;
+        *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_LEVEL_SCALING)  = sf->levelScaling;
 
         gMain.state++;
         break;

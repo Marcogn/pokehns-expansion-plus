@@ -5,6 +5,9 @@
 > `LEVEL CAP` è **NORMAL** (`tx_Challenges_LevelCap` = 1), non HARD, con 6
 > medaglie → tetto 38, e la squadra è tutta Lv38: nessun buco nel tetto.
 > Punto 4 (repellente), lasciato aperto qui: confronta il livello **scalato**.
+> **Cambiato dopo la consegna (richiesta dell'utente): una sola opzione**
+> `LEVEL SCALING` (allenatori, selvatici e lotte di script insieme) invece
+> delle due del punto 9 e di D7; usa un solo bit.
 
 ## Contesto
 
