@@ -135,7 +135,7 @@ dice 28.
 | D3 | Scarti | **allenatori +1, selvatici −2** (non −8 come SG) |
 | D4 | Lotte di script | **scalate sul level cap; i leggendari no** |
 | D5 | Evoluzioni | **sì per gli allenatori, no per i selvatici** |
-| D6 | Soldi | **sì, sul livello scalato**; resta da chiarire il bonus (D6-bis) |
+| D6 | Soldi | **sì, sul livello scalato, più un bonus in percentuale che cresce con il level cap attuale** |
 | D7 | Dove | **menu opzioni** |
 
 **"Senza passeggeri"** (D1): la media esclude i Pokémon della squadra che
@@ -165,9 +165,11 @@ nuovo arrivato non abbassano tutto, e allenare un solo asso non alza tutto.
   Sudowoodo, Electrode e simili. Livello = **level cap attuale**, mai sotto il
   livello scritto. **Esclusi** leggendari, sub-leggendari, mitici e Ultra
   Beast (flag di `SpeciesInfo`: `isRestrictedLegendary`, `isSubLegendary`,
-  `isMythical`, `isUltraBeast`) e i roamer. Le bacche (`berry.c` ~2359, il
-  Pokémon che esce dall'albero) passano dalla stessa funzione: da escludere o
-  includere esplicitamente in sessione, non per caso.
+  `isMythical`, `isUltraBeast`) e i roamer. **Esclusi anche i Pokémon degli
+  alberi di bacche** (`berry.c` ~2359, Lv14-16): passano dalla stessa
+  funzione, ma restano sempre come con lo scaling spento (decisione
+  dell'utente); il controllo va fatto apposta, perché "stessa funzione"
+  vuol dire che senza un'esclusione esplicita verrebbero scalati.
   **Trappola già vista**: con `LEVEL CAP` OFF, `GetCurrentLevelCap()`
   restituisce `MAX_LEVEL` (`B_LEVEL_CAP_TYPE` è `LEVEL_CAP_NONE`), quindi un
   Gyarados rosso Lv100. Senza tetto acceso si usa la tabella NORMAL per
@@ -177,13 +179,14 @@ nuovo arrivato non abbassano tutto, e allenare un solo asso non alza tutto.
   Pokémon (`battle_script_commands.c` ~6232): va letto quello vero, da
   `gEnemyParty`. Questo da solo fa già crescere i soldi con il livello.
 
-**D6-bis, da chiarire**: "moltiplicato per una piccola percentuale a seconda
-del level cap" può voler dire due cose:
-1. niente di più: il livello scalato fa già salire la ricompensa
-   (proporzionale al livello), e il level cap sale con le medaglie;
-2. un bonus in più, per esempio **+1% per medaglia** sopra la ricompensa
-   scalata (8 medaglie = +8%).
-Senza risposta, la sessione fa la 1.
+- **Bonus sui soldi** (D6, chiarito dall'utente: "a seconda del livello
+  attuale di level cap"): sopra la ricompensa calcolata sul livello vero, un
+  **+1% ogni 5 livelli del tetto attuale**, arrotondato per difetto: tetto
+  37 → +7%, 56 → +11%, 70 → +14%, 100 → +20%. Il tetto è lo stesso delle
+  lotte di script (tabella NORMAL se `LEVEL CAP` è spento, mai il 100 di
+  `MAX_LEVEL` prima del tempo). Vale solo con lo scaling degli allenatori
+  acceso. Il divisore (5) è una costante in `include/config/level_scaling.h`:
+  la proporzione è una proposta, non una richiesta dell'utente.
 
 ## Fasi
 
@@ -211,7 +214,9 @@ Senza risposta, la sessione fa la 1.
    - squadra con un passeggero Lv5: il riferimento non cambia;
    - Gyarados rosso: livello = tetto con LEVEL CAP acceso, tabella NORMAL
      con LEVEL CAP spento (mai 100); un leggendario resta al suo livello;
-   - soldi dopo una lotta scalata: calcolati sul livello vero;
+   - soldi dopo una lotta scalata: calcolati sul livello vero, più il bonus
+     del tetto (conto a mano confrontato con quello che arriva);
+   - un Pokémon da un albero di bacche: Lv14-16 anche con lo scaling acceso;
    - OFF: livelli identici a prima, byte per byte;
    - **aprire la squadra** dopo una cattura (`TRAINER CATCH`) di un Pokémon
      scalato (`.claude/rules/trainer_catch.md`).
@@ -230,12 +235,12 @@ Senza risposta, la sessione fa la 1.
   il **`.srm` di Mahogany** dell'utente caricato all'inizio, e un clone di
   sola lettura di Soulgold (`GIT_LFS_SKIP_SMUDGE=1 git clone --depth 1
   https://github.com/Marcogn/soulgold /home/user/marcogn/soulgold`).
-- Le decisioni sono in questo file; prima di iniziare serve solo D6-bis.
+- Le decisioni sono tutte in questo file.
 - Se il TcloneR (`docs/plans/tcloner.md`) va prima, il bit `trainerCatch`
   liberato lì **non** serve qui: questo piano usa solo `soundAndFieldOptions`.
 
 Prompt da incollare:
 
 > Implementa `docs/plans/level-scaling.md` con le decisioni scritte nel
-> piano (D6-bis: …). Ti allego il mio salvataggio a Mahogany: parti dalla
+> piano. Ti allego il mio salvataggio a Mahogany: parti dalla
 > fase 0. Consegna la ROM zippata e apri la PR.

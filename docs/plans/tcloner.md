@@ -165,11 +165,14 @@ incontro non è Azalea:
    (chi è, dà il TcloneR, come funziona) **al posto** del saluto della tappa,
    e salta "quanti ne hai presi?" e i premi: il contatore parte con l'oggetto,
    quindi vale per forza 0.
-3. **Una rivelazione saltata si recupera con una riga.** L'unica che una tappa
-   successiva dà per scontata è "sto con il Team Rocket" (Mahogany): se a
-   Goldenrod o dopo la tappa 2 non c'è stata, si aggiunge la riga di recupero
-   prima del resto. Celebi viene introdotto a Goldenrod e spiegato a
-   Cerulean; saltando Goldenrod, Cerulean regge da solo.
+3. **Le rivelazioni si leggono dalla tappa.** Tre cose che un blocco può
+   dare per già dette: "sto con il Team Rocket" (detta a ogni incontro dalla
+   tappa 2 in poi, quindi già detta se `VAR_TCLONER_STAGE >= 2`), "c'entra
+   Celebi" (detta a Goldenrod: `>= 3`), e la promessa "te lo spiego se ci
+   rivediamo" della presentazione (ha senso solo se la spiegazione viene
+   dopo, cioè se il primo incontro è ad Azalea o a Mahogany). Quando la
+   condizione non è vera si usa la variante scritta in "Sequenza rotta",
+   sotto: nessuna frase si ripete e nessuna risponde a qualcosa mai detto.
 4. Pallet resta per sempre; dalla seconda visita in poi usa il dialogo
    breve.
 
@@ -235,8 +238,7 @@ poi, in entrambi i casi:
 > Wow, what a blank look… Fine, let's just say CELEBI is involved. OK?
 > I've got to run too. See you!
 
-Riga di recupero, se Mahogany è stata saltata (prima di "The other
-TRAINERS…"): "Oh, right. I was with TEAM ROCKET. Was."
+Righe di recupero se Mahogany è stata saltata: in "Sequenza rotta", sotto.
 
 **Cerulean** (una sola versione: la differenza "a trovarmi / ad arrivare
 qua" della bozza non dipende da nulla di verificabile):
@@ -268,6 +270,66 @@ qua" della bozza non dipende da nulla di verificabile):
 > Our deal still stands. How many this time?
 > *[premi]*
 > Drop by again!
+
+### Sequenza rotta: le varianti (scritte per non dimenticarle)
+
+Richiesta dell'utente (22/10): correggere già nelle bozze la frase ripetuta
+"I used to be ELM's assistant" e simili. Sono tutte le combinazioni
+possibili: Pallet non può mai essere il primo incontro (compare solo dopo
+Cerulean).
+
+**Presentazione corta**: la presentazione senza "It's complicated… I'll
+explain if we meet again." (resta "Nobody gets hurt… Probably."). Si usa
+quando il primo incontro è a Goldenrod o a Cerulean, perché lì la
+spiegazione arriva nello stesso dialogo.
+
+**Primo incontro a Mahogany**: presentazione completa, poi (al posto di
+"There are still plenty of rewards… What? Who am I? I used to be ELM's
+assistant."):
+
+> Oh, one more thing. I'm with TEAM ROCKET now. Fewer rules, more money. I
+> don't like it much, but I can do whatever I want.
+> I have to go now, but I think we'll meet again soon… in the shadow of a
+> tower. Clone 'em all!
+
+**Primo incontro a Goldenrod**, durante l'occupazione: presentazione corta,
+poi
+
+> Oh, and I'm with TEAM ROCKET. You're giving the higher-ups a lot of
+> trouble, you know. I don't think they'll give up easily.
+
+dopo la liberazione: presentazione corta, poi
+
+> I was with TEAM ROCKET. Was. I knew it wouldn't last. Now I need a new
+> job… I think I'll head to KANTO.
+
+in entrambi i casi segue il blocco delle particelle ("The other TRAINERS
+don't notice because…" fino a "See you!"), che risponde a "They won't even
+notice" della presentazione.
+
+**Goldenrod non primo, Mahogany saltata** (tappa 1 fatta): saluto normale,
+premi, poi la riga di recupero prima di "The other TRAINERS…": durante
+l'occupazione "Oh, right: I'm with TEAM ROCKET, by the way."; dopo la
+liberazione "Oh, right. I was with TEAM ROCKET. Was."
+
+**Primo incontro a Cerulean**: presentazione corta, poi
+
+> I was with TEAM ROCKET, until it fell apart. Now I'm looking for a job.
+> Maybe I'll go back to PROF. OAK.
+> How does it work? Let's say we had an unpleasant run-in with CELEBI…
+
+e prosegue come il blocco normale da "It lost some hair…" alla fine.
+
+**Cerulean non primo**:
+- Goldenrod saltata (tappa 1 o 2): "CELEBI? Let's say…" diventa "How does
+  it work? Let's say we had an unpleasant run-in with CELEBI…", perché
+  Celebi non è mai stato nominato;
+- anche Mahogany saltata (tappa 1): prima di "How does it work?" la riga
+  "I was with TEAM ROCKET, until it fell apart."
+
+**Pallet**, prima visita: non cambia. Il perché ("TEAM ROCKET would have
+more ways to make money") presuppone solo il Team Rocket, che a quel punto
+è sempre stato nominato (Cerulean lo nomina in ogni variante).
 
 **Righe comuni:**
 
@@ -323,7 +385,8 @@ qua" della bozza non dipende da nulla di verificabile):
 3. Testi dalla sezione qui sopra, impaginati e controllati negli screenshot.
 4. Verifica: percorso completo con warp di debug in tutti e cinque i posti,
    sia "durante" sia "dopo" ogni evento (flag forzati via GDB); primo
-   incontro a Mahogany e a Goldenrod (presentazione e riga di recupero); un
+   incontro in ognuna delle varianti di "Sequenza rotta" (Mahogany,
+   Goldenrod durante e dopo, Cerulean, Cerulean con tappe saltate); un
    incontro saltato fa sparire quelli precedenti; salvataggio dell'utente a
    Mahogany (caso vecchio reale); screenshot di ogni dialogo.
    **Consegnare all'utente gli screenshot dei casi con la sequenza rotta**
