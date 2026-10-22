@@ -1,5 +1,11 @@
 # Piano: level scaling di allenatori e selvatici
 
+> **Stato (22/10): fatto.** Fasi 0-6 completate; dettagli, agganci e misure in
+> `.claude/rules/level_scaling.md`. Fase 0: nel salvataggio dell'utente
+> `LEVEL CAP` è **NORMAL** (`tx_Challenges_LevelCap` = 1), non HARD, con 6
+> medaglie → tetto 38, e la squadra è tutta Lv38: nessun buco nel tetto.
+> Punto 4 (repellente), lasciato aperto qui: confronta il livello **scalato**.
+
 ## Contesto
 
 Segnalazione dell'utente (22/10/2026), partita con `LEVEL CAP` HARD, a

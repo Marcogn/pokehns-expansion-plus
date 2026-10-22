@@ -19,8 +19,8 @@ paths:
 - Bit liberi: **0**. L'ultimo (`unusedDexNavBit`, liberato fondendo `DEXNAV SHOW
   ALL` e `DEXNAV SOULGOLD`) ora è `trainerCatch`. **La prossima opzione deve
   ingrandire la struct**, e quello sposta il layout del salvataggio — oppure
-  vivere in un flag, come fa Soulgold per le luci, oppure nel byte
-  `soundAndFieldOptions` (vedi sotto, 2 bit liberi).
+  vivere in un flag, come fa Soulgold per le luci. Anche il byte
+  `soundAndFieldOptions` (vedi sotto) è pieno dal level scaling.
   Riusare un bit che ha già avuto un significato vuol dire che nei salvataggi
   passati per quelle build può valere 1: per questo il passo
   `saveVersion < 7` lo azzera. Stessa cautela per `FLAG_FORCE_SHINY` (ex
@@ -65,7 +65,12 @@ Centri) c'è un secondo contenitore, **in coda a SaveBlock3 dopo `candyJarExp`**
 | `battleMusicTheme` | 3 | `enum BattleMusicTheme`, 0 = DEFAULT (regionale) |
 | `noNightCenterMusic` | 1 | **invertito**: 0 = musica notturna ON (default) |
 | `unusedOverworldMonsBit` | 1 | ex `noOverworldMons` (voce `WILD POKéMON` del PC, tolta il 21/10): ignorato, ma nei salvataggi passati per quelle build può valere 1; prima di riusarlo azzerarlo con una migrazione |
-| `unused` | 2 | liberi |
+| `trainerLevelScaling` | 1 | 0 = OFF (default). Ex `unused`: nessuna build l'ha mai scritto, la migrazione `< 8` l'ha azzerato, quindi nessuna migrazione nuova |
+| `wildLevelScaling` | 1 | 0 = OFF (default), vale anche per `setwildbattle` |
+
+**Il byte è pieno** (l'unico bit non usato è `unusedOverworldMonsBit`, che va
+prima azzerato con una migrazione). La prossima opzione: un flag, o un byte nuovo
+in coda a SaveBlock3 con il suo `STATIC_ASSERT` e il suo passo di migrazione.
 
 - **Flag specchio.** `FLAG_FAST_HMS` (`ENGINE_FLAGS_START + 13`) è lo stato a
   runtime, come `FLAG_EVEN_FASTER_JOY`: lo leggono gli script (`goto_if_set`) e

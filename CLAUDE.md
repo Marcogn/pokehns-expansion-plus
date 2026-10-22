@@ -98,9 +98,10 @@ Dettaglio, offset e storia delle migrazioni: `.claude/rules/save.md`, caricata
 quando tocchi `save.c`, `global.h`, `new_game.c`, `oak_speech_hns.c` o il menu
 opzioni.
 
-- `struct ChallengeSettings` è fissata a 32 byte e ha **0 bit liberi**. Una
-  nuova opzione va in `soundAndFieldOptions` (2 bit liberi), in un flag, oppure
-  ingrandisce la struct spostando il layout.
+- `struct ChallengeSettings` è fissata a 32 byte e ha **0 bit liberi**, e
+  anche `soundAndFieldOptions` è pieno (gli ultimi 2 li usa il level scaling).
+  Una nuova opzione va in un flag, oppure in un campo nuovo in coda a
+  SaveBlock3 (vedi sotto).
 - **Polarità**: un salvataggio vecchio legge zero, quindi zero deve essere il
   comportamento di prima (o il default). L'etichetta del valore zero viene prima
   nella lista di scelte, anche se il nome del campo viene brutto.
@@ -201,6 +202,7 @@ In `.claude/rules/`, caricate da sole quando apri i file indicati.
 | `title_screen.md` | "+" e versione sulla schermata del titolo |
 | `pc_box.md` | `SORT` e `SEARCH` nei box del PC |
 | `overworld_encounters.md` | Pokémon visibili nell'overworld: port, indoli, tetti, VRAM (piano in `docs/plans/`) |
+| `level_scaling.md` | level scaling di allenatori, selvatici e lotte di script; soldi |
 
 Fuori dalle regole, da leggere quando serve: `docs/claude/emulator.md`,
 `docs/SOULGOLD_PORT_REPORT.md`.

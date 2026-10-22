@@ -42,6 +42,7 @@ Il branch `claude/mega-type-stones` ha 3 commit **non ancora in master**
 | Fast HMs (SG 1.2, `a9d41a7b9`) | `FAST HMS`, default OFF | `src/field_effect.c`, `src/fldeff_flash.c`, `src/fldeff_rocksmash.c`, `data/scripts/field_move_scripts_hns.inc`, `data/scripts/surf.inc` | salta domanda, messaggio "usato" e posa/banner. **Gli script sono quelli `_hns`**, non `field_move_scripts.inc` (quello è il ramo non-HnS): Taglio, Spaccaroccia, Forza, Cascata e Testata qui non avevano già né domanda né animazione, quindi per loro l'opzione toglie solo il messaggio. Surf, Sub, Scalaroccia e Defog hanno anche domanda e/o posa. Flag specchio `FLAG_FAST_HMS`, campo `soundAndFieldOptions.fastHms`, `.claude/rules/save.md` |
 | Tema musica di lotta (SG 1.2, `f81a55ff3`) | `BATTLE MUSIC`: DEFAULT, HG JOHTO, HG KANTO, FRLG, RSE, DPPT, RANDOM | `src/pokemon.c` (`GetBattleBGM`), `include/pokemon.h`, `src/option_menu.c` | diverso da SG: DEFAULT è il tema **regionale** di Hasep, c'è HG JOHTO, e il tema vale anche per la **Superquattro**. Restano fissi boss, rivali, Rocket, campioni, leggendari, link, strutture e il Professor Oak (`PROFESSOR_HNS`, che prima condivideva il `case` con i capipalestra FRLG). 4 brani DP nuovi (`mus_dp_vs_wild/trainer/gym_leader`, `mus_dp_poke_center_night`) da SG, id derivati da Hasep |
 | Musica notturna nei Centri (SG 1.2, `c913c4a2d`) | `NIGHT CENTER`, default ON | `src/overworld.c` (`ApplyNightCenterMusic`) | in SG è sempre attiva, qui è un'opzione. Vale per le tre musiche di Centro (RSE, FRLG, HGSS) |
+| Level scaling, il motore (`f690a8587`, branch `feature/level-scaling` di fisham-org) | `TRAINER LEVELS`, `WILD LEVELS`, default OFF | `src/level_scaling.c`, `include/level_scaling.h`, `include/config/level_scaling.h`, agganci in `battle_main.c`, `wild_encounter.c`, `dexnav.c`, `scrcmd.c`, `battle_script_commands.c` | portato solo il motore: le regole per allenatore di SG (`level_scaling_rules.h`, mai lette) no. Regole di HnS decise dall'utente (`docs/plans/level-scaling.md`): mai sotto il livello scritto, selvatici −2 invece di −8, lotte di script al level cap, soldi sul livello vero più un bonus. `.claude/rules/level_scaling.md` |
 
 ## 2. Accesi e completati qui (non scritti qui, non di Soulgold)
 
@@ -140,7 +141,7 @@ minimo inferiore al massimo.
   1.1.4): due opzioni che spengono la fusione dei colori per l'ora del giorno.
   In SG costano due flag. Da valutare: in Hasep le opzioni vivono in
   `ChallengeSettings`, che ora è piena; il posto più economico è
-  `soundAndFieldOptions` (3 bit liberi, `.claude/rules/save.md`) con un flag specchio come
+  `soundAndFieldOptions` (oggi pieno: gli ultimi 2 bit li usa il level scaling, `.claude/rules/save.md`) con un flag specchio come
   per Fast HMs.
 
 **Contenuto e design di Soulgold, legati alle sue mappe e al suo bilanciamento**
@@ -148,7 +149,7 @@ minimo inferiore al massimo.
 Achievement, Hidden Grotto, Title Defense, lotte boss, Battle Arcade / Rocket
 Arcade, minigiochi (blackjack, gacha, pachinko, pinball, derby, snake, flappy
 bird, block stacker, Voltorb Flip roguelike), puzzle delle Rovine d'Alfa,
-level scaling, mosse degli allenatori, sistema di tratti/abilità innate, squadre,
+level scaling come **regole** (il motore è portato, §1), mosse degli allenatori, sistema di tratti/abilità innate, squadre,
 learnset, BGM delle strutture lotta, menu Docs in gioco (è la documentazione
 di SG). Non sono feature di interfaccia: portarli vuol dire importare il
 gioco di un altro.

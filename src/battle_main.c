@@ -33,6 +33,7 @@
 #include "gpu_regs.h"
 #include "international_string_util.h"
 #include "item.h"
+#include "level_scaling.h"
 #include "link.h"
 #include "link_rfu.h"
 #include "load_save.h"
@@ -2085,7 +2086,8 @@ void CustomTrainerPartyAssignMoves(struct Pokemon *mon, const struct TrainerMon 
     }
 }
 
-u8 CreateNPCTrainerPartyFromTrainer(struct Pokemon *party, const struct Trainer *trainer, bool32 firstTrainer, u32 battleTypeFlags)
+// trainerId seeds the level scaling variation; TRAINER_NONE leaves it off.
+static u8 CreateNPCTrainerPartyFromTrainerWithId(struct Pokemon *party, const struct Trainer *trainer, u16 trainerId, bool32 firstTrainer, u32 battleTypeFlags)
 {
     u32 personalityValue;
     s32 i;
@@ -2111,6 +2113,16 @@ u8 CreateNPCTrainerPartyFromTrainer(struct Pokemon *party, const struct Trainer 
 
         u32 monIndices[monsCount];
         DoTrainerPartyPool(trainer, monIndices, monsCount, battleTypeFlags);
+
+        // Level scaling works on the mons actually picked: the ace is the
+        // highest authored level among them, see src/level_scaling.c.
+        u32 authoredAceLevel = 1;
+        for (i = 0; i < monsCount; i++)
+        {
+            if (trainer->party[monIndices[i]].lvl > authoredAceLevel)
+                authoredAceLevel = trainer->party[monIndices[i]].lvl;
+        }
+        u32 scaledAceLevel = GetTrainerScaledAceLevel(trainerId, party, battleTypeFlags, authoredAceLevel);
 
         for (i = 0; i < monsCount; i++)
         {
@@ -2145,10 +2157,13 @@ u8 CreateNPCTrainerPartyFromTrainer(struct Pokemon *party, const struct Trainer 
             }
             {
                 u16 species = partyData[monIndex].species;
+                u8 level = GetTrainerScaledMonLevel(scaledAceLevel, authoredAceLevel, partyData[monIndex].lvl);
                 #if RANDOMIZER_AVAILABLE == TRUE
                 species = RandomizeTrainerMon(trainer->trainerClass, i, monsCount, species);
                 #endif
-                CreateMon(&party[i], species, partyData[monIndex].lvl, personalityValue, otId);
+                if (scaledAceLevel != 0)
+                    species = EvolveSpeciesForLevel(species, level);
+                CreateMon(&party[i], species, level, personalityValue, otId);
             }
             SetMonData(&party[i], MON_DATA_HELD_ITEM, &partyData[monIndex].heldItem);
 
@@ -2260,6 +2275,11 @@ u8 CreateNPCTrainerPartyFromTrainer(struct Pokemon *party, const struct Trainer 
     return trainer->partySize;
 }
 
+u8 CreateNPCTrainerPartyFromTrainer(struct Pokemon *party, const struct Trainer *trainer, bool32 firstTrainer, u32 battleTypeFlags)
+{
+    return CreateNPCTrainerPartyFromTrainerWithId(party, trainer, TRAINER_NONE, firstTrainer, battleTypeFlags);
+}
+
 static u8 CreateNPCTrainerParty(struct Pokemon *party, u16 trainerNum, bool8 firstTrainer)
 {
     u8 retVal;
@@ -2277,11 +2297,11 @@ static u8 CreateNPCTrainerParty(struct Pokemon *party, u16 trainerNum, bool8 fir
         if (tempTrainer.partySize == 0)
             tempTrainer.partySize = origTrainer->partySize;
 
-        retVal = CreateNPCTrainerPartyFromTrainer(party, (const struct Trainer *)(&tempTrainer), firstTrainer, gBattleTypeFlags);
+        retVal = CreateNPCTrainerPartyFromTrainerWithId(party, (const struct Trainer *)(&tempTrainer), trainerNum, firstTrainer, gBattleTypeFlags);
     }
     else
     {
-        retVal = CreateNPCTrainerPartyFromTrainer(party, GetTrainerStructFromId(trainerNum), firstTrainer, gBattleTypeFlags);
+        retVal = CreateNPCTrainerPartyFromTrainerWithId(party, GetTrainerStructFromId(trainerNum), trainerNum, firstTrainer, gBattleTypeFlags);
     }
     return retVal;
 }

@@ -369,7 +369,10 @@ struct SoundAndFieldOptions
     u8 battleMusicTheme:3;   // enum BattleMusicTheme, 0 = DEFAULT
     u8 noNightCenterMusic:1; // stored inverted: 0 = night theme ON (default)
     u8 unusedOverworldMonsBit:1; // was noOverworldMons (PC switch, removed): can be 1 in saves, clear it before reuse
-    u8 unused:2;
+    // The two bits that were never written by any build (zeroed by the
+    // saveVersion < 8 migration), so no new migration: 0 = OFF, as before.
+    u8 trainerLevelScaling:1; // 0 = off (default)
+    u8 wildLevelScaling:1;    // 0 = off (default), also covers setwildbattle
 };
 
 struct SaveBlock3

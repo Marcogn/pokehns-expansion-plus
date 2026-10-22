@@ -46,6 +46,30 @@ static const u8 sLevelCapTable_Hard[] =
 // 70 for the Kanto half, and only beating the Kanto league removes it entirely.
 #define KANTO_MAX_LEVEL 70
 
+// challengeLevelCap is tx_Challenges_LevelCap: 1 = NORMAL, 2 = HARD.
+static u32 GetChallengeLevelCap(u32 challengeLevelCap)
+{
+    u8 badgeCount = GetCurrentBadgeCount();
+    if (badgeCount > 8)
+        badgeCount = 8;
+
+#if IS_HNS
+    if (FlagGet(FLAG_IS_KANTO_CHAMPION))
+        return MAX_LEVEL;
+
+    if (FlagGet(FLAG_IS_CHAMPION))
+        return KANTO_MAX_LEVEL;
+#else
+    if (FlagGet(FLAG_IS_CHAMPION))
+        return MAX_LEVEL;
+#endif
+
+    if (challengeLevelCap == 1)
+        return sLevelCapTable_Normal[badgeCount];
+    else
+        return sLevelCapTable_Hard[badgeCount];
+}
+
 u32 GetCurrentLevelCap(void)
 {
     static const u32 sLevelCapFlagMap[][2] =
@@ -64,27 +88,7 @@ u32 GetCurrentLevelCap(void)
     u8 challengeLevelCap = gSaveBlock3Ptr->challengeSettings.tx_Challenges_LevelCap;
 
     if (challengeLevelCap != 0)
-    {
-        u8 badgeCount = GetCurrentBadgeCount();
-        if (badgeCount > 8)
-            badgeCount = 8;
-
-#if IS_HNS
-        if (FlagGet(FLAG_IS_KANTO_CHAMPION))
-            return MAX_LEVEL;
-
-        if (FlagGet(FLAG_IS_CHAMPION))
-            return KANTO_MAX_LEVEL;
-#else
-        if (FlagGet(FLAG_IS_CHAMPION))
-            return MAX_LEVEL;
-#endif
-
-        if (challengeLevelCap == 1)
-            return sLevelCapTable_Normal[badgeCount];
-        else
-            return sLevelCapTable_Hard[badgeCount];
-    }
+        return GetChallengeLevelCap(challengeLevelCap);
 
     u32 i;
 
@@ -102,6 +106,16 @@ u32 GetCurrentLevelCap(void)
     }
 
     return MAX_LEVEL;
+}
+
+// Level scaling targets a cap even when the LEVEL CAP challenge is off. With it
+// off GetCurrentLevelCap() is MAX_LEVEL (B_LEVEL_CAP_TYPE is LEVEL_CAP_NONE),
+// which would make a scripted Gyarados level 100: use the NORMAL table instead.
+u32 GetLevelScalingCap(void)
+{
+    u8 challengeLevelCap = gSaveBlock3Ptr->challengeSettings.tx_Challenges_LevelCap;
+
+    return GetChallengeLevelCap(challengeLevelCap != 0 ? challengeLevelCap : 1);
 }
 
 u32 GetSoftLevelCapExpValue(u32 level, u32 expValue)
