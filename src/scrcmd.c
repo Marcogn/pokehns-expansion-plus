@@ -30,6 +30,7 @@
 #include "follower_npc.h"
 #include "gpu_regs.h"
 #include "item.h"
+#include "level_scaling.h"
 #include "lilycove_lady.h"
 #include "main.h"
 #include "map_preview_screen.h"
@@ -1696,6 +1697,8 @@ bool8 ScrCmd_setwildbattleshiny(struct ScriptContext *ctx)
     u8 level = ScriptReadByte(ctx);
     u16 item = ScriptReadHalfword(ctx);
 
+    // The red Gyarados: scaled like setwildbattle.
+    level = GetScriptedWildScaledLevel(species, level);
     CreateShinyScriptedMon(species, level, item);
     return FALSE;
 }
@@ -3356,6 +3359,12 @@ bool8 ScrCmd_setwildbattle(struct ScriptContext *ctx)
     enum Item item2 = ScriptReadHalfword(ctx);
 
     Script_RequestEffects(SCREFF_V1);
+
+    // Scaled here and not in CreateScriptedWildMon, which the berry tree pests
+    // also use: those stay at Lv14-16 with level scaling on.
+    level = GetScriptedWildScaledLevel(species, level);
+    if (species2 != SPECIES_NONE)
+        level2 = GetScriptedWildScaledLevel(species2, level2);
 
     if (species2 == SPECIES_NONE)
     {

@@ -8,6 +8,7 @@
 #include "follower_npc.h"
 #include "random.h"
 #include "field_player_avatar.h"
+#include "level_scaling.h"
 #include "link.h"
 #include "load_save.h"
 #include "metatile_behavior.h"
@@ -336,7 +337,7 @@ static u32 ChooseWildMonIndex_Fishing(u8 rod)
     return wildMonIndex;
 }
 
-u8 ChooseWildMonLevel(const struct WildPokemon *wildPokemon, u8 wildMonIndex, enum WildPokemonArea area)
+static u8 ChooseWildMonLevelFromTable(const struct WildPokemon *wildPokemon, u8 wildMonIndex, enum WildPokemonArea area)
 {
     u8 min;
     u8 max;
@@ -383,6 +384,15 @@ u8 ChooseWildMonLevel(const struct WildPokemon *wildPokemon, u8 wildMonIndex, en
         else // Failsafe
             return wildPokemon[wildMonIndex].maxLevel + 1;
     }
+}
+
+// Every table encounter takes its level from here (steps, fishing, Rock Smash,
+// Headbutt, Sweet Scent, overworld mons at spawn), so level scaling applies once
+// and before the Repel and Keen Eye checks: they compare the level the player
+// will actually meet. DexNav has its own roll and scales it in dexnav.c.
+u8 ChooseWildMonLevel(const struct WildPokemon *wildPokemon, u8 wildMonIndex, enum WildPokemonArea area)
+{
+    return GetWildScaledLevel(ChooseWildMonLevelFromTable(wildPokemon, wildMonIndex, area));
 }
 
 u16 GetCurrentMapWildMonHeaderId(void)
@@ -688,11 +698,12 @@ static u16 GenerateFishingWildMon(const struct WildPokemonInfo *wildMonInfo, u8 
 bool8 SetUpMassOutbreakEncounter(u8 flags)
 {
     u16 i;
+    u8 level = GetWildScaledLevel(gSaveBlock1Ptr->outbreakPokemonLevel);
 
-    if (flags & WILD_CHECK_REPEL && !IsWildLevelAllowedByRepel(gSaveBlock1Ptr->outbreakPokemonLevel))
+    if (flags & WILD_CHECK_REPEL && !IsWildLevelAllowedByRepel(level))
         return FALSE;
 
-    CreateWildMon(gSaveBlock1Ptr->outbreakPokemonSpecies, gSaveBlock1Ptr->outbreakPokemonLevel);
+    CreateWildMon(gSaveBlock1Ptr->outbreakPokemonSpecies, level);
     for (i = 0; i < MAX_MON_MOVES; i++)
         SetMonMoveSlot(&gEnemyParty[0], gSaveBlock1Ptr->outbreakPokemonMoves[i], i);
 

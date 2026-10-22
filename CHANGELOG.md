@@ -6,6 +6,40 @@ tag `v2.0.6.PLUS.3`) as the release notes, and refuses to run without one:
 add the section before releasing. Feature details live in the tables of
 [`README.md`](README.md).
 
+## 2.0.6.PLUS.5
+
+### Added
+- **Level scaling for Trainers and wild Pokémon**, one option in the BATTLE
+  page of the options menu (`LEVEL SCALING`), OFF by default: with it off
+  the game plays exactly as before, saves from earlier versions included.
+- Both follow the average level of your team, leaving out any Pokémon 7 or
+  more levels below your strongest, so a fresh catch or an HM carrier does
+  not pull everything down.
+- **Trainers**: the strongest Pokémon of a team comes one level above your
+  average (or level with it, fixed per Trainer, so a rematch brings the same
+  levels); the others keep their distance from it, at most 2 levels. **No
+  Pokémon is ever below the level HnS gives it**, Gym Leaders included: if
+  you are behind, you play HnS as it is. A Trainer's Pokémon evolves when the
+  level allows it and the evolution has only one possible result (an Ivysaur
+  at 38 is a Venusaur; Slowpoke, Eevee, Kirlia and trade or stone
+  evolutions stay as written). Their moves stay as written. The first rival
+  battle and the partner in multi battles are not scaled.
+- **Prize money** from a scaled Trainer is worked out on the level you
+  actually fought, plus 1% for every 5 levels of the current level cap
+  (+7% at cap 38, +14% at 70).
+- **Wild Pokémon** come 2 to 4 levels below your average, never below the
+  level of the area: random encounters, visible ones, fishing, Rock Smash,
+  Headbutt and the DexNav (the level the search shows is the one you
+  battle). Repel and Keen Eye compare the level you would actually meet.
+  The Bug-Catching Contest is left as it is.
+- **Scripted battles** (the red Gyarados, Snorlax, Sudowoodo, Lapras, the
+  Rocket Electrode…) come at the current level cap,
+  never below their own level. With `LEVEL CAP` off in the challenge
+  settings the cap is the NORMAL one for your badges. Legendary, mythical
+  and Ultra Beast Pokémon, roamers, the Fighting Dojo training battles and
+  the Route 41 Tentacruel keep their level.
+- The engine comes from Soulgold, with HnS rules instead of Soulgold's.
+
 ## 2.0.6.PLUS.4
 
 ### Added

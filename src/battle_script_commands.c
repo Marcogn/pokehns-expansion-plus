@@ -77,6 +77,7 @@
 #include "data/battle_move_effects.h"
 #include "test/battle.h"
 #include "follower_npc.h"
+#include "level_scaling.h"
 #include "load_save.h"
 #include "nuzlocke.h"
 #include "test/test_runner_battle.h"
@@ -6214,7 +6215,8 @@ static void Cmd_hitanimation(void)
     gBattlescriptCurrInstr = cmd->nextInstr;
 }
 
-static u32 GetTrainerMoneyToGive(u16 trainerId)
+// firstPartySlot is where this trainer's mons start in gEnemyParty.
+static u32 GetTrainerMoneyToGive(u16 trainerId, u32 firstPartySlot)
 {
     u32 lastMonLevel = 0;
     u32 moneyReward;
@@ -6231,6 +6233,22 @@ static u32 GetTrainerMoneyToGive(u16 trainerId)
             return 20;
         lastMonLevel = party[GetTrainerPartySizeFromId(trainerId) - 1].lvl;
         trainerMoney = gTrainerClasses[GetTrainerClassFromId(trainerId)].money ?: 5;
+        if (IsTrainerLevelScalingEnabled())
+        {
+            // The party in battle, not the authored one: with level scaling
+            // the last mon fought can be well above what HnS wrote for it.
+            u32 lastSlot = GetTrainerPartySizeFromId(trainerId);
+            if (gBattleTypeFlags & BATTLE_TYPE_TWO_OPPONENTS && lastSlot > PARTY_SIZE / 2)
+                lastSlot = PARTY_SIZE / 2;
+            else if (lastSlot > PARTY_SIZE)
+                lastSlot = PARTY_SIZE;
+            if (lastSlot != 0)
+            {
+                lastSlot += firstPartySlot - 1;
+                if (GetMonData(&gEnemyParty[lastSlot], MON_DATA_LEVEL) > lastMonLevel)
+                    lastMonLevel = GetMonData(&gEnemyParty[lastSlot], MON_DATA_LEVEL);
+            }
+        }
 
         if (gBattleTypeFlags & BATTLE_TYPE_TWO_OPPONENTS)
             moneyReward = 4 * lastMonLevel * gBattleStruct->moneyMultiplier * trainerMoney;
@@ -6238,6 +6256,7 @@ static u32 GetTrainerMoneyToGive(u16 trainerId)
             moneyReward = 4 * lastMonLevel * gBattleStruct->moneyMultiplier * 2 * trainerMoney;
         else
             moneyReward = 4 * lastMonLevel * gBattleStruct->moneyMultiplier * trainerMoney;
+        moneyReward += moneyReward * GetTrainerScalingMoneyBonusPercent() / 100;
     }
 
     return moneyReward;
@@ -6252,9 +6271,9 @@ static void Cmd_getmoneyreward(void)
 
     if (gBattleOutcome == B_OUTCOME_WON)
     {
-        money = GetTrainerMoneyToGive(TRAINER_BATTLE_PARAM.opponentA);
+        money = GetTrainerMoneyToGive(TRAINER_BATTLE_PARAM.opponentA, 0);
         if (gBattleTypeFlags & BATTLE_TYPE_TWO_OPPONENTS)
-            money += GetTrainerMoneyToGive(TRAINER_BATTLE_PARAM.opponentB);
+            money += GetTrainerMoneyToGive(TRAINER_BATTLE_PARAM.opponentB, PARTY_SIZE / 2);
         AddMoney(&gSaveBlock1Ptr->money, money);
 #if IS_HNS
         if (Mom_IsSavingEnabled())
