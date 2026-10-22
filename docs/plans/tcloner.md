@@ -36,6 +36,9 @@ migrazione.
 
 ## Valutazione
 
+Scritta prima delle risposte dell'utente; le decisioni prese stanno in
+"Decisioni dell'utente" e valgono su quello che dice questa sezione.
+
 Funziona bene come struttura: dà un motivo narrativo a una meccanica che oggi
 è un interruttore, e i cinque incontri seguono la storia dei Rocket.
 Problemi veri, in ordine di peso:
@@ -111,70 +114,218 @@ Nomi inglesi da `include/constants/items.h` (da confermare in fase 1):
 
 ## Stato nel salvataggio
 
-- `VAR_TCLONER_COUNT` (cloni contati) e `VAR_TCLONER_REWARDS` (scaglioni già
-  ritirati, 0-10): due var libere di HnS (`include/constants/vars_hns.h`, 43
-  `UNUSED`).
-- Un flag per incontro fatto (5) e uno per "è nel laboratorio di Oak": flag
-  liberi di HnS (`include/constants/flags_hns.h`, `FLAG_UNUSED_*` da 0x2E0).
-  **Non** usare flag con byte basso `0xFF` vicino ai massi
+- `VAR_TCLONER_COUNT` (cloni contati), `VAR_TCLONER_REWARDS` (scaglioni già
+  ritirati, 0-10) e `VAR_TCLONER_STAGE` (ultimo incontro fatto, 0-5, vedi
+  "Ordine degli incontri"): tre var libere di HnS
+  (`include/constants/vars_hns.h`, 43 `UNUSED`). La tappa in una var invece
+  che in cinque flag rende "gli incontri vanno solo avanti" un confronto.
+- Un flag per oggetto evento (nascondere/mostrare): flag liberi di HnS
+  (`include/constants/flags_hns.h`, `FLAG_UNUSED_*` da 0x2E0). **Non** usare
+  flag con byte basso `0xFF` vicino ai massi
   (`.claude/rules/overworld_encounters.md`, `trainer_type`).
-- Bitfield degli allenatori clonati (punto 1).
+- Bitfield degli allenatori clonati (D1), **solo se costa poco** (sotto).
 - `SAVE_VERSION` 9: azzera `trainerCatch`, il bitfield e le var; `STATIC_ASSERT`
   sugli offset; il passo va scritto **dopo** quello del level scaling se
   quello arriva prima (oggi non ne ha bisogno).
 
-## Decisioni per l'utente (prima della sessione)
+**D1, regola di costo** (decisione dell'utente: sì se non costa troppo, il
+farming non è un problema perché i premi sono neutri). Si fa **solo** se il
+`filler` di `struct Pokedex` risulta davvero libero: nessun lettore o
+scrittore (`grep` su `src/`), dimensione confermata (104 o 108 byte), e una
+migrazione che lo azzera. Allora costa 82 byte già esistenti e una funzione.
+Se serve spostare il layout di un SaveBlock o trovare spazio altrove, **non
+si fa**: il contatore conta ogni cattura e lo si scrive nella PR.
 
-| # | domanda | consiglio |
+## Decisioni dell'utente (22/10)
+
+| # | domanda | risposta |
 | --- | --- | --- |
-| D1 | Un allenatore conta una volta sola? | sì |
-| D2 | Posto e dialogo dai flag della storia invece che da "salvataggio vecchio/nuovo"? | sì |
-| D3 | Clone sopra il level cap: lasciarlo o portarlo al tetto? | portarlo al tetto, solo con il tetto acceso |
-| D4 | Il primo incontro, qualunque sia, dà il TcloneR? | sì |
-| D5 | Dialoghi in inglese, tradotti dalla bozza? Li rivedi tu prima della build finale | sì |
-| D6 | Quando appare lo scienziato ad Azalea in un salvataggio nuovo: già all'arrivo, o dopo il Pozzo? Il dialogo "nuovo" non nomina il baccano, quindi all'arrivo | all'arrivo |
-| D7 | Icona dell'oggetto: ricolorare un'icona esistente (es. Dowsing Machine) o arte tua? | ricolorare, con palette derivata dai file (CLAUDE.md §2) |
-| D8 | Nel laboratorio di Oak "cammina": in uno spazio piccolo un NPC che vaga può bloccare il passaggio. Raggio limitato o fermo? | raggio 1 |
+| D1 | Un allenatore conta una volta sola? | sì, **se non costa troppo** (regola sopra) |
+| D2 | Posto e dialogo dai flag della storia? | sì |
+| D3 | Clone sopra il level cap? | **lasciarlo così** (arriva al suo livello) |
+| D4 | Il primo incontro, qualunque sia, dà il TcloneR? | sì, **mantenendo l'ordine degli incontri** (sotto) |
+| D5 | Dialoghi in inglese | sì: bozza tradotta e rivista qui sotto, da confermare |
+| D6 | Scienziato ad Azalea in un salvataggio nuovo | all'arrivo |
+| D7 | Icona | ricolorare un'icona esistente, palette derivata dai file (CLAUDE.md §2) |
+| D8 | Movimento nel laboratorio di Oak | raggio 1 |
+
+## Ordine degli incontri (D4)
+
+L'utente vuole la progressione Azalea → Mahogany → Goldenrod → Cerulean →
+Pallet, e le rivelazioni seguono quell'ordine (chi è, il Team Rocket, le
+particelle, Celebi, il perché). La regola che la tiene anche quando il primo
+incontro non è Azalea:
+
+1. **Gli incontri vanno solo avanti.** Lo scienziato della tappa *s* è visibile
+   se `VAR_TCLONER_STAGE < s` (e le condizioni della sua mappa: Pallet solo con
+   la tappa 4 fatta). Parlarci porta la tappa a *s*: **tutte le tappe
+   precedenti spariscono**, perché "è già andato avanti". Non si torna mai
+   indietro, quindi nessun dialogo può arrivare fuori ordine.
+2. **Il primo incontro, dovunque sia, apre con il blocco "presentazione"**
+   (chi è, dà il TcloneR, come funziona) **al posto** del saluto della tappa,
+   e salta "quanti ne hai presi?" e i premi: il contatore parte con l'oggetto,
+   quindi vale per forza 0.
+3. **Una rivelazione saltata si recupera con una riga.** L'unica che una tappa
+   successiva dà per scontata è "sto con il Team Rocket" (Mahogany): se a
+   Goldenrod o dopo la tappa 2 non c'è stata, si aggiunge la riga di recupero
+   prima del resto. Celebi viene introdotto a Goldenrod e spiegato a
+   Cerulean; saltando Goldenrod, Cerulean regge da solo.
+4. Pallet resta per sempre; dalla seconda visita in poi usa il dialogo
+   breve.
+
+Caso reale, il salvataggio dell'utente (a Mahogany, prima del covo): lo
+scienziato di Azalea c'è ancora. Se l'utente torna ad Azalea, prende
+l'oggetto lì e segue l'ordine completo; se entra prima nel covo, lo prende a
+Mahogany (presentazione + resto della tappa 2) e quello di Azalea sparisce.
+
+**Premi in sospeso**: con borsa o box pieni il premio resta da ritirare, lo
+scienziato lo dice e se ne va lo stesso; lo dà all'incontro successivo
+(Pallet c'è sempre).
+
+## Testi in inglese (bozza da rivedere, D5)
+
+Tradotti dalla bozza e rivisti: refusi corretti ("c'è l'ha"), qualche frase
+accorciata per il box di testo. Maiuscole come negli script di HnS (`ELM`,
+`TEAM ROCKET`, `POKéMON`); il nome dell'oggetto resta **TcloneR**, perché
+la "TR" è la battuta. L'impaginazione (`\n`, `\l`, `\p`) si fa in sessione B,
+con gli screenshot.
+
+**Presentazione** (primo incontro, qualunque tappa):
+
+> Psst… Hey, you! Did PROF. ELM send you? I used to be ELM's assistant.
+> Here, take this.
+> *[obtained the TcloneR]*
+> It's the TcloneR. Use it. You can stea— ahem, CLONE one of your opponent's
+> POKéMON per battle. They won't even notice, and they'll challenge you again
+> if they see you. The POKéMON will be just like one you caught yourself.
+> It's complicated… I'll explain if we meet again. Nobody gets hurt…
+> Probably.
+> There's a nice reward waiting if you steal… uh, clone a lot of them.
+
+Ad Azalea, dopo il Pozzo Slowpoke, si aggiunge "Quite a commotion around
+here, huh?" prima di "Here, take this.". Chiusura ad Azalea: "Now I have to go
+find the others. I heard there's a nice lake near MAHOGANY TOWN." (dopo il
+Pozzo) oppure "I have to go now." (prima).
+
+**Mahogany** (dentro il covo, o fuori dal negozio dopo):
+
+> Look who it is. How's it going? How many have you got?
+> *[premi]*
+> There are still plenty of rewards for you. What? Who am I?
+> I used to be ELM's assistant. Now I'm with TEAM ROCKET. Fewer rules, more
+> money. I don't like it much, but I can do whatever I want.
+> I have to go now, but I think we'll meet again soon… in the shadow of a
+> tower. Clone 'em all!
+
+**Goldenrod**, durante l'occupazione della Torre Radio:
+
+> I knew you'd be the one to show up. You're giving the higher-ups a lot of
+> trouble. I don't think they'll give up easily. Anyway, how many have you
+> cloned?
+
+dopo la liberazione:
+
+> I knew it wouldn't last. Now I need a new job… I think I'll head to KANTO.
+> What about you? How many have you cloned?
+
+poi, in entrambi i casi:
+
+> *[premi]*
+> The other TRAINERS don't notice because we use tachyon particles that…
+> Wow, what a blank look… Fine, let's just say CELEBI is involved. OK?
+> I've got to run too. See you!
+
+Riga di recupero, se Mahogany è stata saltata (prima di "The other
+TRAINERS…"): "Oh, right. I was with TEAM ROCKET. Was."
+
+**Cerulean** (una sola versione: la differenza "a trovarmi / ad arrivare
+qua" della bozza non dipende da nulla di verificabile):
+
+> Took you long enough to get here. Me? Still looking for a job. Maybe I'll
+> go back to PROF. OAK. You?
+> *[premi]*
+> CELEBI? Let's say we had an unpleasant run-in with CELEBI. It lost some
+> hair, and we extracted the particles from it. It's like time travel, so to
+> speak, but very, very limited. Imagine what we could have done if we'd
+> caught it…
+> I have to go. Looks like someone still has it in for TEAM ROCKET.
+> Clone 'em all!
+
+**Pallet**, prima visita:
+
+> I came to visit an old friend, and he asked me to stay. Lucky, huh? Better
+> this way. Life on the edge isn't for me. Our deal still stands, though.
+> You?
+> *[premi]*
+> Why did I ask you to do this? I thought that if their research moved
+> forward, TEAM ROCKET would have more ways to make money too. But that's
+> pointless now. I think I'll stay here for a while. Drop by when you're
+> around. Maybe I'll have something for you.
+> Gotta catch 'em all!
+
+**Pallet**, visite successive:
+
+> Our deal still stands. How many this time?
+> *[premi]*
+> Drop by again!
+
+**Righe comuni:**
+
+- nessuno scaglione nuovo: "Hmm, not enough for the next reward yet. Keep at
+  it!"
+- premi finiti: "Impressive. I have nothing left to give you. You've been
+  really great. Well done!"
+- borsa piena: "Your BAG is full! I'll keep the rest for next time."
+- box pieni: "Your PC BOXES are full! I'll keep this one for next time."
+- premi: i messaggi standard di `giveitem` ("Obtained 20 QUICK BALLS!") e,
+  per i Pokémon, "<NOME> was sent to the PC!".
 
 ## Fasi
 
 ### Sessione A: motore (C)
 
 1. `ITEM_TCLONER`: tasca oggetti chiave, nessun uso (descrizione e "non si
-   può usare ora"), icona (D7), nome `TCLONER` nella lista.
+   può usare ora"), icona ricolorata (D7), nome `TcloneR` nella lista.
 2. `CanCatchTrainerMon()`: `CheckBagHasItem(ITEM_TCLONER, 1)` al posto del
    bit; tolta la voce dal challenge menu (`ITEM_FEATURES_TRAINER_CATCH`,
    descrizioni, copia in/da `ChallengeSettings`); bit rinominato e azzerato.
 3. Contatore in `CB2_EndTrainerBattle` e `CB2_EndRematchBattle` sul ramo
-   `B_OUTCOME_CAUGHT`, con il bitfield (D1). In doppia con due allenatori:
-   contare quello a cui apparteneva il Pokémon (lato del battler catturato →
-   `opponentA`/`opponentB`), non sempre `opponentA`.
+   `B_OUTCOME_CAUGHT`, con il bitfield se passa la regola di costo (D1). In
+   doppia con due allenatori: contare quello a cui apparteneva il Pokémon
+   (lato del battler catturato → `opponentA`/`opponentB`), non sempre
+   `opponentA`.
 4. `special` per le ricompense: dà gli scaglioni maturati uno alla volta,
    ferma e lascia in sospeso con borsa o box pieni; Pokémon diretti al PC.
-5. Level cap (D3), Nuzlocke: controllare cosa fa oggi `TRAINER CATCH` con le
-   regole Nuzlocke (`nuzlocke.h`) e mantenerlo.
+   Restituisce in una var speciale l'esito (dato qualcosa / niente di nuovo /
+   finiti / pieno) per scegliere la riga comune.
+5. Level cap: niente (D3). Nuzlocke: controllare cosa fa oggi `TRAINER CATCH`
+   con le regole Nuzlocke (`nuzlocke.h`) e mantenerlo.
 6. Migrazione `SAVE_VERSION` 9, `CHANGELOG.md`, aggiornare
    `.claude/rules/trainer_catch.md`.
 7. Verifica: debug per dare l'oggetto, var del contatore portata a 9/19/99
    via GDB, una cattura → scaglione maturato; stesso allenatore due volte →
-   conta una volta; senza oggetto la ball è bloccata come prima; **aprire la
-   squadra e il box** dopo cattura e premio (shiny, OT, livello).
+   conta una volta (se D1 fatto); senza oggetto la ball è bloccata come
+   prima; borsa piena → premio in sospeso; **aprire la squadra e il box**
+   dopo cattura e premio (shiny, OT, livello).
 
 ### Sessione B: mondo (mappe, script, testi)
 
 1. Cinque oggetti evento (`OBJ_EVENT_GFX_SCIENTIST_M_HNS` o simile) nelle
-   mappe `AzaleaTown_hns`, `RocketHideout_B1F_hns` / `MahoganyTown_Shop_hns` /
-   `Mahoganytown_hns`, `GoldenrodCity_hns`, `CeruleanCity_hns`,
-   `PalletTown_Lab_hns`, ciascuno con il suo flag e la scelta del posto dai
-   flag della storia (D2).
-2. Script comune: dà l'oggetto se manca (D4), chiama lo `special`, dice i
-   messaggi, nasconde l'NPC (tranne Pallet), sblocca il laboratorio dopo
-   Cerulean.
-3. Testi in inglese (D5), a riga corta: controllare in emulatore che stiano
-   nelle due righe del box.
+   mappe `AzaleaTown_hns` (vicino al pozzo, fermo, visibile dall'arrivo:
+   D6), `RocketHideout_B1F_hns` all'ingresso / `Mahoganytown_hns` fuori dal
+   negozio dopo il covo, `GoldenrodCity_hns` fuori dalla Torre Radio,
+   `CeruleanCity_hns` fuori dal Centro (vaga), `PalletTown_Lab_hns` (raggio
+   1: D8). Posto e dialogo dai flag della storia (D2), visibilità dalla tappa.
+2. Script comune: presentazione se è il primo incontro, altrimenti saluto
+   della tappa; `special` dei premi e riga comune; riga di recupero se serve;
+   tappa avanzata e NPC nascosti (tutti quelli delle tappe precedenti);
+   Pallet sbloccato dopo Cerulean.
+3. Testi dalla sezione qui sopra, impaginati e controllati negli screenshot.
 4. Verifica: percorso completo con warp di debug in tutti e cinque i posti,
-   sia "durante" sia "dopo" ogni evento (flag forzati via GDB); salvataggio
-   dell'utente a Mahogany (caso vecchio reale); screenshot di ogni dialogo.
+   sia "durante" sia "dopo" ogni evento (flag forzati via GDB); primo
+   incontro a Mahogany e a Goldenrod (presentazione e riga di recupero); un
+   incontro saltato fa sparire quelli precedenti; salvataggio dell'utente a
+   Mahogany (caso vecchio reale); screenshot di ogni dialogo.
 
 ## Sessione consigliata
 
@@ -184,18 +335,20 @@ le var della A). Il level scaling è indipendente e può andare prima o dopo.
 - Modello: il più capace disponibile (Opus). A: sforzo alto (salvataggio,
   lotta, migrazione). B: sforzo medio, ma tanta verifica in emulatore.
 - Serve: emulatore (`docs/claude/emulator.md`), il `.srm` dell'utente per il
-  caso "salvataggio vecchio", le risposte a D1-D8. Soulgold non serve: non è
-  un port.
+  caso "salvataggio vecchio". Soulgold non serve: non è un port.
+- Le decisioni sono già in questo file: prima di iniziare la B servono solo le
+  correzioni dell'utente ai testi.
 
 Prompt da incollare (A):
 
-> Implementa la sessione A di `docs/plans/tcloner.md`. Decisioni: D1=…, D3=…,
-> D4=…, D7=…. Consegna la ROM zippata e apri la PR.
+> Implementa la sessione A di `docs/plans/tcloner.md`, con le decisioni già
+> scritte nel piano. Consegna la ROM zippata e apri la PR.
 
 Prompt da incollare (B):
 
 > Implementa la sessione B di `docs/plans/tcloner.md` (la A è in `master`).
-> Decisioni: D2=…, D5=…, D6=…, D8=…. Ti allego il mio salvataggio.
+> Testi: quelli del piano [con queste correzioni: …]. Ti allego il mio
+> salvataggio.
 
 ## Bozza originale dell'utente (fonte dei dialoghi)
 
