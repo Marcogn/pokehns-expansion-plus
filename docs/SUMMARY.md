@@ -26,6 +26,8 @@
     - [Pre-port inventory (HnS 2.0.5)](./INVENTORY_SOULGOLD_VS_HNS_EXPANDED.md)
     - [Plan: Soulgold 1.2 options](./plans/sg-1.2-options.md)
     - [Plan: Overworld wild encounters](./plans/overworld-encounters.md)
+    - [Plan: Level scaling](./plans/level-scaling.md)
+    - [Plan: TcloneR](./plans/tcloner.md)
 - [Test plan](./TEST_PLAN.md)
 - [Emulator guide (for Claude)](./claude/emulator.md)
 - [Tutorials]()
