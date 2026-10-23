@@ -10,14 +10,19 @@ paths:
   - "include/tcloner.h"
   - "include/constants/tcloner.h"
   - "data/scripts/tcloner.inc"
+  - "data/maps/AzaleaTown_hns/**"
+  - "data/maps/Mahoganytown_hns/**"
+  - "data/maps/RocketHideout_B1F_hns/**"
+  - "data/maps/GoldenrodCity_hns/**"
+  - "data/maps/CeruleanCity_hns/**"
+  - "data/maps/PalletTown_Lab_hns/**"
 ---
 
 # Cattura dei Pokémon degli allenatori (TcloneR, ex `TRAINER CATCH`)
 
 **Dal 23/10 il permesso è l'oggetto chiave `ITEM_TCLONER` in borsa**, non più
 l'opzione `TRAINER CATCH` del challenge menu (tolta; piano e dialoghi in
-`docs/plans/tcloner.md`, sessione A fatta, la B mette scienziato e script di
-mappa). Tutto quello che segue sul motore della cattura vale identico: è
+`docs/plans/tcloner.md`, sessioni A e B fatte). Tutto quello che segue sul motore della cattura vale identico: è
 cambiata solo la riga in `CanCatchTrainerMon()`.
 
 ## TcloneR: contatore e premi (sessione A)
@@ -88,6 +93,50 @@ cambiata solo la riga in `CanCatchTrainerMon()`.
 
 Non provato: rematch (`CB2_EndRematchBattle`, stesso codice), nuova partita
 sopra un salvataggio caricato (l'azzeramento in `ResetPokedex`).
+
+## Lo scienziato (sessione B)
+
+- Sei oggetti evento `OBJ_EVENT_GFX_SCIENTIST_M_HNS`, uno per mappa, ognuno
+  col suo flag `FLAG_HIDE_TCLONER_*` (`FLAG_UNUSED_EXTENDED_80..85`: i
+  `FLAG_UNUSED_3x` liberi erano solo 4): Azalea (54,10) accanto al pozzo,
+  covo B1F (50,4) all'ingresso, Mahogany (17,12) fuori dal negozio, Goldenrod
+  (14,23) accanto alla porta della Torre Radio, Cerulean (27,31) fuori dal
+  Centro (vaga, raggio 1), laboratorio di Oak (10,14) (raggio 1, D8). Tutti
+  gli script stanno in `data/scripts/tcloner.inc`; le mappe chiamano solo
+  `TCloner_EventScript_UpdateNpcs` dal loro `ON_TRANSITION` (Goldenrod, B1F,
+  Mahogany e il laboratorio non ne avevano uno: aggiunto).
+- **Visibilità ricalcolata a ogni ingresso**, quindi nessuna migrazione:
+  tappa *s* visibile se `VAR_TCLONER_STAGE < s`, più la condizione della
+  mappa. Covo se `VAR_MAHOGANY_TOWN_STATE < 14`, negozio se `>= 14` (14 =
+  covo liberato, `RocketHideout_B2F`); Goldenrod da
+  `VAR_GOLDENROD_CITY_STATE >= 6` (presa della Torre); Pallet da tappa `>= 4`,
+  per sempre. Parlarci porta la tappa a *s* e `removeobject VAR_LAST_TALKED`
+  (alza il flag); Pallet non se ne va.
+- Flag di storia per i dialoghi: Pozzo fatto = `FLAG_HIDE_AZALEA_TOWN_ROCKETS`
+  (alzato in `SlowpokeWell_B1F`); Torre occupata = `VAR_GOLDENROD_CITY_STATE`
+  6-9, liberata da 10 (Archer battuto, `RadioTower_5F`).
+- Primo incontro = tappa 0: presentazione (piena con `VAR_0x8005` TRUE ad
+  Azalea e Mahogany, corta a Goldenrod e Cerulean), consegna del TcloneR
+  (saltata se è già in borsa, cioè solo da debug), niente premi.
+  Le varianti di "Sequenza rotta" si scelgono dalla tappa al momento del
+  dialogo (`goto_if_ne VAR_TCLONER_STAGE, 1` ecc.).
+- Il font non ha la lineetta lunga: "stea— ahem" → "stea… ahem".
+
+### Verificato in emulatore (23/10, ROM strumentata: script di debug 7/8 = scenario successivo/stesso, che imposta tappa e stato della storia e teletrasporta davanti allo scienziato; per Cerulean e Pallet una build con lo scienziato fermo, perché vagando non si lascia pilotare)
+
+Sedici scenari, ogni pagina fotografata: Azalea prima e dopo il Pozzo
+(consegna del TcloneR, "Quite a commotion", rimando al lago); covo con
+premio; **primo incontro a Mahogany**; Goldenrod durante e dopo, normale,
+**primo incontro durante e dopo**, con Mahogany saltata durante e dopo (riga
+di recupero); Cerulean normale, primo incontro, tappa 1 e tappa 2; Pallet
+prima visita (resta) e visite successive. Tutte le righe stanno nel box.
+Visibilità: a tappa 5 Azalea e Cerulean vuoti; a tappa 0 con la Torre non
+ancora presa Goldenrod vuota; con il covo attivo nessuno fuori dal negozio.
+Vista in emulatore anche la vera build con Cerulean che vaga.
+
+Non provato: il `.srm` vero dell'utente (non era in sessione), il percorso
+naturale della storia senza stati forzati, la tasca strumenti chiave piena
+al primo incontro (riga `TCloner_Text_NoRoom`).
 
 ## Motore della cattura (da `TRAINER CATCH`, invariato)
 

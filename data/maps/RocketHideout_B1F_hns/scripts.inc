@@ -1,6 +1,11 @@
 RocketHideout_B1F_hns_MapScripts::
 	map_script MAP_SCRIPT_ON_LOAD, RocketHideout_B1F_OnLoad
+	map_script MAP_SCRIPT_ON_TRANSITION, RocketHideout_B1F_OnTransition
 	.byte 0
+
+RocketHideout_B1F_OnTransition::
+	call TCloner_EventScript_UpdateNpcs
+	end
 
 RocketHideout_B1F_OnLoad::
 	setflag FLAG_HIDE_ROCKETHIDEOUT_ROCKETS

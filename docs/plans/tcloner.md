@@ -385,7 +385,15 @@ Com'è venuta (dettaglio e verifiche in `.claude/rules/trainer_catch.md`):
    prima; borsa piena → premio in sospeso; **aprire la squadra e il box**
    dopo cattura e premio (shiny, OT, livello).
 
-### Sessione B: mondo (mappe, script, testi)
+### Sessione B: mondo (mappe, script, testi) — fatta il 23/10, prima del merge della A
+
+Su richiesta dell'utente, nella stessa PR della A. Testi quelli approvati
+(D5), impaginati negli screenshot; "stea— ahem" è diventato "stea… ahem"
+(il font non ha la lineetta). Dettaglio e verifiche in
+`.claude/rules/trainer_catch.md`. Il salvataggio dell'utente non era in
+sessione: il caso "salvataggio vecchio a Mahogany" è coperto dagli scenari
+(primo incontro a Mahogany), non dal `.srm` vero.
+
 
 1. Cinque oggetti evento (`OBJ_EVENT_GFX_SCIENTIST_M_HNS` o simile) nelle
    mappe `AzaleaTown_hns` (vicino al pozzo, fermo, visibile dall'arrivo:

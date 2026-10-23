@@ -3,6 +3,7 @@ CeruleanCity_hns_MapScripts::
 	.byte 0
 
 CeruleanCity_EventScript_CityEnter::
+	call TCloner_EventScript_UpdateNpcs
 	setflag FLAG_VISITED_CERULEAN_CITY
 	end
 

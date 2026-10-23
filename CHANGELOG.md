@@ -24,8 +24,16 @@ add the section before releasing. Feature details live in the tables of
   Totodile, Chikorita and Cyndaquil at Lv5 and, at 100, a shiny Weezing,
   Arbok and Meowth at Lv50. The Pokémon always go to the PC. With a full Bag
   or full Boxes the reward waits for the next time.
-- The scientist who hands out the TcloneR and the rewards comes with the
-  next part of this feature.
+- **Elm's former assistant hands out the TcloneR and the rewards.** You meet
+  him in five places, following Team Rocket's story: Azalea Town (by the
+  Slowpoke Well), the Mahogany hideout entrance (or outside the shop once it
+  is cleared), outside the Radio Tower once Team Rocket takes it, outside the
+  Cerulean Pokémon Center, and finally Prof. Oak's lab, where he stays for
+  good. Each meeting pays out every reward you have earned so far.
+- Meetings only go forward: meet him further along and the earlier ones are
+  gone. Whichever meeting comes first gives you the TcloneR, and his lines
+  adjust so nothing is said twice or answers something never said, so a save
+  already past Azalea is not stuck.
 
 ## 2.0.6.PLUS.5
 

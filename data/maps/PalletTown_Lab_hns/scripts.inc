@@ -1,5 +1,10 @@
 PalletTown_Lab_hns_MapScripts::
+	map_script MAP_SCRIPT_ON_TRANSITION, PalletTown_Lab_OnTransition
 	.byte 0
+
+PalletTown_Lab_OnTransition::
+	call TCloner_EventScript_UpdateNpcs
+	end
 
 PalletTown_Lab_EventScript_Oak::
 	lock

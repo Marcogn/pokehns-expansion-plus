@@ -4,6 +4,7 @@ AzaleaTown_hns_MapScripts::
 	.byte 0
 
 AzaleaTown_OnTransition::
+	call TCloner_EventScript_UpdateNpcs
 	goto_if_eq VAR_AZALEA_TOWN_STATE, 5, AzaleaTown_MapScript_Hide_Silver
 	end
 	
