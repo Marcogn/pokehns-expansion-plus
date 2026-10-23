@@ -1,7 +1,6 @@
 # Piano: Red's Path (le palestre di Kanto rigiocate con la squadra di Red)
 
-**Stato (23/10): piano, nessun codice.** Prima gli avversari (sezione 1,
-pronta da rivedere), poi la squadra di Red capo per capo (sezione 2, da
+**Stato (23/10): piano, nessun codice.** Avversari decisi (sezione 1), poi la squadra di Red capo per capo (sezione 2, da
 costruire insieme), poi il codice (sezione 4).
 
 ## L'idea
@@ -19,13 +18,15 @@ Ogni sfida riparte da zero, quindi l'ordine è libero.
 | Chi usa la squadra di Red | il giocatore (squadra prestata) |
 | Capi palestra | Brock, Misty, Surge, Erika, **Koga**, Sabrina, Blaine, **Giovanni** |
 | Squadre dei capi | **FireRed/LeafGreen**, con poche variazioni motivate (sezione 1) |
+| Starter di Red | **Charmander**: in *Pokémon Origins* (File 1) Red lo sceglie e batte l'Onix di Brock proprio con lui |
 | Squadra di Red | **uno starter** più Pokémon che avrebbe potuto ottenere strada facendo; può cambiare da un capo all'altro (Butterfree all'inizio, Poliwrath più avanti, …). Non più vincolata ai sei del Monte Argento |
 | Mosse di Red | livello, MT e MN **ottenibili a quel punto della storia**; niente eccezioni salvo problemi seri |
 | Pikachu | se c'è, è `Pikachu-Starter` (base 45/80/50/75/60/120) |
 | Espeon | mai: solo al Monte Argento |
 | Ordine | libero |
+| Sblocco | **dopo il capo di HnS corrispondente** |
 | Zaino | nessuno |
-| Premi | l'**asso** di ogni capo, **shiny, Lv70 circa** |
+| Premi | l'**asso** di ogni capo, **shiny, Lv70**, con le mosse di livello al 70 |
 | Storia | non ancora scritta: qui c'è solo la "ciccia" degli script |
 
 ## 1. Gli avversari
@@ -50,7 +51,7 @@ tenuto; le cure sono quelle che il capo usa dalla borsa. IV 0. AI FRLG:
 | Blaine | Hyper Potion ×2, Full Heal | Growlithe 42: Bite, Roar, Take Down, Fire Blast · Ponyta 40: Stomp, Bounce, Fire Spin, Fire Blast · Rapidash 42: idem · **Arcanine 47**: Bite, Roar, Take Down, Fire Blast |
 | Giovanni | Hyper Potion ×2, Full Heal | Rhyhorn 45: Take Down, Rock Blast, Scary Face, Earthquake · Dugtrio 42: Slash, Sand Tomb, Mud-Slap, Earthquake · Nidoqueen 44: Body Slam, Double Kick, Poison Sting, Earthquake · Nidoking 45: Thrash, Double Kick, Poison Sting, Earthquake · **Rhyhorn 50**: come il primo |
 
-### Variazioni proposte
+### Variazioni (approvate)
 
 1. **Giovanni: l'ultimo Rhyhorn 50 diventa Rhydon 50**, come in Rosso/Blu.
    Stesse mosse (le impara entrambi). È anche l'asso che si vince: un Rhyhorn
@@ -122,12 +123,51 @@ Butterfree (Metapod al 7, Butterfree al 10) e Beedrill (Kakuna al 7,
 Beedrill al 10) sono raggiungibili prima di Brock. Pesca e Surf a Smeraldopoli
 e sul Percorso 22 vogliono canne o MN che a quel punto non ci sono.
 
-Da decidere: **quale starter** (Pikachu-Starter, o Bulbasaur, Charmander o
-Squirtle come in FRLG) e a che livello sta Red a ogni palestra.
+Learnset: quelli di FRLG (`pokefirered` `src/data/pokemon/level_up_learnsets.h`),
+non quelli moderni di expansion. **Prima di Brock non ci sono MT né MN
+utilizzabili**: nelle mappe raggiungibili (Biancavilla, Percorsi 1, 2 e 22,
+Smeraldopoli, Bosco Smeraldo, Plumbeopoli) l'unica è la MN05 Flash
+dell'assistente di Oak sul Percorso 2, inutile qui.
+
+Mosse utili entro il Lv15 (FRLG):
+
+| Pokémon | Mosse |
+| --- | --- |
+| Charmander | Scratch, Growl · 7 Ember · **13 Metal Claw** (Acciaio: superefficace su Geodude e Onix) |
+| Mankey | Scratch, Leer · 6 Low Kick · 11 Karate Chop |
+| Butterfree (dal 10) | Confusion · 13 Poison Powder · 14 Stun Spore · 15 Sleep Powder |
+| Beedrill (dal 10) | Fury Attack · 15 Focus Energy |
+| Pidgey | Tackle · 5 Sand Attack · 9 Gust · 13 Quick Attack |
+| Rattata | Tackle, Tail Whip · 7 Quick Attack · 13 Hyper Fang |
+| Spearow | Peck, Growl · 7 Leer · 13 Fury Attack |
+| Pikachu | Thunder Shock, Growl · 6 Tail Whip · 8 Thunder Wave · 11 Quick Attack · 15 Double Team |
+
+### Brock (proposta)
+
+Brock ha due Pokémon (Geodude 12, Onix 14 con Rock Tomb e, se confermato,
+Sturdy). Proposta: **tre** Pokémon per Red, livelli fra 12 e 14 come un
+giocatore che arriva a Plumbeopoli.
+
+| Pokémon | Lv | Mosse | Abilità (Gen 3) |
+| --- | --- | --- | --- |
+| Charmander | 14 | Scratch, Growl, Ember, Metal Claw | Blaze |
+| Mankey | 12 | Scratch, Leer, Low Kick, Karate Chop | Vital Spirit |
+| Butterfree | 12 | Tackle, String Shot, Harden, Confusion | Compound Eyes |
+
+Perché: Charmander è il protagonista e con Metal Claw può vincere da solo come
+in *Origins*; Mankey è la risposta classica a Brock; Butterfree copre con
+Confusion ma soffre Rock Tomb. Le alternative (Beedrill, Pidgey, Rattata,
+Spearow, Pikachu) sono deboli contro Roccia/Terra: vanno bene più avanti.
+Da tarare in emulatore.
+
+Natura e IV dei Pokémon di Red: proposta **natura neutra e IV 15** per tutti,
+così la difficoltà dipende da livelli e mosse e non dal caso.
 
 ## 3. Premi
 
-L'asso di ogni capo, **shiny, Lv70 circa**, alla prima vittoria:
+L'asso di ogni capo, **shiny, Lv70**, alla prima vittoria, con le mosse di
+livello al 70 (quelle che `givemon` dà già da solo: nessun codice in più per
+le mosse):
 
 | Capo | Asso |
 | --- | --- |
@@ -140,8 +180,8 @@ L'asso di ogni capo, **shiny, Lv70 circa**, alla prima vittoria:
 | Blaine | Arcanine |
 | Giovanni | Rhydon (variazione 1) |
 
-Da decidere: mosse (il set FRLG del capo o quelle di livello al 70), natura e
-IV, Poké Ball, nome dell'allenatore originale (il capo o il giocatore). Per la
+Da decidere: natura e IV, Poké Ball, nome dell'allenatore originale (il capo
+o il giocatore). Per la
 consegna con la squadra piena c'è già il percorso del TcloneR
 (`TClonerGiveRewardMon`, che manda al PC).
 
@@ -190,12 +230,10 @@ Pokémon prestati non devono risultare catturati).
 
 ## Domande aperte
 
-1. **Quando si sblocca**: dopo il capo di HnS corrispondente o dopo la
-   seconda Lega?
-2. **Variazioni** della sezione 1: vanno bene Rhydon, la tabella delle
-   abilità (in particolare Sturdy a Onix e Arena Trap a Dugtrio) e gli IV a 0?
-3. **Starter** di Red.
-4. **Dettagli dei premi** (sezione 3).
+1. **Squadra per Brock** (sezione 2): va bene Charmander, Mankey,
+   Butterfree? Natura neutra e IV 15?
+2. **Dettagli dei premi** (sezione 3): natura e IV, Poké Ball, allenatore
+   originale.
 
 ## Scartato: i capi di Giallo
 
@@ -212,7 +250,11 @@ se un giorno si volesse la squadra del Monte Argento.
 
 ## Fonti
 
-- `pret/pokefirered`: `src/data/trainer_parties.h` (capi),
+- *Pokémon Origins*, File 1 "Red" (2013): Red sceglie Charmander e batte
+  Brock con lui ([Wikipedia](https://en.wikipedia.org/wiki/Pok%C3%A9mon_Origins),
+  [Bulbapedia](https://bulbapedia.bulbagarden.net/wiki/Red_(Origins))).
+- `pret/pokefirered`: `src/data/pokemon/level_up_learnsets.h` (learnset),
+  `src/data/trainer_parties.h` (capi),
   `src/data/wild_encounters.json` (selvatici),
   `data/maps/<Città>_Gym/scripts.inc` (MT dei capi: 39 Rock Tomb, 03 Water
   Pulse, 34 Shock Wave, 19 Giga Drain, 06 Toxic, 04 Calm Mind, 38 Fire Blast,
