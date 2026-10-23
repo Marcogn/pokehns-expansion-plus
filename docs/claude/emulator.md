@@ -72,3 +72,31 @@ freeze**, l'ho scambiato per uno e ho perso tempo con un A/B. Il personaggio
 però non cammina finché la scena non finisce; conviene saltare con il debug:
 `Flags & Vars → Toggle Fly Flags`, poi `Utilities → Warp to map warp` (gruppo e
 numero da `data/maps/map_groups.json`, es. Violet Gym = 3/5).
+
+## Teletrasporti, scenari e NPC che vagano (sessione TcloneR, 23/10)
+
+- **Warp di debug**: `Utilities → Warp to map warp…` chiede gruppo, mappa e
+  numero di warp, che si impostano come gli altri campi numerici del menu
+  (Destra/Sinistra cambia il passo, +1, +10, +100; Su/Giù il valore). Gruppo e numero da
+  `data/maps/map_groups.json` (indice del gruppo in `group_order`, indice
+  della mappa nella sua lista: Azalea 0/3, Goldenrod 0/4, Mahogany 0/9,
+  Cerulean 0/34); il warp *n* è l'*n*-esimo di `warp_events` del `map.json`.
+  `Give X → Give item XYZ` vuole l'id numerico dell'oggetto (TcloneR 903).
+- **Molti casi di uno stesso dialogo: scenari in una ROM strumentata.** Uno
+  script di debug che incrementa una var libera e, con un `switch`, imposta
+  var e flag della storia e fa `warp` davanti all'NPC; un secondo script che
+  ripete lo scenario corrente. Sedici varianti di dialogo provate in
+  un'ora, contro una nuova partita per ognuna. `debug.inc` va ripristinato
+  prima del commit (copia in scratchpad), e la ROM consegnata ricompilata
+  senza.
+- **Un NPC che vaga (`MOVEMENT_TYPE_WANDER_AROUND`) non si lascia
+  pilotare**: premere A alla cieca non lo trova mai davanti, e premere una
+  direzione sposta il giocatore. Per controllare i testi conviene una build
+  usa-e-getta con l'NPC fermo; il vagare si guarda a parte nella build vera.
+- **Fogli di contatto**: un `import` dopo ogni pressione di A e `montage
+  t_*.png -tile 4x -geometry 240x160+2+2` danno un dialogo intero in
+  un'immagine sola, comodo da leggere e da consegnare all'utente.
+- **Dopo un riavvio del container Xvfb non c'è più** (`Can't open display`)
+  mentre gli strumenti installati restano: rilanciare `Xvfb` prima di `mgba`.
+- Modificare un `.sav` a mano (checksum per settore): `.claude/rules/save.md`,
+  sezione `SAVE_VERSION 9`.

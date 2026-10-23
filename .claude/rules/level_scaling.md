@@ -82,7 +82,7 @@ GDB a `gSaveBlock3Ptr + 0x38` (`0xC1` = FAST HMS + entrambe ON).
 - **Script** (ROM strumentata: script debug 4/7/8 rediretti): Lapras 20 → 38,
   Gyarados rosso 30 → 38 (shiny), con LEVEL CAP spento 38, con HARD 37, OFF
   30; Zapdos 20 resta 20; Steelix del Dojo resta 1.
-- Cattura con `TRAINER CATCH` del Venusaur scalato e di un Girafarig OWE:
+- Cattura con `TRAINER CATCH` (oggi il TcloneR, stesso motore) del Venusaur scalato e di un Girafarig OWE:
   squadra e scheda aperte, dati integri.
 - Opzione unica (rifatta dopo la richiesta dell'utente): descrizione su due
   righe in entrambi gli stati; con il bit acceso Brent 38/38 in una lotta vera

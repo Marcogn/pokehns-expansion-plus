@@ -1,5 +1,9 @@
 # Piano: TcloneR (cattura dei Pokémon degli allenatori come missione)
 
+**Stato (23/10): sessioni A e B fatte, nella stessa PR (#22).** Quello che è
+venuto diverso dal piano è annotato sotto "Sessione A" e "Sessione B"; il
+riferimento per il codice è `.claude/rules/trainer_catch.md`.
+
 ## Contesto
 
 Idea dell'utente (22/10/2026, documento allegato in chat; il testo dei
@@ -115,12 +119,14 @@ Nomi inglesi da `include/constants/items.h` (da confermare in fase 1):
 ## Stato nel salvataggio
 
 - `VAR_TCLONER_COUNT` (cloni contati), `VAR_TCLONER_REWARDS` (scaglioni già
-  ritirati, 0-10) e `VAR_TCLONER_STAGE` (ultimo incontro fatto, 0-5, vedi
+  ritirati, 0-10; **fatto: passi 0-12**, vedi "Sessione A") e `VAR_TCLONER_STAGE` (ultimo incontro fatto, 0-5, vedi
   "Ordine degli incontri"): tre var libere di HnS
   (`include/constants/vars_hns.h`, 43 `UNUSED`). La tappa in una var invece
   che in cinque flag rende "gli incontri vanno solo avanti" un confronto.
 - Un flag per oggetto evento (nascondere/mostrare): flag liberi di HnS
-  (`include/constants/flags_hns.h`, `FLAG_UNUSED_*` da 0x2E0). **Non** usare
+  (`include/constants/flags_hns.h`, `FLAG_UNUSED_*` da 0x2E0). **Fatto con
+  `FLAG_UNUSED_EXTENDED_80..85`**: i `FLAG_UNUSED_3x` liberi erano solo 4 e
+  gli oggetti sono sei (il covo e il negozio di Mahogany sono due). **Non** usare
   flag con byte basso `0xFF` vicino ai massi
   (`.claude/rules/overworld_encounters.md`, `trainer_type`).
 - Bitfield degli allenatori clonati (D1), **solo se costa poco** (sotto).
@@ -419,7 +425,8 @@ sessione: il caso "salvataggio vecchio a Mahogany" è coperto dagli scenari
 ## Sessione consigliata
 
 **Due sessioni in fila**, la B dopo il merge della A (la B usa lo `special` e
-le var della A). Il level scaling è indipendente e può andare prima o dopo.
+le var della A). *Andata diversamente: l'utente ha chiesto la B prima del
+merge, sullo stesso branch.* Il level scaling è indipendente e può andare prima o dopo.
 
 - Modello: il più capace disponibile (Opus). A: sforzo alto (salvataggio,
   lotta, migrazione). B: sforzo medio, ma tanta verifica in emulatore.

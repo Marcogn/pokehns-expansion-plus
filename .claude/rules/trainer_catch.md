@@ -56,7 +56,7 @@ cambiata solo la riga in `CanCatchTrainerMon()`.
   a premi finiti, borsa piena con `checkitemspace` prima di `giveitem` (e il
   risultato di `giveitem` ricontrollato: col randomizer l'oggetto può
   cambiare). Lo scienziato della sessione B lo chiama e basta.
-- `VAR_TCLONER_STAGE` (0x40C2) è riservata alla sessione B (tappa 0-5).
+- `VAR_TCLONER_STAGE` (0x40C2): ultima tappa dello scienziato, 0-5 (sotto).
   Scartate 0x40FA/0x40FB, che `vars_hns.h` dà per libere: le usa il
   randomizer (`RANDOMIZER_VAR_SEED_L/H`).
 - Icona: l'arte dello Scanner (`gItemIcon_Scanner`) con

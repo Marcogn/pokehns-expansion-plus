@@ -97,6 +97,15 @@ in coda a SaveBlock3 con il suo `STATIC_ASSERT` e il suo passo di migrazione.
 
 ### `SAVE_VERSION 9`: TcloneR
 
+**Trappola trovata scrivendolo: `NewGameInitData` non chiama `ClearSav2()`.**
+Azzera SaveBlock1 (`ClearSav1`) e SaveBlock3 (`ClearSav3`), ma di SaveBlock2
+tocca solo i campi che resetta a mano (Pokédex, frontier, berry crush…);
+`ClearSav2` gira solo da `Sav2_ClearSetDefault`, e quello solo quando il
+salvataggio è **vuoto o corrotto** (`intro.c`, `reload_save.c`). Quindi un
+campo di gioco in SaveBlock2 sopravvive a "nuova partita" sopra un
+salvataggio valido, se non lo azzera qualcuno: i flag del TcloneR li
+azzera `ResetPokedex()`.
+
 Azzera `unusedTrainerCatchBit`, le tre var `VAR_TCLONER_*` e il bitfield
 `pokedex.tclonerTrainerFlags` (SaveBlock2 + 0x28, 82 byte nel vecchio
 `filler` del Pokédex: `STATIC_ASSERT` su offset e dimensione di
