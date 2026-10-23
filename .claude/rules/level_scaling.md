@@ -45,6 +45,49 @@ scalarli rompeva il Dojo), Gara Pigliamosche, Pike e Pyramid, primo rivale
 tiro, quindi con OFF la sequenza dell'RNG è quella di prima. Lo scarto degli
 allenatori non usa l'RNG (seed da `playerTrainerId` e id allenatore, come SG).
 
+## Tetto e margine dei selvatici (23/10, richiesta dell'utente)
+
+Problema: lo scaling non aveva un limite verso l'alto, quindi i percorsi
+lasciati indietro seguivano la squadra (Percorso 29 con 8 medaglie: Lv52-54;
+Kanto Percorso 1 con squadra Lv80: 76-78). In `GetWildScaledLevel`, **solo
+selvatici** (allenatori invariati, scelta dell'utente):
+
+1. riferimento limitato a `GetLevelScalingCap()`: con `LEVEL CAP` acceso non
+   scatta mai (l'esperienza e le caramelle si fermano al tetto), serve a chi
+   gioca senza cap o ha Pokémon ricevuti sopra il tetto;
+2. risultato mai oltre il tiro della tabella + `B_WILD_SCALING_MAX_ABOVE_TABLE`
+   (15, scelto dall'utente fra +5/+10/+15 dopo una tabella di esempi).
+
+Il margine è assoluto: percorsi con tabella molto bassa rispetto al momento in
+cui si attraversano (Percorso 36, 4-6; Percorso 32, 5-7) non superano Lv19-22.
+Detto all'utente, accettato. Vale anche per DexNav e sciami (stessa funzione;
+il bonus catena del DexNav si somma dopo). Le lotte di script non passano di
+qui. Il numero di chiamate a `Random()` non cambia.
+
+Verifica (ROM strumentata, nuova partita, squadra di 6 Jolteon creata da uno
+script di debug, livelli degli OWE spawnati letti da `gObjectEvents`
+(`trainerRange_berryTreeId & 0x7F`), `LEVEL CAP` spento):
+
+| scenario | atteso | letto | vecchio codice |
+| --- | --- | --- | --- |
+| Percorso 29 (2-3), squadra 50, 8 medaglie | 17-18 | 17-18 (6 spawn), lotte Hoothoot 17, Rattata 17 | 46-48 (6 spawn) |
+| Percorso 43 (21-24), squadra 45, 4 medaglie (tetto 31) | 27-29 | 28-29 (6 spawn), lotta Venonat 28 | Venonat 43 |
+| Percorso 43, squadra 38, 6 medaglie | 34-36 | 34-36 (6 spawn), lotte Skarmory 34, Venonat 34 | uguale |
+
+Sul **salvataggio dell'utente** (6 medaglie, `LEVEL CAP` NORMAL, squadra tutta
+Lv38, ROM della PR senza strumenti, `LEVEL SCALING` acceso dal menu): Percorso
+43 Venonat Lv34 (invariato), Percorso 29 Hoothoot Lv17 e Lv18 (prima 34-36).
+Kanto non provato in gioco, solo calcolato.
+
+Descrizione dell'opzione su ON aggiornata: "Trainers and wild {PKMN} rise to
+your / team's level, wild ones by 15 at most." Larghezze misurate con
+`gFontNormalLatinGlyphWidths` e `charmap.txt`: 172 e 190 px su 200 utili
+(finestra di 26 tile, testo da x = 8); la riga più lunga di prima era 182.
+Vista in emulatore, intera.
+
+Trappola del banco di prova: `CreateMon` non calcola le statistiche (PS 0/0,
+squadra tutta KO alla prima lotta): serve `CreateMonWithIVs`.
+
 ## Differenze rispetto a SG, volute
 
 - Pavimento al livello scritto per **tutti** (SG: solo una lista opzionale),

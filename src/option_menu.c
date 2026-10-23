@@ -450,7 +450,7 @@ static const u8 *const sDesc_LRRun[] = {
 };
 static const u8 *const sDesc_LevelScaling[] = {
     COMPOUND_STRING("Trainers and wild {PKMN} keep the\nlevels they always had."),
-    COMPOUND_STRING("Trainers and wild {PKMN} follow your\nteam's level, never below their own."),
+    COMPOUND_STRING("Trainers and wild {PKMN} rise to your\nteam's level, wild ones by 15 at most."),
 };
 static const u8 *const sDesc_FastHms[] = {
     COMPOUND_STRING("Show the prompt and animation\nwhen using a field move."),

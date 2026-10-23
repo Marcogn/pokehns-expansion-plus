@@ -9,6 +9,13 @@ add the section before releasing. Feature details live in the tables of
 ## 2.0.6.PLUS.6
 
 ### Changed
+- **Level scaling: routes you left behind no longer follow your team.** A wild
+  Pokémon now ends up at most 15 levels above what the area would give it
+  without scaling, and never above the current level cap. Where you are
+  playing nothing changes (Route 43 with a Lv38 team: still 34-36); going
+  back is different: Route 29 never goes above Lv18 (table 2-3), and
+  Kanto's Route 1 tops out at Lv57-63 even with a Lv100 team (it was 96-98).
+  Trainers are unchanged. The option's description says so.
 - **The TcloneR replaces the `TRAINER CATCH` option.** Catching a Trainer's
   Pokémon is no longer a switch in the challenge menu: it works while the
   TcloneR, a new key item, is in your Bag. How it works is unchanged: one

@@ -206,7 +206,7 @@ In `.claude/rules/`, caricate da sole quando apri i file indicati.
 | `title_screen.md` | "+" e versione sulla schermata del titolo |
 | `pc_box.md` | `SORT` e `SEARCH` nei box del PC |
 | `overworld_encounters.md` | Pokémon visibili nell'overworld: port, indoli, tetti, VRAM (piano in `docs/plans/`) |
-| `level_scaling.md` | level scaling di allenatori, selvatici e lotte di script; soldi |
+| `level_scaling.md` | level scaling di allenatori, selvatici (con tetto e margine) e lotte di script; soldi |
 
 Fuori dalle regole, da leggere quando serve: `docs/claude/emulator.md`,
 `docs/SOULGOLD_PORT_REPORT.md`.
