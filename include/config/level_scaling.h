@@ -28,6 +28,13 @@
 // random, never below the level the encounter table rolled. Soulgold uses -8.
 #define B_WILD_SCALING_LEVEL_AUGMENT        -2
 #define B_WILD_SCALING_LEVEL_VARIATION      2
+// Wild Pokémon only: the reference never goes above the current level cap
+// (the NORMAL table when LEVEL CAP is off), and the result never goes more
+// than this many levels above the table roll. A route left behind stops
+// following the party: Kanto Route 1 (42-48) tops out at 57-63 even with a
+// Lv100 party, while the route being played (Route 43, 21-24, with a Lv38
+// party: 34-36) is untouched. 0 disables the margin.
+#define B_WILD_SCALING_MAX_ABOVE_TABLE      15
 
 // Prize money with trainer scaling on: +1% for every this many levels of the
 // current level cap (cap 37 -> +7%, 70 -> +14%). A proposal, not a request.

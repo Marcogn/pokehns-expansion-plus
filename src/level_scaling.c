@@ -18,7 +18,9 @@
 // - evolutions stop at any species with more than one evolution target, not
 //   only more than one level-up target (Slowpoke stays Slowpoke);
 // - no party level cache: Soulgold only refreshed it on trainer battles, so a
-//   wild encounter could read the party as it was at the last trainer.
+//   wild encounter could read the party as it was at the last trainer;
+// - wild Pokémon stop at the level cap and at B_WILD_SCALING_MAX_ABOVE_TABLE
+//   above their table, so routes left behind do not follow the party.
 
 #if B_LEVEL_SCALING_ENABLED
 
@@ -274,7 +276,7 @@ u32 GetTrainerScalingMoneyBonusPercent(void)
 
 u8 GetWildScaledLevel(u8 tableLevel)
 {
-    u32 reference;
+    u32 reference, cap;
     s32 level;
 
     if (!IsWildLevelScalingEnabled())
@@ -283,9 +285,16 @@ u8 GetWildScaledLevel(u8 tableLevel)
     reference = GetPlayerReferenceLevel();
     if (reference == 0)
         return tableLevel;
+    // Only an overlevelled party (LEVEL CAP off, or a mon received above the
+    // cap) gets past the cap: with LEVEL CAP on this never triggers.
+    cap = GetLevelScalingCap();
+    if (reference > cap)
+        reference = cap;
 
     level = (s32)reference + B_WILD_SCALING_LEVEL_AUGMENT;
     level -= Random() % (B_WILD_SCALING_LEVEL_VARIATION + 1);
+    if (B_WILD_SCALING_MAX_ABOVE_TABLE > 0 && level > tableLevel + B_WILD_SCALING_MAX_ABOVE_TABLE)
+        level = tableLevel + B_WILD_SCALING_MAX_ABOVE_TABLE;
     if (level < tableLevel)
         level = tableLevel;
 
