@@ -142,11 +142,11 @@ Mosse utili entro il Lv15 (FRLG):
 | Spearow | Peck, Growl · 7 Leer · 13 Fury Attack |
 | Pikachu | Thunder Shock, Growl · 6 Tail Whip · 8 Thunder Wave · 11 Quick Attack · 15 Double Team |
 
-### Brock (proposta)
+### Brock (approvata)
 
-Brock ha due Pokémon (Geodude 12, Onix 14 con Rock Tomb e, se confermato,
-Sturdy). Proposta: **tre** Pokémon per Red, livelli fra 12 e 14 come un
-giocatore che arriva a Plumbeopoli.
+Brock ha due Pokémon (Geodude 12, Onix 14 con Rock Tomb e Sturdy). **Tre**
+Pokémon per Red, livelli fra 12 e 14 come un giocatore che arriva a
+Plumbeopoli.
 
 | Pokémon | Lv | Mosse | Abilità (Gen 3) |
 | --- | --- | --- | --- |
@@ -160,8 +160,79 @@ Confusion ma soffre Rock Tomb. Le alternative (Beedrill, Pidgey, Rattata,
 Spearow, Pikachu) sono deboli contro Roccia/Terra: vanno bene più avanti.
 Da tarare in emulatore.
 
-Natura e IV dei Pokémon di Red: proposta **natura neutra e IV 15** per tutti,
-così la difficoltà dipende da livelli e mosse e non dal caso.
+Natura e IV dei Pokémon di Red (approvato): **natura neutra e IV 15** per
+tutti, così la difficoltà dipende da livelli e mosse e non dal caso.
+
+### Fra Brock e Misty: cosa si ottiene
+
+Mappe raggiungibili prima della palestra di Misty, senza medaglie nuove:
+Percorso 3, Monte Luna, Percorso 4, Celestopoli, Percorsi 24 e 25 (fino alla
+casa di Bill). Pesca e Surf no: l'Amo Vecchio è ad Aranciopoli.
+
+| Dove | Pokémon (livelli) |
+| --- | --- |
+| Percorso 3 | Pidgey 6-7, Spearow 6-8, Jigglypuff 3-7, Mankey 7, Nidoran♀ 6-7, Nidoran♂ 6-7 |
+| Monte Luna | Zubat 7-11, Geodude 7-10, Paras 5-12, Clefairy 8-12 |
+| Percorso 4 | Rattata 8-12, Spearow 8-12, Mankey 10-12, **Ekans 6-12 (FR)** / Sandshrew 6-12 (LG) |
+| Percorsi 24-25 | Pidgey 11-13, Abra 8-13, Caterpie, Metapod, Weedle, Kakuna 7-9, **Oddish 12-14 (FR)** / Bellsprout 12-14 (LG) |
+| Centro Pokémon del Percorso 4 | Magikarp Lv5 (venditore) |
+
+Proposta: **Red gioca FireRed** (il nome lo dice), quindi Oddish ed Ekans sì,
+Bellsprout e Sandshrew no.
+
+Altro: lo scambio di Celestopoli (`INGAME_TRADE_JYNX`) vuole un Poliwhirl, che
+qui non c'è; i fossili del Monte Luna si rianimano solo a Cinnabar.
+
+MT a disposizione:
+- **MT39 Rock Tomb** (da Brock): la impara Mankey, non Charmander/Charmeleon
+  in Gen 3 (`tmhm_learnsets.h`);
+- **MT28 Dig** (Celestopoli, dal Rocket dietro la casa svaligiata): il
+  poliziotto si sposta con `FLAG_GOT_SS_TICKET`, cioè dopo Bill, che è
+  raggiungibile prima di Misty. La imparano Charmander/Charmeleon, Mankey,
+  Pikachu; non Butterfree né Oddish.
+
+Mosse di livello (FRLG) utili fino al Lv24:
+
+| Pokémon | Mosse |
+| --- | --- |
+| Charmeleon (dal 16) | Scratch, Growl, Ember · 13 Metal Claw · 20 Smokescreen |
+| Pikachu | Thunder Shock, Growl · 6 Tail Whip · 8 Thunder Wave · 11 Quick Attack · 15 Double Team · 20 Slam |
+| Oddish (Gloom al 21) | Absorb · 7 Sweet Scent · 14 Poison Powder · 16 Stun Spore · 18 Sleep Powder · 23 Acid |
+| Butterfree | Confusion · 13 Poison Powder · 14 Stun Spore · 15 Sleep Powder · 18 Supersonic · 23 Whirlwind |
+| Mankey (Primeape al 28) | Scratch, Leer · 6 Low Kick · 11 Karate Chop · 16 Fury Swipes · 21 Focus Energy |
+| Paras | Scratch · 7 Stun Spore · 13 Poison Powder · 19 Leech Life |
+| Kadabra (Abra al 16) | Teleport, Kinesis, Confusion · 18 Disable · 21 Psybeam · 23 Reflect |
+| Clefairy | Pound, Growl · 5 Encore · 9 Sing · 13 Double Slap · 17 Follow Me · 21 Minimize |
+| Nidoran♂ / ♀ | Double Kick al 12, Poison Sting al 17 |
+| Ekans | Wrap, Leer · 8 Poison Sting · 13 Bite · 20 Glare |
+
+### Misty (proposta)
+
+Misty: Staryu 18 e Starmie 21 (Natural Cure, Recover, Water Pulse).
+Proposta: **quattro** Pokémon, livelli 18-21.
+
+| Pokémon | Lv | Mosse | Abilità (Gen 3) |
+| --- | --- | --- | --- |
+| Charmeleon | 21 | Scratch, Ember, Metal Claw, Smokescreen | Blaze |
+| Pikachu-Starter | 20 | Thunder Shock, Thunder Wave, Quick Attack, Slam | Static |
+| Oddish | 19 | Absorb, Poison Powder, Stun Spore, Sleep Powder | Chlorophyll |
+| Butterfree | 18 | Confusion, Poison Powder, Stun Spore, Sleep Powder | Compound Eyes |
+
+Perché:
+- **Pikachu entra qui**: nel Bosco Smeraldo c'era già, e contro l'acqua è la
+  risposta naturale. È anche il primo membro "canonico" dopo lo starter.
+- **Oddish** (FireRed, Percorsi 24-25) porta l'erba.
+- **Charmeleon** resta l'asso per livello ma qui è in svantaggio: la sfida
+  sta nel non doverlo usare in prima linea.
+- **Mankey va in panchina**: contro Misty non serve, ed è il primo cambio di
+  squadra.
+- **Attenzione**: Butterfree con Compound Eyes porta Sleep Powder dal 75% a
+  circa il 97%. Contro due soli Pokémon può rendere la lotta banale; se in
+  emulatore succede, si toglie Sleep Powder a uno dei due.
+
+Variante "Origins": nell'anime Charmander evolve **dopo** la lotta con
+Misty. Si può tenere Charmander al Lv15 (in Gen 3 basta premere B
+all'evoluzione): più fedele all'anime, più difficile.
 
 ## 3. Premi
 
@@ -180,9 +251,11 @@ le mosse):
 | Blaine | Arcanine |
 | Giovanni | Rhydon (variazione 1) |
 
-Da decidere: natura e IV, Poké Ball, nome dell'allenatore originale (il capo
-o il giocatore). Per la
-consegna con la squadra piena c'è già il percorso del TcloneR
+"Tutto come il capo palestra" (decisione dell'utente): **allenatore originale
+il capo** (nome e sesso), **Poké Ball** (i Pokémon degli allenatori di FRLG
+non hanno una ball diversa). Unica eccezione da confermare: gli IV del capo in
+FRLG sono 0, e un premio Lv70 con IV 0 sarebbe il più debole del suo genere;
+proposta IV 31 e la natura scelta per l'asso. Per la consegna con la squadra piena c'è già il percorso del TcloneR
 (`TClonerGiveRewardMon`, che manda al PC).
 
 ## 4. Come si costruisce (agganci verificati nel codice)
@@ -230,10 +303,9 @@ Pokémon prestati non devono risultare catturati).
 
 ## Domande aperte
 
-1. **Squadra per Brock** (sezione 2): va bene Charmander, Mankey,
-   Butterfree? Natura neutra e IV 15?
-2. **Dettagli dei premi** (sezione 3): natura e IV, Poké Ball, allenatore
-   originale.
+1. **Squadra per Misty** (sezione 2), e la variante "Origins".
+2. **Red gioca FireRed** (Oddish ed Ekans, non Bellsprout e Sandshrew)?
+3. **IV dei premi**: 0 come il capo, o 31?
 
 ## Scartato: i capi di Giallo
 
@@ -253,7 +325,8 @@ se un giorno si volesse la squadra del Monte Argento.
 - *Pokémon Origins*, File 1 "Red" (2013): Red sceglie Charmander e batte
   Brock con lui ([Wikipedia](https://en.wikipedia.org/wiki/Pok%C3%A9mon_Origins),
   [Bulbapedia](https://bulbapedia.bulbagarden.net/wiki/Red_(Origins))).
-- `pret/pokefirered`: `src/data/pokemon/level_up_learnsets.h` (learnset),
+- `pret/pokefirered` @ `ce6406d8`: `src/data/pokemon/level_up_learnsets.h` (learnset),
+  `tmhm_learnsets.h` (MT), `data/maps/*` (regali, scambi, MT, blocchi),
   `src/data/trainer_parties.h` (capi),
   `src/data/wild_encounters.json` (selvatici),
   `data/maps/<Città>_Gym/scripts.inc` (MT dei capi: 39 Rock Tomb, 03 Water
