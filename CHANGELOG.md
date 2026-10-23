@@ -35,6 +35,14 @@ add the section before releasing. Feature details live in the tables of
   adjust so nothing is said twice or answers something never said, so a save
   already past Azalea is not stuck.
 
+### Fixed
+- **Overworld Pokémon in towns no longer vanish at every step.** In towns
+  and cities with wild Pokémon (Lake of Rage, Violet, Cherrygrove, Ecruteak,
+  Olivine, Cianwood, Blackthorn, New Bark and more) every visible Pokémon
+  disappeared as soon as you moved one tile, so it looked like they fled from
+  far away and could not be reached. They now stay; the Pokémon of the route
+  you came from still disappear when you walk into town.
+
 ## 2.0.6.PLUS.5
 
 ### Added
