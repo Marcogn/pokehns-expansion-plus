@@ -1764,7 +1764,24 @@ void TryDespawnOWEsCrossingMapConnection(void)
     if (gMapHeader.mapType != MAP_TYPE_CITY && gMapHeader.mapType != MAP_TYPE_TOWN)
         return;
 
-    DespawnAllOverworldWildEncounters(OWE_GENERATED, 0);
+    // Hasep: upstream despawns every OWE here, and this runs on every camera
+    // step, not just when crossing a connection. Upstream towns have no wild
+    // Pokémon; 15 HnS towns do (Lake of Rage, Violet, Cherrygrove...), so OWEs
+    // spawned there vanished as soon as the player took a step and looked like
+    // they fled from far away. Only the OWEs left behind on the previous map go.
+    for (u32 i = 0; i < OBJECT_EVENTS_COUNT; i++)
+    {
+        struct ObjectEvent *owe = &gObjectEvents[i];
+
+        if (!owe->active || !IsOverworldWildEncounter(owe, OWE_GENERATED))
+            continue;
+
+        if (owe->mapNum == gSaveBlock1Ptr->location.mapNum
+         && owe->mapGroup == gSaveBlock1Ptr->location.mapGroup)
+            continue;
+
+        RemoveObjectEvent(owe);
+    }
 }
 
 u32 RemoveOldestGeneratedOWE(void)

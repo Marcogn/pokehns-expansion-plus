@@ -446,7 +446,8 @@ upstream), alfa.
   ("palette sbagliata per gli shiny in acqua") è **analizzato, vedi sotto**,
   e la correzione va portata in fase 2; suono quando un
   OWE sparisce **no** per ora (`WE_OWE_DESPAWN_SOUND FALSE`). Restano ai
-  default upstream: despawn entrando in città (`TRUE`), collisioni con
+  default upstream: despawn entrando in città (`TRUE`, ma dal 23/10 solo
+  per gli OWE di un'altra mappa: vedi la regola), collisioni con
   Repel/DexNav attivi (`WE_OWE_NO_REPEL_DEXNAV_COLLISION FALSE`).
 
 ### Palette shiny sbagliata vicino all'acqua: causa e correzione (21/10)

@@ -301,6 +301,22 @@ dice di no, quindi il conteggio dei passaggi misura gli incontri a passi.
   `CheckCurrentWildMonHeaderForOWE` **prima** di guardare
   `WE_OW_ENCOUNTERS`: costo per frame anche a feature spenta. Non toccato
   (upstream), ma è il primo posto dove guardare se il frame rate cala.
+- **Despawn "entrando in città" (23/10): in HnS spariva tutto a ogni passo.**
+  `TryDespawnOWEsCrossingMapConnection` gira a **ogni** passo della camera
+  (`field_camera.c`), non solo al cambio mappa, e upstream toglie tutti gli
+  OWE se la mappa corrente è `MAP_TYPE_CITY`/`TOWN`: upstream le città non
+  hanno selvatici. In HnS 15 ne hanno, a terra o in acqua (Lago d'Ira è
+  `CITY`, poi Violet, Cherrygrove, Ecruteak, Olivine, Cianwood, Blackthorn,
+  New Bark, Monte Argento esterno, Sinjoh, Celadon, Cerulean, Vermilion,
+  Fuchsia, Viridian): gli OWE nascevano col giocatore fermo e sparivano
+  (spruzzo d'acqua) al primo passo. L'utente lo ha segnalato come "i
+  Magikarp scappano da lontano". Ora si tolgono solo gli OWE con
+  `mapNum`/`mapGroup` diversi da quelli del giocatore (lo spawn li crea sulla
+  mappa corrente, `SpawnSpecialObjectEvent`). Verificato col salvataggio
+  dell'utente: prima, 5 passi in Surf = tutti spariti; dopo, 12 passi e
+  restano, lotta col Magikarp raggiunta; dal Percorso 43 al Lago i 5 OWE del
+  percorso spariscono ancora al passaggio. In acqua resta il ricambio: con
+  tetto 3 e `OWE_SPAWN_TIME_REPLACEMENT` 240 frame ognuno vive ~12 s.
 - `ShouldDisableRandomEncounters()` (`field_control_avatar.c`) usa
   `WE_VANILLA_RANDOM`, di compilazione: per la Gara serve il controllo a
   runtime che c'è (`AreOverworldMonsEnabled`).
@@ -340,7 +356,8 @@ Letture della RAM con `gdb-multiarch` (vedi sotto).
   lotta, catturato con la stella. D5: 6 shiny, Force Shiny spento, giocatore
   a 17-21 caselle e ritorno: stessi 6 localId, nessuno spawn normale.
 - Uscendo verso New Bark Town (città) spariscono tutti; i Pokémon-oggetto
-  della mappa (Wooper, Pineco) no.
+  della mappa (Wooper, Pineco) no. (Dal 23/10 spariscono solo quelli di
+  Route 29: vedi il despawn in città fra le trappole.)
 - **Non provato** (Route 29 non ha acqua né è una grotta): tetti 3/3 per
   acqua e grotta, collisione palette riflesso/shiny. Vanno in fase 6.
 
