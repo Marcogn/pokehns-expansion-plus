@@ -961,12 +961,12 @@
 #define FLAG_ULAULA_MOVE_TUTOR_PAID                 (HNS_EXTENDED_CONTENT_START + 77) // paid the Ula'ula move tutor his 5 HEART SCALES
 #define FLAG_USED_TELEPORTER                    (HNS_EXTENDED_CONTENT_START + 78)
 #define FLAG_UNUSED_EXTENDED_79                   (HNS_EXTENDED_CONTENT_START + 79)
-#define FLAG_UNUSED_EXTENDED_80                    (HNS_EXTENDED_CONTENT_START + 80)
-#define FLAG_UNUSED_EXTENDED_81                    (HNS_EXTENDED_CONTENT_START + 81)
-#define FLAG_UNUSED_EXTENDED_82                    (HNS_EXTENDED_CONTENT_START + 82)
-#define FLAG_UNUSED_EXTENDED_83                     (HNS_EXTENDED_CONTENT_START + 83)
-#define FLAG_UNUSED_EXTENDED_84                     (HNS_EXTENDED_CONTENT_START + 84)
-#define FLAG_UNUSED_EXTENDED_85                     (HNS_EXTENDED_CONTENT_START + 85)
+#define FLAG_HIDE_TCLONER_AZALEA                   (HNS_EXTENDED_CONTENT_START + 80) // TcloneR scientist, set by TCloner_EventScript_UpdateNpcs
+#define FLAG_HIDE_TCLONER_HIDEOUT                  (HNS_EXTENDED_CONTENT_START + 81) // TcloneR scientist, set by TCloner_EventScript_UpdateNpcs
+#define FLAG_HIDE_TCLONER_MAHOGANY                 (HNS_EXTENDED_CONTENT_START + 82) // TcloneR scientist, set by TCloner_EventScript_UpdateNpcs
+#define FLAG_HIDE_TCLONER_GOLDENROD                (HNS_EXTENDED_CONTENT_START + 83) // TcloneR scientist, set by TCloner_EventScript_UpdateNpcs
+#define FLAG_HIDE_TCLONER_CERULEAN                 (HNS_EXTENDED_CONTENT_START + 84) // TcloneR scientist, set by TCloner_EventScript_UpdateNpcs
+#define FLAG_HIDE_TCLONER_PALLET                   (HNS_EXTENDED_CONTENT_START + 85) // TcloneR scientist, set by TCloner_EventScript_UpdateNpcs
 #define FLAG_UNUSED_EXTENDED_86                     (HNS_EXTENDED_CONTENT_START + 86)
 #define FLAG_UNUSED_EXTENDED_87                     (HNS_EXTENDED_CONTENT_START + 87)
 #define FLAG_UNUSED_EXTENDED_88                     (HNS_EXTENDED_CONTENT_START + 88)

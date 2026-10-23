@@ -1,5 +1,9 @@
 # Piano: TcloneR (cattura dei Pokémon degli allenatori come missione)
 
+**Stato (23/10): sessioni A e B fatte, nella stessa PR (#22).** Quello che è
+venuto diverso dal piano è annotato sotto "Sessione A" e "Sessione B"; il
+riferimento per il codice è `.claude/rules/trainer_catch.md`.
+
 ## Contesto
 
 Idea dell'utente (22/10/2026, documento allegato in chat; il testo dei
@@ -115,12 +119,14 @@ Nomi inglesi da `include/constants/items.h` (da confermare in fase 1):
 ## Stato nel salvataggio
 
 - `VAR_TCLONER_COUNT` (cloni contati), `VAR_TCLONER_REWARDS` (scaglioni già
-  ritirati, 0-10) e `VAR_TCLONER_STAGE` (ultimo incontro fatto, 0-5, vedi
+  ritirati, 0-10; **fatto: passi 0-12**, vedi "Sessione A") e `VAR_TCLONER_STAGE` (ultimo incontro fatto, 0-5, vedi
   "Ordine degli incontri"): tre var libere di HnS
   (`include/constants/vars_hns.h`, 43 `UNUSED`). La tappa in una var invece
   che in cinque flag rende "gli incontri vanno solo avanti" un confronto.
 - Un flag per oggetto evento (nascondere/mostrare): flag liberi di HnS
-  (`include/constants/flags_hns.h`, `FLAG_UNUSED_*` da 0x2E0). **Non** usare
+  (`include/constants/flags_hns.h`, `FLAG_UNUSED_*` da 0x2E0). **Fatto con
+  `FLAG_UNUSED_EXTENDED_80..85`**: i `FLAG_UNUSED_3x` liberi erano solo 4 e
+  gli oggetti sono sei (il covo e il negozio di Mahogany sono due). **Non** usare
   flag con byte basso `0xFF` vicino ai massi
   (`.claude/rules/overworld_encounters.md`, `trainer_type`).
 - Bitfield degli allenatori clonati (D1), **solo se costa poco** (sotto).
@@ -344,7 +350,22 @@ more ways to make money") presuppone solo il Team Rocket, che a quel punto
 
 ## Fasi
 
-### Sessione A: motore (C)
+### Sessione A: motore (C) — fatta il 23/10
+
+Com'è venuta (dettaglio e verifiche in `.claude/rules/trainer_catch.md`):
+
+- D1 fatto: il `filler` è libero e da 104 byte, bitfield da 82 byte.
+- `VAR_TCLONER_COUNT` 0x40E5, `VAR_TCLONER_REWARDS` 0x40FC,
+  `VAR_TCLONER_STAGE` 0x40C2 (0x40FA/0x40FB non sono libere: randomizer).
+- **Deviazione**: `VAR_TCLONER_REWARDS` conta i *passi* (0-12), non gli
+  scaglioni (0-10): i tre Pokémon dei 100 sono un passo ciascuno, così con i
+  box pieni resta in sospeso solo quello che non entra.
+- Per la B: lo script comune è `EventScript_TClonerRewards`
+  (`data/scripts/tcloner.inc`), da chiamare dopo "How many have you got?":
+  dà tutto il maturato e chiude con la riga comune giusta. Le righe comuni
+  sono già lì (impaginazione da rivedere negli screenshot della B).
+- Fra il merge della A e quello della B il TcloneR **non si ottiene** in
+  gioco (solo da debug, id 903): niente release in mezzo.
 
 1. `ITEM_TCLONER`: tasca oggetti chiave, nessun uso (descrizione e "non si
    può usare ora"), icona ricolorata (D7), nome `TcloneR` nella lista.
@@ -370,7 +391,15 @@ more ways to make money") presuppone solo il Team Rocket, che a quel punto
    prima; borsa piena → premio in sospeso; **aprire la squadra e il box**
    dopo cattura e premio (shiny, OT, livello).
 
-### Sessione B: mondo (mappe, script, testi)
+### Sessione B: mondo (mappe, script, testi) — fatta il 23/10, prima del merge della A
+
+Su richiesta dell'utente, nella stessa PR della A. Testi quelli approvati
+(D5), impaginati negli screenshot; "stea— ahem" è diventato "stea… ahem"
+(il font non ha la lineetta). Dettaglio e verifiche in
+`.claude/rules/trainer_catch.md`. Il salvataggio dell'utente non era in
+sessione: il caso "salvataggio vecchio a Mahogany" è coperto dagli scenari
+(primo incontro a Mahogany), non dal `.srm` vero.
+
 
 1. Cinque oggetti evento (`OBJ_EVENT_GFX_SCIENTIST_M_HNS` o simile) nelle
    mappe `AzaleaTown_hns` (vicino al pozzo, fermo, visibile dall'arrivo:
@@ -396,7 +425,8 @@ more ways to make money") presuppone solo il Team Rocket, che a quel punto
 ## Sessione consigliata
 
 **Due sessioni in fila**, la B dopo il merge della A (la B usa lo `special` e
-le var della A). Il level scaling è indipendente e può andare prima o dopo.
+le var della A). *Andata diversamente: l'utente ha chiesto la B prima del
+merge, sullo stesso branch.* Il level scaling è indipendente e può andare prima o dopo.
 
 - Modello: il più capace disponibile (Opus). A: sforzo alto (salvataggio,
   lotta, migrazione). B: sforzo medio, ma tanta verifica in emulatore.

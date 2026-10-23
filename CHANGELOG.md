@@ -6,6 +6,35 @@ tag `v2.0.6.PLUS.3`) as the release notes, and refuses to run without one:
 add the section before releasing. Feature details live in the tables of
 [`README.md`](README.md).
 
+## 2.0.6.PLUS.6
+
+### Changed
+- **The TcloneR replaces the `TRAINER CATCH` option.** Catching a Trainer's
+  Pokémon is no longer a switch in the challenge menu: it works while the
+  TcloneR, a new key item, is in your Bag. How it works is unchanged: one
+  Pokémon per battle, the battle ends with the catch, the Trainer is not
+  beaten and challenges you again. Saves that had the option on start with
+  it off, like everyone else, until they get the item.
+- **Clones count towards rewards.** Every Trainer counts once: catching from
+  the same Trainer again still works, it just scores nothing (a rematch with a
+  new team counts as a new Trainer). In a battle against two Trainers the
+  clone counts for the one it belonged to.
+- **Rewards every 10 clones, up to 100**: 20 Quick Balls, 10 Nuggets, 20 Ultra
+  Balls, 15 Max Repels, 10 Rare Candies, 10 Big Nuggets, then a shiny
+  Totodile, Chikorita and Cyndaquil at Lv5 and, at 100, a shiny Weezing,
+  Arbok and Meowth at Lv50. The Pokémon always go to the PC. With a full Bag
+  or full Boxes the reward waits for the next time.
+- **Elm's former assistant hands out the TcloneR and the rewards.** You meet
+  him in five places, following Team Rocket's story: Azalea Town (by the
+  Slowpoke Well), the Mahogany hideout entrance (or outside the shop once it
+  is cleared), outside the Radio Tower once Team Rocket takes it, outside the
+  Cerulean Pokémon Center, and finally Prof. Oak's lab, where he stays for
+  good. Each meeting pays out every reward you have earned so far.
+- Meetings only go forward: meet him further along and the earlier ones are
+  gone. Whichever meeting comes first gives you the TcloneR, and his lines
+  adjust so nothing is said twice or answers something never said, so a save
+  already past Azalea is not stuck.
+
 ## 2.0.6.PLUS.5
 
 ### Added

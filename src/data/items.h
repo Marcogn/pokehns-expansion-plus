@@ -14296,6 +14296,24 @@ const struct ItemInfo gItemsInfo[] =
         .iconPalette = gItemIconPalette_PowderJar,
     },
 
+    // Passive like the Dowsing Machine was meant to be: carrying it is what
+    // lets a Ball work on a Trainer's Pokemon (CanCatchTrainerMon).
+    [ITEM_TCLONER] =
+    {
+        .name = ITEM_NAME("TcloneR"),
+        .price = 0,
+        .description = COMPOUND_STRING(
+            "Clones one of a\n"
+            "Trainer's {PKMN} per\n"
+            "battle. Use a Ball."),
+        .importance = 1,
+        .pocket = POCKET_KEY_ITEMS,
+        .type = ITEM_USE_BAG_MENU,
+        .fieldUseFunc = ItemUseOutOfBattle_CannotUse,
+        .iconPic = gItemIcon_Scanner,
+        .iconPalette = gItemIconPalette_TcloneR,
+    },
+
     [ITEM_WAILMER_PAIL] =
     {
         .name = ITEM_NAME("WAILMER PAIL"),

@@ -41,6 +41,7 @@
 #include "fldeff_misc.h"
 #include "field_control_avatar.h"
 #include "mirage_tower.h"
+#include "tcloner.h"
 #include "field_screen_effect.h"
 #include "data.h"
 #include "vs_seeker.h"
@@ -111,6 +112,10 @@ EWRAM_DATA static bool8 sTrainerMonCaught = FALSE;
 // Their sight is switched off instead until the player leaves the map; talking
 // to them still starts the battle, so the player chooses when to take them on.
 EWRAM_DATA static u16 sSightSuspendedTrainer = TRAINER_NONE;
+// The Trainer the caught Pokemon belonged to, for the TcloneR count. Set when
+// the Ball catches, because by the time the battle has ended the battler data
+// that says whose Pokemon it was is gone.
+EWRAM_DATA static u16 sTrainerMonCaughtFrom = TRAINER_NONE;
 
 // The first transition is used if the enemy Pokémon are lower level than our Pokémon.
 // Otherwise, the second transition is used.
@@ -1516,6 +1521,23 @@ void SetUpTwoTrainersBattle(void)
     LockPlayerFieldControls();
 }
 
+// With two Trainers on the field (two that spotted the player at once), the
+// second one's team fills gEnemyParty[3..5]: the side of the field is not
+// enough, since either Trainer's Pokemon can end up alone on it.
+void RecordTrainerMonCaught(u32 battler)
+{
+    if ((gBattleTypeFlags & BATTLE_TYPE_TWO_OPPONENTS) && gBattlerPartyIndexes[battler] >= PARTY_SIZE / 2)
+        sTrainerMonCaughtFrom = TRAINER_BATTLE_PARAM.opponentB;
+    else
+        sTrainerMonCaughtFrom = TRAINER_BATTLE_PARAM.opponentA;
+}
+
+static void CountTrainerMonCaught(void)
+{
+    TClonerRecordCatch(sTrainerMonCaughtFrom);
+    sTrainerMonCaughtFrom = TRAINER_NONE;
+}
+
 #define OPCODE_OFFSET 1
 bool32 IsTrainerSightSuspended(const u8 *data)
 {
@@ -1605,6 +1627,7 @@ void ClearTrainerFlag(u16 trainerId)
 void BattleSetup_StartTrainerBattle(void)
 {
     sTrainerMonCaught = FALSE;
+    sTrainerMonCaughtFrom = TRAINER_NONE;
     if (gNoOfApproachingTrainers == 2)
     {
         if (FollowerNPCIsBattlePartner())
@@ -1747,9 +1770,10 @@ static void CB2_EndTrainerBattle(void)
 
     if (gBattleOutcome == B_OUTCOME_CAUGHT)
     {
-        // Only TRAINER CATCH gets here. The battle is over, but the Trainer was
+        // Only the TcloneR gets here. The battle is over, but the Trainer was
         // not beaten: no flag, no rematch bookkeeping, and the post-battle
         // script is swapped for one that ends, so they challenge again.
+        CountTrainerMonCaught();
         sTrainerMonCaught = TRUE;
         sSightSuspendedTrainer = TRAINER_BATTLE_PARAM.opponentA;
         DowngradeBadPoison();
@@ -1815,8 +1839,9 @@ static void CB2_EndRematchBattle(void)
 {
     if (gBattleOutcome == B_OUTCOME_CAUGHT)
     {
-        // TRAINER CATCH: a rematch script ends right after the battle, so only
-        // the "beaten" bookkeeping needs skipping. The rematch stays pending.
+        // TcloneR: a rematch script ends right after the battle, so only the
+        // "beaten" bookkeeping needs skipping. The rematch stays pending.
+        CountTrainerMonCaught();
         sSightSuspendedTrainer = TRAINER_BATTLE_PARAM.opponentA;
         DowngradeBadPoison();
         SetMainCallback2(CB2_ReturnToFieldContinueScriptPlayMapMusic);
@@ -1844,6 +1869,7 @@ static void CB2_EndRematchBattle(void)
 void BattleSetup_StartRematchBattle(void)
 {
     sTrainerMonCaught = FALSE;
+    sTrainerMonCaughtFrom = TRAINER_NONE;
     gBattleTypeFlags = BATTLE_TYPE_TRAINER;
     gMain.savedCallback = CB2_EndRematchBattle;
     DoTrainerBattle();

@@ -1513,6 +1513,9 @@ void ResetPokedex(void)
     gSaveBlock2Ptr->pokedex.unownPersonality = 0;
     gSaveBlock2Ptr->pokedex.spindaPersonality = 0;
     gSaveBlock2Ptr->pokedex.unknown3 = 0;
+    // NewGameInitData does not clear SaveBlock2, so a new game started over a
+    // loaded save would inherit the Trainers the TcloneR already counted.
+    memset(gSaveBlock2Ptr->pokedex.tclonerTrainerFlags, 0, sizeof(gSaveBlock2Ptr->pokedex.tclonerTrainerFlags));
     DisableNationalPokedex();
     for (i = 0; i < NUM_DEX_FLAG_BYTES; i++)
     {

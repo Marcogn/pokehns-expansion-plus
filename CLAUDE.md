@@ -98,10 +98,11 @@ Dettaglio, offset e storia delle migrazioni: `.claude/rules/save.md`, caricata
 quando tocchi `save.c`, `global.h`, `new_game.c`, `oak_speech_hns.c` o il menu
 opzioni.
 
-- `struct ChallengeSettings` è fissata a 32 byte e ha **0 bit liberi**, e
-  anche `soundAndFieldOptions` è pieno (restano 2 bit ignorati, da azzerare
-  con una migrazione prima di riusarli). Una nuova opzione va in un flag,
-  oppure in un campo nuovo in coda a SaveBlock3 (vedi sotto).
+- `struct ChallengeSettings` è fissata a 32 byte e ha **1 bit libero**
+  (`unusedTrainerCatchBit`, già azzerato dalla migrazione 9: riusabile così
+  com'è); `soundAndFieldOptions` è pieno (restano 2 bit ignorati, da azzerare
+  con una migrazione prima di riusarli). Dopo quel bit, una nuova opzione va
+  in un flag, oppure in un campo nuovo in coda a SaveBlock3 (vedi sotto).
 - **Polarità**: un salvataggio vecchio legge zero, quindi zero deve essere il
   comportamento di prima (o il default). L'etichetta del valore zero viene prima
   nella lista di scelte, anche se il nome del campo viene brutto.
@@ -111,6 +112,9 @@ opzioni.
 - Le opzioni scelte dal titolo passano da `oak_speech_hns.c` e sopravvivono a
   `ClearSav3()` in `NewGameInitData`: un campo nuovo va aggiunto in **entrambi**,
   o la scelta sparisce in silenzio.
+- **`NewGameInitData` azzera SaveBlock1 e 3, non SaveBlock2**: un campo di
+  gioco messo in SaveBlock2 va azzerato a mano (come i flag del TcloneR in
+  `ResetPokedex`), o una nuova partita sopra un salvataggio caricato lo eredita.
 
 ---
 
@@ -197,7 +201,7 @@ In `.claude/rules/`, caricate da sole quando apri i file indicati.
 | `music.md` | riverbero m4a |
 | `bag.md` | icone e badge nella lista della borsa |
 | `pokedex.md` | aprire il Pokédex da una lotta: limiti di memoria misurati |
-| `trainer_catch.md` | `TRAINER CATCH` |
+| `trainer_catch.md` | cattura dei Pokémon degli allenatori: TcloneR, contatore, premi |
 | `megas.md` | spazio in ROM delle megaevoluzioni |
 | `title_screen.md` | "+" e versione sulla schermata del titolo |
 | `pc_box.md` | `SORT` e `SEARCH` nei box del PC |

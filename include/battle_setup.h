@@ -75,6 +75,7 @@ void ConfigureAndSetUpOneTrainerBattle(u8 trainerObjEventId, const u8 *trainerSc
 void ConfigureTwoTrainersBattle(u8 trainerObjEventId, const u8 *trainerScript);
 void SetUpTwoTrainersBattle(void);
 bool32 GetTrainerFlagFromScriptPointer(const u8 *data);
+void RecordTrainerMonCaught(u32 battler);
 bool32 IsTrainerSightSuspended(const u8 *data);
 void ClearTrainerSightSuspension(void);
 bool32 GetRematchFromScriptPointer(const u8 *data);

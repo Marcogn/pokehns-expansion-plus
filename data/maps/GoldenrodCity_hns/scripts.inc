@@ -1,5 +1,10 @@
 GoldenrodCity_hns_MapScripts::
+	map_script MAP_SCRIPT_ON_TRANSITION, GoldenrodCity_OnTransition
 	.byte 0
+
+GoldenrodCity_OnTransition::
+	call TCloner_EventScript_UpdateNpcs
+	end
 
 GoldenrodCity_EventScript_Trigger:: @flagheap
 	call_if_unset FLAG_SHOWN_ELM_TOGEPI, GoldenrodCity_Elm_Togepi_Call
