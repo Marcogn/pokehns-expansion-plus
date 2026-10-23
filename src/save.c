@@ -118,6 +118,15 @@ STATIC_ASSERT(offsetof(struct SaveBlock3, soundAndFieldOptions) == 56, SaveBlock
 // must not push SaveBlock3 out of sector 0's 116-byte tail.
 STATIC_ASSERT(sizeof(struct SaveBlock3) <= SAVE_BLOCK_3_CHUNK_SIZE, SaveBlock3FitsFirstChunk);
 STATIC_ASSERT(sizeof(struct SaveBlock2) <= SECTOR_DATA_SIZE, SaveBlock2FreeSpace);
+// The TcloneR's per-Trainer flags live in what was Emerald's dex flag filler
+// inside struct Pokedex. Carving them out must not move anything after it: the
+// struct keeps its 0x78 bytes and the flags their offset, which the SAVE_VERSION
+// 9 migration zeroes.
+#if FREE_EXTRA_SEEN_FLAGS_SAVEBLOCK2 == FALSE
+STATIC_ASSERT(sizeof(struct Pokedex) == 0x78, PokedexLayoutPinned);
+#endif
+STATIC_ASSERT(offsetof(struct SaveBlock2, pokedex) == 0x18, SaveBlock2PokedexOffset);
+STATIC_ASSERT(offsetof(struct Pokedex, tclonerTrainerFlags) == 0x10, PokedexTClonerFlagsOffset);
 STATIC_ASSERT(sizeof(struct SaveBlock1) <= SECTOR_DATA_SIZE * (SECTOR_ID_SAVEBLOCK1_END - SECTOR_ID_SAVEBLOCK1_START + 1), SaveBlock1FreeSpace);
 STATIC_ASSERT(sizeof(struct PokemonStorage) <= SECTOR_DATA_SIZE * (SECTOR_ID_PKMN_STORAGE_END - SECTOR_ID_PKMN_STORAGE_START + 1), PokemonStorageFreeSpace);
 
@@ -1028,7 +1037,7 @@ u8 LoadGameSave(u8 saveType)
         // merged into ENHANCED DEXNAV, so a save that had that option on would
         // wake up able to catch Trainers' Pokemon. Start every existing save
         // with it off; it is one toggle away in the PC's challenge menu.
-        gSaveBlock3Ptr->challengeSettings.trainerCatch = FALSE;
+        gSaveBlock3Ptr->challengeSettings.unusedTrainerCatchBit = FALSE;
         // FLAG_FORCE_SHINY is the old FLAG_UNUSED_3. Upstream's history is a
         // single squashed commit, so there is no proving an older HnS never
         // wrote it; if it did, every wild Pokemon would come out shiny.
@@ -1045,6 +1054,21 @@ u8 LoadGameSave(u8 saveType)
         // another meaning, but clearing it keeps the two from disagreeing.
         FlagClear(FLAG_FAST_HMS);
         gSaveBlock1Ptr->saveVersion = 8;
+    }
+    if (gSaveBlock1Ptr->saveVersion < 9)
+    {
+        // TRAINER CATCH was replaced by the TcloneR key item. Its bit is
+        // ignored now; clearing it is what makes it free for another option.
+        // Whoever had it on gets the item from the scientist like everyone
+        // else: the clone count starts with the item.
+        gSaveBlock3Ptr->challengeSettings.unusedTrainerCatchBit = FALSE;
+        // The per-Trainer flags took over Emerald's old dex flag filler, which
+        // no build wrote but which is not provably zero in every save.
+        memset(gSaveBlock2Ptr->pokedex.tclonerTrainerFlags, 0, sizeof(gSaveBlock2Ptr->pokedex.tclonerTrainerFlags));
+        VarSet(VAR_TCLONER_COUNT, 0);
+        VarSet(VAR_TCLONER_REWARDS, 0);
+        VarSet(VAR_TCLONER_STAGE, 0);
+        gSaveBlock1Ptr->saveVersion = 9;
     }
 
     // Add version migration steps here:

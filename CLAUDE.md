@@ -197,7 +197,7 @@ In `.claude/rules/`, caricate da sole quando apri i file indicati.
 | `music.md` | riverbero m4a |
 | `bag.md` | icone e badge nella lista della borsa |
 | `pokedex.md` | aprire il Pokédex da una lotta: limiti di memoria misurati |
-| `trainer_catch.md` | `TRAINER CATCH` |
+| `trainer_catch.md` | cattura dei Pokémon degli allenatori: TcloneR, contatore, premi |
 | `megas.md` | spazio in ROM delle megaevoluzioni |
 | `title_screen.md` | "+" e versione sulla schermata del titolo |
 | `pc_box.md` | `SORT` e `SEARCH` nei box del PC |

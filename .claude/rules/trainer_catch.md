@@ -6,9 +6,90 @@ paths:
   - "src/trainer_see.c"
   - "src/pokemon.c"
   - "data/scripts/trainer_battle.inc"
+  - "src/tcloner.c"
+  - "include/tcloner.h"
+  - "include/constants/tcloner.h"
+  - "data/scripts/tcloner.inc"
 ---
 
-# Cattura dei Pokémon degli allenatori (`TRAINER CATCH`)
+# Cattura dei Pokémon degli allenatori (TcloneR, ex `TRAINER CATCH`)
+
+**Dal 23/10 il permesso è l'oggetto chiave `ITEM_TCLONER` in borsa**, non più
+l'opzione `TRAINER CATCH` del challenge menu (tolta; piano e dialoghi in
+`docs/plans/tcloner.md`, sessione A fatta, la B mette scienziato e script di
+mappa). Tutto quello che segue sul motore della cattura vale identico: è
+cambiata solo la riga in `CanCatchTrainerMon()`.
+
+## TcloneR: contatore e premi (sessione A)
+
+- **Contatore**: `VAR_TCLONER_COUNT` (0x40E5). `RecordTrainerMonCaught(battler)`
+  (`battle_setup.c`) è chiamata da `FinalizeCapture` al momento della cattura,
+  perché a lotta finita i dati dei battler non dicono più di chi era il
+  Pokémon. In una lotta con **due allenatori** (`BATTLE_TYPE_TWO_OPPONENTS`)
+  la squadra del secondo sta in `gEnemyParty[3..5]`: decide l'indice di
+  squadra, non il lato. `CB2_EndTrainerBattle` / `CB2_EndRematchBattle` sul
+  ramo `B_OUTCOME_CAUGHT` passano l'id a `TClonerRecordCatch` (`tcloner.c`).
+- **Un allenatore conta una volta (D1)**: bitfield di 82 byte
+  `pokedex.tclonerTrainerFlags` in SaveBlock2, ricavato dal `filler[0x68]`
+  di `struct Pokedex` (104 byte misurati, non 108 come dice il commento di
+  `config/save.h`; nessun lettore né scrittore in `src/`). La struct resta
+  0x78 byte e gli offset sono inchiodati da `STATIC_ASSERT` in `save.c`.
+  **Trappola**: `NewGameInitData` **non** chiama `ClearSav2()`, quindi
+  `ResetPokedex()` azzera il bitfield a mano, o una nuova partita sopra un
+  salvataggio caricato erediterebbe gli allenatori già contati. Un rematch è
+  un altro id allenatore e conta da sé.
+- **Premi**: `VAR_TCLONER_REWARDS` (0x40FC) conta i **passi** consegnati, 0-12,
+  non gli scaglioni 0-10 del piano: lo scaglione 100 sono tre Pokémon, un
+  passo ciascuno, così con i box pieni resta in sospeso solo quello che non
+  entra ("I'll keep **this one**"). Tabella `sRewards` in `tcloner.c`.
+- **Specials** (`data/specials.inc`): `TClonerGetNextReward` (esito in
+  `VAR_RESULT`, costanti `TCLONER_REWARD_*`), `TClonerClaimItemReward` (dopo un
+  `giveitem` riuscito), `TClonerGiveRewardMon` (shiny, sempre nel PC con
+  `CopyMonToPC`, Pokédex visto/catturato). Lo script comune
+  `EventScript_TClonerRewards` (`data/scripts/tcloner.inc`) fa il giro e chiude
+  con la riga comune: "not enough" solo se non ha dato niente, "Impressive…"
+  a premi finiti, borsa piena con `checkitemspace` prima di `giveitem` (e il
+  risultato di `giveitem` ricontrollato: col randomizer l'oggetto può
+  cambiare). Lo scienziato della sessione B lo chiama e basta.
+- `VAR_TCLONER_STAGE` (0x40C2) è riservata alla sessione B (tappa 0-5).
+  Scartate 0x40FA/0x40FB, che `vars_hns.h` dà per libere: le usa il
+  randomizer (`RANDOMIZER_VAR_SEED_L/H`).
+- Icona: l'arte dello Scanner (`gItemIcon_Scanner`) con
+  `graphics/items/icon_palettes/tcloner.pal`: corpo blu → grigi Rocket, banda
+  gialla → rossa, schermo verde (Celebi) invariato. Valori originali nel
+  commento di `src/data/graphics/items.h`.
+- **Nuzlocke**: in una lotta con allenatore `SetNuzlockeChecks` non gira e il
+  flag della zona si brucia solo con i selvatici (`battle_main.c`, esclude
+  `BATTLE_TYPE_TRAINER`): un clone non consuma l'incontro della zona né
+  sente la clausola delle specie. Era così con `TRAINER CATCH`, lasciato così.
+- **Level cap (D3)**: niente, il clone arriva al suo livello.
+
+### Verificato in emulatore (23/10, ROM strumentata: script di debug 3/4/5 impostano il contatore, 7 chiama i premi, 8 lo mostra)
+
+- Challenge menu: FEATURES finisce con FRONTIER BANS → NEXT.
+- Senza TcloneR la Master Ball su Joey (7) è bloccata e **non consumata**
+  (21 → 21); con il TcloneR cattura, COUNT 1; seconda cattura da Joey,
+  **COUNT resta 1**.
+- Doppia Joey (A, già contato) + Ross (2, B): KO al Rattata di Joey, cattura
+  del Koffing di Ross → **COUNT 2**, quindi è stato contato B.
+- Bitfield nel `.sav`: `bc` = bit 2, 3, 4, 5, 7, cioè esattamente gli
+  allenatori clonati.
+- 9 → cattura → 10: "Obtained… QUICK BALLs", chiusura senza altre righe;
+  di nuovo: "not enough". 20 con la tasca oggetti piena: "Your BAG is full!",
+  passo fermo; svuotata: Nugget. 100 con i box pieni: Ultra Ball, Max Repel,
+  Rare Candy, Big Nugget poi "Your PC BOXES are full!"; box vuoti: sei
+  messaggi "<NOME> was sent to the PC!" e "Impressive…".
+- **Box aperto**: tutti e sei shiny, OT del giocatore con il suo ID, Lv5 /
+  Lv50. Squadra con i cloni catturati (Rattata, Koffing, Electrode,
+  Magnemite, Omastar): nomi e PS normali, nessun Bad Egg.
+- Migrazione: `.sav` riportato a versione 8 con il bit di `TRAINER CATCH` a 1,
+  bitfield a `0xAA`, var a valori ≠ 0 (checksum ricalcolati); caricato nella
+  ROM di produzione e salvato: versione 9, tutto a zero.
+
+Non provato: rematch (`CB2_EndRematchBattle`, stesso codice), nuova partita
+sopra un salvataggio caricato (l'azzeramento in `ResetPokedex`).
+
+## Motore della cattura (da `TRAINER CATCH`, invariato)
 
 Non c'era. `MIRROR THIEF` sembra la stessa cosa e **non lo è**: con Mirror Mode
 combatti con una copia della squadra avversaria, e "thief" te la lascia dopo.

@@ -6,6 +6,27 @@ tag `v2.0.6.PLUS.3`) as the release notes, and refuses to run without one:
 add the section before releasing. Feature details live in the tables of
 [`README.md`](README.md).
 
+## 2.0.6.PLUS.6
+
+### Changed
+- **The TcloneR replaces the `TRAINER CATCH` option.** Catching a Trainer's
+  Pokémon is no longer a switch in the challenge menu: it works while the
+  TcloneR, a new key item, is in your Bag. How it works is unchanged: one
+  Pokémon per battle, the battle ends with the catch, the Trainer is not
+  beaten and challenges you again. Saves that had the option on start with
+  it off, like everyone else, until they get the item.
+- **Clones count towards rewards.** Every Trainer counts once: catching from
+  the same Trainer again still works, it just scores nothing (a rematch with a
+  new team counts as a new Trainer). In a battle against two Trainers the
+  clone counts for the one it belonged to.
+- **Rewards every 10 clones, up to 100**: 20 Quick Balls, 10 Nuggets, 20 Ultra
+  Balls, 15 Max Repels, 10 Rare Candies, 10 Big Nuggets, then a shiny
+  Totodile, Chikorita and Cyndaquil at Lv5 and, at 100, a shiny Weezing,
+  Arbok and Meowth at Lv50. The Pokémon always go to the PC. With a full Bag
+  or full Boxes the reward waits for the next time.
+- The scientist who hands out the TcloneR and the rewards comes with the
+  next part of this feature.
+
 ## 2.0.6.PLUS.5
 
 ### Added

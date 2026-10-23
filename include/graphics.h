@@ -1773,6 +1773,7 @@ extern const u32 gItemIcon_BasementKey[];
 extern const u16 gItemIconPalette_OldKey[];
 extern const u32 gItemIcon_Scanner[];
 extern const u16 gItemIconPalette_Scanner[];
+extern const u16 gItemIconPalette_TcloneR[];
 extern const u32 gItemIcon_StorageKey[];
 extern const u32 gItemIcon_KeyToRoom1[];
 extern const u16 gItemIconPalette_Key[];

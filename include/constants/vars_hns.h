@@ -110,7 +110,7 @@
 // --- Free in the HnS build. Verified: no C in src/ and no script that runs in
 // --- the HnS build reads or writes these addresses. Safe to claim.
 #define VAR_UNUSED_HNS_0x40B4                            0x40B4 // Emerald VAR_SS_TIDAL_STATE - reads gated on FLAG_SYS_CRUISE_MODE / MAP_SS_TIDAL_CORRIDOR
-#define VAR_UNUSED_HNS_0x40C2                            0x40C2 // Emerald VAR_PACIFIDLOG_TM_RECEIVED_DAY - PacifidlogTown_House2 only (Emerald-gated map)
+#define VAR_TCLONER_STAGE                                0x40C2 // TcloneR: last scientist met, 0-5. Emerald VAR_PACIFIDLOG_TM_RECEIVED_DAY - PacifidlogTown_House2 only (Emerald-gated map)
 #define VAR_UNUSED_HNS_0x40C6                            0x40C6 // Emerald VAR_STEVENS_HOUSE_STATE - written in hall_of_fame.inc, reached only from EverGrandeCity_HallOfFame
 #define VAR_UNUSED_HNS_0x40C9                            0x40C9 // Emerald VAR_SCOTT_PETALBURG_ENCOUNTER - PetalburgCity only (Emerald-gated map)
 #define VAR_UNUSED_HNS_0x40CA                            0x40CA // Emerald VAR_SKY_PILLAR_STATE - overworld.c reads only, both behind MAP_GROUP(MAP_SOOTOPOLIS_CITY)
@@ -135,7 +135,7 @@
 #define VAR_UNUSED_HNS_0x40E3                            0x40E3 // Emerald VAR_GIFT_UNUSED_6 - see Mystery Gift block above
 #define VAR_UNUSED_HNS_0x40E4                            0x40E4 // Emerald VAR_GIFT_UNUSED_7 - see Mystery Gift block above
 
-#define VAR_UNUSED_HNS_0x40E5                            0x40E5 // Emerald VAR_UNUSED_0x40E5 - no references in any build
+#define VAR_TCLONER_COUNT                                0x40E5 // TcloneR: Trainers cloned. Emerald VAR_UNUSED_0x40E5 - no references in any build
 
 // !!! UNSAFE: daily counters. Written by universal engine code that runs during
 // !!! normal HnS gameplay. Do NOT claim these addresses for HnS content.
@@ -172,9 +172,9 @@
 #define VAR_DEXNAV_SPECIES                               0x40F7 // DexNav: registered species and environment
 #define VAR_DEXNAV_STEP_COUNTER                          0x40F8 // DexNav: steps since the last hidden-Pokemon roll
 #define VAR_DEXNAV_SEARCH_LEVEL                          0x40F9 // DexNav: search level of the registered species
-#define VAR_UNUSED_HNS_0x40FA                            0x40FA // Emerald VAR_UNUSED_0x40FA - no references in any build
-#define VAR_UNUSED_HNS_0x40FB                            0x40FB // Emerald VAR_UNUSED_0x40FB - no references in any build
-#define VAR_UNUSED_HNS_0x40FC                            0x40FC // Emerald VAR_UNUSED_0x40FC - no references in any build
+#define VAR_UNUSED_HNS_0x40FA                            0x40FA // NOT free: RANDOMIZER_VAR_SEED_L (include/config/randomizer.h) when the seed is not the Trainer ID
+#define VAR_UNUSED_HNS_0x40FB                            0x40FB // NOT free: RANDOMIZER_VAR_SEED_H (include/config/randomizer.h) when the seed is not the Trainer ID
+#define VAR_TCLONER_REWARDS                              0x40FC // TcloneR: reward steps handed out. Emerald VAR_UNUSED_0x40FC - no references in any build
 
 // !!! UNSAFE: live surf-blob engine state, written every time the player surfs.
 // !!! These were previously listed here as unused - they are not.

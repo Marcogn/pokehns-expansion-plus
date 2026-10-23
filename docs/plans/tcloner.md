@@ -344,7 +344,22 @@ more ways to make money") presuppone solo il Team Rocket, che a quel punto
 
 ## Fasi
 
-### Sessione A: motore (C)
+### Sessione A: motore (C) — fatta il 23/10
+
+Com'è venuta (dettaglio e verifiche in `.claude/rules/trainer_catch.md`):
+
+- D1 fatto: il `filler` è libero e da 104 byte, bitfield da 82 byte.
+- `VAR_TCLONER_COUNT` 0x40E5, `VAR_TCLONER_REWARDS` 0x40FC,
+  `VAR_TCLONER_STAGE` 0x40C2 (0x40FA/0x40FB non sono libere: randomizer).
+- **Deviazione**: `VAR_TCLONER_REWARDS` conta i *passi* (0-12), non gli
+  scaglioni (0-10): i tre Pokémon dei 100 sono un passo ciascuno, così con i
+  box pieni resta in sospeso solo quello che non entra.
+- Per la B: lo script comune è `EventScript_TClonerRewards`
+  (`data/scripts/tcloner.inc`), da chiamare dopo "How many have you got?":
+  dà tutto il maturato e chiude con la riga comune giusta. Le righe comuni
+  sono già lì (impaginazione da rivedere negli screenshot della B).
+- Fra il merge della A e quello della B il TcloneR **non si ottiene** in
+  gioco (solo da debug, id 903): niente release in mezzo.
 
 1. `ITEM_TCLONER`: tasca oggetti chiave, nessun uso (descrizione e "non si
    può usare ora"), icona ricolorata (D7), nome `TcloneR` nella lista.

@@ -1917,6 +1917,13 @@ const u16 gItemIconPalette_OldKey[] = INCBIN_U16("graphics/items/icon_palettes/o
 
 const u32 gItemIcon_Scanner[] = INCBIN_U32("graphics/items/icons/scanner.4bpp.smol");
 const u16 gItemIconPalette_Scanner[] = INCBIN_U16("graphics/items/icon_palettes/scanner.gbapal");
+// The TcloneR is the Scanner's art (gItemIcon_Scanner) recoloured in Team
+// Rocket black and red. tcloner.pal is scanner.pal with the blue body
+// (entries 9, 4, 5, 6: was RGB 41,65,115 / 82,106,164 / 156,180,238 /
+// 197,222,255) turned to greys of about the same lightness and the yellow
+// stripe (7, 8: was 98,90,41 / 222,213,65) turned red. The green screen,
+// outline and highlights keep their entries: the screen stays Celebi green.
+const u16 gItemIconPalette_TcloneR[] = INCBIN_U16("graphics/items/icon_palettes/tcloner.gbapal");
 
 const u32 gItemIcon_StorageKey[] = INCBIN_U32("graphics/items/icons/storage_key.4bpp.smol");
 

@@ -711,3 +711,6 @@ gSpecials::
 	def_special GetMaxPartySize
 	def_special IsPartyLimitChallengeActive
 	def_special GetOverworldMonsOption
+	def_special TClonerGetNextReward
+	def_special TClonerClaimItemReward
+	def_special TClonerGiveRewardMon

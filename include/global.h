@@ -21,6 +21,7 @@
 #include "constants/pokemon.h"
 #include "constants/easy_chat.h"
 #include "constants/trainer_hill.h"
+#include "constants/tcloner.h"
 #include "constants/trainer_tower.h"
 #include "constants/items.h"
 #include "constants/moves.h"
@@ -355,12 +356,10 @@ struct ChallengeSettings
                              // be the ON side: 1 means "fall back to the plain
                              // DexNav HnS shipped". Ugly name, right polarity -
                              // see the bit polarity rule in CLAUDE.md.
-    u8 trainerCatch:1;       // 1 = Balls work on a Trainer's Pokemon, see
-                             // CanCatchTrainerMon. This bit used to be DEXNAV
-                             // SOULGOLD, so a save that went through those builds
-                             // can hold a 1 here: the SAVE_VERSION 7 migration
-                             // clears it. It was the last spare bit; the next
-                             // option has to grow the struct.
+    u8 unusedTrainerCatchBit:1; // was trainerCatch, the TRAINER CATCH option,
+                                // replaced by the TcloneR key item. Cleared by the
+                                // SAVE_VERSION 9 migration, so it is free again:
+                                // the only spare bit.
 };
 
 struct SoundAndFieldOptions
@@ -416,8 +415,14 @@ struct Pokedex
     /*0x04*/ u32 unownPersonality; // set when you first see Unown
     /*0x08*/ u32 spindaPersonality; // set when you first see Spinda
     /*0x0C*/ u32 unknown3;
+    // Trainers whose Pokemon the TcloneR has already cloned: each one counts
+    // once (src/tcloner.c). Carved out of the front of Emerald's old dex flags
+    // filler, which nothing reads or writes, so SaveBlock2 keeps its layout;
+    // the SAVE_VERSION 9 migration zeroes it in older saves. It sits outside
+    // the #if below so that freeing the filler cannot take it along.
+    /*0x10*/ u8 tclonerTrainerFlags[TCLONER_TRAINER_FLAGS_BYTES];
 #if FREE_EXTRA_SEEN_FLAGS_SAVEBLOCK2 == FALSE
-    /*0x10*/ u8 filler[0x68]; // Previously Dex Flags, feel free to remove.
+    /*0x62*/ u8 filler[0x68 - TCLONER_TRAINER_FLAGS_BYTES]; // Previously Dex Flags, feel free to remove.
 #endif //FREE_EXTRA_SEEN_FLAGS_SAVEBLOCK2
 };
 

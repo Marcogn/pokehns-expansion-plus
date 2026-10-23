@@ -16,8 +16,11 @@ paths:
 `STATIC_ASSERT(..., ChallengeSettingsLayoutPinned)` in `src/save.c`.
 
 - Aggiungi campi **solo in fondo**, così nessun campo esistente cambia offset.
-- Bit liberi: **0**. L'ultimo (`unusedDexNavBit`, liberato fondendo `DEXNAV SHOW
-  ALL` e `DEXNAV SOULGOLD`) ora è `trainerCatch`. **La prossima opzione deve
+- Bit liberi: **1**, `unusedTrainerCatchBit` (byte 31, bit 7 della struct):
+  era `trainerCatch`, tolto quando l'opzione è diventata l'oggetto TcloneR, e
+  il passo `saveVersion < 9` lo azzera, quindi si può riusare **senza** nuova
+  migrazione. Prima ancora era `unusedDexNavBit` (liberato fondendo `DEXNAV
+  SHOW ALL` e `DEXNAV SOULGOLD`). Dopo, **la prossima opzione deve
   ingrandire la struct**, e quello sposta il layout del salvataggio — oppure
   vivere in un flag, come fa Soulgold per le luci. Anche il byte
   `soundAndFieldOptions` (vedi sotto) è pieno dal level scaling.
@@ -91,6 +94,17 @@ in coda a SaveBlock3 con il suo `STATIC_ASSERT` e il suo passo di migrazione.
 - **L'opzione `BATTLE MUSIC` ha 7 scelte e il menu ne disegnava al massimo 4**:
   `DrawChoices_Many` mostra solo la scelta corrente fra `<` e `>`. Le prime
   schermate mostravano la riga vuota; l'ho visto solo in emulatore.
+
+### `SAVE_VERSION 9`: TcloneR
+
+Azzera `unusedTrainerCatchBit`, le tre var `VAR_TCLONER_*` e il bitfield
+`pokedex.tclonerTrainerFlags` (SaveBlock2 + 0x28, 82 byte nel vecchio
+`filler` del Pokédex: `STATIC_ASSERT` su offset e dimensione di
+`struct Pokedex`). Verificato su un `.sav` riportato a versione 8 a mano
+(dettagli in `.claude/rules/trainer_catch.md`). Per sporcare un `.sav` serve
+il checksum per settore: somma di u32 sui soli `size` byte di dati (non la
+coda di SaveBlock3), `(s >> 16) + s` troncato a 16 bit, a `0xFF6`; lo slot
+attivo è quello col `counter` (`0xFFC`) più alto.
 
 ### C'è già un sistema di migrazione dei salvataggi: usalo
 

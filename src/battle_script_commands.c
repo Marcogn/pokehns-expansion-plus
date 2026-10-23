@@ -10626,6 +10626,8 @@ static void FinalizeCapture(void)
     MarkBattlerForControllerExec(gBattlerAttacker);
     TryBattleFormChange(gBattlerTarget, FORM_CHANGE_END_BATTLE, GetBattlerAbility(gBattlerTarget));
     gBattlescriptCurrInstr = BattleScript_SuccessBallThrow;
+    if (gBattleTypeFlags & BATTLE_TYPE_TRAINER)
+        RecordTrainerMonCaught(gBattlerTarget);
     struct Pokemon *caughtMon = GetBattlerMon(gBattlerTarget);
     SetMonData(caughtMon, MON_DATA_POKEBALL, &ballId);
 

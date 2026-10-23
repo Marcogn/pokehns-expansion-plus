@@ -66,6 +66,7 @@
 #include "constants/species.h"
 #include "constants/trade.h"
 #include "constants/trainer_hill.h"
+#include "constants/tcloner.h"
 #include "constants/trainer_tower.h"
 #include "constants/trainers.h"
 #include "constants/trainer_card.h"
@@ -1859,6 +1860,7 @@ EventScript_PalletTown_PlayersHouse_2F_TurnOnPC::
 	.include "data/scripts/battle_frontier.inc"
 	.include "data/scripts/apricorn_tree.inc"
 	.include "data/scripts/wild_encounter.inc"
+	.include "data/scripts/tcloner.inc"
 	
 
 .if IS_HNS
