@@ -18,7 +18,10 @@ quella del Monte Argento (meno Espeon).
 | --- | --- |
 | Chi usa la squadra di Red | **il giocatore** (squadra prestata), contro il capo palestra di Gen 1 |
 | Gioco di riferimento | **Pokémon Giallo**, per Red *e* per i capi palestra |
-| Capi palestra | gli 8 di Kanto **di Gen 1**: Brock, Misty, Surge, Erika, **Koga**, Sabrina, Blaine, **Giovanni** (lettura mia di "gli 8 capi palestra di Kanto" per il viaggio di Red: da confermare, in HnS al loro posto ci sono Janine e Blue) |
+| Capi palestra | gli 8 di Kanto **di Gen 1**: Brock, Misty, Surge, Erika, **Koga**, Sabrina, Blaine, **Giovanni** (confermato: non Janine e Blue) |
+| Squadre dei capi | **aperto**: Giallo o FireRed/LeafGreen, confronto sotto |
+| Ordine | **libero**: ogni sfida riparte da zero, la squadra di Red è sempre quella della N-esima |
+| Pikachu | **`Pikachu-Starter`** come al Monte Argento (base 45/80/50/75/60/120 contro 35/55/40/50/50/90 del Pikachu normale) |
 | Zaino | nessuno: borsa disabilitata in queste lotte |
 | Espeon | **mai**: Eevee fino all'ultima sfida, Espeon resta solo al Monte Argento |
 | Catture, esperienza | nessuna |
@@ -80,6 +83,55 @@ meccaniche no**. Expansion usa quelle moderne: Speciale diviso in Att. Sp. e
 Dif. Sp., statistiche base moderne, tabella dei tipi moderna, mosse OHKO che
 falliscono contro un livello più alto. Il DV di Gen 1 (0-15) diventa un IV
 raddoppiato (Att 18, il resto 16): è un'approssimazione, non una conversione.
+
+## Alternativa: i capi palestra di FireRed/LeafGreen
+
+Squadre da `pret/pokefirered` `src/data/trainer_parties.h`, identiche a
+quelle che expansion ha già in `src/data/trainers_frlg.party`
+(`TRAINER_LEADER_*`, controllate una per una). **Specie e livelli sono
+quelli di Rosso/Blu** (`pret/pokered`), con una sola differenza: l'ultimo
+Pokémon di Giovanni è Rhyhorn 50, non Rhydon 50. Le mosse sono scritte a mano
+dal remake, con mosse di Gen 3. IV 0 in entrambe le fonti.
+
+| Capo | Strumenti | Squadra |
+| --- | --- | --- |
+| **Brock** | – | Geodude 12: Tackle, Defense Curl · Onix 14: Tackle, Bind, Rock Tomb |
+| **Misty** | Super Potion | Staryu 18: Tackle, Harden, Recover, Water Pulse · Starmie 21: Swift, Recover, Rapid Spin, Water Pulse |
+| **Surge** | Super Potion, Full Heal | Voltorb 21: Sonic Boom, Tackle, Screech, Shock Wave · Pikachu 18: Quick Attack, Thunder Wave, Double Team, Shock Wave · Raichu 24: idem |
+| **Erika** | Hyper Potion, Full Heal | Victreebel 29: Stun Spore, Acid, Poison Powder, Giga Drain · Tangela 24: Poison Powder, Constrict, Ingrain, Giga Drain · Vileplume 29: Sleep Powder, Acid, Stun Spore, Giga Drain |
+| **Koga** | Hyper Potion ×2, Full Heal | Koffing 37: Self-Destruct, Sludge, Smokescreen, Toxic · Muk 39: Minimize, Sludge, Acid Armor, Toxic · Koffing 37 (come il primo) · Weezing 43: Tackle, Sludge, Smokescreen, Toxic |
+| **Sabrina** | Hyper Potion ×2, Full Heal | Kadabra 38: Psybeam, Reflect, Future Sight, Calm Mind · Mr. Mime 37: Barrier, Psybeam, Baton Pass, Calm Mind · Venomoth 38: Psybeam, Gust, Leech Life, Supersonic · Alakazam 43: Psychic, Recover, Future Sight, Calm Mind |
+| **Blaine** | Hyper Potion ×2, Full Heal | Growlithe 42: Bite, Roar, Take Down, Fire Blast · Ponyta 40: Stomp, Bounce, Fire Spin, Fire Blast · Rapidash 42: idem · Arcanine 47: Bite, Roar, Take Down, Fire Blast |
+| **Giovanni** | Hyper Potion ×2, Full Heal | Rhyhorn 45: Take Down, Rock Blast, Scary Face, Earthquake · Dugtrio 42: Slash, Sand Tomb, Mud-Slap, Earthquake · Nidoqueen 44: Body Slam, Double Kick, Poison Sting, Earthquake · Nidoking 45: Thrash, Double Kick, Poison Sting, Earthquake · Rhyhorn 50: come il primo |
+
+Confronto con Giallo:
+
+| | Giallo | FRLG |
+| --- | --- | --- |
+| Assi (Brock → Giovanni) | 12, 21, 28, 32, **50, 50, 54, 55** | 14, 21, 24, 29, 43, 43, 47, 50 |
+| Curva | salto Erika 32 → Koga 50 | regolare, quella di R/B |
+| Squadre | 1-5 Pokémon, temi rifatti (Koga a Venonat, Sabrina ad Abra) | 2-5 Pokémon, quelle di R/B |
+| Mosse | regola automatica più poche speciali; ci sono stranezze (Abra con solo Flash, Starmie con Harden) ma anche colpi forti: Raichu Thunderbolt/Mega Kick, Venonat Psychic, Giovanni Thunder, Fissure, Horn Drill, Rock Slide | set pensati a mano e coerenti (Calm Mind, Future Sight, Baton Pass, Recover, Toxic), ma la potenza grezza è spesso più bassa: Shock Wave 60 al posto di Thunderbolt, nessuna OHKO |
+| Strumenti | nessuno | cure (Super/Hyper Potion, Full Heal) |
+| IV | equivalenti a 16-18 | 0 |
+
+**Lettura onesta:** le mosse di FRLG sono più *sensate*, non più *forti*.
+Da Koga in poi i capi di Giallo hanno 7-8 livelli in più e mosse più potenti.
+FRLG dà sfide più strategiche (Calm Mind con Baton Pass, Minimize con Acid
+Armor, cure) e una curva regolare. Il vantaggio maggiore però è per Red: con
+FRLG come riferimento hanno senso i learnset di Gen 3 e le MT dei capi di FRLG
+(MT39 Rock Tomb, MT03 Water Pulse, MT34 Shock Wave, MT19 Giga Drain, MT06
+Toxic, MT04 Calm Mind, MT38 Fire Blast, MT26 Earthquake: `pokefirered`
+`data/maps/<Città>_Gym/scripts.inc`), quindi c'è più margine nello scegliere
+le mosse di Red.
+
+La disponibilità dei membri di Red resta quella di Giallo (in FRLG non c'è
+Pikachu starter né i tre starter regalati): la scelta FRLG sarebbe un ibrido,
+con disponibilità da Giallo e capi e mosse da FRLG. Con FRLG i livelli di Red
+sotto vanno rifatti sulla curva 14 → 50.
+
+Per l'aspetto, gli sprite FRLG dei capi (già compilati) vanno d'accordo con
+entrambe le scelte.
 
 ## La squadra di Red (proposta)
 
@@ -172,17 +224,13 @@ Pokémon prestati non devono risultare catturati).
 
 1. **Quando si sblocca**: dopo il capo di HnS corrispondente o dopo la
    seconda Lega?
-2. **Ordine**: libero (ogni sfida è legata al suo capo, la squadra di Red è
-   sempre quella della N-esima) o in sequenza Brock → Giovanni come in Gen 1?
-   In Giallo Koga, Sabrina e Blaine non hanno un ordine obbligato: la
-   sequenza sopra segue i livelli.
-3. **Brock**: quale delle tre strade, dopo una prova in emulatore.
+2. **Capi palestra**: Giallo o FRLG (confronto sopra).
+3. **Brock**: quale delle tre strade, dopo una prova in emulatore (con
+   `Pikachu-Starter` il conto cambia, ma Elettro contro Terra resta zero).
 4. **Mosse di Red**: va bene la regola "migliori quattro fra learnset, MT e
    MN disponibili"?
-5. **Pikachu** normale o `Pikachu-Starter`?
-6. **Premi**: asso shiny del capo, soldi o altro; per sfida e per
+5. **Premi**: asso shiny del capo, soldi o altro; per sfida e per
    completamento.
-7. Conferma: Koga e Giovanni (Gen 1) e non Janine e Blue.
 
 ## Fonti
 
@@ -192,6 +240,8 @@ Pokémon prestati non devono risultare catturati).
   Argento in Gen 2.
 - `pret/pokered`, `data/trainers/parties.asm`: squadre di R/B, per confronto
   (Brock 12/14, Surge 21/18/24, …).
+- `pret/pokefirered`, `src/data/trainer_parties.h`: squadre dei capi di FRLG
+  (stesse di `src/data/trainers_frlg.party`).
 
 Gli script `reds-path/gen1moves.py` e `reds-path/red.py` rifanno i calcoli da
 un checkout di `pokeyellow`.
