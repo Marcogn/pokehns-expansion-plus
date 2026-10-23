@@ -134,9 +134,22 @@ Visibilità: a tappa 5 Azalea e Cerulean vuoti; a tappa 0 con la Torre non
 ancora presa Goldenrod vuota; con il covo attivo nessuno fuori dal negozio.
 Vista in emulatore anche la vera build con Cerulean che vaga.
 
-Non provato: il `.srm` vero dell'utente (non era in sessione), il percorso
-naturale della storia senza stati forzati, la tasca strumenti chiave piena
-al primo incontro (riga `TCloner_Text_NoRoom`).
+**Sul salvataggio vero dell'utente** (2.0.6.PLUS.4, Lago d'Ira, 6 medaglie,
+Pozzo fatto, `VAR_MAHOGANY_TOWN_STATE` 1, Goldenrod 5), ROM di produzione,
+su una copia:
+- migrazione: versione 8 → 9, storia intatta, il bit di `TRAINER CATCH`
+  **era a 1** (byte 47 di SaveBlock3 `0x9d` → `0x1d`): l'utente aveva
+  l'opzione accesa e la migrazione l'ha spenta come previsto;
+- Mahogany: nessuno fuori dal negozio (covo non liberato); Azalea: lo
+  scienziato c'è, variante "dopo il Pozzo", TcloneR consegnato, tappa 1;
+- **lotta vera** con un allenatore di mappa, parlandoci (Brent, Route 43,
+  `trainerbattle_single`, mai battuto): Ivysaur preso con una Ultra Ball,
+  poi via GDB `VAR_TCLONER_COUNT` 1, tappa 1, bit 112 alzato nei flag del
+  TcloneR, flag "battuto" di Brent (0x570) ancora a 0. Scheda aperta: OT e
+  ID del giocatore, incontrato a Lv26 su ROUTE 43, nessun Bad Egg.
+
+Non provato: il percorso naturale della storia oltre questo punto, la tasca
+strumenti chiave piena al primo incontro (riga `TCloner_Text_NoRoom`).
 
 ## Motore della cattura (da `TRAINER CATCH`, invariato)
 
