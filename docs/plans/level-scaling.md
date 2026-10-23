@@ -8,6 +8,13 @@
 > **Cambiato dopo la consegna (richiesta dell'utente): una sola opzione**
 > `LEVEL SCALING` (allenatori, selvatici e lotte di script insieme) invece
 > delle due del punto 9 e di D7; usa un solo bit.
+> **Cambiato il 23/10 (richiesta dell'utente): i selvatici hanno un tetto.**
+> Senza limite verso l'alto i percorsi lasciati indietro seguivano la
+> squadra (Percorso 29 con 8 medaglie a Lv52-54). Ora il riferimento non
+> supera il level cap e il livello non supera la tabella di più di 15
+> (`B_WILD_SCALING_MAX_ABOVE_TABLE`). Allenatori invariati. Decisione ed
+> esempi nella sezione "Dopo la consegna" in fondo; verifiche in
+> `.claude/rules/level_scaling.md`.
 
 ## Contesto
 
@@ -162,7 +169,9 @@ nuovo arrivato non abbassano tutto, e allenare un solo asso non alza tutto.
   solo quelle a livello non ambigue (`EvolveSpeciesForLevel` di SG): Pidgey
   Lv40 → Pidgeot sì; Eevee, Poliwhirl, Slowpoke, evoluzioni a scambio o pietra
   no. Le mosse scritte da HnS restano.
-- **Selvatici** (D3, D5): media **−2**, meno 0..2, mai sotto la tabella. Con
+- **Selvatici** (D3, D5): media **−2**, meno 0..2, mai sotto la tabella
+  (dal 23/10 anche mai oltre il level cap e mai più di 15 sopra la tabella:
+  vedi "Dopo la consegna"). Con
   la squadra di oggi (media ~40): 36-38 dove la tabella dice 28.
   **Avvertenza onesta**: è molto più alto di SG (−8) e di HnS (oggi i
   selvatici stanno circa 9 sotto il tetto HARD). Gli incontri a passi
@@ -253,3 +262,38 @@ Prompt da incollare:
 > Implementa `docs/plans/level-scaling.md` con le decisioni scritte nel
 > piano. Ti allego il mio salvataggio a Mahogany: parti dalla
 > fase 0. Consegna la ROM zippata e apri la PR.
+
+## Dopo la consegna: tetto e margine dei selvatici (23/10)
+
+Domanda dell'utente: con lo scaling attivo, un Pidgey del Percorso 1 può
+arrivare a Lv80 se la squadra è a 80? Sì: il livello dei selvatici seguiva la
+media della squadra senza limite verso l'alto. Il timore specifico, "a Kanto
+si riparte da livelli bassi", **non** vale in HnS: le tabelle delle mappe
+`*_HNS` di Kanto sono già alte (Percorso 1 42-48, Viridian 45-47, Brock 66,
+Blue 67-69); le tabelle Lv2-5 di `wild_encounters.json` sono quelle di
+FireRed (`MAP_ROUTE1`), non usate da HnS. Il problema vero era un altro: ogni
+percorso lasciato indietro ti segue (Percorso 29 con 6 medaglie a Lv34-36).
+
+Opzioni discusse, con tabelle di esempio per +5, +10 e +15:
+
+1. riferimento limitato al level cap. Con `LEVEL CAP` acceso non scatta
+   mai: l'esperienza (`pokemon.c` ~7996) e le caramelle (`party_menu.c`
+   ~6034) si fermano già al tetto;
+2. margine massimo sopra il tiro della tabella.
+
+**Scelta dell'utente: 1 + 2 con margine +15, solo per i selvatici**;
+allenatori come prima (li affronti una volta, quando la loro zona è quella
+attuale; le rivincite devono restare al passo). Effetti:
+
+| caso | prima | ora |
+| --- | --- | --- |
+| Percorso 43 (21-24), squadra 38 | 34-36 | 34-36 |
+| Percorso 29 (2-3), squadra 38 | 34-36 | 17-18 |
+| Kanto Percorso 1 (42-48), squadra 70 | 66-68 | 57-63 |
+| Kanto Percorso 1, squadra 100 (dopo la Lega di Kanto) | 96-98 | 57-63 |
+
+Limite accettato: il margine è assoluto, quindi i percorsi con tabella molto
+bassa rispetto al momento in cui si attraversano (Percorso 36 4-6, Percorso
+32 5-7) non superano Lv19-22. Un margine in percentuale del tetto è stato
+nominato come alternativa, mai calcolato.
+

@@ -74,6 +74,11 @@ script di debug, livelli degli OWE spawnati letti da `gObjectEvents`
 | Percorso 43 (21-24), squadra 45, 4 medaglie (tetto 31) | 27-29 | 28-29 (6 spawn), lotta Venonat 28 | Venonat 43 |
 | Percorso 43, squadra 38, 6 medaglie | 34-36 | 34-36 (6 spawn), lotte Skarmory 34, Venonat 34 | uguale |
 
+Sul **salvataggio dell'utente** (6 medaglie, `LEVEL CAP` NORMAL, squadra tutta
+Lv38, ROM della PR senza strumenti, `LEVEL SCALING` acceso dal menu): Percorso
+43 Venonat Lv34 (invariato), Percorso 29 Hoothoot Lv17 e Lv18 (prima 34-36).
+Kanto non provato in gioco, solo calcolato.
+
 Trappola del banco di prova: `CreateMon` non calcola le statistiche (PS 0/0,
 squadra tutta KO alla prima lotta): serve `CreateMonWithIVs`.
 
