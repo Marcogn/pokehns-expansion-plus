@@ -79,6 +79,12 @@ Lv38, ROM della PR senza strumenti, `LEVEL SCALING` acceso dal menu): Percorso
 43 Venonat Lv34 (invariato), Percorso 29 Hoothoot Lv17 e Lv18 (prima 34-36).
 Kanto non provato in gioco, solo calcolato.
 
+Descrizione dell'opzione su ON aggiornata: "Trainers and wild {PKMN} rise to
+your / team's level, wild ones by 15 at most." Larghezze misurate con
+`gFontNormalLatinGlyphWidths` e `charmap.txt`: 172 e 190 px su 200 utili
+(finestra di 26 tile, testo da x = 8); la riga più lunga di prima era 182.
+Vista in emulatore, intera.
+
 Trappola del banco di prova: `CreateMon` non calcola le statistiche (PS 0/0,
 squadra tutta KO alla prima lotta): serve `CreateMonWithIVs`.
 

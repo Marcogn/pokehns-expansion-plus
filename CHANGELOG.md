@@ -15,7 +15,7 @@ add the section before releasing. Feature details live in the tables of
   playing nothing changes (Route 43 with a Lv38 team: still 34-36); going
   back is different: Route 29 never goes above Lv18 (table 2-3), and
   Kanto's Route 1 tops out at Lv57-63 even with a Lv100 team (it was 96-98).
-  Trainers are unchanged.
+  Trainers are unchanged. The option's description says so.
 - **The TcloneR replaces the `TRAINER CATCH` option.** Catching a Trainer's
   Pokémon is no longer a switch in the challenge menu: it works while the
   TcloneR, a new key item, is in your Bag. How it works is unchanged: one
