@@ -277,10 +277,39 @@ Decisioni definitive dell'utente, dopo due anteprime
 - **Start** salva, **L** apre la **Scheda allenatore**.
 - **Missioni e Opzioni sono le ultime due icone.** Ordine dell'anteprima:
   Pokédex, DexNav, Squadra, Borsa, Missioni, Opzioni.
-- Da confermare: **R = Pokégear**. È l'unica voce rimasta fuori dalla
-  striscia; dedotto, non detto.
+- **R apre il Pokégear** (confermato dall'utente).
 - Con 6 icone la striscia ha una pagina sola: il cambio pagina e il riordino
   delle voci di `pollythadon` non servono.
+
+## Fasi di lavoro (24/10)
+
+Vincoli dell'utente: modelli **non oltre Opus 5.5**, sforzo **medio**,
+pochi token al mese. Quindi: una fase per sessione, Opus solo dove un
+errore costa caro (salvataggio, integrazione col menu, revisione finale),
+Sonnet per il port e la grafica, Haiku per testi e documentazione. Ogni
+sessione parte da questo file e dalla regola indicata, senza rifare le
+ricerche: i fatti sono già qui sopra.
+
+| # | Fase | Modello | Esce | Cancello per passare oltre |
+| --- | --- | --- | --- | --- |
+| 1 | **Fondamenta del quest book**: struct in coda a SaveBlock3 + `STATIC_ASSERT` + passo di migrazione (`saveVersion < 10`), API delle tre sorgenti di stato (var, funzione, bit), comando di script nella tabella di expansion | **Opus 5.5** | build verde, salvataggio vecchio che carica | un `.sav` di prima apre e il campo legge zero (emulatore) |
+| 2 | **Port della schermata** di `complex_quests`: lista, dettaglio, sottomissioni, filtri R/Start, preferite; senza wrap globale delle liste; limite sull'indice; `CreateMonIcon` di expansion | **Sonnet 5.5** | schermata aperta da una voce provvisoria del menu classico | due missioni di prova navigabili, screenshot guardati |
+| 3 | **Grafica del quest book**: sfondo sulla nostra grafica, tema chiaro e scuro | **Sonnet 5.5** | `.png`/`.gbapal` nostri | indici contati sui `.4bpp`, render offline e screenshot in tutti e due i temi (CLAUDE.md §2, `battle_ui.md`) |
+| 4 | **Prime missioni**: 16 medaglie (ordine di Johto ricavato dagli script), Red's Path, TcloneR | **Sonnet 5.5** | voci in tabella con funzioni/var | ogni passo verificato con un salvataggio o con il menu debug |
+| 5 | **Striscia del menu di pausa**: port di `unbound_start_menu.c` da 1.17.1 a 1.15.2, una pagina sola, niente riordino, Start salva, L Scheda, R Pokégear, glifi dei tasti, lista classica dove serve (Safari, Bug-Catching Contest, Piramide, Pike, Union Room) | **Opus 5.5** | menu nuovo al posto del vecchio | ogni voce aperta e chiusa in emulatore, eccezioni comprese |
+| 6 | **Grafica della striscia**: fascia e icone sulla nostra grafica, icone nuove per DexNav e Missioni, tema scuro | **Sonnet 5.5** | grafica nostra al posto di quella di `pollythadon` | come fase 3 |
+| 7 | **Chiusura**: `CHANGELOG.md`, `docs/SOULGOLD_PORT_REPORT.md` (non è da SG: annotare l'origine PSF/pollythadon e i crediti), regola nuova in `.claude/rules/` per le due aree | **Haiku 5.5** | documenti | testi riletti contro il codice |
+| 8 | **Revisione finale** del diff completo (`/code-review` medio) prima della release | **Opus 5.5** | eventuali correzioni | build verde, ROM consegnata zippata |
+
+Le fasi 1-4 (quest book) e 5-6 (menu) sono indipendenti dopo la 1: il
+quest book si prova da solo con una voce provvisoria, e il menu lo ospita
+quando arriva. Se i token stringono, la 4 si può fare a più riprese, una
+missione per volta.
+
+Crediti da riportare nel gioco o nelle note di release: PSF (Unbound
+Quest Menu) e chi cita la sua documentazione (Skeli, ghoulslash e gli
+altri); `pollythadon` per la striscia (e hedara, vol per icone e sprite,
+secondo la sua descrizione: da verificare nel suo repo).
 
 ### Ordine consigliato
 
