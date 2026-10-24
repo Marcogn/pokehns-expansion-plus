@@ -946,9 +946,20 @@ Ogni ritocco va in questo piano e nella regola.
 ### Sessione consigliata
 
 - **Agente**: una sessione nuova di Claude Code per ciascuna fase, in fila (B
-  dopo il merge della A, C dopo la B). Il modello più capace disponibile.
-  A: sforzo alto (salvataggio, migrazione, lotta). B: sforzo medio-alto, molta
-  verifica in emulatore. C: sforzo medio, guidata dalle prove dell'utente.
+  dopo il merge della A, C dopo la B). Modello e sforzo per sessione:
+
+  | Sessione | Modello | Sforzo | Perché |
+  | --- | --- | --- | --- |
+  | A, motore | **Claude Fable 5.1** (`claude-fable-5-1`) | alto | la più rischiosa: migrazione del salvataggio, codice di lotta in C, agganci in punti condivisi (dorso, mugshot, fuga, TcloneR, level scaling). Un errore qui rompe salvataggi o lotte normali. È il modello più capace, pensato per il lavoro agentico lungo; costa 2,5 volte Opus |
+  | B, mondo | **Claude Opus 5.5** (`claude-opus-5-5`) | alto | tanti script e testi, scena con oggetti e grafica, verifica lunga in emulatore: lavoro ampio ma con il motore già fatto e verificato dalla A |
+  | C, taratura | **Claude Sonnet 5.5** (`claude-sonnet-5-5`) | medio | ritocchi piccoli ai dati (livelli, mosse, IV) guidati dalle prove dell'utente, in molti giri brevi: conta la velocità più della profondità |
+
+  Fonte: la tabella dei modelli della skill `claude-api` (aggiornata al
+  6/10/2026; costi per milione di token in/out: Fable 5.1 $10/$50, Opus 5.5
+  $4/$20, Sonnet 5.5 $2/$10). Le scelte vengono dal posizionamento ufficiale
+  dei modelli e dal rischio di ogni sessione, non da prove su questo repo.
+  Se il costo conta, la A va bene anche con Opus 5.5 a sforzo massimo. Il
+  modello si sceglie con `/model` all'inizio della sessione.
 - **Serve**: emulatore (`docs/claude/emulator.md`); il `.srm` dell'utente per
   la migrazione (A) e per giocare le palestre già battute (B, C). Soulgold non
   serve: non è un port.
