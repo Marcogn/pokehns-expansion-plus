@@ -1,7 +1,7 @@
 # Piano: quest book e menu di pausa a striscia
 
-**Stato (24/10): deciso, da implementare.** Si fa dopo Red's Path, una
-fase per sessione (§5). Le ricerche sono già fatte: i fatti qui sotto sono
+**Stato (24/10): deciso, da implementare.** Si fa dopo Red's Path
+([`reds-path.md`](reds-path.md)), una fase per sessione (§5). Le ricerche sono già fatte: i fatti qui sotto sono
 verificati nel codice indicato, non vanno rifatte.
 
 ## 1. Cosa si fa
@@ -37,7 +37,7 @@ New Bark Town, icone di `pollythadon`, font del gioco.
 - Base: la ricreazione del menu di Unbound di PokemonSanFran (§3.1).
 - **Legge lo stato che il gioco ha già**, invece di duplicarlo: flag delle
   medaglie (`FLAG_BADGE01_GET`…`FLAG_BADGE16_GET`), conteggio del Pokédex,
-  flag dei leggendari, var di Red's Path e del TcloneR. Così costa pochi
+  flag dei leggendari, flag di Red's Path, var del TcloneR. Così costa pochi
   bit e funziona sulle partite vecchie. Solo le missioni inventate hanno
   stato proprio.
 - Testi in inglese, tema chiaro e scuro (`IsDarkUiEnabled()`), grafica
@@ -71,7 +71,7 @@ Cosa cambiare portandolo:
 
 | Problema in PSF | Cosa fare in Hasep |
 | --- | --- |
-| Lo stato viene solo da var o dai suoi bit | Tre sorgenti per missione: **var** (Red's Path, TcloneR), **funzione** (medaglie, Pokédex, leggendari: da aggiungere), **bit propri** (missioni inventate) |
+| Lo stato viene solo da var o dai suoi bit | Tre sorgenti per missione: **var** (TcloneR), **funzione** (medaglie, Pokédex, leggendari, Red's Path: da aggiungere), **bit propri** (missioni inventate). Anche le sottomissioni devono poter leggere una funzione (le 8 sfide di Red's Path, §7) |
 | `ListMenu_ProcessInput` (`src/list_menu.c`) è modificata: **tutte** le liste del gioco ricominciano dall'alto dopo l'ultima voce | Lo scorrimento circolare va limitato al quest book |
 | Salvataggio in coda a SaveBlock2 (5 bit a missione, 1 a sottomissione), azzerato in `NewGameInitData` | In coda a SaveBlock3, con `STATIC_ASSERT` sull'offset e un passo di migrazione (CLAUDE.md §4, `.claude/rules/save.md`) |
 | `desc[VarGet(...)]` su un array di `MAX_QUEST_STATES` = 50 voci, senza controllo: una var oltre 49 legge fuori dall'array | Controllo sul limite |
@@ -126,17 +126,27 @@ la documentazione.
 
 | # | Fase | Modello | Cancello per passare oltre |
 | --- | --- | --- | --- |
-| 1 | **Fondamenta del quest book**: struct in coda a SaveBlock3, `STATIC_ASSERT`, migrazione (`saveVersion < 10`), API delle tre sorgenti di stato, comando di script | **Opus 5.5** | build verde; un `.sav` di prima carica e il campo nuovo legge zero (emulatore) |
+| 1 | **Fondamenta del quest book**: struct in coda a SaveBlock3, `STATIC_ASSERT`, migrazione (il prossimo `SAVE_VERSION` libero: la sessione A1 di Red's Path prende il 10), API delle tre sorgenti di stato, comando di script | **Opus 5.5** | build verde; un `.sav` di prima carica e il campo nuovo legge zero (emulatore) |
 | 2 | **Port della schermata** (§3.1): lista, dettaglio, sottomissioni, filtri, preferite, con le correzioni della tabella. Aperta da una voce provvisoria del menu classico | **Sonnet 5.5** | due missioni di prova navigabili, screenshot guardati |
 | 3 | **Grafica del quest book**, tema chiaro e scuro | **Sonnet 5.5** | indici contati sui `.4bpp`, render offline, screenshot in tutti e due i temi (CLAUDE.md §2, `battle_ui.md`) |
-| 4 | **Prime missioni**: 16 medaglie, Red's Path, TcloneR (§7) | **Sonnet 5.5** | ogni passo verificato con un salvataggio o con il menu debug |
+| 4 | **Prime missioni**: 16 medaglie, TcloneR, e Red's Path se la sua sessione B è in `master` (§7) | **Sonnet 5.5** | ogni passo verificato con un salvataggio o con il menu debug |
 | 5 | **Menu a striscia** (§3.2) con le decisioni del §2 | **Opus 5.5** | ogni voce aperta e chiusa in emulatore, eccezioni comprese |
 | 6 | **Grafica della striscia**: fascia, icone nuove per DexNav e Missioni, tema scuro | **Sonnet 5.5** | come la fase 3 |
 | 7 | **Documentazione**: `CHANGELOG.md`, `docs/SOULGOLD_PORT_REPORT.md` (l'origine è PSF/pollythadon, non SG), regola nuova in `.claude/rules/` | **Haiku 5.5** | testi riletti contro il codice |
 | 8 | **Revisione finale** del diff (`/code-review` medio) prima della release | **Opus 5.5** | build verde, ROM consegnata zippata |
 
 Dopo la fase 1 il quest book (2-4) e il menu (5-6) sono indipendenti. Se i
-token stringono, la fase 4 si fa una missione per volta. Stima a giudizio:
+token stringono, la fase 4 si fa una missione per volta.
+
+**Ordine con Red's Path.** Red's Path (sessioni A1, A2, B, C del suo piano)
+viene prima. Due punti di contatto:
+
+- **migrazione**: Red's Path A1 usa `saveVersion < 10`; la fase 1 qui usa il
+  numero dopo. Se l'ordine si inverte, si invertono i numeri: conta quale
+  arriva prima in `master`;
+- **la voce di Red's Path** nel quest book si aggiunge solo dopo la sua
+  sessione B (prima non è raggiungibile in gioco). Le cinque missioni di
+  raccordo (§7) vengono dopo tutte e due. Stima a giudizio:
 2-3 sessioni il quest book, 1-2 il menu.
 
 **Crediti** da riportare nelle note di release: PSF (Unbound Quest Menu) e
@@ -226,34 +236,48 @@ comparire vanno confermati mappa per mappa.
 
 - **TcloneR** (`docs/plans/tcloner.md`, `.claude/rules/trainer_catch.md`):
   stato in `VAR_TCLONER_STAGE`, `VAR_TCLONER_COUNT`, `VAR_TCLONER_REWARDS`.
-- **Red's Path** ([`reds-path.md`](reds-path.md)), con questi passi:
-  1. batti un capo di Kanto;
-  2. prossima sfida: <capo> a <città> (con "batti prima il capo di HnS" se
-     serve);
-  3. premio da ritirare (squadra piena);
-  4. completata.
+- **Red's Path** ([`reds-path.md`](reds-path.md)): una **missione con 8
+  sottomissioni**, una per sfida (Brock, Misty, Surge, Erika, Koga, Sabrina,
+  Blaine, Giovanni, in quest'ordine). Tutto lo stato c'è già nel suo piano
+  (§4 "Stato salvato"), quindi la sorgente è una funzione e non costa bit:
+  - sfida vinta = flag di allenatore battuto di
+    `TRAINER_REDS_PATH_<CAPO>_HNS` (id 653-660);
+  - premio ritirato = 8 flag propri di Red's Path;
+  - introduzione vista = 1 flag.
 
-  Lo stato sono i flag degli otto allenatori e dei premi.
+  Passi della missione: bloccata finché l'introduzione non è vista → "next
+  challenge: <capo> in <città>" (la prima sfida col flag spento; se il capo
+  di HnS di quella palestra non è battuto, `FLAG_DEFEATED_<CITTÀ>_GYM`,
+  "beat the Leader there first") → "prize waiting" se una sfida è vinta e
+  il premio no (squadra piena) → completata con 8 vittorie e 8 premi.
 
-### Idee: da Red's Path al Monte Argento
+### Le cinque missioni di raccordo (dopo Red's Path)
 
 Colmano il salto fra la squadra di Red's Path (Charizard, Pikachu-Starter,
 Snorlax, Eevee, Poliwrath, Lapras) e quella del Monte Argento
 (`TRAINER_RED_HNS`: Pikachu-Starter, Snorlax, Charizard, Venusaur,
-Blastoise, Espeon). Agganci che esistono già: casa di Red, laboratorio di
-Oak, casa di Bill, Villa di Azzurropoli. In HnS nessuno script regala gli
-starter di Kanto.
+Blastoise, Espeon). Agganci che esistono già: casa di Red a Biancavilla
+(`PalletTown_RedsHouse_1F_hns`), laboratorio di Oak, casa di Bill sul
+Percorso 25, Villa di Azzurropoli. In HnS nessuno script regala gli starter
+di Kanto. Ognuna va progettata con l'utente, come Red's Path.
 
-1. **Il PC di Bill**: i Pokémon del viaggio di Red, da vedere o da
-   affrontare.
-2. **Gli starter di Oak**: da dove vengono Venusaur e Blastoise. Tocca la
-   progressione verso il Monte Argento.
-3. **Eevee al sole**: come Eevee è diventato Espeon.
-4. **La lettera alla madre**: solo testo.
-5. **Red contro Blue**: una nona lotta con le squadre FRLG del campione
-   (`TRAINER_CHAMPION_FIRST_*`).
+| # | Missione | Cosa racconta | Dipende da | Note per il quest book |
+| --- | --- | --- | --- | --- |
+| 1 | **Il PC di Bill**: i Pokémon del viaggio di Red (le panchine di Red's Path), da vedere o da affrontare | dove finisce la squadra del viaggio | motore di lotta di Red's Path (sessione A) se c'è una lotta | flag propri (missione inventata) |
+| 2 | **Gli starter di Oak**: Red torna da Oak per Bulbasaur e Squirtle; il giocatore porta a Red un oggetto di Oak fino al Monte Argento | Venusaur e Blastoise | progressione verso il Monte Argento: va controllata | var a passi: bersaglio naturale di `complex_quests` |
+| 3 | **Eevee al sole**: la signora della Villa riceve la foto di un Espeon, o un indizio in Johto | Espeon | — | flag propri |
+| 4 | **La lettera alla madre**: tre anni di viaggio in poche righe | tutto, solo testo | — | 1 flag |
+| 5 | **Red contro Blue**: nona lotta, Red con la squadra di Giovanni contro Blue campione (`TRAINER_CHAMPION_FIRST_*` di FRLG) | — | motore di Red's Path; **un id allenatore in più** | vedi sotto |
 
-Suggerimento: 1 e 4 come base, 2, 3 e 5 come aggiunte.
+Suggerimento del piano di Red's Path: 1 e 4 come base, 2, 3 e 5 come
+aggiunte.
+
+**Id allenatore.** Dopo la sessione A1 di Red's Path i flag del TcloneR
+coprono gli id fino a 663 (`TCLONER_TRAINER_FLAGS_BYTES` 83) e
+`TRAINERS_COUNT_HNS` è 661: restano **3 id** prima di dover allargare di
+nuovo. La missione 5 ne usa uno; se la 1 ha lotte con allenatori nuovi,
+contale. Oltre, si allarga ancora: nel vecchio filler dei flag del Pokédex
+restano 21 byte (`reds-path.md` §4).
 
 ## 8. Scartato, e perché
 

@@ -632,9 +632,10 @@ Argento, al posto di Poliwrath e Lapras.
 
 ### Missione di raccordo
 
-Le idee per collegare Red's Path al Monte Argento sono passate nel piano
-delle missioni, [`quest-log.md`](quest-log.md): l'utente vuole un registro
-delle missioni (logbook) e le inserirà lì, più avanti.
+Le cinque missioni che collegano Red's Path al Monte Argento sono nel piano
+del quest book, [`quest-log.md`](quest-log.md) §7, con le loro dipendenze.
+Una riguarda questo piano: **Red contro Blue** usa un id allenatore in più,
+e dopo la sessione A1 ne restano 3 (fino al 663).
 
 ### Riepilogo: le otto squadre di Red (fonte per i dati della sessione A)
 
@@ -874,7 +875,9 @@ Regole da leggere: `.claude/rules/save.md`, `trainer_catch.md`,
 dell'emulatore `docs/claude/emulator.md`.
 
 1. **Spazio degli id**: `TCLONER_TRAINER_FLAGS_BYTES` 82 → 83, migrazione
-   `saveVersion < 10` che azzera il byte nuovo, `STATIC_ASSERT` aggiornati;
+   `saveVersion < 10` che azzera il byte nuovo, `STATIC_ASSERT` aggiornati
+   (anche il quest book, `quest-log.md` §5, avrà una migrazione: prende il
+   numero dopo, chiunque arrivi prima in `master` usa il 10);
    aggiornare `.claude/rules/save.md`.
 2. **Otto capi** in `include/constants/opponents_hns.h` (653-660,
    `TRAINERS_COUNT_HNS` 661) e in `src/data/trainers_hns.party`: squadre FRLG
@@ -932,7 +935,8 @@ dell'emulatore.
    poter cambiare); sconfitta; complimenti finali. **Consegnare all'utente gli
    screenshot della scena** e la ROM zippata.
 6. `CHANGELOG.md`, aggiornare `reds_path.md` e `docs/plans/quest-log.md`
-   (Red's Path è una missione del registro).
+   (Red's Path è una missione del quest book: se cambiano i flag dello
+   stato salvato, aggiornare §7 di quel piano).
 
 ### Sessione C: taratura
 
