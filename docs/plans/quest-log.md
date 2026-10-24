@@ -218,7 +218,10 @@ Le basi esistenti sono due, nessuna da prendere così com'è:
 - **Team Aqua's Hideout** (`ui_startmenu_full.c`, 1577 righe, compatibile
   con expansion per il wiki di pret): 6 icone fisse (Pokédex, Squadra,
   Borsa, Scheda, Mappa/Pokénav, Opzioni) più icone della squadra con barre
-  PS, ora, nome della mappa. Dai suoi ritorni, la Zona Safari, la Piramide,
+  PS, ora, nome della mappa. **Salva non è un'icona**: sta su Start
+  (`Task_StartMenuFullMain`, poi conferma con A, annulla con B); Select
+  cambia l'orologio 12/24 h se `FLAG_CLOCK_MODE` è configurato. L e R non
+  sono usati. Dai suoi ritorni, la Zona Safari, la Piramide,
   la Battle Pike e la Union Room restano sul menu classico.
 - **`pollythadon/pokeemerald-expansion`** (`unbound_start_menu.c`, 1317
   righe, expansion 1.17.1): barra di icone in stile Unbound, 6 per pagina
@@ -226,9 +229,10 @@ Le basi esistenti sono due, nessuna da prendere così com'è:
   SaveBlock3). È dentro un gioco (`shattered-emerald`), non un feature
   branch; descritto come alpha.
 
-A Hasep servono 9 voci: Pokédex, DexNav, Squadra, Borsa, Pokégear, Scheda,
-**Missioni**, Salva, Opzioni (più Debug nelle build di debug e i ritiri di
-Safari e Bug-Catching Contest). Le 6 caselle fisse di Team Aqua non bastano: o si
+A Hasep servono 8 icone più Salva su Start, come fa Team Aqua: Pokédex,
+DexNav, Squadra, Borsa, Pokégear, Scheda, **Missioni**, Opzioni (più Debug
+nelle build di debug e i ritiri di Safari e Bug-Catching Contest). Le 6
+caselle fisse di Team Aqua non bastano: o si
 ridisegna la griglia, o si usano le pagine dello stile Unbound. Per un menu
 "compagno" del quest book di Unbound il secondo è il più vicino.
 
