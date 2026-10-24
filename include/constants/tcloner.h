@@ -19,8 +19,10 @@
 #define TCLONER_MON_SENT_TO_PC 0 // STR_VAR_1 = species name
 #define TCLONER_MON_BOXES_FULL 1
 
-// One bit per HnS Trainer id (1-652, TRAINERS_COUNT_HNS 653) in the space the
-// Pokedex struct kept from Emerald's dex flags. See struct Pokedex.
-#define TCLONER_TRAINER_FLAGS_BYTES 82
+// One bit per HnS Trainer id (1-660, TRAINERS_COUNT_HNS 661) in the space the
+// Pokedex struct kept from Emerald's dex flags. See struct Pokedex. Was 82
+// bytes until Red's Path added Trainers 653-660; the SAVE_VERSION 10 migration
+// zeroes the 83rd. 22 bytes of the old filler were free, 21 still are.
+#define TCLONER_TRAINER_FLAGS_BYTES 83
 
 #endif // GUARD_CONSTANTS_TCLONER_H

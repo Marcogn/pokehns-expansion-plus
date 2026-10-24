@@ -183,6 +183,505 @@ IVs: 31 HP / 31 Atk / 31 Def / 31 SpA / 31 SpD / 31 Spe
 - Thunderbolt
 - Hypnosis
 
+/* Red's Path (docs/plans/reds-path.md, section 2): Red's team before each
+   Kanto Leader, loaded into the player's own party slots 0-5 by
+   FillRedsPathParty, not as a multi battle partner. Neutral nature, IVs 15,
+   no EVs, friendship 255 for Return, Gen 3 abilities. In the order of the
+   challenges: PARTNER_RED_BROCK + n is challenge n. */
+
+=== PARTNER_RED_BROCK ===
+Name: RED
+Class: Pkmn Trainer 1 Hns
+Pic: Red
+Gender: Male
+Music: Male
+Back Pic: Red
+
+Charmander
+Hardy Nature
+Ability: Blaze
+Level: 14
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Scratch
+- Growl
+- Ember
+- Metal Claw
+
+Mankey
+Hardy Nature
+Ability: Vital Spirit
+Level: 12
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Scratch
+- Leer
+- Low Kick
+- Karate Chop
+
+Butterfree
+Hardy Nature
+Ability: Compound Eyes
+Level: 12
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Tackle
+- String Shot
+- Harden
+- Confusion
+
+=== PARTNER_RED_MISTY ===
+Name: RED
+Class: Pkmn Trainer 1 Hns
+Pic: Red
+Gender: Male
+Music: Male
+Back Pic: Red
+
+Charmeleon
+Hardy Nature
+Ability: Blaze
+Level: 21
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Scratch
+- Ember
+- Metal Claw
+- Smokescreen
+
+Pikachu-Starter
+Hardy Nature
+Ability: Static
+Level: 20
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Thunder Shock
+- Thunder Wave
+- Quick Attack
+- Slam
+
+Oddish
+Hardy Nature
+Ability: Chlorophyll
+Level: 19
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Bullet Seed
+- Poison Powder
+- Stun Spore
+- Sleep Powder
+
+Butterfree
+Hardy Nature
+Ability: Compound Eyes
+Level: 18
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Confusion
+- Poison Powder
+- Stun Spore
+- Sleep Powder
+
+=== PARTNER_RED_SURGE ===
+Name: RED
+Class: Pkmn Trainer 1 Hns
+Pic: Red
+Gender: Male
+Music: Male
+Back Pic: Red
+
+Charmeleon
+Hardy Nature
+Ability: Blaze
+Level: 25
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Ember
+- Metal Claw
+- Dig
+- Brick Break
+
+Pikachu-Starter
+Hardy Nature
+Ability: Static
+Level: 23
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Thunder Shock
+- Thunder Wave
+- Quick Attack
+- Slam
+
+Diglett
+Hardy Nature
+Ability: Arena Trap
+Level: 22
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Sand Attack
+- Magnitude
+- Dig
+- Fury Swipes
+
+Gloom
+Hardy Nature
+Ability: Chlorophyll
+Level: 22
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Bullet Seed
+- Poison Powder
+- Stun Spore
+- Sleep Powder
+
+=== PARTNER_RED_ERIKA ===
+Name: RED
+Class: Pkmn Trainer 1 Hns
+Pic: Red
+Gender: Male
+Music: Male
+Back Pic: Red
+
+Charmeleon
+Hardy Nature
+Ability: Blaze
+Level: 30
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Ember
+- Metal Claw
+- Scary Face
+- Dig
+
+Pikachu-Starter
+Hardy Nature
+Ability: Static
+Level: 28
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Thunderbolt
+- Thunder Wave
+- Quick Attack
+- Slam
+
+Butterfree
+Hardy Nature
+Ability: Compound Eyes
+Level: 28
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Confusion
+- Gust
+- Stun Spore
+- Sleep Powder
+
+Eevee
+Hardy Nature
+Ability: Run Away
+Level: 25
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Tackle
+- Sand Attack
+- Growl
+- Quick Attack
+
+=== PARTNER_RED_KOGA ===
+Name: RED
+Class: Pkmn Trainer 1 Hns
+Pic: Red
+Gender: Male
+Music: Male
+Back Pic: Red
+
+Charizard
+Hardy Nature
+Ability: Blaze
+Level: 42
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Flamethrower
+- Wing Attack
+- Scary Face
+- Dig
+
+Pikachu-Starter
+Hardy Nature
+Ability: Static
+Level: 41
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Thunderbolt
+- Thunder
+- Thunder Wave
+- Quick Attack
+
+Butterfree
+Hardy Nature
+Ability: Compound Eyes
+Level: 38
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Psybeam
+- Gust
+- Stun Spore
+- Sleep Powder
+
+Poliwrath
+Hardy Nature
+Ability: Damp
+Level: 37
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Surf
+- Hypnosis
+- Brick Break
+- Strength
+
+Snorlax
+Hardy Nature
+Ability: Immunity
+Level: 36
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Body Slam
+- Amnesia
+- Rest
+- Snore
+
+Eevee
+Hardy Nature
+Ability: Run Away
+Level: 35
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Return
+- Bite
+- Quick Attack
+- Sand Attack
+
+=== PARTNER_RED_SABRINA ===
+Name: RED
+Class: Pkmn Trainer 1 Hns
+Pic: Red
+Gender: Male
+Music: Male
+Back Pic: Red
+
+Charizard
+Hardy Nature
+Ability: Blaze
+Level: 45
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Flamethrower
+- Wing Attack
+- Slash
+- Dig
+
+Pikachu-Starter
+Hardy Nature
+Ability: Static
+Level: 43
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Thunderbolt
+- Thunder
+- Thunder Wave
+- Quick Attack
+
+Snorlax
+Hardy Nature
+Ability: Immunity
+Level: 42
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Body Slam
+- Amnesia
+- Rest
+- Sleep Talk
+
+Eevee
+Hardy Nature
+Ability: Run Away
+Level: 41
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Bite
+- Return
+- Quick Attack
+- Sand Attack
+
+Butterfree
+Hardy Nature
+Ability: Compound Eyes
+Level: 40
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Psybeam
+- Gust
+- Stun Spore
+- Sleep Powder
+
+Poliwrath
+Hardy Nature
+Ability: Damp
+Level: 40
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Surf
+- Hypnosis
+- Brick Break
+- Strength
+
+=== PARTNER_RED_BLAINE ===
+Name: RED
+Class: Pkmn Trainer 1 Hns
+Pic: Red
+Gender: Male
+Music: Male
+Back Pic: Red
+
+Charizard
+Hardy Nature
+Ability: Blaze
+Level: 48
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Flamethrower
+- Wing Attack
+- Slash
+- Dig
+
+Pikachu-Starter
+Hardy Nature
+Ability: Static
+Level: 46
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Thunderbolt
+- Thunder
+- Thunder Wave
+- Quick Attack
+
+Poliwrath
+Hardy Nature
+Ability: Damp
+Level: 45
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Surf
+- Hypnosis
+- Brick Break
+- Strength
+
+Snorlax
+Hardy Nature
+Ability: Immunity
+Level: 45
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Body Slam
+- Surf
+- Rest
+- Sleep Talk
+
+Eevee
+Hardy Nature
+Ability: Run Away
+Level: 44
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Bite
+- Return
+- Quick Attack
+- Take Down
+
+Lapras
+Hardy Nature
+Ability: Water Absorb
+Level: 43
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Surf
+- Ice Beam
+- Body Slam
+- Confuse Ray
+
+=== PARTNER_RED_GIOVANNI ===
+Name: RED
+Class: Pkmn Trainer 1 Hns
+Pic: Red
+Gender: Male
+Music: Male
+Back Pic: Red
+
+Charizard
+Hardy Nature
+Ability: Blaze
+Level: 52
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Flamethrower
+- Wing Attack
+- Steel Wing
+- Slash
+
+Pikachu-Starter
+Hardy Nature
+Ability: Static
+Level: 50
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Thunderbolt
+- Brick Break
+- Slam
+- Quick Attack
+
+Lapras
+Hardy Nature
+Ability: Water Absorb
+Level: 49
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Surf
+- Ice Beam
+- Body Slam
+- Confuse Ray
+
+Poliwrath
+Hardy Nature
+Ability: Damp
+Level: 49
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Surf
+- Hypnosis
+- Brick Break
+- Strength
+
+Snorlax
+Hardy Nature
+Ability: Immunity
+Level: 49
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Body Slam
+- Surf
+- Rest
+- Sleep Talk
+
+Eevee
+Hardy Nature
+Ability: Run Away
+Level: 47
+Happiness: 255
+IVs: 15 HP / 15 Atk / 15 Def / 15 SpA / 15 SpD / 15 Spe
+- Return
+- Bite
+- Take Down
+- Quick Attack
+
 === PARTNER_DUMMY ===
 Name:
 Class: Pkmn Trainer 1
@@ -193,4 +692,3 @@ Back Pic: Brendan
 Party Size: 0
 
 Wynaut
-

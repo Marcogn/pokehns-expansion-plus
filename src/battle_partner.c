@@ -4,6 +4,7 @@
 #include "battle_partner.h"
 #include "battle_frontier.h"
 #include "data.h"
+#include "event_data.h"
 #include "frontier_util.h"
 #include "difficulty.h"
 #include "string_util.h"
@@ -22,11 +23,99 @@ const struct Trainer gBattlePartners[DIFFICULTY_COUNT][PARTNER_COUNT] =
 
 #define STEVEN_OTID 61226
 
+// The OT ID a scripted partner's Pokemon get, derived from the partner's name
+// (Steven has a fixed one).
+static u32 GetPartnerOtId(u16 trainerId, const u8 *partnerName)
+{
+    u32 k, firstIdPart = 0, secondIdPart = 0, thirdIdPart = 0;
+
+    if (trainerId == TRAINER_PARTNER(PARTNER_STEVEN))
+        return STEVEN_OTID;
+
+    for (k = 0; partnerName[k] != EOS && k < 3; k++)
+    {
+        if (k == 0)
+        {
+            firstIdPart = partnerName[k];
+            secondIdPart = partnerName[k];
+            thirdIdPart = partnerName[k];
+        }
+        else if (k == 1)
+        {
+            secondIdPart = partnerName[k];
+            thirdIdPart = partnerName[k];
+        }
+        else if (k == 2)
+        {
+            thirdIdPart = partnerName[k];
+        }
+    }
+    return ((firstIdPart % 72) * 1000) + ((secondIdPart % 23) * 10) + (thirdIdPart % 37) % 65536;
+}
+
+// Builds one Pokemon of a battle_partners.party entry. Shared by the multi
+// battle partners and by Red's Path, which puts a whole partner party in the
+// player's place.
+static void CreatePartnerMon(struct Pokemon *mon, const struct Trainer *partner, const struct TrainerMon *partyData, u32 otID)
+{
+    s32 j;
+    u32 personality = Random32();
+    u8 trainerName[(PLAYER_NAME_LENGTH * 3) + 1];
+
+    if (partyData->gender == TRAINER_MON_MALE)
+        personality = (personality & 0xFFFFFF00) | GeneratePersonalityForGender(MON_MALE, partyData->species);
+    else if (partyData->gender == TRAINER_MON_FEMALE)
+        personality = (personality & 0xFFFFFF00) | GeneratePersonalityForGender(MON_FEMALE, partyData->species);
+    ModifyPersonalityForNature(&personality, partyData->nature);
+    CreateMon(mon, partyData->species, partyData->lvl, personality, OTID_STRUCT_PRESET(otID));
+    j = partyData->isShiny;
+    SetMonData(mon, MON_DATA_IS_SHINY, &j);
+    SetMonData(mon, MON_DATA_HELD_ITEM, &partyData->heldItem);
+    CustomTrainerPartyAssignMoves(mon, partyData);
+
+    SetMonData(mon, MON_DATA_IVS, &(partyData->iv));
+    if (partyData->ev != NULL)
+    {
+        SetMonData(mon, MON_DATA_HP_EV, &(partyData->ev[0]));
+        SetMonData(mon, MON_DATA_ATK_EV, &(partyData->ev[1]));
+        SetMonData(mon, MON_DATA_DEF_EV, &(partyData->ev[2]));
+        SetMonData(mon, MON_DATA_SPATK_EV, &(partyData->ev[3]));
+        SetMonData(mon, MON_DATA_SPDEF_EV, &(partyData->ev[4]));
+        SetMonData(mon, MON_DATA_SPEED_EV, &(partyData->ev[5]));
+    }
+    if (partyData->ability != ABILITY_NONE)
+    {
+        const struct SpeciesInfo *speciesInfo = &gSpeciesInfo[partyData->species];
+        u32 maxAbilities = ARRAY_COUNT(speciesInfo->abilities);
+        for (j = 0; j < maxAbilities; j++)
+        {
+            if (speciesInfo->abilities[j] == partyData->ability)
+                break;
+        }
+        if (j < maxAbilities)
+            SetMonData(mon, MON_DATA_ABILITY_NUM, &j);
+    }
+    SetMonData(mon, MON_DATA_FRIENDSHIP, &(partyData->friendship));
+    if (partyData->ball < POKEBALL_COUNT)
+    {
+        SetMonData(mon, MON_DATA_POKEBALL, &partyData->ball);
+    }
+    if (partyData->nickname != NULL)
+    {
+        SetMonData(mon, MON_DATA_NICKNAME, partyData->nickname);
+    }
+    CalculateMonStats(mon);
+
+    StringCopy(trainerName, partner->trainerName);
+    SetMonData(mon, MON_DATA_OT_NAME, trainerName);
+    j = partner->gender;
+    SetMonData(mon, MON_DATA_OT_GENDER, &j);
+}
+
 void FillPartnerParty(u16 trainerId)
 {
-    s32 i, j, k;
-    u32 firstIdPart = 0, secondIdPart = 0, thirdIdPart = 0;
-    u32 ivs, level, personality;
+    s32 i, j;
+    u32 ivs, level;
     u16 monId;
     u32 otID;
     u8 trainerName[(PLAYER_NAME_LENGTH * 3) + 1];
@@ -35,88 +124,14 @@ void FillPartnerParty(u16 trainerId)
 
     if (trainerId > TRAINER_PARTNER(PARTNER_NONE))
     {
+        const struct Trainer *partner = &gBattlePartners[difficulty][GetPartnerIdFromTrainerId(trainerId)];
+
         for (i = 0; i < 3; i++)
             ZeroMonData(&gPlayerParty[i + 3]);
 
-        for (i = 0; i < 3 && i < gBattlePartners[difficulty][trainerId - TRAINER_PARTNER(PARTNER_NONE)].partySize; i++)
-        {
-            const struct TrainerMon *partyData = gBattlePartners[difficulty][trainerId - TRAINER_PARTNER(PARTNER_NONE)].party;
-            const u8 *partnerName = gBattlePartners[difficulty][trainerId - TRAINER_PARTNER(PARTNER_NONE)].trainerName;
-
-            for (k = 0; partnerName[k] != EOS && k < 3; k++)
-            {
-                if (k == 0)
-                {
-                    firstIdPart = partnerName[k];
-                    secondIdPart = partnerName[k];
-                    thirdIdPart = partnerName[k];
-                }
-                else if (k == 1)
-                {
-                    secondIdPart = partnerName[k];
-                    thirdIdPart = partnerName[k];
-                }
-                else if (k == 2)
-                {
-                    thirdIdPart = partnerName[k];
-                }
-            }
-            if (trainerId == TRAINER_PARTNER(PARTNER_STEVEN))
-                otID = STEVEN_OTID;
-            else
-                otID = ((firstIdPart % 72) * 1000) + ((secondIdPart % 23) * 10) + (thirdIdPart % 37) % 65536;
-
-            personality = Random32();
-            if (partyData[i].gender == TRAINER_MON_MALE)
-                personality = (personality & 0xFFFFFF00) | GeneratePersonalityForGender(MON_MALE, partyData[i].species);
-            else if (partyData[i].gender == TRAINER_MON_FEMALE)
-                personality = (personality & 0xFFFFFF00) | GeneratePersonalityForGender(MON_FEMALE, partyData[i].species);
-            ModifyPersonalityForNature(&personality, partyData[i].nature);
-            CreateMon(&gPlayerParty[i + 3], partyData[i].species, partyData[i].lvl, personality, OTID_STRUCT_PRESET(otID));
-            j = partyData[i].isShiny;
-            SetMonData(&gPlayerParty[i + 3], MON_DATA_IS_SHINY, &j);
-            SetMonData(&gPlayerParty[i + 3], MON_DATA_HELD_ITEM, &partyData[i].heldItem);
-            CustomTrainerPartyAssignMoves(&gPlayerParty[i + 3], &partyData[i]);
-
-            SetMonData(&gPlayerParty[i + 3], MON_DATA_IVS, &(partyData[i].iv));
-            if (partyData[i].ev != NULL)
-            {
-                SetMonData(&gPlayerParty[i + 3], MON_DATA_HP_EV, &(partyData[i].ev[0]));
-                SetMonData(&gPlayerParty[i + 3], MON_DATA_ATK_EV, &(partyData[i].ev[1]));
-                SetMonData(&gPlayerParty[i + 3], MON_DATA_DEF_EV, &(partyData[i].ev[2]));
-                SetMonData(&gPlayerParty[i + 3], MON_DATA_SPATK_EV, &(partyData[i].ev[3]));
-                SetMonData(&gPlayerParty[i + 3], MON_DATA_SPDEF_EV, &(partyData[i].ev[4]));
-                SetMonData(&gPlayerParty[i + 3], MON_DATA_SPEED_EV, &(partyData[i].ev[5]));
-            }
-            if (partyData[i].ability != ABILITY_NONE)
-            {
-                const struct SpeciesInfo *speciesInfo = &gSpeciesInfo[partyData[i].species];
-                u32 maxAbilities = ARRAY_COUNT(speciesInfo->abilities);
-                for (j = 0; j < maxAbilities; j++)
-                {
-                    if (speciesInfo->abilities[j] == partyData[i].ability)
-                        break;
-                }
-                if (j < maxAbilities)
-                    SetMonData(&gPlayerParty[i + 3], MON_DATA_ABILITY_NUM, &j);
-            }
-            SetMonData(&gPlayerParty[i + 3], MON_DATA_FRIENDSHIP, &(partyData[i].friendship));
-            if (partyData[i].ball < POKEBALL_COUNT)
-            {
-                SetMonData(&gPlayerParty[i + 3], MON_DATA_POKEBALL, &partyData[i].ball);
-            }
-            if (partyData[i].nickname != NULL)
-            {
-                SetMonData(&gPlayerParty[i + 3], MON_DATA_NICKNAME, partyData[i].nickname);
-            }
-            CalculateMonStats(&gPlayerParty[i + 3]);
-
-            u16 partnerId = GetPartnerIdFromTrainerId(trainerId);
-            StringCopy(trainerName, gBattlePartners[difficulty][partnerId].trainerName);
-            SetMonData(&gPlayerParty[i + 3], MON_DATA_OT_NAME, trainerName);
-            j = gBattlePartners[difficulty][partnerId].gender;
-            SetMonData(&gPlayerParty[i + 3], MON_DATA_OT_GENDER, &j);
-        }
+        otID = GetPartnerOtId(trainerId, partner->trainerName);
+        for (i = 0; i < 3 && i < partner->partySize; i++)
+            CreatePartnerMon(&gPlayerParty[i + 3], partner, &partner->party[i], otID);
     }
     else if (trainerId == TRAINER_EREADER)
     {
@@ -176,4 +191,32 @@ void FillPartnerParty(u16 trainerId)
             SetMonData(&gPlayerParty[MULTI_PARTY_SIZE + i], MON_DATA_OT_GENDER, &j);
         }
     }
+}
+
+// Red's Path (docs/plans/reds-path.md): the player fights with Red's team of
+// that point of his journey, in their own party slots. FillPartnerParty only
+// fills slots 3-5 next to the player's; this replaces all six. The script
+// saves the player's party first (special SavePlayerParty) and always puts it
+// back after the battle (special LoadPlayerParty). The copy is in RAM, in the
+// SaveBlock1 party, so the flash keeps the real team until the next save.
+void FillRedsPathParty(u32 challenge)
+{
+    const struct Trainer *red;
+    u32 i, otID;
+
+    if (challenge >= REDS_PATH_CHALLENGE_COUNT)
+        challenge = 0;
+    red = &gBattlePartners[DIFFICULTY_NORMAL][PARTNER_RED_BROCK + challenge];
+    otID = GetPartnerOtId(TRAINER_PARTNER(PARTNER_RED_BROCK + challenge), red->trainerName);
+
+    ZeroPlayerPartyMons();
+    for (i = 0; i < PARTY_SIZE && i < red->partySize; i++)
+        CreatePartnerMon(&gPlayerParty[i], red, &red->party[i], otID);
+    CalculatePlayerPartyCount();
+}
+
+// special: VAR_0x8004 = challenge, 0 (Brock) to 7 (Giovanni).
+void RedsPath_LoadRedsParty(void)
+{
+    FillRedsPathParty(gSpecialVar_0x8004);
 }

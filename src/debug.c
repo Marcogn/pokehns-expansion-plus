@@ -388,6 +388,16 @@ extern const u8 Debug_EventScript_Script_5[];
 extern const u8 Debug_EventScript_Script_6[];
 extern const u8 Debug_EventScript_Script_7[];
 extern const u8 Debug_EventScript_Script_8[];
+#if IS_HNS
+extern const u8 Debug_EventScript_RedsPath_Brock[];
+extern const u8 Debug_EventScript_RedsPath_Misty[];
+extern const u8 Debug_EventScript_RedsPath_Surge[];
+extern const u8 Debug_EventScript_RedsPath_Erika[];
+extern const u8 Debug_EventScript_RedsPath_Koga[];
+extern const u8 Debug_EventScript_RedsPath_Sabrina[];
+extern const u8 Debug_EventScript_RedsPath_Blaine[];
+extern const u8 Debug_EventScript_RedsPath_Giovanni[];
+#endif
 extern const u8 DebugScript_DaycareMonsNotCompatible[];
 extern const u8 DebugScript_OneDaycareMons[];
 extern const u8 DebugScript_ZeroDaycareMons[];
@@ -672,6 +682,23 @@ static const struct DebugMenuOption sDebugMenu_Actions_Scripts[] =
     { NULL }
 };
 
+#if IS_HNS
+// Red's Path (docs/plans/reds-path.md): challenge N straight away, through the
+// same script the Gym aides will use, with no map script around it.
+static const struct DebugMenuOption sDebugMenu_Actions_RedsPath[] =
+{
+    { COMPOUND_STRING("1 Brock"),    DebugAction_ExecuteScript, Debug_EventScript_RedsPath_Brock },
+    { COMPOUND_STRING("2 Misty"),    DebugAction_ExecuteScript, Debug_EventScript_RedsPath_Misty },
+    { COMPOUND_STRING("3 Lt. Surge"), DebugAction_ExecuteScript, Debug_EventScript_RedsPath_Surge },
+    { COMPOUND_STRING("4 Erika"),    DebugAction_ExecuteScript, Debug_EventScript_RedsPath_Erika },
+    { COMPOUND_STRING("5 Koga"),     DebugAction_ExecuteScript, Debug_EventScript_RedsPath_Koga },
+    { COMPOUND_STRING("6 Sabrina"),  DebugAction_ExecuteScript, Debug_EventScript_RedsPath_Sabrina },
+    { COMPOUND_STRING("7 Blaine"),   DebugAction_ExecuteScript, Debug_EventScript_RedsPath_Blaine },
+    { COMPOUND_STRING("8 Giovanni"), DebugAction_ExecuteScript, Debug_EventScript_RedsPath_Giovanni },
+    { NULL }
+};
+#endif
+
 static const struct DebugMenuOption sDebugMenu_Actions_Trainers[] =
 {
     { COMPOUND_STRING("Choose trainer from map"), DebugAction_Trainers_ChooseFromMap },
@@ -742,6 +769,9 @@ static const struct DebugMenuOption sDebugMenu_Actions_Main[] =
     { COMPOUND_STRING("Player…"),       DebugAction_OpenSubMenu, sDebugMenu_Actions_Player, },
     { COMPOUND_STRING("Scripts…"),      DebugAction_OpenSubMenu, sDebugMenu_Actions_Scripts, },
     { COMPOUND_STRING("Trainers…"),     DebugAction_OpenSubMenuTrainers, sDebugMenu_Actions_Trainers, },
+#if IS_HNS
+    { COMPOUND_STRING("Red's Path…"),   DebugAction_OpenSubMenu, sDebugMenu_Actions_RedsPath, },
+#endif
     { COMPOUND_STRING("Flags & Vars…"), DebugAction_OpenSubMenuFlagsVars, sDebugMenu_Actions_Flags, },
     { COMPOUND_STRING("Sound…"),        DebugAction_OpenSubMenu, sDebugMenu_Actions_Sound, },
     { COMPOUND_STRING("ROM Info…"),     DebugAction_OpenSubMenu, sDebugMenu_Actions_ROMInfo2, },

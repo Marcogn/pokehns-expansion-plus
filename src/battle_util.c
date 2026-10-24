@@ -1,5 +1,6 @@
 #include "global.h"
 #include "battle.h"
+#include "battle_partner.h"
 #include "battle_anim.h"
 #include "battle_arena.h"
 #include "battle_environment.h"
@@ -10853,6 +10854,9 @@ bool32 CanCatchTrainerMon(void)
     if (CurrentBattlePyramidLocation() != PYRAMID_LOCATION_NONE)
         return FALSE;
     if (gSaveBlock3Ptr->challengeSettings.tx_Challenges_Mirror)
+        return FALSE;
+    // Red's Path is fought with Red's borrowed team: nothing is caught there.
+    if (IsRedsPathTrainer(TRAINER_BATTLE_PARAM.opponentA))
         return FALSE;
     return TRUE;
 }

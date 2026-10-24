@@ -16002,3 +16002,338 @@ Tera Type: Fighting
 - Bulk Up  
 - Throat Chop
 
+/* ==================== Red's Path ==================== */
+/* The Kanto Leaders as Red met them (docs/plans/reds-path.md, section 1):
+   FireRed/LeafGreen parties (pret/pokefirered, the same as
+   trainers_frlg.party), IVs 0, the FRLG AI and healing items. Two changes:
+   Giovanni's last Rhyhorn is the Rhydon of Red/Blue, and every ability is
+   written out, so that B_TRAINER_MON_RANDOM_ABILITY cannot hand them a
+   Hidden Ability that Gen 3 did not have. Sturdy keeps Onix at 1 HP from
+   full (Gen 5+ Sturdy); Arena Trap is Dugtrio's own Gen 3 ability. */
+
+=== TRAINER_REDS_PATH_BROCK_HNS ===
+Name: BROCK
+Class: Leader Kanto Hns
+Pic: Leader Brock Frlg
+Gender: Male
+Music: Hg Boy 1
+Double Battle: No
+AI: Check Bad Move / Try To Faint / Check Viability
+Mugshot: Orange
+
+Geodude
+Ability: Rock Head
+Level: 12
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+- Tackle
+- Defense Curl
+
+Onix
+Ability: Sturdy
+Level: 14
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+- Tackle
+- Bind
+- Rock Tomb
+
+=== TRAINER_REDS_PATH_MISTY_HNS ===
+Name: MISTY
+Class: Leader Kanto Hns
+Pic: Leader Misty Frlg
+Gender: Female
+Music: Hg Boy 1
+Double Battle: No
+AI: Check Bad Move / Try To Faint / Check Viability
+Mugshot: Light Blue
+Items: Super Potion
+
+Staryu
+Ability: Natural Cure
+Level: 18
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+- Tackle
+- Harden
+- Recover
+- Water Pulse
+
+Starmie
+Ability: Natural Cure
+Level: 21
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+- Swift
+- Recover
+- Rapid Spin
+- Water Pulse
+
+=== TRAINER_REDS_PATH_SURGE_HNS ===
+Name: LT. SURGE
+Class: Leader Kanto Hns
+Pic: Leader Lt Surge Frlg
+Gender: Male
+Music: Hg Boy 1
+Double Battle: No
+AI: Check Bad Move / Try To Faint / Check Viability
+Mugshot: Yellow
+Items: Super Potion / Full Heal
+
+Voltorb
+Ability: Static
+Level: 21
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+- Sonic Boom
+- Tackle
+- Screech
+- Shock Wave
+
+Pikachu
+Ability: Static
+Level: 18
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+- Quick Attack
+- Thunder Wave
+- Double Team
+- Shock Wave
+
+Raichu
+Ability: Static
+Level: 24
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+- Quick Attack
+- Thunder Wave
+- Double Team
+- Shock Wave
+
+=== TRAINER_REDS_PATH_ERIKA_HNS ===
+Name: ERIKA
+Class: Leader Kanto Hns
+Pic: Leader Erika Frlg
+Gender: Female
+Music: Hg Boy 1
+Double Battle: No
+AI: Check Bad Move / Try To Faint / Check Viability
+Mugshot: Green
+Items: Hyper Potion / Full Heal
+
+Victreebel
+Ability: Chlorophyll
+Level: 29
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+- Stun Spore
+- Acid
+- Poison Powder
+- Giga Drain
+
+Tangela
+Ability: Chlorophyll
+Level: 24
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+- Poison Powder
+- Constrict
+- Ingrain
+- Giga Drain
+
+Vileplume
+Ability: Chlorophyll
+Level: 29
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+- Sleep Powder
+- Acid
+- Stun Spore
+- Giga Drain
+
+=== TRAINER_REDS_PATH_KOGA_HNS ===
+Name: KOGA
+Class: Leader Kanto Hns
+Pic: Leader Koga Frlg
+Gender: Male
+Music: Hg Boy 1
+Double Battle: No
+AI: Check Bad Move / Try To Faint / Check Viability
+Mugshot: Purple
+Items: Hyper Potion / Hyper Potion / Full Heal
+
+Koffing
+Ability: Levitate
+Level: 37
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+- Self Destruct
+- Sludge
+- Smokescreen
+- Toxic
+
+Muk
+Ability: Stench
+Level: 39
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+- Minimize
+- Sludge
+- Acid Armor
+- Toxic
+
+Koffing
+Ability: Levitate
+Level: 37
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+- Self Destruct
+- Sludge
+- Smokescreen
+- Toxic
+
+Weezing
+Ability: Levitate
+Level: 43
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+- Tackle
+- Sludge
+- Smokescreen
+- Toxic
+
+=== TRAINER_REDS_PATH_SABRINA_HNS ===
+Name: SABRINA
+Class: Leader Kanto Hns
+Pic: Leader Sabrina Frlg
+Gender: Female
+Music: Hg Boy 1
+Double Battle: No
+AI: Check Bad Move / Try To Faint / Check Viability
+Mugshot: Pink
+Items: Hyper Potion / Hyper Potion / Full Heal
+
+Kadabra
+Ability: Synchronize
+Level: 38
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+- Psybeam
+- Reflect
+- Future Sight
+- Calm Mind
+
+Mr Mime
+Ability: Soundproof
+Level: 37
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+- Barrier
+- Psybeam
+- Baton Pass
+- Calm Mind
+
+Venomoth
+Ability: Shield Dust
+Level: 38
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+- Psybeam
+- Gust
+- Leech Life
+- Supersonic
+
+Alakazam
+Ability: Synchronize
+Level: 43
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+- Psychic
+- Recover
+- Future Sight
+- Calm Mind
+
+=== TRAINER_REDS_PATH_BLAINE_HNS ===
+Name: BLAINE
+Class: Leader Kanto Hns
+Pic: Leader Blaine Frlg
+Gender: Male
+Music: Hg Boy 1
+Double Battle: No
+AI: Check Bad Move / Try To Faint / Check Viability
+Mugshot: Dark Red
+Items: Hyper Potion / Hyper Potion / Full Heal
+
+Growlithe
+Ability: Intimidate
+Level: 42
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+- Bite
+- Roar
+- Take Down
+- Fire Blast
+
+Ponyta
+Ability: Flash Fire
+Level: 40
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+- Stomp
+- Bounce
+- Fire Spin
+- Fire Blast
+
+Rapidash
+Ability: Flash Fire
+Level: 42
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+- Stomp
+- Bounce
+- Fire Spin
+- Fire Blast
+
+Arcanine
+Ability: Intimidate
+Level: 47
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+- Bite
+- Roar
+- Take Down
+- Fire Blast
+
+=== TRAINER_REDS_PATH_GIOVANNI_HNS ===
+Name: GIOVANNI
+Class: Leader Kanto Hns
+Pic: Leader Giovanni Frlg
+Gender: Male
+Music: Hg Boy 1
+Double Battle: No
+AI: Check Bad Move / Try To Faint / Check Viability
+Mugshot: Dark Red
+Items: Hyper Potion / Hyper Potion / Full Heal
+
+Rhyhorn
+Ability: Rock Head
+Level: 45
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+- Take Down
+- Rock Blast
+- Scary Face
+- Earthquake
+
+Dugtrio
+Ability: Arena Trap
+Level: 42
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+- Slash
+- Sand Tomb
+- Mud Slap
+- Earthquake
+
+Nidoqueen
+Ability: Poison Point
+Level: 44
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+- Body Slam
+- Double Kick
+- Poison Sting
+- Earthquake
+
+Nidoking
+Ability: Poison Point
+Level: 45
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+- Thrash
+- Double Kick
+- Poison Sting
+- Earthquake
+
+Rhydon
+Ability: Rock Head
+Level: 50
+IVs: 0 HP / 0 Atk / 0 Def / 0 SpA / 0 SpD / 0 Spe
+- Take Down
+- Rock Blast
+- Scary Face
+- Earthquake

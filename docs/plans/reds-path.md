@@ -1,6 +1,8 @@
 # Piano: Red's Path (le palestre di Kanto rigiocate con la squadra di Red)
 
-**Stato (24/10): piano chiuso, nessun codice.** Avversari (§1), squadre di
+**Stato (24/10): sessione A1 fatta** (passi 1, 2, 3 e 5 della sessione A:
+`SAVE_VERSION 10`, otto capi, otto squadre di Red, voce di debug `Red's
+Path…`); restano A2, B e C. Avversari (§1), squadre di
 Red (§2), premi (§3), script e scena (§4) decisi con l'utente.
 Implementazione in tre fasi, quattro sessioni (§5). Le ricerche da cui
 vengono le scelte (cosa era ottenibile prima di ogni capo, meccaniche,
@@ -430,7 +432,37 @@ C dopo la B). **Limite dell'utente: al massimo Opus 5.5 a sforzo medio.**
 | C, taratura | **Sonnet 5.5** | medio | ritocchi piccoli ai dati, molti giri brevi |
 
 In A1 la lotta di debug è ancora una lotta normale (dorso del giocatore, fuga
-e sconfitta come sempre): gli agganci arrivano con la A2. Serve l'emulatore
+e sconfitta come sempre): gli agganci arrivano con la A2.
+
+**Cosa ha lasciato la A1 alla A2** (verificato in emulatore il 24/10):
+
+- La lotta passa da `RedsPath_EventScript_Battle` (`data/scripts/reds_path.inc`,
+  `VAR_0x8004` = sfida 0-7): `special SavePlayerParty`, `special
+  RedsPath_LoadRedsParty` (`FillRedsPathParty`, `src/battle_partner.c`),
+  `trainerbattle_no_intro`, `special LoadPlayerParty`. La B la chiama così
+  com'è; la voce di debug `Red's Path… → N` pure.
+- **Una sconfitta oggi fa svenire e lascia in squadra quella di Red**
+  (curata): lo script non arriva a `LoadPlayerParty`. La squadra vera è
+  ancora nella flash, un soft reset la riporta (provato). Salvare dopo una
+  sconfitta la perderebbe: è il primo punto della A2 (`B_FLAG_NO_WHITEOUT`).
+- I Pokémon di Red prendono esperienza e salgono di livello (Charmeleon
+  30 → 31 contro Erika, "boosted": OT diverso): `FLAG_DISABLE_EXP_GAIN` è
+  della A2. Il ripristino della squadra li butta via comunque.
+- OT dei Pokémon di Red: `RED`, ID derivato dal nome come gli altri partner
+  (`GetPartnerOtId`). Con OT diverso vale l'obbedienza: con meno di 8
+  medaglie di Johto i livelli sopra il tetto disobbediscono. In gioco Kanto
+  arriva dopo le 8 medaglie, quindi non succede; da debug su un salvataggio
+  con meno medaglie sì (a 6 medaglie il tetto è 70, sopra ogni livello di Red).
+- Esclusi già in A1: level scaling (`IsTrainerExcludedFromScaling`) e
+  TcloneR (`CanCatchTrainerMon`), tramite `IsRedsPathTrainer`
+  (`include/battle_partner.h`), per id allenatore e non con un flag.
+- **Non decisi, da chiedere all'utente**: il randomizer (`RANDOMIZE_TRAINER_MON`
+  cambia le specie dei capi per classe) e le sfide `TrainerScalingIVs/EVs`
+  del challenge menu toccano anche questi otto capi; la squadra di Red no
+  (non passa da `CreateNPCTrainerParty`).
+- Prima prova di difficoltà, per la C (una partita sola, giocata male):
+  Brock ha battuto Charmander, Mankey e Butterfree con l'Onix a circa un
+  quarto dei PS (Rock Tomb è 4× su Butterfree e lo mette KO prima che agisca). Serve l'emulatore
 (`docs/claude/emulator.md`) e il `.srm` dell'utente (migrazione nella A,
 palestre già battute nella B e nella C). Soulgold non serve.
 

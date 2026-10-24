@@ -127,6 +127,9 @@ STATIC_ASSERT(sizeof(struct Pokedex) == 0x78, PokedexLayoutPinned);
 #endif
 STATIC_ASSERT(offsetof(struct SaveBlock2, pokedex) == 0x18, SaveBlock2PokedexOffset);
 STATIC_ASSERT(offsetof(struct Pokedex, tclonerTrainerFlags) == 0x10, PokedexTClonerFlagsOffset);
+// Growing the flags takes bytes that old saves never cleared: each growth needs
+// its own migration step (82 -> 83 is SAVE_VERSION 10, for Red's Path).
+STATIC_ASSERT(sizeof(((struct Pokedex *)0)->tclonerTrainerFlags) == 83, PokedexTClonerFlagsSize);
 STATIC_ASSERT(sizeof(struct SaveBlock1) <= SECTOR_DATA_SIZE * (SECTOR_ID_SAVEBLOCK1_END - SECTOR_ID_SAVEBLOCK1_START + 1), SaveBlock1FreeSpace);
 STATIC_ASSERT(sizeof(struct PokemonStorage) <= SECTOR_DATA_SIZE * (SECTOR_ID_PKMN_STORAGE_END - SECTOR_ID_PKMN_STORAGE_START + 1), PokemonStorageFreeSpace);
 
@@ -1069,6 +1072,16 @@ u8 LoadGameSave(u8 saveType)
         VarSet(VAR_TCLONER_REWARDS, 0);
         VarSet(VAR_TCLONER_STAGE, 0);
         gSaveBlock1Ptr->saveVersion = 9;
+    }
+    if (gSaveBlock1Ptr->saveVersion < 10)
+    {
+        // Red's Path added Trainers 653-660, and the TcloneR flags grew from
+        // 82 to 83 bytes to cover them. The new byte is more of the old dex
+        // flag filler: the version 9 step only cleared the first 82, so this
+        // one is not provably zero either. The first 82 are left alone, so
+        // the Trainers already cloned stay counted.
+        gSaveBlock2Ptr->pokedex.tclonerTrainerFlags[82] = 0;
+        gSaveBlock1Ptr->saveVersion = 10;
     }
 
     // Add version migration steps here:
