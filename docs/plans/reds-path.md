@@ -1,15 +1,17 @@
 # Piano: Red's Path (le palestre di Kanto rigiocate con la squadra di Red)
 
-**Stato (23/10): piano, nessun codice.** Avversari decisi (sezione 1), poi la squadra di Red capo per capo (sezione 2, da
-costruire insieme), poi il codice (sezione 4).
+**Stato (24/10): piano, nessun codice.** Avversari decisi (sezione 1); squadra
+di Red decisa fino a Surge (sezione 2, si continua capo per capo); script e
+scena decisi (sezione 4); premi (sezione 3).
 
 ## L'idea
 
-Dopo aver battuto un capo palestra di Kanto (o dopo la seconda Lega: da
-decidere), un NPC propone la sfida "del viaggio di Red": il giocatore **usa la
-squadra di Red di quel momento** contro **lo stesso capo palestra com'era
-allora**. Niente catture, niente esperienza, niente zaino: la lotta e basta.
-Ogni sfida riparte da zero, quindi l'ordine è libero.
+Dopo aver battuto un capo palestra di Kanto, l'aiutante della palestra
+propone la sfida "del viaggio di Red": il giocatore **usa la squadra di Red di
+quel momento** contro **lo stesso capo palestra com'era allora**. Niente
+catture, niente esperienza: la lotta e basta. Ogni sfida riparte da zero,
+quindi l'ordine è libero. (Il modello dell'utente: il DLC di *Breath of the
+Wild* in cui si rigioca una sfida con gli strumenti dei campioni di allora.)
 
 ## Decisioni prese
 
@@ -25,9 +27,12 @@ Ogni sfida riparte da zero, quindi l'ordine è libero.
 | Espeon | mai: solo al Monte Argento |
 | Ordine | libero |
 | Sblocco | **dopo il capo di HnS corrispondente** |
-| Zaino | nessuno |
-| Premi | l'**asso** di ogni capo, **shiny, Lv70**, con le mosse di livello al 70 |
-| Storia | non ancora scritta: qui c'è solo la "ciccia" degli script |
+| Zaino | **quello attuale del giocatore** (per ora) |
+| Fuga | **impossibile**: si vince o si perde |
+| Sconfitta | **nessuna perdita di soldi**, la lotta si chiude normalmente e si torna dall'aiutante |
+| Versione di Red | **FireRed** (Oddish, Ekans; niente Bellsprout e Sandshrew) |
+| Premi | l'**asso** di ogni capo, **Lv70**, mosse di livello al 70, **non shiny ma nemmeno bloccato**: probabilità normali, così si può cacciare lo shiny resettando |
+| Storia | tre anni dopo il viaggio di Red, la Lega organizza ogni anno l'evento "Red's Path" (dialoghi in sezione 4) |
 
 ## 1. Gli avversari
 
@@ -236,10 +241,8 @@ Perché:
 
 Variante "Origins" (Charmander non evoluto): scartata.
 
-Da decidere dopo la correzione delle MT: Oddish può avere **Bullet Seed** al
-posto di Absorb. In expansion è 25 di potenza per 2-5 colpi contro i 20 di
-Absorb; contro Misty è un salto netto, quindi la lasciamo fuori solo se la
-lotta risulta già facile.
+Approvato: Oddish ha **Bullet Seed** (MT09) al posto di Absorb, quindi
+Bullet Seed, Poison Powder, Stun Spore, Sleep Powder.
 
 ### Fra Misty e Surge: cosa si ottiene
 
@@ -277,17 +280,17 @@ Mosse utili (FRLG, fino al Lv30):
 | Drowzee | Pound, Hypnosis · 7 Disable · 11 Confusion · 17 Headbutt · 21 Poison Gas | Brick Break |
 | Meowth | 10 Bite · 18 Pay Day · 25 Faint Attack | Dig, Aerial Ace |
 
-### Surge (proposta)
+### Surge (approvata)
 
 Surge: Voltorb 21 (Sonic Boom, Screech, Shock Wave), Pikachu 18, Raichu 24
 (Thunder Wave, Double Team, Shock Wave); tutti con **Static** (paralisi al
-contatto). Proposta: **quattro** Pokémon, livelli 22-25.
+contatto). **Quattro** Pokémon, livelli 22-25.
 
 | Pokémon | Lv | Mosse | Abilità (Gen 3) |
 | --- | --- | --- | --- |
 | Charmeleon | 25 | Ember, Metal Claw, Dig, Brick Break | Blaze |
 | Diglett | 22 | Sand Attack, Magnitude, Dig, Fury Swipes | Arena Trap |
-| Gloom | 22 | Absorb, Poison Powder, Stun Spore, Sleep Powder | Chlorophyll |
+| Gloom | 22 | Bullet Seed, Poison Powder, Stun Spore, Sleep Powder | Chlorophyll |
 | Pikachu-Starter | 23 | Thunder Shock, Thunder Wave, Quick Attack, Slam | Static |
 
 Perché:
@@ -303,9 +306,10 @@ Perché:
 
 ## 3. Premi
 
-L'asso di ogni capo, **shiny, Lv70**, alla prima vittoria, con le mosse di
-livello al 70 (quelle che `givemon` dà già da solo: nessun codice in più per
-le mosse):
+L'asso di ogni capo, **Lv70**, alla prima vittoria, con le mosse di livello
+al 70 (quelle che `givemon` dà già da solo). **Non shiny, ma con le
+probabilità normali**: niente shiny lock, così chi vuole può resettare
+finché non esce. Natura **casuale**.
 
 | Capo | Asso |
 | --- | --- |
@@ -322,59 +326,148 @@ le mosse):
 il capo** (nome e sesso), **Poké Ball** (i Pokémon degli allenatori di FRLG
 non hanno una ball diversa). Unica eccezione, approvata: **IV 31** (quelli
 del capo in FRLG sono 0, e un premio Lv70 con IV 0 sarebbe debolissimo).
-Natura: da scegliere asso per asso. Per la consegna con la squadra piena c'è già il percorso del TcloneR
-(`TClonerGiveRewardMon`, che manda al PC).
+Consegna (decisione dell'utente, pensata per la caccia allo shiny): il premio
+va **sempre in squadra, mai al PC**. Con la squadra piena l'aiutante dice di
+tornare con un posto libero; quando si torna, consegna con una frase breve.
+Quindi servono due stati per capo: *sfida vinta* e *premio ritirato*. Chi
+caccia lo shiny salva davanti all'aiutante con la squadra piena, libera un
+posto, ritira e resetta se non è shiny. Lo shiny si tira al momento di
+`givemon`, dopo il reset: da verificare in emulatore che due reset di fila non
+diano lo stesso Pokémon (il seme dell'RNG dipende dal momento in cui si
+preme).
 
-## 4. Come si costruisce (agganci verificati nel codice)
+## 4. Script e scena (decisi dall'utente il 24/10)
 
-| Pezzo | Dove | Nota |
+### Dove: l'aiutante di ogni palestra di Kanto
+
+Ogni sfida vive nella palestra di HnS corrispondente, e la propone l'aiutante
+all'ingresso (`OBJ_EVENT_GFX_GYM_GUY_HNS`):
+
+| Palestra di HnS | Capo in HnS | Sfida di Red's Path | Aiutante |
+| --- | --- | --- | --- |
+| `PewterCity_Gym_hns` | Brock | Brock | c'è |
+| `CeruleanCity_Gym_hns` | Misty | Misty | c'è |
+| `VermilionCity_Gym_hns` | Surge | Surge | c'è |
+| `CeladonCity_Gym_hns` | Erika | Erika | **manca: va aggiunto** |
+| `FuchsiaCity_Gym_hns` | Janine | **Koga** | c'è |
+| `SaffronCity_Gym_hns` | Sabrina | Sabrina | c'è |
+| `SeafoamIslands_Gym_hns` | Blaine | Blaine | c'è |
+| `ViridianCity_Gym_hns` | Blue | **Giovanni** | c'è |
+
+La sfida di una palestra si sblocca battendo il capo di HnS di quella palestra
+(`FLAG_DEFEATED_<CITTÀ>_GYM`, in `include/constants/flags_hns.h`).
+
+### Dialoghi (bozza; il gioco è in inglese)
+
+Testo dell'utente in italiano, proposta inglese sotto. Il testo esatto si
+rifinisce in fase di codice (larghezza della finestra, `\n`/`\p`).
+
+**Prima volta, dopo aver battuto un qualunque capo di Kanto.** Uscendo, prima
+della porta, l'aiutante ha il punto esclamativo, si avvicina e dice:
+
+> Bella sfida! Sono passati 3 anni da quando un allenatore di Pallet Town ha
+> salvato l'intera nazione dal Team Rocket. Come ogni anno la Lega Pokémon
+> organizza l'evento Red's Path, in cui gli allenatori possono ricreare la
+> sfida di Red contro i capipalestra usando solo i Pokémon che aveva quando li
+> ha sconfitti la prima volta. Non perderla, ci sono bellissimi premi per
+> ciascun capopalestra sconfitto in questo modo! Parla con me, organizzerò la
+> lotta con il capopalestra.
+
+> What a battle! It's been three years since a TRAINER from PALLET TOWN saved
+> the whole region from TEAM ROCKET. Every year the POKéMON LEAGUE holds RED'S
+> PATH: TRAINERS relive RED's GYM battles using only the POKéMON he had when
+> he first beat each LEADER. Don't miss it, there's a great prize for every
+> LEADER you beat this way! Talk to me and I'll set up the battle.
+
+Una sola volta in tutto il gioco (un flag), non una per palestra.
+
+**Le volte successive, parlando con un aiutante qualunque:**
+
+> Are you ready for RED'S PATH? → YES / NO
+> - YES: "Then let's go!" → parte la sfida
+> - NO: "OK! Remember, there are great prizes!"
+
+**Sconfitta:** la lotta si chiude come una normale, si torna all'ingresso
+davanti all'aiutante: "Try again!".
+
+**Vittoria con posto in squadra:** congratulazioni e premio.
+**Vittoria con squadra piena:** congratulazioni, "Come back with room in your
+party!". **Ritorno con posto libero:** "Here's your prize!".
+
+**Dopo tutte e 8:** l'aiutante fa tanti complimenti e basta.
+
+### La scena (dopo il "sì")
+
+1. dissolvenza al nero;
+2. nella palestra il giocatore diventa **Red** (sprite overworld
+   `OBJ_EVENT_GFX_RED_NORMAL_HNS`), davanti al capo con lo **sprite giusto**:
+   Koga (`OBJ_EVENT_GFX_KOGA_HNS`) al posto di Janine, Giovanni
+   (`OBJ_EVENT_GFX_GIOVANNI_HNS`) al posto di Blue, gli altri col proprio
+   sprite HnS. Gli sprite overworld FRLG in HnS **non** sono compilati
+   (`#if IS_FRLG` in `object_event_graphics_info_pointers.h`);
+3. ritorno dal nero, scritta **"RED VS BROCK"** (ad esempio), si preme A;
+4. **mugshot** e lotta;
+5. dopo il messaggio di sconfitta del capo, di nuovo nella scena: **"RED
+   WINS!"**, fanfara, dissolvenza al nero;
+6. di nuovo all'ingresso, davanti all'aiutante, nel punto in cui si era
+   lasciato il giocatore: congratulazioni e premio.
+
+Da decidere in fase di codice: Red come oggetto separato con il giocatore
+nascosto, oppure il giocatore con lo sprite cambiato; il capo di Gen 1 come
+oggetto con grafica variabile (`OBJ_EVENT_GFX_VAR_*`) o come oggetto nascosto
+a parte.
+
+### La lotta
+
+| Cosa | Come | Dove si aggancia |
 | --- | --- | --- |
-| squadre di Red | `src/data/battle_partners.party` | stesso formato dei `.party`, ha già `Back Pic:`; 8 voci `PARTNER_RED_*` |
-| caricare la squadra | nuova `FillRedsPathParty` accanto a `FillPartnerParty` (`src/battle_partner.c`) | quella esistente riempie solo gli slot 3-5 con al massimo 3 Pokémon |
-| salvare/ripristinare la squadra del giocatore | `SavePlayerParty` / `LoadPlayerParty` | come la Battle Frontier; la copia sta in `gSaveBlock1Ptr->playerParty` in RAM, la flash non cambia finché non si salva |
-| niente esperienza | `FLAG_DISABLE_EXP_GAIN` (già esiste, `battle_script_commands.c:4147`) | |
-| niente zaino | `B_VAR_NO_BAG_USE` | oggi è 0 (spento): serve una var libera |
-| sconfitta senza svenire | `B_FLAG_NO_WHITEOUT` | oggi è 0 (spento): serve un flag libero; la squadra va ripristinata comunque |
-| level scaling | `IsTrainerExcludedFromScaling` (`src/level_scaling.c`) | queste lotte vanno escluse, o con l'opzione accesa Brock diventa Lv60 |
-| sprite di schiena di Red | `TRAINER_PIC_BACK_RED` (FRLG, compilato anche in HnS) | da capire dove la lotta sceglie la schiena del giocatore |
-| aspetto dei capi | sprite FRLG già compilati (`TRAINER_PIC_FRONT_LEADER_*_FRLG`) | Koga capopalestra e Giovanni di Smeraldopoli esistono solo in FRLG |
-| stato | 8 flag (sfida vinta / premio dato) | `ChallengeSettings` e SaveBlock3 non si toccano |
+| squadra di Red | 8 voci `PARTNER_RED_*` in `src/data/battle_partners.party`, caricate in `gPlayerParty` da una nuova `FillRedsPathParty` | `src/battle_partner.c` (`FillPartnerParty` riempie solo gli slot 3-5) |
+| squadra del giocatore | `SavePlayerParty` prima, `LoadPlayerParty` **sempre** dopo | come la Battle Frontier; la copia sta in RAM, la flash non cambia finché non si salva |
+| sprite di schiena | `TRAINER_PIC_BACK_RED` (l'unico dorso di Red: quello di FRLG) | `PlayerGetTrainerBackPicId` (`src/battle_controller_player.c`), un punto solo |
+| mugshot | Red (`TRAINER_PIC_FRONT_RED_HNS`) dal lato del giocatore | `src/battle_transition.c:2666` usa `PlayerGenderToFrontTrainerPicId`; la palette della banda (`sPlayerMugshotsPals`, riga 2324) dipende dal sesso |
+| sprite del capo in lotta | da decidere: HnS (coerente con l'overworld; Koga con lo sprite da Superquattro) o FRLG (compilati) | |
+| zaino | quello del giocatore: nessun aggancio | |
+| fuga | impossibile | `B_RUN_TRAINER_BATTLE` è `TRUE` in questo repo: va bloccata in `CanPlayerForfeitNormalTrainerBattle` (`src/battle_main.c`) |
+| sconfitta | nessun soldo perso, ritorno allo script | `B_FLAG_NO_WHITEOUT`, oggi 0: serve un flag libero. Con il flag acceso lo script di sconfitta salta `getmoneyreward` (`jumpifnowhiteout`, `data/battle_scripts_1.s:4202`) e `battle_setup.c` torna allo script invece di svenire |
+| niente esperienza | `FLAG_DISABLE_EXP_GAIN` | già esiste |
+| niente catture/TcloneR | il TcloneR non deve agire in queste lotte | `src/tcloner.c` |
+| level scaling | escluse | `IsTrainerExcludedFromScaling` (`src/level_scaling.c`) |
 
-### Il limite degli id allenatore (da risolvere prima di scrivere)
+### Stato salvato
+
+Solo flag, niente struct da allargare:
+
+- 1 flag "introduzione vista";
+- 8 flag "sfida vinta";
+- 8 flag "premio ritirato";
+- il messaggio finale si deduce dagli 8 "premio ritirato" (o "sfida vinta").
+
+### Il limite degli id allenatore
 
 `src/tcloner.c:43` ha
 `STATIC_ASSERT(TRAINERS_COUNT <= TCLONER_TRAINER_FLAGS_BYTES * 8)`, con 82 byte
-= 656 bit, e oggi `TRAINERS_COUNT_HNS` è 653. **Otto allenatori nuovi non
-compilano.** Strade:
+= 656 bit, e oggi `TRAINERS_COUNT_HNS` è 653: **otto allenatori nuovi non
+compilano**. Proposta: un solo id `TRAINER_REDS_PATH_HNS` (654, ci sta) con
+squadra, nome e sprite scelti da una var al momento della lotta, come fa la
+Frontier. Alternative: allargare lo spazio del TcloneR (da misurare) o
+riusare id irraggiungibili (da verificare).
 
-1. un solo id `TRAINER_REDS_PATH_HNS` (653 → 654, ci sta), con squadra, nome
-   e sprite scelti da una var al momento della lotta (come fa la Frontier);
-2. allargare lo spazio del TcloneR, se nella struct `Pokedex` ce n'è
-   (`include/constants/tcloner.h`): da misurare;
-3. riusare id di allenatori irraggiungibili, se ce ne sono: da verificare.
+### Da provare in emulatore
 
-La 1 è la mia preferita. In tutti i casi il TcloneR non deve agire in queste
-lotte.
+Sconfitta e vittoria, soft reset a metà lotta (la flash deve avere ancora la
+squadra vera), evoluzioni a fine lotta, Pokédex (i Pokémon prestati non
+devono risultare catturati), reset ripetuti davanti al premio (shiny che
+cambia), squadra piena.
 
-### Flusso dello script (bozza)
-
-1. l'NPC propone la sfida N (solo se il capo di HnS è battuto);
-2. `SavePlayerParty`, carica `PARTNER_RED_N`, accende i flag/var di lotta;
-3. `trainerbattle` contro il capo di FRLG;
-4. **in ogni caso** `LoadPlayerParty` e spegne flag/var;
-5. prima vittoria → flag e premio.
-
-Rischi da provare in emulatore: sconfitta, soft reset a metà lotta (la flash
-deve avere ancora la squadra vera), evoluzioni a fine lotta, Pokédex (i
-Pokémon prestati non devono risultare catturati).
+**Nota onesta sullo zaino:** con lo zaino del giocatore a fine gioco (Full
+Restore, Max Revive, strumenti X) le prime sfide si vincono anche giocando
+male. Va bene "per ora", come deciso; se in prova risulta troppo facile, la
+soluzione già pronta è `B_VAR_NO_BAG_USE`.
 
 ## Domande aperte
 
-1. **Squadra per Surge** (sezione 2).
-2. **Bullet Seed** a Oddish contro Misty, al posto di Absorb?
-3. **Versione di Red**: FireRed (Oddish, Ekans) o LeafGreen (Bellsprout,
-   Sandshrew)? La squadra di Misty usa già Oddish, quindi oggi è FireRed.
-4. **Natura** di ogni asso premio.
+1. **Erika**: il prossimo capo da costruire.
+2. **Sprite dei capi in lotta**: HnS (coerenti con l'overworld) o FRLG?
 
 ## Scartato: i capi di Giallo
 
