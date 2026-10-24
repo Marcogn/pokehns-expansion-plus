@@ -3,7 +3,7 @@
 **Stato (24/10): piano chiuso, nessun codice.** Avversari (sezione 1), squadre
 di Red per tutti e otto i capi (sezione 2, riepilogo in fondo), premi
 (sezione 3), script e scena (sezione 4) decisi con l'utente. Implementazione
-in tre sessioni (sezione 5).
+in tre fasi, quattro sessioni (sezione 5).
 
 ## L'idea
 
@@ -862,7 +862,8 @@ soluzione già pronta è `B_VAR_NO_BAG_USE`.
 
 ## 5. Fasi e sessioni
 
-Tre sessioni in fila, una per fase, ognuna sul branch che le assegna
+Tre fasi in fila (A, B, C; la A divisa in A1 e A2, vedi "Sessione
+consigliata"), ognuna sul branch che le assegna
 l'ambiente e con la sua PR. Ogni sessione legge prima `CLAUDE.md`, questo
 piano e le regole indicate.
 
@@ -946,18 +947,49 @@ Ogni ritocco va in questo piano e nella regola.
 ### Sessione consigliata
 
 - **Agente**: una sessione nuova di Claude Code per ciascuna fase, in fila (B
-  dopo il merge della A, C dopo la B). Il modello più capace disponibile.
-  A: sforzo alto (salvataggio, migrazione, lotta). B: sforzo medio-alto, molta
-  verifica in emulatore. C: sforzo medio, guidata dalle prove dell'utente.
+  dopo il merge della A, C dopo la B). Modello e sforzo per sessione.
+  **Limite dell'utente (24/10): al massimo Claude Opus 5.5 a sforzo medio**;
+  Fable 5.1 escluso per il costo.
+
+  | Sessione | Modello | Sforzo | Perché |
+  | --- | --- | --- | --- |
+  | A, motore | **Claude Opus 5.5** (`claude-opus-5-5`) | medio | la più rischiosa (migrazione del salvataggio, codice di lotta in C condiviso con le lotte normali): prende il massimo consentito |
+  | B, mondo | **Claude Opus 5.5** (`claude-opus-5-5`) | medio | tanti script e testi e una verifica lunga in emulatore, sul motore già verificato dalla A |
+  | C, taratura | **Claude Sonnet 5.5** (`claude-sonnet-5-5`) | medio | ritocchi piccoli ai dati guidati dalle prove dell'utente, in molti giri brevi: non serve Opus |
+
+  Costi per milione di token in/out (tabella dei modelli della skill
+  `claude-api`, aggiornata al 6/10/2026): Opus 5.5 $4/$20, Sonnet 5.5
+  $2/$10. Le scelte vengono dal posizionamento ufficiale dei modelli e dal
+  rischio di ogni sessione, non da prove su questo repo.
+
+  Con lo sforzo medio conviene **spezzare la A in due sessioni più corte**,
+  ciascuna con la sua verifica in emulatore prima di passare alla successiva:
+  - **A1, dati e salvataggio**: passi 1-3 (spazio degli id e migrazione, otto
+    capi, otto squadre di Red con le funzioni di caricamento) più la voce di
+    debug (passo 5), verificando che le lotte partano con i dati giusti. In
+    A1 la lotta di debug è ancora una lotta normale (dorso del giocatore,
+    fuga e sconfitta come sempre): gli agganci arrivano con la A2;
+  - **A2, agganci di lotta**: passo 4 (dorso, mugshot, fuga, niente soldi
+    persi, niente esperienza) e il resto della verifica (passo 6), poi il
+    passo 7.
+
+  Il modello si sceglie con `/model` all'inizio della sessione, lo sforzo
+  dalle impostazioni di Claude Code.
 - **Serve**: emulatore (`docs/claude/emulator.md`); il `.srm` dell'utente per
   la migrazione (A) e per giocare le palestre già battute (B, C). Soulgold non
   serve: non è un port.
 
-Prompt da incollare (A):
+Prompt da incollare (A1):
 
-> Implementa la sessione A di `docs/plans/reds-path.md`, con le decisioni già
-> scritte nel piano. Ti allego il mio salvataggio. Consegna la ROM zippata e
-> apri la PR.
+> Implementa la sessione A1 di `docs/plans/reds-path.md` (passi 1, 2, 3 e 5
+> della sessione A), con le decisioni già scritte nel piano. Ti allego il mio
+> salvataggio. Consegna la ROM zippata e apri la PR.
+
+Prompt da incollare (A2, dopo il merge della A1):
+
+> Implementa la sessione A2 di `docs/plans/reds-path.md` (passi 4, 6 e 7
+> della sessione A; la A1 è in `master`). Consegna la ROM zippata e apri la
+> PR.
 
 Prompt da incollare (B):
 
