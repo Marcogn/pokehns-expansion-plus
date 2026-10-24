@@ -1,8 +1,9 @@
 # Piano: Red's Path (le palestre di Kanto rigiocate con la squadra di Red)
 
-**Stato (24/10): piano, nessun codice.** Avversari decisi (sezione 1); squadra
-di Red decisa per tutti e otto i capi (sezione 2); script e
-scena decisi (sezione 4); premi (sezione 3).
+**Stato (24/10): piano chiuso, nessun codice.** Avversari (sezione 1), squadre
+di Red per tutti e otto i capi (sezione 2, riepilogo in fondo), premi
+(sezione 3), script e scena (sezione 4) decisi con l'utente. Implementazione
+in tre sessioni (sezione 5).
 
 ## L'idea
 
@@ -67,7 +68,7 @@ tenuto; le cure sono quelle che il capo usa dalla borsa. IV 0. AI FRLG:
    tira con `personalityHash % 3` (`src/battle_main.c:2195`). Così può uscire
    l'abilità nascosta, che in Gen 3 non esisteva (Arena Trap va bene, ma
    Sheer Force a Nidoking, Magic Guard ad Alakazam, Analytic a Starmie no).
-   Proposta, solo abilità che il Pokémon aveva in Gen 3:
+   Solo abilità che il Pokémon aveva in Gen 3:
 
    | Pokémon | Abilità | Perché |
    | --- | --- | --- |
@@ -110,7 +111,7 @@ Le meccaniche sono quelle di expansion con la config di questo repo
 | Toxic | può mancare | **uguale**: questo repo tiene `B_TOXIC_NEVER_MISS` a `GEN_3` |
 | Alakazam | Dif. Sp. base 85 | 95 (`P_UPDATED_STATS`) |
 
-## 2. La squadra di Red (da costruire capo per capo)
+## 2. La squadra di Red (decisa capo per capo)
 
 Metodo: per ogni capo, l'elenco di cosa è ottenibile **prima** di quella
 palestra in FRLG (selvatici da `pokefirered` `wild_encounters.json`, regali e
@@ -184,7 +185,7 @@ casa di Bill). Pesca e Surf no: l'Amo Vecchio è ad Aranciopoli.
 | Percorsi 24-25 | Pidgey 11-13, Abra 8-13, Caterpie, Metapod, Weedle, Kakuna 7-9, **Oddish 12-14 (FR)** / Bellsprout 12-14 (LG) |
 | Centro Pokémon del Percorso 4 | Magikarp Lv5 (venditore) |
 
-Proposta: **Red gioca FireRed** (il nome lo dice), quindi Oddish ed Ekans sì,
+Deciso: **Red gioca FireRed** (il nome lo dice), quindi Oddish ed Ekans sì,
 Bellsprout e Sandshrew no.
 
 Altro: lo scambio di Celestopoli (`INGAME_TRADE_JYNX`) vuole un Poliwhirl, che
@@ -226,7 +227,7 @@ Misty: Staryu 18 e Starmie 21 (Natural Cure, Recover, Water Pulse).
 | --- | --- | --- | --- |
 | Charmeleon | 21 | Scratch, Ember, Metal Claw, Smokescreen | Blaze |
 | Pikachu-Starter | 20 | Thunder Shock, Thunder Wave, Quick Attack, Slam | Static |
-| Oddish | 19 | Absorb, Poison Powder, Stun Spore, Sleep Powder | Chlorophyll |
+| Oddish | 19 | Bullet Seed, Poison Powder, Stun Spore, Sleep Powder | Chlorophyll |
 | Butterfree | 18 | Confusion, Poison Powder, Stun Spore, Sleep Powder | Compound Eyes |
 
 Perché:
@@ -631,9 +632,32 @@ Argento, al posto di Poliwrath e Lapras.
 
 ### Missione di raccordo
 
-Le idee per collegare Red's Path al Monte Argento sono passate nel backlog
+Le idee per collegare Red's Path al Monte Argento sono passate nel piano
 delle missioni, [`quest-log.md`](quest-log.md): l'utente vuole un registro
 delle missioni (logbook) e le inserirà lì, più avanti.
+
+### Riepilogo: le otto squadre di Red (fonte per i dati della sessione A)
+
+Per tutti: **natura neutra (Hardy), IV 15, EV 0, amicizia 255** (`Happiness:`
+nel `.party`; serve a Return, che in expansion dipende dall'amicizia).
+Pikachu è sempre `Pikachu-Starter`. Abilità di Gen 3: Charmander/Charmeleon/
+Charizard Blaze, Pikachu Static, Mankey Vital Spirit, Butterfree Compound
+Eyes, Oddish/Gloom Chlorophyll, Diglett Arena Trap, Eevee Run Away, Poliwrath
+Damp, Snorlax Immunity, Lapras Water Absorb.
+
+| Sfida | Squadra (Lv: mosse) |
+| --- | --- |
+| 1 Brock | Charmander 14: Scratch, Growl, Ember, Metal Claw · Mankey 12: Scratch, Leer, Low Kick, Karate Chop · Butterfree 12: Tackle, String Shot, Harden, Confusion |
+| 2 Misty | Charmeleon 21: Scratch, Ember, Metal Claw, Smokescreen · Pikachu 20: Thunder Shock, Thunder Wave, Quick Attack, Slam · Oddish 19: Bullet Seed, Poison Powder, Stun Spore, Sleep Powder · Butterfree 18: Confusion, Poison Powder, Stun Spore, Sleep Powder |
+| 3 Surge | Charmeleon 25: Ember, Metal Claw, Dig, Brick Break · Pikachu 23: Thunder Shock, Thunder Wave, Quick Attack, Slam · Diglett 22: Sand Attack, Magnitude, Dig, Fury Swipes · Gloom 22: Bullet Seed, Poison Powder, Stun Spore, Sleep Powder |
+| 4 Erika | Charmeleon 30: Ember, Metal Claw, Scary Face, Dig · Pikachu 28: Thunderbolt, Thunder Wave, Quick Attack, Slam · Butterfree 28: Confusion, Gust, Stun Spore, Sleep Powder · Eevee 25: Tackle, Sand Attack, Growl, Quick Attack |
+| 5 Koga | Charizard 42: Flamethrower, Wing Attack, Scary Face, Dig · Pikachu 41: Thunderbolt, Thunder, Thunder Wave, Quick Attack · Butterfree 38: Psybeam, Gust, Stun Spore, Sleep Powder · Poliwrath 37: Surf, Hypnosis, Brick Break, Strength · Snorlax 36: Body Slam, Amnesia, Rest, Snore · Eevee 35: Return, Bite, Quick Attack, Sand Attack |
+| 6 Sabrina | Charizard 45: Flamethrower, Wing Attack, Slash, Dig · Pikachu 43: Thunderbolt, Thunder, Thunder Wave, Quick Attack · Snorlax 42: Body Slam, Amnesia, Rest, Sleep Talk · Eevee 41: Bite, Return, Quick Attack, Sand Attack · Butterfree 40: Psybeam, Gust, Stun Spore, Sleep Powder · Poliwrath 40: Surf, Hypnosis, Brick Break, Strength |
+| 7 Blaine | Charizard 48: Flamethrower, Wing Attack, Slash, Dig · Pikachu 46: Thunderbolt, Thunder, Thunder Wave, Quick Attack · Poliwrath 45: Surf, Hypnosis, Brick Break, Strength · Snorlax 45: Body Slam, Surf, Rest, Sleep Talk · Eevee 44: Bite, Return, Quick Attack, Take Down · Lapras 43: Surf, Ice Beam, Body Slam, Confuse Ray |
+| 8 Giovanni | Charizard 52: Flamethrower, Wing Attack, Steel Wing, Slash · Pikachu 50: Thunderbolt, Brick Break, Slam, Quick Attack · Lapras 49: Surf, Ice Beam, Body Slam, Confuse Ray · Poliwrath 49: Surf, Hypnosis, Brick Break, Strength · Snorlax 49: Body Slam, Surf, Rest, Sleep Talk · Eevee 47: Return, Bite, Take Down, Quick Attack |
+
+Ordine nella squadra: quello della tabella (il primo è quello che scende in
+campo). I livelli sono da tarare in emulatore (sessione C).
 
 ## 3. Premi
 
@@ -791,23 +815,38 @@ a parte.
 
 ### Stato salvato
 
-Solo flag, niente struct da allargare:
+- **8 allenatori veri** `TRAINER_REDS_PATH_{BROCK,MISTY,SURGE,ERIKA,KOGA,
+  SABRINA,BLAINE,GIOVANNI}_HNS` (id 653-660): il loro flag di allenatore
+  battuto (`TRAINER_FLAGS_START + id`) è già il "sfida vinta", acceso da
+  `trainerbattle` solo alla vittoria. La prossima sfida è la prima con il
+  flag spento: basta per il controllo dell'ordine.
+- **8 flag** "premio ritirato".
+- **1 flag** "introduzione vista".
+- **1 flag** per `B_FLAG_NO_WHITEOUT` e **1 flag** "lotta di Red's Path in
+  corso" (sprite di schiena, mugshot, fuga, TcloneR, level scaling), da
+  spegnere sempre dopo la lotta e in `Overworld_ResetBattleFlagsAndVars`.
+- Il messaggio finale si deduce dagli 8 flag di allenatore.
 
-- 1 flag "introduzione vista";
-- 8 flag "sfida vinta" (la prossima sfida è la prima non vinta: basta
-  questo per il controllo dell'ordine);
-- 8 flag "premio ritirato";
-- il messaggio finale si deduce dagli 8 "premio ritirato" (o "sfida vinta").
-
-### Il limite degli id allenatore
+### Il limite degli id allenatore: risolto allargando lo spazio del TcloneR
 
 `src/tcloner.c:43` ha
-`STATIC_ASSERT(TRAINERS_COUNT <= TCLONER_TRAINER_FLAGS_BYTES * 8)`, con 82 byte
-= 656 bit, e oggi `TRAINERS_COUNT_HNS` è 653: **otto allenatori nuovi non
-compilano**. Proposta: un solo id `TRAINER_REDS_PATH_HNS` (654, ci sta) con
-squadra, nome e sprite scelti da una var al momento della lotta, come fa la
-Frontier. Alternative: allargare lo spazio del TcloneR (da misurare) o
-riusare id irraggiungibili (da verificare).
+`STATIC_ASSERT(TRAINERS_COUNT <= TCLONER_TRAINER_FLAGS_BYTES * 8)`: con 82
+byte (656 bit) e `TRAINERS_COUNT_HNS` a 653, otto allenatori nuovi non
+compilano. Ma i bit del TcloneR stanno all'inizio del vecchio filler dei flag
+del Pokédex di Emerald, che è di **0x68 = 104 byte** (`struct Pokedex`,
+`include/global.h`): ne restano 22 liberi.
+
+Quindi: `TCLONER_TRAINER_FLAGS_BYTES` da 82 a **83** (664 bit, ci stanno gli
+id fino a 663), con un passo di migrazione `saveVersion < 10` in
+`LoadGameSave()` che azzera il byte nuovo, come la migrazione 9 ha fatto con i
+primi 82 ("not provably zero in every save", `src/save.c`). Così ogni capo di
+Red's Path è un allenatore normale, con nome, classe, sprite FRLG, mugshot,
+abilità e cure scritti nel `.party`, senza sostituzioni a runtime. L'idea
+dell'id unico con squadra scelta da una var (scritta prima) è scartata:
+avrebbe obbligato a intercettare nome, classe e sprite in ogni punto che legge
+`gTrainers[]`.
+
+Il TcloneR non deve comunque contare né clonare questi allenatori.
 
 ### Da provare in emulatore
 
@@ -821,11 +860,121 @@ Restore, Max Revive, strumenti X) le prime sfide si vincono anche giocando
 male. Va bene "per ora", come deciso; se in prova risulta troppo facile, la
 soluzione già pronta è `B_VAR_NO_BAG_USE`.
 
+## 5. Fasi e sessioni
+
+Tre sessioni in fila, una per fase, ognuna sul branch che le assegna
+l'ambiente e con la sua PR. Ogni sessione legge prima `CLAUDE.md`, questo
+piano e le regole indicate.
+
+### Sessione A: motore della lotta (C, dati, salvataggio)
+
+Regole da leggere: `.claude/rules/save.md`, `trainer_catch.md`,
+`level_scaling.md`, guida
+dell'emulatore `docs/claude/emulator.md`.
+
+1. **Spazio degli id**: `TCLONER_TRAINER_FLAGS_BYTES` 82 → 83, migrazione
+   `saveVersion < 10` che azzera il byte nuovo, `STATIC_ASSERT` aggiornati;
+   aggiornare `.claude/rules/save.md`.
+2. **Otto capi** in `include/constants/opponents_hns.h` (653-660,
+   `TRAINERS_COUNT_HNS` 661) e in `src/data/trainers_hns.party`: squadre FRLG
+   della sezione 1 con le variazioni (Rhydon 50), abilità scritte, IV 0, cure,
+   AI FRLG, sprite FRLG (`TRAINER_PIC_FRONT_LEADER_*_FRLG`), mugshot, testo
+   di sconfitta. Esclusi dal level scaling (`IsTrainerExcludedFromScaling`)
+   e dal TcloneR.
+3. **Otto squadre di Red** (riepilogo della sezione 2) in
+   `src/data/battle_partners.party` come `PARTNER_RED_*`, e una
+   `FillRedsPathParty` che le carica negli slot 0-5 di `gPlayerParty`
+   (`FillPartnerParty` riempie solo 3-5). Gli `special` per lo script:
+   salva squadra, carica squadra di Red N, ripristina squadra.
+4. **Agganci di lotta** dietro il flag "lotta di Red's Path in corso":
+   dorso `TRAINER_PIC_BACK_RED` in `PlayerGetTrainerBackPicId`, mugshot con
+   `TRAINER_PIC_FRONT_RED` (FRLG) in `battle_transition.c`, fuga bloccata in
+   `CanPlayerForfeitNormalTrainerBattle`, `B_FLAG_NO_WHITEOUT` assegnato a un
+   flag libero, `FLAG_DISABLE_EXP_GAIN`. Controllare che i Pokémon prestati
+   non finiscano nel Pokédex come catturati e che non evolvano a fine lotta.
+5. **Debug**: una voce che avvia la sfida N senza script di mappa.
+6. **Verifica in emulatore** (con la voce di debug): tutte e otto le lotte
+   partono con squadre, abilità, mosse e sprite giusti (screenshot);
+   vittoria e sconfitta tornano allo script, senza soldi persi e senza
+   svenimento; la squadra del giocatore torna intatta in entrambi i casi;
+   la fuga è rifiutata; soft reset a metà lotta → al caricamento c'è la
+   squadra vera; un salvataggio vecchio (versione 9) passa la migrazione col
+   TcloneR intatto.
+7. `CHANGELOG.md`, nuova regola `.claude/rules/reds_path.md` (con `paths:`)
+   e voce nell'indice di `CLAUDE.md` §7.
+
+Fra il merge della A e quello della B Red's Path non è raggiungibile in gioco
+(solo da debug): niente release in mezzo.
+
+### Sessione B: mondo (script, mappe, testi, premi)
+
+Regole da leggere: `reds_path.md` (della A), `field.md`, guida
+dell'emulatore.
+
+1. **Aiutante di Erika** in `CeladonCity_Gym_hns` (`OBJ_EVENT_GFX_GIRL_1_HNS`),
+   con un dialogo normale da aiutante più Red's Path.
+2. **Script comune** (`data/scripts/reds_path.inc`): introduzione una volta
+   sola, attivata uscendo dalla palestra dopo il capo di HnS (punto
+   esclamativo, l'aiutante si avvicina); domanda sì/no; controllo
+   dell'ordine con "Beat the LEADER there first!"; la scena (sezione 4);
+   ritorno all'ingresso; premio in squadra (Lv70, mosse di livello, allenatore
+   originale il capo, Poké Ball, IV 31, natura casuale, shiny con le
+   probabilità normali), squadra piena → torna dopo, "Here's your prize!";
+   sconfitta → "Try again!"; complimenti finali dopo le otto.
+3. **Agganci** negli otto script delle palestre (aiutanti esistenti).
+4. **Testi inglesi** dalla sezione 4, impaginati e controllati negli
+   screenshot.
+5. **Verifica in emulatore**: percorso completo con flag forzati (debug o
+   GDB): introduzione dopo un capo qualunque; ordine violato, con e senza capo
+   di HnS battuto; scena completa con screenshot di ogni passo; vittoria con
+   squadra piena e poi libera; reset ripetuti davanti al premio (lo shiny deve
+   poter cambiare); sconfitta; complimenti finali. **Consegnare all'utente gli
+   screenshot della scena** e la ROM zippata.
+6. `CHANGELOG.md`, aggiornare `reds_path.md` e `docs/plans/quest-log.md`
+   (Red's Path è una missione del registro).
+
+### Sessione C: taratura
+
+Dopo la B, con le prove dell'utente. Ogni lotta giocata in emulatore con la
+squadra di Red, annotando quanto è difficile, e i ritocchi già previsti nel
+piano: Brock (Pikachu assente, Charmander da solo può bastare?), Butterfree e
+Oddish con Sleep Powder contro Misty, Erika e Koga probabilmente facili
+(abbassare Charmeleon/Charizard, togliere Eevee), IV dei capi (0 → più alti
+se serve), lo zaino del giocatore (`B_VAR_NO_BAG_USE` se rende tutto banale).
+Ogni ritocco va in questo piano e nella regola.
+
+### Sessione consigliata
+
+- **Agente**: una sessione nuova di Claude Code per ciascuna fase, in fila (B
+  dopo il merge della A, C dopo la B). Il modello più capace disponibile.
+  A: sforzo alto (salvataggio, migrazione, lotta). B: sforzo medio-alto, molta
+  verifica in emulatore. C: sforzo medio, guidata dalle prove dell'utente.
+- **Serve**: emulatore (`docs/claude/emulator.md`); il `.srm` dell'utente per
+  la migrazione (A) e per giocare le palestre già battute (B, C). Soulgold non
+  serve: non è un port.
+
+Prompt da incollare (A):
+
+> Implementa la sessione A di `docs/plans/reds-path.md`, con le decisioni già
+> scritte nel piano. Ti allego il mio salvataggio. Consegna la ROM zippata e
+> apri la PR.
+
+Prompt da incollare (B):
+
+> Implementa la sessione B di `docs/plans/reds-path.md` (la A è in `master`).
+> Ti allego il mio salvataggio. Consegna la ROM zippata, gli screenshot della
+> scena e apri la PR.
+
+Prompt da incollare (C):
+
+> Sessione C di `docs/plans/reds-path.md`: tariamo le otto lotte. [Le mie
+> prove: …]
+
 ## Domande aperte
 
-Nessuna sulle squadre: tutte e otto approvate. Restano da fare in fase di
-codice, con prove in emulatore: taratura dei livelli, testi definitivi in
-inglese, scelte tecniche della scena (sezione 4).
+Nessuna di design. Le scelte tecniche rimaste (Red come oggetto separato o
+sprite del giocatore cambiato, capo di Gen 1 come oggetto a grafica variabile
+o separato) sono della sessione B; i ritocchi di bilanciamento della C.
 
 ## Scartato: i capi di Giallo
 
