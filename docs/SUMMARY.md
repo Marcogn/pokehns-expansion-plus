@@ -28,6 +28,8 @@
     - [Plan: Overworld wild encounters](./plans/overworld-encounters.md)
     - [Plan: Level scaling](./plans/level-scaling.md)
     - [Plan: TcloneR](./plans/tcloner.md)
+    - [Plan: Red's Path](./plans/reds-path.md)
+    - [Plan (draft): quest log](./plans/quest-log.md)
 - [Test plan](./TEST_PLAN.md)
 - [Emulator guide (for Claude)](./claude/emulator.md)
 - [Tutorials]()
