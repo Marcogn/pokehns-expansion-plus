@@ -70,16 +70,103 @@ qui interessa solo il **motore**.
   `src/start_menu.c`); una voce in più è la strada più corta.
 - **Oggetto chiave**: come la Mappa città.
 
-### Riferimento esterno
+## Menu missioni esistenti per i decomp (letti nel codice, 24/10)
 
-Il menu missioni più diffuso per i decomp è quello di ghoulslash (branch
-`quest-menu`, pokeemerald e pokefirered: tabella `sSideQuests`, voce del
-menu di pausa dietro `FLAG_SYS_QUEST_MENU_GET`, `QuestMenu_Init`), da cui è
-derivato anche il rifacimento del menu di Unbound
-([PokéCommunity](https://www.pokecommunity.com/threads/pokefirered-pokeemerald-quest-menu.434462/),
-[Unbound Quest Menu](https://pokecommunity.com/threads/unbound-quest-menu.477500/)).
-Non è stato aperto né confrontato col codice: tiene lo stato delle missioni
-in flag propri (attiva/completata), cioè l'opposto del principio sopra.
+Tutti e due sono per **pret/pokeemerald**, non per expansion: si portano a
+mano (lo dice la stessa documentazione di PSF).
+
+### ghoulslash, `quest-menu`
+
+`github.com/ghoulslash/pokeemerald`, branch `quest-menu`, ultimo commit
+2023-05-11; 24 file, +2103 righe, di cui `src/quests.c` 1499
+([thread](https://www.pokecommunity.com/threads/pokefirered-pokeemerald-quest-menu.434462/)).
+
+- 30 missioni con nome, descrizione **fissa**, persona da cercare, mappa,
+  premio (icona dell'oggetto). Stati: sbloccata, completata, una sola
+  "attiva".
+- Salvataggio: due bitfield da 4 byte e un byte in coda a SaveBlock2.
+- Schermata: è il PC degli oggetti di FireRed (cornici `fr_std*`).
+- Voce `QUESTS` nel menu di pausa dietro `FLAG_SYS_QUEST_MENU_GET`; comando
+  di script `questmenu` (opcode `0xe3` della tabella di pret).
+- Superato dal successivo: non vale la pena partire da qui.
+
+### PokemonSanFran, "Unbound Quest Menu"
+
+`github.com/PokemonSanFran/pokeemerald`: branch `unbound-quest-menu`
+(allineato a pret il 2026-08-02) e `complex_quests` (RubyRaven6, ultimo
+commit 2026-10-20), +3977 righe, `src/quests.c` 2971. Documentazione:
+[wiki di PSF](https://github.com/PokemonSanFran/pokeemerald/wiki/Unbound-Quest-Menu),
+elencata fra i feature branch del
+[wiki di pret](https://github.com/pret/pokeemerald/wiki/Feature-Branches).
+Parte da ghoulslash e imita il menu di Pokémon Unbound.
+
+- **Stati**: bloccata (`????`), sbloccata, attiva, premio da ritirare,
+  completata; più "preferita" (Select, va in cima). 5 bit per missione,
+  1 bit per sottomissione: 25 byte in SaveBlock2 per 30 + 30.
+- **Sottomissioni** (A su una missione): solo bloccata/completata, con
+  contatore `x/y`. Esempio della doc: i sette simboli d'oro del Frontier.
+- **Filtri** con R (per stato), **ordine alfabetico** con Start.
+- Ogni voce: mappa, sprite (NPC, oggetto **o** Pokémon), descrizione
+  attiva e descrizione "completata".
+- **`complex_quests` è la parte che ci interessa**: ogni missione ha un
+  `questVariable` e array `desc[]`, `map[]`, `sprite[]` indicizzati da
+  `VarGet(questVariable)` (`GetQuestDesc`, `GetQuestLocation`). È il "cosa
+  fare adesso" guidato da una var che già esiste: va bene così com'è per
+  Red's Path e per il TcloneR (`VAR_TCLONER_STAGE`). Per medaglie, Pokédex
+  e leggendari lo stato non è una var ma una funzione: servirebbe un
+  callback al posto della var.
+
+Cose da sapere prima di portarlo:
+
+- **Cambia tutte le liste del gioco**: `ListMenu_ProcessInput`
+  (`src/list_menu.c`) viene modificata perché ogni lista ricominci dall'alto
+  dopo l'ultima voce. La doc lo segnala; in Hasep toccherebbe anche borsa,
+  PC e menu nostri. Va tolto o messo dietro un parametro.
+- **Salvataggio in SaveBlock2**, azzerato a mano in `NewGameInitData`
+  (`QuestMenu_ResetMenuSaveData`). Da noi un campo nuovo va in coda a
+  SaveBlock3 con migrazione (CLAUDE.md §4). Se si legge lo stato esistente,
+  i 5 bit per missione si riducono a "preferita" e "nuovo".
+- **Nessun controllo di limite**: `desc[VarGet(...)]` su un array di
+  `MAX_QUEST_STATES` = 50 voci, ricade sull'indice 0 solo se la voce è
+  `NULL`. Una var oltre 49 legge fuori dall'array.
+- **ROM**: ogni missione porta 50 + 50 puntatori e 50 sprite anche se ne
+  usa 3. Circa 570 byte a missione, ~17 KB per 30: poco, ma la ROM è al
+  99,46% con le mega (`.claude/rules/megas.md`).
+- Comando di script con opcode nella tabella di pret: in expansion la
+  tabella è diversa, va rinumerato. `CreateMonIcon` in expansion ha un
+  argomento in meno (FAQ della doc).
+- Bug noto della doc: un artefatto per un frame passando da uno sprite NPC
+  a uno non NPC, mai riprodotto con regolarità.
+- Sfondo: versione modificata di quello FRLG di Skeli; ci sono varianti
+  (stile Pokédex Plus, scuro). Va accreditato l'autore. Da noi va comunque
+  rifatto sulla nostra grafica e sul tema scuro (CLAUDE.md §2 e §5).
+
+## Il menu di pausa
+
+Hasep e Soulgold hanno tutti e due il menu di pausa classico, una lista
+(`BuildNormalStartMenu`, `src/start_menu.c`); HnS aggiunge solo la voce
+DexNav. Soulgold non lo ha rifatto: le sue app stanno nel Pokégear.
+
+Rifacimenti esistenti:
+
+- **Full Screen Start Menu** (Archie e Mudskip, Team Aqua's Hideout):
+  branch `full_start_menu` di `TeamAquasHideout/pokeemerald`, ultimo
+  commit 2024-10-14. Il
+  [wiki di pret](https://github.com/pret/pokeemerald/wiki/Full-Screen-Start-Menu-by-Archie-and-Mudskip)
+  lo dice compatibile con expansion; con il Pokédex HGSS (Hasep usa
+  `pokedex_plus_hgss.c`) va cambiato il ritorno in `Task_ClosePokedex`. Usa
+  gli stessi flag del menu classico (voce grigia se manca), salva senza la
+  conferma di sovrascrittura. Non aperto nel codice.
+- `pollythadon/pokeemerald-expansion`, branch `shattered-emerald`
+  (expansion 1.17.1, commit del 2026-10-13): contiene
+  `src/unbound_start_menu.c` e `src/rotom_start_menu.c`. Una ricerca lo
+  descrive come "alpha"; non aperto, base più nuova della nostra (1.15.2).
+
+Il legame con il registro: in un menu a schermo intero le voci hanno posti
+fissi, quindi il registro va previsto nel disegno. Il costo vero è un
+altro: ogni schermata aperta dal menu deve tornarci (`CB2_ReturnTo...`),
+quindi vanno ritoccati tutti i ritorni, compresi quelli nostri (party menu
+SwSh, DexNav, borsa, Pokédex).
 
 ## 1. Storia principale: le 16 medaglie
 
