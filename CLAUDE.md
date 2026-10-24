@@ -209,7 +209,10 @@ In `.claude/rules/`, caricate da sole quando apri i file indicati.
 | `level_scaling.md` | level scaling di allenatori, selvatici (con tetto e margine) e lotte di script; soldi |
 
 Fuori dalle regole, da leggere quando serve: `docs/claude/emulator.md`,
-`docs/SOULGOLD_PORT_REPORT.md`.
+`docs/SOULGOLD_PORT_REPORT.md`. I piani in `docs/plans/` contengono le
+decisioni; **`docs/analysis/` è l'archivio delle ricerche da cui vengono**:
+non serve per implementare, aprilo solo se il piano rimanda lì o se una
+scelta va rimessa in discussione.
 
 ---
 
