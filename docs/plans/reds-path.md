@@ -1,7 +1,7 @@
 # Piano: Red's Path (le palestre di Kanto rigiocate con la squadra di Red)
 
 **Stato (24/10): piano, nessun codice.** Avversari decisi (sezione 1); squadra
-di Red decisa fino a Blaine (sezione 2); script e
+di Red decisa fino a Blaine, Giovanni proposto (sezione 2); script e
 scena decisi (sezione 4); premi (sezione 3).
 
 ## L'idea
@@ -569,6 +569,45 @@ Perché:
 - Alternativa a Lapras: **Dugtrio** (Dig, Slash; Terra superefficace), ma
   contro Giovanni non servirebbe.
 
+### Fra Blaine e Giovanni: cosa si ottiene
+
+Dopo Blaine, in Gen 1, resta solo la palestra di Smeraldopoli. Le Isole Sevii
+(Bill porta il giocatore a Primisola dopo Blaine) sono un'aggiunta di FRLG,
+non del viaggio di Red: le lascio fuori. Unica novità: **MT38 Fire Blast** da
+Blaine.
+
+Nota su Pikachu: contro Giovanni tutti i Pokémon sono Terra, e Pikachu non
+impara Surf in FRLG. Deve arrangiarsi con mosse non Elettro: **Brick Break**
+(MT31, superefficace su Rhyhorn e Rhydon), Slam, Quick Attack.
+
+### Giovanni (proposta)
+
+Giovanni (con la variazione approvata): Rhyhorn 45 (Take Down, Rock Blast,
+Scary Face, Earthquake), Dugtrio 42 (**Arena Trap**; Slash, Sand Tomb,
+Mud-Slap, Earthquake), Nidoqueen 44 (Body Slam, Double Kick, Poison Sting,
+Earthquake), Nidoking 45 (Thrash, Double Kick, Poison Sting, Earthquake),
+**Rhydon 50** (Take Down, Rock Blast, Scary Face, Earthquake). Proposta:
+**sei** Pokémon, livelli 47-52.
+
+| Pokémon | Lv | Mosse | Abilità (Gen 3) |
+| --- | --- | --- | --- |
+| Charizard | 52 | Flamethrower, Wing Attack, Steel Wing, Slash | Blaze |
+| Pikachu-Starter | 50 | Thunderbolt, Brick Break, Slam, Quick Attack | Static |
+| Lapras | 49 | Surf, Ice Beam, Body Slam, Confuse Ray | Water Absorb |
+| Poliwrath | 49 | Surf, Hypnosis, Brick Break, Strength | Damp |
+| Snorlax | 49 | Body Slam, Surf, Rest, Sleep Talk | Immunity |
+| Eevee | 47 | Return, Bite, Take Down, Quick Attack | Run Away |
+
+Perché:
+- **Stessa squadra di Blaine**: è la squadra definitiva del viaggio.
+- **Lapras e Poliwrath** (Acqua, Ghiaccio) sono le armi; **Snorlax** ha Surf.
+- **Charizard** è immune alla Terra (Volante) ma soffre Rock Blast; Steel Wing
+  (MT47, Zona Safari) è superefficace su Rhyhorn e Rhydon.
+- **Pikachu tiene Thunderbolt** anche se qui non tocca nessuno: è la sua
+  mossa, e riconoscerlo è parte della sfida. Brick Break è la sua mossa utile.
+- **Arena Trap** di Dugtrio impedisce di cambiare: chi entra contro di lui
+  deve reggere.
+
 ### Da Red's Path al Monte Argento
 
 La squadra di Red al Monte Argento in HnS (`src/data/trainers_hns.party`):
@@ -589,6 +628,50 @@ dal viaggio di Kanto). Venusaur e Blastoise **non sono ottenibili** in una
 partita a FireRed partita con Charmander (FRLG dà un solo starter, niente
 regali come in Giallo): si spiegano nei tre anni fra il viaggio e il Monte
 Argento, al posto di Poliwrath e Lapras.
+
+### Idee per una missione di raccordo (non decise)
+
+Cosa deve spiegare: da dove vengono **Venusaur e Blastoise**, quando **Eevee
+diventa Espeon**, dove finiscono **Poliwrath, Lapras, Butterfree** e la
+panchina, e come si arriva a Red sul Monte Argento. Agganci già in HnS: la
+**casa di Red** a Biancavilla (`PalletTown_RedsHouse_1F_hns`, la madre dice
+che non ha sue notizie), il **laboratorio di Oak** (`PalletTown_Lab_hns`),
+la casa di **Bill** sul Percorso 25, la **Villa di Azzurropoli** (dove Red ha
+avuto Eevee). In HnS nessuno script regala gli starter di Kanto (solo il menu
+debug).
+
+1. **Il PC di Bill.** Finito Red's Path, Bill dice che Red gli ha lasciato in
+   custodia i Pokémon del viaggio: Butterfree, Mankey, Diglett/Dugtrio,
+   Gloom, Poliwrath, Lapras (cioè le panchine delle nostre otto sfide). Si
+   vedono (o si combatte una lotta speciale con loro), e Bill racconta che
+   Red li ha lasciati quando è partito per allenarsi da solo. Riusa i dati
+   di Red's Path.
+2. **Gli starter di Oak.** Oak racconta che Red è tornato dopo la Lega a
+   chiedere i due starter rimasti, per allevarli sul Monte Argento. In
+   *Origins* Blue sceglie Squirtle, quindi Bulbasaur sarebbe rimasto al
+   laboratorio; per Blastoise serve un'invenzione (un secondo Squirtle,
+   uno scambio con Blue). Missione: portare a Red un oggetto di Oak (le
+   Pokémon Ball degli starter, una lettera) fino al Pokémon Center del Monte
+   Argento.
+3. **Eevee al sole.** L'Espeon è un'evoluzione di Gen 2 (amicizia, di
+   giorno). Idea: la signora della Villa di Azzurropoli che ha dato Eevee a
+   Red riceve una foto di un Espeon e chiede al giocatore di portarle notizie;
+   oppure un indizio in Johto (Red è passato di lì per arrivare al Monte
+   Argento).
+4. **Le lettere alla madre.** La madre di Red, a Red's Path completato, ha
+   ricevuto una lettera (o il giocatore la porta): Red racconta in poche righe
+   i tre anni dopo il viaggio, con i nuovi compagni. Costo minimo: solo
+   testo, ma spiega tutto.
+5. **La sfida finale di Red's Path.** Al posto (o oltre) del messaggio di
+   complimenti dopo le otto sfide: una nona lotta "Red contro Blue" (il
+   rivale campione), con la squadra di Giovanni. Fuori dal tema "capi
+   palestra", ma chiude il viaggio di Kanto com'era in Gen 1.
+
+Mio suggerimento: **1 + 4**. Il PC di Bill chiude la squadra di Red's Path
+(dove sono finiti Poliwrath, Lapras e gli altri), la lettera alla madre
+spiega Venusaur, Blastoise ed Espeon senza inventare meccaniche, ed entrambe
+usano posti e personaggi che HnS ha già. La 2 è più ricca ma tocca Oak e
+l'accesso al Monte Argento, cioè la progressione del gioco.
 
 ## 3. Premi
 
@@ -778,7 +861,8 @@ soluzione già pronta è `B_VAR_NO_BAG_USE`.
 
 ## Domande aperte
 
-1. **Giovanni** (sezione 2): l'ultimo capo.
+1. **Squadra per Giovanni** (sezione 2).
+2. **Missione di raccordo**: quale idea (sezione 2, in fondo)?
 
 ## Scartato: i capi di Giallo
 
