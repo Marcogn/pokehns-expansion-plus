@@ -265,6 +265,23 @@ perde o va su un altro tasto. Restano 6 icone (Pokédex, DexNav, Squadra,
 Borsa, Scheda, Missioni): con Pokégear e Opzioni sui dorsali stanno in una
 pagina sola.
 
+### Decisione (24/10): strada B, la striscia
+
+Decisioni definitive dell'utente, dopo due anteprime
+(`New Bark Town` vera, icone di `pollythadon`, font del gioco):
+
+- **Strada B**: striscia in basso sopra la mappa, stile Unbound.
+- **Tasti come immagine del tasto**, non come testo: i glifi
+  `{START_BUTTON}`, `{L_BUTTON}`, `{R_BUTTON}` del gioco
+  (`graphics/fonts/keypad_icons.png`, `sKeypadIcons` in `src/text.c`).
+- **Start** salva, **L** apre la **Scheda allenatore**.
+- **Missioni e Opzioni sono le ultime due icone.** Ordine dell'anteprima:
+  Pokédex, DexNav, Squadra, Borsa, Missioni, Opzioni.
+- Da confermare: **R = Pokégear**. È l'unica voce rimasta fuori dalla
+  striscia; dedotto, non detto.
+- Con 6 icone la striscia ha una pagina sola: il cambio pagina e il riordino
+  delle voci di `pollythadon` non servono.
+
 ### Ordine consigliato
 
 1. Disegno comune dei due schermi (bozza su carta o mockup), così il menu
