@@ -311,6 +311,32 @@ Quest Menu) e chi cita la sua documentazione (Skeli, ghoulslash e gli
 altri); `pollythadon` per la striscia (e hedara, vol per icone e sprite,
 secondo la sua descrizione: da verificare nel suo repo).
 
+### Dopo le fasi: aggiungere una missione
+
+Ricetta per il modello che la aggiunge (Sonnet o Haiku bastano, se la
+condizione esiste già):
+
+1. trova la condizione già nel gioco (flag, var, medaglia, Pokédex) con
+   `grep` negli script `_hns`, e **verifica dove viene impostata**: il nome
+   può ingannare. Esempio: `FLAG_VISITED_KANTO` (`flags_hns.h`) si accende
+   ai primi passi sul **Percorso 27** (`Route27_EventScript_FirstSteps`),
+   non ad Aranciopoli: per "arriva ad Aranciopoli" serve
+   `FLAG_VISITED_VERMILION_CITY`;
+2. se la condizione non c'è (missione inventata), un flag o una var liberi
+   da `flags_hns.h`/`vars_hns.h`, impostati dallo script nuovo;
+3. voce in tabella + testi (in inglese) + id in `constants/quests.h`;
+   **gli id si aggiungono in coda, mai in mezzo**, o i bit salvati finiscono
+   sulla missione sbagliata;
+4. verifica in emulatore con un caso che fallisce prima della condizione.
+
+Capienza (stima sui numeri misurati sopra): una missione che legge lo stato
+del gioco costa 2 bit di salvataggio (preferita, nuova), una con stato
+proprio 5, una sottomissione 1. I 56 byte liberi di SaveBlock3 sono 448 bit:
+circa 200 missioni del primo tipo o 90 del secondo, meno quello che servirà
+ad altro. Gli indici di PSF sono `u8`, quindi 255 al massimo. In ROM ~570
+byte a missione. Oltre, SaveBlock3 si può allargare fino a 1624 byte
+togliendo l'assert sul primo chunk: non provato.
+
 ### Ordine consigliato
 
 1. Disegno comune dei due schermi (bozza su carta o mockup), così il menu
