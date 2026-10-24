@@ -2,7 +2,10 @@
 
 **Stato (24/10): deciso, da implementare.** Si fa dopo Red's Path
 ([`reds-path.md`](reds-path.md)), una fase per sessione (§5). Le ricerche sono già fatte: i fatti qui sotto sono
-verificati nel codice indicato, non vanno rifatte.
+verificati nel codice indicato, non vanno rifatte. I confronti e le
+opzioni scartate stanno in
+[`docs/analysis/quest-book-research.md`](../analysis/quest-book-research.md):
+non servono per implementare.
 
 ## 1. Cosa si fa
 
@@ -280,6 +283,8 @@ contale. Oltre, si allarga ancora: nel vecchio filler dei flag del Pokédex
 restano 21 byte (`reds-path.md` §4).
 
 ## 8. Scartato, e perché
+
+Una riga per voce; i dettagli sono nell'analisi.
 
 - **Trofei di Soulgold** (`achievements*.c`): SG non ha un quest book, e i
   trofei sono un elenco di obiettivi, non dicono "cosa fare adesso". Il

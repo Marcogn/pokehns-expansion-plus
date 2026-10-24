@@ -30,6 +30,8 @@
     - [Plan: TcloneR](./plans/tcloner.md)
     - [Plan: Red's Path](./plans/reds-path.md)
     - [Plan: quest book and start menu strip](./plans/quest-log.md)
+    - [Analysis (archive): Red's Path](./analysis/reds-path-research.md)
+    - [Analysis (archive): quest book and start menu](./analysis/quest-book-research.md)
 - [Test plan](./TEST_PLAN.md)
 - [Emulator guide (for Claude)](./claude/emulator.md)
 - [Tutorials]()
