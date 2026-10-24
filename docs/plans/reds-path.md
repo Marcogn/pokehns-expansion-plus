@@ -1,7 +1,7 @@
 # Piano: Red's Path (le palestre di Kanto rigiocate con la squadra di Red)
 
 **Stato (24/10): piano, nessun codice.** Avversari decisi (sezione 1); squadra
-di Red decisa fino a Sabrina (sezione 2); script e
+di Red decisa fino a Sabrina, Blaine proposto (sezione 2); script e
 scena decisi (sezione 4); premi (sezione 3).
 
 ## L'idea
@@ -512,6 +512,63 @@ Perché:
 - **Synchronize** fa parte della sfida: Thunder Wave su Alakazam paralizza
   anche Pikachu.
 
+### Fra Sabrina e Blaine: cosa si ottiene
+
+Storia: Percorsi 19-20 e 21 in Surf, Isole Spumarine (con Strength), Cinnabar,
+Villa Pokémon (la Chiave Segreta apre la palestra).
+
+| Dove | Pokémon (FireRed) |
+| --- | --- |
+| Isole Spumarine | Zubat, Golbat 22-30, Psyduck, Golduck 26-40, **Seel 25-35**, Dewgong 32-40, Horsea (Surf); **Articuno Lv50** (B4F) |
+| Villa Pokémon | Rattata, Raticate 26-38, Grimer 28, Koffing 28-30, Weezing 32-34, **Growlithe 30-32**, Ditto 30 |
+| Percorso 21 | Tangela 17-28 |
+| Laboratorio di Cinnabar | fossili rianimati **al Lv5** (Omanyte, Kabuto, Aerodactyl): troppo bassi per entrare |
+
+Scambi: Seel, Electrode, Tangela (laboratorio di Cinnabar). MT nuove: **MT14
+Blizzard** e **MT22 SolarBeam** (Villa Pokémon B1F). La MT38 Fire Blast
+arriva da Blaine, quindi dopo.
+
+Mosse utili (FRLG):
+
+| Pokémon | Livello | Note |
+| --- | --- | --- |
+| Lapras | Water Gun, Growl, Sing · 7 Mist · 13 Body Slam · 19 Confuse Ray · 25 Perish Song · **31 Ice Beam** · 37 Rain Dance · 43 Safeguard · 49 Hydro Pump | regalo della Silph a Lv25; Surf con la MN |
+| Dugtrio | 38 Slash · 51 Earthquake | Dig già noto |
+| Snorlax | Surf (MN03) compatibile | |
+
+Abilità che contano contro Blaine: Ponyta e Rapidash hanno **Flash Fire**
+(assorbono il Fuoco e si potenziano), Growlithe e Arcanine **Intimidate**.
+
+### Blaine (proposta)
+
+Blaine: Growlithe 42 (Bite, Roar, Take Down, Fire Blast), Ponyta 40 e
+Rapidash 42 (Stomp, Bounce, Fire Spin, Fire Blast), Arcanine 47 (Bite, Roar,
+Take Down, Fire Blast). Fire Blast in expansion è 110. Proposta: **sei**
+Pokémon, livelli 43-48.
+
+| Pokémon | Lv | Mosse | Abilità (Gen 3) |
+| --- | --- | --- | --- |
+| Charizard | 48 | Flamethrower, Wing Attack, Slash, Dig | Blaze |
+| Pikachu-Starter | 46 | Thunderbolt, Thunder, Thunder Wave, Quick Attack | Static |
+| Poliwrath | 45 | Surf, Hypnosis, Brick Break, Strength | Damp |
+| Snorlax | 45 | Body Slam, Surf, Rest, Sleep Talk | Immunity |
+| Eevee | 44 | Bite, Return, Quick Attack, Take Down | Run Away |
+| Lapras | 43 | Surf, Ice Beam, Body Slam, Confuse Ray | Water Absorb |
+
+Perché:
+- **Lapras entra qui, Butterfree esce**: Butterfree contro il Fuoco è
+  debole; Lapras (regalo della Silph, allenato da Lv25) porta l'Acqua e
+  resterà utile contro Giovanni (Acqua e Ghiaccio contro Terra). È l'ultimo
+  cambio di squadra e porta Red alla sua squadra quasi definitiva.
+- **Poliwrath** con Surf è il protagonista di questa lotta.
+- **Snorlax** prende Surf (MN), superefficace; resta con Immunity (è lo stesso
+  Snorlax di Koga, l'abilità non cambia).
+- **Charizard** tiene Flamethrower: contro Flash Fire è un errore da evitare,
+  ed è parte della sfida. Dig è la sua mossa utile qui.
+- **Eevee** prende Take Down (42).
+- Alternativa a Lapras: **Dugtrio** (Dig, Slash; Terra superefficace), ma
+  contro Giovanni non servirebbe.
+
 ## 3. Premi
 
 L'asso di ogni capo, **Lv70**, alla prima vittoria, con le mosse di livello
@@ -610,8 +667,9 @@ ma la prima sfida non vinta è la K < N), l'aiutante indica quella:
 > PEWTER CITY.
 
 Se in più il capo di HnS di quella palestra non è ancora battuto (la sfida K
-non è ancora offerta), lo stesso messaggio basta: lì l'aiutante ne parlerà
-dopo la vittoria. Da decidere se aggiungere "Beat the LEADER there first!".
+non è ancora offerta), l'aiutante aggiunge (approvato):
+
+> Beat the LEADER there first!
 
 **Le volte successive, se la sfida di questa palestra è la prossima:**
 
@@ -699,9 +757,7 @@ soluzione già pronta è `B_VAR_NO_BAG_USE`.
 
 ## Domande aperte
 
-1. **Blaine** (sezione 2): il prossimo capo.
-2. Se il giocatore salta una sfida il cui capo di HnS non ha ancora battuto,
-   l'aiutante aggiunge "Beat the LEADER there first!"?
+1. **Squadra per Blaine** (sezione 2): Lapras al posto di Butterfree?
 
 ## Scartato: i capi di Giallo
 
