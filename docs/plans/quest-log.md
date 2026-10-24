@@ -168,6 +168,115 @@ altro: ogni schermata aperta dal menu deve tornarci (`CB2_ReturnTo...`),
 quindi vanno ritoccati tutti i ritorni, compresi quelli nostri (party menu
 SwSh, DexNav, borsa, Pokédex).
 
+## Fattibilità e costi: quest book di Unbound + menu a schermo intero (24/10)
+
+Richiesta dell'utente: il quest book di Unbound (la ricreazione di PSF) e un
+menu di pausa a schermo intero, disegnati insieme. **Fattibile.** Non c'è
+niente di bloccante; il costo è lavoro di port e di grafica, non spazio.
+
+### Spazio misurato (build `make hns` del 24/10, `master` 2417f28e)
+
+| | Usato | Limite | Libero |
+| --- | --- | --- | --- |
+| ROM | 31 862 468 B (94,96%) | 32 MB | ~1,6 MB (le mega, non unite, ne prendono ~1,5) |
+| SaveBlock1 | 15 760 B | 15 872 (4 settori) | 112 B |
+| SaveBlock2 | 3 892 B | 3 968 (1 settore) | 76 B |
+| SaveBlock3 | 60 B | 116 (`SaveBlock3FitsFirstChunk`) | 56 B |
+
+Misure: `nm -S pokehns.elf` su `gSaveblock1/2` meno i 128 byte di ASLR
+(`SAVEBLOCK_MOVE_RANGE`, `include/load_save.h`); ROM fino al padding `0xFF`.
+
+Al quest book servono pochi byte: con lo stato letto dal gioco bastano i bit
+"preferita" e "nuova" (8 byte per 30 missioni); con il modello completo di
+PSF, 25 byte per 30 missioni + 30 sottomissioni. Ci stanno tutti e due in
+SaveBlock3, in coda, con migrazione. Il codice e la grafica dei due menu
+valgono decine di KB di ROM (stima, non misurata).
+
+### Quest book: cosa si fa
+
+Base: `complex_quests` di PSF, portata a mano su expansion 1.15.2.
+
+1. **Motore**: `quests.c`, tabella delle missioni, schermata, comando di
+   script rinumerato nella tabella di expansion, `CreateMonIcon` con un
+   argomento in meno.
+2. **Tre sorgenti di stato per missione**, in modo che il registro legga il
+   gioco invece di duplicarlo: una var (già in PSF: Red's Path, TcloneR), una
+   funzione (da aggiungere: medaglie, Pokédex, leggendari), oppure i bit di
+   PSF per le missioni nuove scritte apposta.
+3. **Togliere l'effetto su tutte le liste** (`ListMenu_ProcessInput`): la
+   lista che ricomincia dall'alto resta solo nel quest book.
+4. **Limite sull'indice** di `desc[]`/`map[]`/`sprite[]` (oggi nessuno).
+5. **Grafica**: sfondo fatto sulla nostra grafica, tema chiaro e scuro
+   (`IsDarkUiEnabled()`), testi in inglese.
+6. **Contenuto iniziale**: storia principale (16 medaglie), Red's Path,
+   TcloneR. Le altre missioni una per una, come deciso.
+
+### Menu a schermo intero: cosa si fa
+
+Le basi esistenti sono due, nessuna da prendere così com'è:
+
+- **Team Aqua's Hideout** (`ui_startmenu_full.c`, 1577 righe, compatibile
+  con expansion per il wiki di pret): 6 icone fisse (Pokédex, Squadra,
+  Borsa, Scheda, Mappa/Pokénav, Opzioni) più icone della squadra con barre
+  PS, ora, nome della mappa. Dai suoi ritorni, la Zona Safari, la Piramide,
+  la Battle Pike e la Union Room restano sul menu classico.
+- **`pollythadon/pokeemerald-expansion`** (`unbound_start_menu.c`, 1317
+  righe, expansion 1.17.1): barra di icone in stile Unbound, 6 per pagina
+  con **più pagine**, voci riordinabili dal giocatore (ordine salvato in
+  SaveBlock3). È dentro un gioco (`shattered-emerald`), non un feature
+  branch; descritto come alpha.
+
+A Hasep servono 9 voci: Pokédex, DexNav, Squadra, Borsa, Pokégear, Scheda,
+**Missioni**, Salva, Opzioni (più Debug nelle build di debug e i ritiri di
+Safari e Bug-Catching Contest). Le 6 caselle fisse di Team Aqua non bastano: o si
+ridisegna la griglia, o si usano le pagine dello stile Unbound. Per un menu
+"compagno" del quest book di Unbound il secondo è il più vicino.
+
+Il costo vero sono i **ritorni**: `CB2_ReturnToFieldWithOpenMenu` compare in
+13 file (`start_menu.c` 5, `naming_screen.c` 4, `swsh_party_menu.c`,
+`party_menu.c` e `pokenav.c` 2, `pokedex_plus_hgss.c`, `dexnav.c`,
+`item_menu.c`, `region_map.c` e altri 1). Ognuno va portato al nuovo menu,
+con le eccezioni dove deve restare la lista classica (Safari, Bug-Catching
+Contest, Piramide, …), e verificato in emulatore uno per uno.
+
+### Ordine consigliato
+
+1. Disegno comune dei due schermi (bozza su carta o mockup), così il menu
+   prevede il posto delle Missioni e i due condividono stile e palette.
+2. **Quest book** con una voce nel menu classico: si prova da solo.
+3. **Menu a schermo intero**, che poi lo ospita.
+
+Stima: 2-3 sessioni il quest book (motore + grafica + prime missioni), 3-4
+il menu (schermata + ritorni + verifica in emulatore). Stima a giudizio,
+non misurata.
+
+## Altre migliorie viste nel wiki di pret (24/10)
+
+Lette nel codice di Hasep: **due su tre sono già superate da expansion**.
+
+- **Improved Audio Mixer** (Kurausukun, `newmix`): **già presente.**
+  `src/m4a_1.s:88` è l'HQ-Mixer rev 4.0 di ipatix; `src/m4a.c` ha
+  `SoundMainRAM_Buffer[0xB40]` e `hq_buffer_ptr[0x130]` (18 157 Hz), con
+  `PCM_DMA_BUF_SIZE` 2128 e 15 canali DirectSound; le scritture DMA atomiche
+  sono in `include/gba/macro.h`. Non c'è niente da portare.
+- **BetterBag** (AsparagusEduardo): **superata.** Expansion ha le tasche
+  come opzione: `I_COMBINE_BAG_POCKETS` (`include/config/item.h`) è `TRUE`
+  in Hasep, cioè 6 tasche (Strumenti, Medicine, Poké Ball, MT/MN, Bacche,
+  Strumenti chiave). Con `FALSE` si aggiungono **Strumenti lotta** e
+  **Tesori**; i posti totali restano uguali (236 + 92 contro
+  200 + 36 + 60 + 32), ma le tasche nuove stanno in mezzo alla
+  `struct Bag`, quindi serve una migrazione che ridistribuisca gli oggetti di
+  un salvataggio vecchio. Va rifatta anche la grafica della borsa per 8
+  tasche. Soulgold ha 8 tasche, ma diverse: Strumenti lotta e
+  **Megapietre**, niente Tesori.
+- **free_saveblock** (ghoulslash): **superata.** Expansion ha
+  `include/config/save.h` con i flag `FREE_*`; Hasep ne usa già quattro
+  (seen flag in SaveBlock1, buffer Mystery Event, Bacca Enigma, Dono
+  Segreto). Oggi lo spazio non serve: il quest book ci sta (vedi sopra).
+  Ogni altro `FREE_*` toglie un campo, e se non è in coda alla struct sposta
+  tutto quello che segue: rompe i salvataggi vecchi senza una migrazione.
+  `FREE_MATCH_CALL` va lasciato, perché il Pokégear di HnS usa le chiamate.
+
 ## 1. Storia principale: le 16 medaglie
 
 Una missione per regione, un passo per palestra, con la prossima indicata.
