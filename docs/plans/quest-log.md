@@ -227,7 +227,12 @@ Le basi esistenti sono due, nessuna da prendere così com'è:
   righe, expansion 1.17.1): barra di icone in stile Unbound, 6 per pagina
   con **più pagine**, voci riordinabili dal giocatore (ordine salvato in
   SaveBlock3). È dentro un gioco (`shattered-emerald`), non un feature
-  branch; descritto come alpha.
+  branch; descritto come alpha. **Non è a schermo intero**: è una striscia
+  in basso disegnata sopra la mappa (icone a `USM_ICON_YPOS` 128, BG0 del
+  campo, `FreezeObjectEvents`), come il menu di Unbound. Le schermate
+  tornano con `CB2_ReturnToFieldWithOpenMenu` come oggi. Tasti: frecce
+  (a destra dell'ultima icona passa alla pagina dopo), L pagina, R sposta
+  voce, B esce; finestre per nome, orologio e suggerimenti.
 
 A Hasep servono 8 icone più Salva su Start, come fa Team Aqua: Pokédex,
 DexNav, Squadra, Borsa, Pokégear, Scheda, **Missioni**, Opzioni (più Debug
@@ -242,6 +247,23 @@ Il costo vero sono i **ritorni**: `CB2_ReturnToFieldWithOpenMenu` compare in
 `item_menu.c`, `region_map.c` e altri 1). Ognuno va portato al nuovo menu,
 con le eccezioni dove deve restare la lista classica (Safari, Bug-Catching
 Contest, Piramide, …), e verificato in emulatore uno per uno.
+
+### Due strade, scelta dell'utente (24/10)
+
+| | A. Schermo intero (base Team Aqua) | B. Striscia in basso (base stile Unbound) |
+| --- | --- | --- |
+| Aspetto | schermata propria, griglia di icone | sopra la mappa, 6 icone visibili per pagina |
+| Ritorni da riscrivere | 13 file (vedi sopra) | nessuno: restano quelli di oggi |
+| Voci | griglia da ridisegnare per 8 | 8 su due pagine, o 6 + scorciatoie |
+| Costo stimato | 3-4 sessioni | 1-2 sessioni |
+
+Preferenze dell'utente, valide per tutte e due: **L apre il Pokégear, R le
+Opzioni, Salva su Start; niente griglia della squadra** (la voce Squadra
+c'è già, mostrarla accanto è doppio). Con L e R come scorciatoie, sulla
+striscia il cambio pagina resta alle frecce e il riordino delle voci si
+perde o va su un altro tasto. Restano 6 icone (Pokédex, DexNav, Squadra,
+Borsa, Scheda, Missioni): con Pokégear e Opzioni sui dorsali stanno in una
+pagina sola.
 
 ### Ordine consigliato
 
