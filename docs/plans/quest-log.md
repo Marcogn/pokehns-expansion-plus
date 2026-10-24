@@ -36,6 +36,51 @@ invece bisogno di flag propri.
 - Se esiste qualcosa di riusabile: nella config di expansion
   (`include/config/`) non c'è un registro missioni.
 
+## Confronto con Soulgold (24/10)
+
+**Soulgold non ha un registro delle missioni.** Verificato sul mirror e
+sull'upstream `Eemeliri/soulgold` (`master` = `4d4acbe98`, lo stesso punto
+già valutato in `state.json`; nessun branch remoto con un quest log). Le
+"quest" di SG sono solo script e var senza interfaccia
+(`VAR_BAOBA_QUEST_STATE`, `FLAG_STARTED_VICTINI_QUEST`,
+`VAR_POSTGAME_RIVAL_LEGENDARYQ` per Cresselia): sono contenuto, e le
+missioni si valutano una per una, non si portano in blocco.
+
+La cosa più vicina in SG sono i **Trofei** (achievement): un elenco di
+obiettivi con stato e progresso, che è metà di un registro. Non dice "cosa
+fare adesso". Il §5 del port report lo classifica come contenuto di SG;
+qui interessa solo il **motore**.
+
+| Pezzo di SG | File | Riusabile per il registro? |
+| --- | --- | --- |
+| Tabella dichiarativa: id, nome, descrizione, categoria, contatore + soglia, oppure un **predicato** `bool32 (*)(void)` | `src/achievements.c`, `include/achievements.h` | Sì, come forma. I predicati leggono lo stato che c'è già (`FlagGet(FLAG_BADGE0x_GET)`, `GetSetPokedexFlag(..., FLAG_GET_CAUGHT)`, var di script): è il principio scritto sopra. Al registro serve un passo in più: una funzione che restituisce il **passo corrente** (indice di testo), non solo vero/falso. |
+| Salvataggio: 48 byte in SaveBlock1 (6 contatori `u32`, 16 byte di bit sbloccati, coda di 6 popup, magic `0xACE1` che inizializza i salvataggi vecchi) | `include/global.h`, `include/constants/achievements.h` | No così com'è. Un registro che legge lo stato esistente non ha bisogno di contatori né di bit "completato": al massimo una missione seguita e i bit "già letto/nuovo". In Hasep un campo nuovo va in coda a SaveBlock3 con migrazione (CLAUDE.md §4), non con un magic. |
+| Controllo: `Achievement_CheckAll()` chiamato da cattura, evoluzione, oggetti, strutture lotta; `Achievement_OnTrainerDefeated()` | sparsi in 10+ file | Non serve per il registro: lo stato si calcola all'apertura. Servirebbe solo per avvisare "missione aggiornata". |
+| Popup in overworld con coda salvata, agganciato a `OverworldBasic()` | `src/achievements_popup.c` | Possibile, da valutare a parte (usa `comfy_anim`, che in Hasep c'è: `include/comfy_anim.h`). |
+| Schermata: lista di 6 righe, icona per categoria (Poké/Mega/Ultra/Master Ball), stato a destra (`Done`, `x/y`, `Locked`), descrizione in basso | `src/achievements_menu.c` | Come riferimento di layout. Prende lo sfondo da `graphics/pokegear/tiles.*` di SG: in Hasep va derivato dalla grafica nostra (CLAUDE.md §2). |
+| Ingresso: app `POKEGEAR_APP_TROPHIES` del Pokégear di SG | `src/pokegear.c` | No: Hasep usa il Pokénav di HnS (§5 del port report). |
+
+### Dove aprirlo in Hasep (fatti, nessuna scelta)
+
+- **Pokénav di HnS**: il menu più completo (`POKENAV_MENU_TYPE_UNLOCK_MC_RIBBONS_RADIO`,
+  `src/pokenav_menu_handler.c`) usa già 6 voci su `MAX_POKENAV_MENUITEMS` = 6.
+  Una settima voce vuol dire alzare il massimo e una grafica di pulsante
+  nuova: costo non misurato.
+- **Menu di pausa**: c'è già una voce aggiunta da HnS (`MENU_ACTION_DEXNAV`,
+  `src/start_menu.c`); una voce in più è la strada più corta.
+- **Oggetto chiave**: come la Mappa città.
+
+### Riferimento esterno
+
+Il menu missioni più diffuso per i decomp è quello di ghoulslash (branch
+`quest-menu`, pokeemerald e pokefirered: tabella `sSideQuests`, voce del
+menu di pausa dietro `FLAG_SYS_QUEST_MENU_GET`, `QuestMenu_Init`), da cui è
+derivato anche il rifacimento del menu di Unbound
+([PokéCommunity](https://www.pokecommunity.com/threads/pokefirered-pokeemerald-quest-menu.434462/),
+[Unbound Quest Menu](https://pokecommunity.com/threads/unbound-quest-menu.477500/)).
+Non è stato aperto né confrontato col codice: tiene lo stato delle missioni
+in flag propri (attiva/completata), cioè l'opposto del principio sopra.
+
 ## 1. Storia principale: le 16 medaglie
 
 Una missione per regione, un passo per palestra, con la prossima indicata.
