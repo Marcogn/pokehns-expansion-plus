@@ -1,7 +1,7 @@
 # Piano: Red's Path (le palestre di Kanto rigiocate con la squadra di Red)
 
 **Stato (24/10): piano, nessun codice.** Avversari decisi (sezione 1); squadra
-di Red decisa fino a Koga, Sabrina proposta (sezione 2); script e
+di Red decisa fino a Sabrina (sezione 2); script e
 scena decisi (sezione 4); premi (sezione 3).
 
 ## L'idea
@@ -9,8 +9,10 @@ scena decisi (sezione 4); premi (sezione 3).
 Dopo aver battuto un capo palestra di Kanto, l'aiutante della palestra
 propone la sfida "del viaggio di Red": il giocatore **usa la squadra di Red di
 quel momento** contro **lo stesso capo palestra com'era allora**. Niente
-catture, niente esperienza: la lotta e basta. Ogni sfida riparte da zero,
-quindi l'ordine è libero. (Il modello dell'utente: il DLC di *Breath of the
+catture, niente esperienza: la lotta e basta. Le medaglie di HnS si prendono
+in (quasi) qualunque ordine, ma **le sfide di Red's Path vanno fatte
+nell'ordine del viaggio di Red**: Brock, Misty, Surge, Erika, Koga, Sabrina,
+Blaine, Giovanni. (Il modello dell'utente: il DLC di *Breath of the
 Wild* in cui si rigioca una sfida con gli strumenti dei campioni di allora.)
 
 ## Decisioni prese
@@ -25,7 +27,7 @@ Wild* in cui si rigioca una sfida con gli strumenti dei campioni di allora.)
 | Mosse di Red | livello, MT e MN **ottenibili a quel punto della storia**; niente eccezioni salvo problemi seri |
 | Pikachu | se c'è, è `Pikachu-Starter` (base 45/80/50/75/60/120) |
 | Espeon | mai: solo al Monte Argento |
-| Ordine | libero |
+| Ordine | **obbligato** (Brock → Misty → Surge → Erika → Koga → Sabrina → Blaine → Giovanni), anche se le medaglie di HnS sono in ordine libero (tranne Blue, sempre ultimo). Cambiato dall'utente il 24/10 (prima era libero) |
 | Sblocco | **dopo il capo di HnS corrispondente** |
 | Zaino | **quello attuale del giocatore** (per ora) |
 | Fuga | **impossibile**: si vince o si perde |
@@ -479,12 +481,12 @@ Nota su Sabrina in expansion: Kadabra e Alakazam hanno **Synchronize**, che
 rimanda paralisi, veleno e scottatura a chi li causa (il sonno no). Mr. Mime
 ha **Soundproof**: Snore non lo tocca.
 
-### Sabrina (proposta)
+### Sabrina (approvata)
 
 Sabrina: Kadabra 38 (Psybeam, Reflect, Future Sight, Calm Mind), Mr. Mime 37
 (Barrier, Psybeam, Baton Pass, Calm Mind), Venomoth 38 (Psybeam, Gust, Leech
 Life, Supersonic), Alakazam 43 (Psychic, Recover, Future Sight, Calm Mind).
-Proposta: **sei** Pokémon, livelli 40-45.
+**Sei** Pokémon, livelli 40-45 (stessa squadra di Koga: approvato).
 
 | Pokémon | Lv | Mosse | Abilità (Gen 3) |
 | --- | --- | --- | --- |
@@ -560,8 +562,18 @@ all'ingresso (`OBJ_EVENT_GFX_GYM_GUY_HNS`):
 | `SeafoamIslands_Gym_hns` | Blaine | Blaine | c'è |
 | `ViridianCity_Gym_hns` | Blue | **Giovanni** | c'è |
 
-La sfida di una palestra si sblocca battendo il capo di HnS di quella palestra
-(`FLAG_DEFEATED_<CITTÀ>_GYM`, in `include/constants/flags_hns.h`).
+La sfida di una palestra si può fare quando:
+1. il capo di HnS di quella palestra è battuto (`FLAG_DEFEATED_<CITTÀ>_GYM`,
+   in `include/constants/flags_hns.h`), che è anche il momento in cui
+   l'aiutante comincia a parlarne;
+2. **tutte le sfide di Red's Path che la precedono sono vinte.**
+
+Ordine delle medaglie in HnS, verificato: libero, tranne Smeraldopoli. Blue
+torna in palestra solo quando lo si incontra a Cinnabar con 15 medaglie
+(`CinnabarIsland_hns/scripts.inc:36`, `VAR_NUM_BADGES == 15`), quindi è
+sempre l'ultimo capo di Kanto, come Giovanni nel nostro ordine. Un giocatore
+può però battere Blaine prima di Brock: per questo serve il controllo
+dell'ordine.
 
 ### Dialoghi (bozza; il gioco è in inglese)
 
@@ -583,11 +595,25 @@ della porta, l'aiutante ha il punto esclamativo, si avvicina e dice:
 > the whole region from TEAM ROCKET. Every year the POKéMON LEAGUE holds RED'S
 > PATH: TRAINERS relive RED's GYM battles using only the POKéMON he had when
 > he first beat each LEADER. Don't miss it, there's a great prize for every
-> LEADER you beat this way! Talk to me and I'll set up the battle.
+> LEADER you beat this way! Just like RED, you have to take them on in order,
+> starting with BROCK in PEWTER CITY. Talk to me and I'll set up the battle.
+
+Aggiunta dell'utente (24/10): l'introduzione dice che le sfide vanno fatte in
+ordine.
 
 Una sola volta in tutto il gioco (un flag), non una per palestra.
 
-**Le volte successive, parlando con un aiutante qualunque:**
+**Se il giocatore ne ha saltata una** (parla con l'aiutante della palestra N
+ma la prima sfida non vinta è la K < N), l'aiutante indica quella:
+
+> RED'S PATH has to be followed in order! Your next challenge is BROCK, in
+> PEWTER CITY.
+
+Se in più il capo di HnS di quella palestra non è ancora battuto (la sfida K
+non è ancora offerta), lo stesso messaggio basta: lì l'aiutante ne parlerà
+dopo la vittoria. Da decidere se aggiungere "Beat the LEADER there first!".
+
+**Le volte successive, se la sfida di questa palestra è la prossima:**
 
 > Are you ready for RED'S PATH? → YES / NO
 > - YES: "Then let's go!" → parte la sfida
@@ -644,7 +670,8 @@ a parte.
 Solo flag, niente struct da allargare:
 
 - 1 flag "introduzione vista";
-- 8 flag "sfida vinta";
+- 8 flag "sfida vinta" (la prossima sfida è la prima non vinta: basta
+  questo per il controllo dell'ordine);
 - 8 flag "premio ritirato";
 - il messaggio finale si deduce dagli 8 "premio ritirato" (o "sfida vinta").
 
@@ -672,8 +699,9 @@ soluzione già pronta è `B_VAR_NO_BAG_USE`.
 
 ## Domande aperte
 
-1. **Squadra per Sabrina** (sezione 2): stessa di Koga più alta, o un cambio
-   (Lapras al posto di Poliwrath)?
+1. **Blaine** (sezione 2): il prossimo capo.
+2. Se il giocatore salta una sfida il cui capo di HnS non ha ancora battuto,
+   l'aiutante aggiunge "Beat the LEADER there first!"?
 
 ## Scartato: i capi di Giallo
 
