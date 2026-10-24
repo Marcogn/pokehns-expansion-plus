@@ -1,7 +1,7 @@
 # Piano: Red's Path (le palestre di Kanto rigiocate con la squadra di Red)
 
 **Stato (24/10): piano, nessun codice.** Avversari decisi (sezione 1); squadra
-di Red decisa fino a Surge (sezione 2, si continua capo per capo); script e
+di Red decisa fino a Surge, Erika proposta (sezione 2); script e
 scena decisi (sezione 4); premi (sezione 3).
 
 ## L'idea
@@ -304,6 +304,76 @@ Perché:
 - **Attenzione a Dig**: fa contatto, quindi rischia la paralisi di Static.
   Fa parte della sfida.
 
+### Fra Surge ed Erika: cosa si ottiene
+
+Storia: Percorsi 9 e 10, Tunnel Roccioso (con Flash), Lavandonia, Percorso 8,
+sotterraneo 7-8, Percorso 7, Azzurropoli. Il Covo Rocket sotto il Casinò e la
+Torre Pokémon (che vuole lo Spettrosonda del Covo) restano fuori: in storia si
+fanno attorno a Erika, e per la sfida li mettiamo dopo. Pesca: solo Magikarp
+(Amo Vecchio).
+
+| Dove | Pokémon (FireRed) |
+| --- | --- |
+| Percorso 10 | Spearow 13-17, Ekans 11-17, Voltorb 14-17 |
+| Tunnel Roccioso | Zubat 15-16, Geodude 15-17, Machop 16-17, Mankey 16-17, Onix 13-17 |
+| Percorso 8 | Pidgey 18-20, Meowth 18-20, Ekans 17-19, **Growlithe 15-18** |
+| Percorso 7 | Pidgey 19-22, Meowth 17-20, Oddish 19-22, Growlithe 18-20 |
+| Villa di Azzurropoli (tetto) | **Eevee Lv25** (regalo) |
+| Casinò, premi (FR; serve il Portagettoni, che si trova al ristorante) | Abra 9, Clefairy 8, Dratini 18, Scyther 25, Porygon 26 |
+
+MT:
+- **Centro Commerciale** (2° piano, in vendita): MT05 Roar, MT15 Hyper Beam,
+  MT28 Dig, MT31 Brick Break, MT43 Secret Power, MT45 Attract;
+- **tetto del Centro Commerciale** (bibite alla bambina): MT16 Light Screen,
+  MT20 Safeguard, MT33 Reflect;
+- **Casinò** (gettoni): MT13 Ice Beam, MT23 Iron Tail, **MT24 Thunderbolt**,
+  MT30 Shadow Ball, **MT35 Flamethrower**;
+- MN05 Flash (necessaria per il Tunnel Roccioso).
+
+**Il punto di rottura sono le MT del Casinò**: legali, ma Flamethrower e Ice
+Beam a questo punto stravolgono le sfide successive. Proposta di regola:
+**Red non usa le MT e i Pokémon del Casinò** (nella storia al Casinò ci va per
+il Team Rocket, non per giocare). Non serve comunque: Pikachu impara
+Thunderbolt **di livello al 26** e Charmeleon Flamethrower al 34.
+
+Mosse utili (FRLG):
+
+| Pokémon | Livello | MT compatibili fra quelle sopra |
+| --- | --- | --- |
+| Charmeleon | 27 Scary Face · 34 Flamethrower | Dig, Brick Break, Aerial Ace, Iron Tail, Cut |
+| Pikachu | 26 **Thunderbolt** · 33 Agility | Dig, Brick Break, Light Screen, Iron Tail, Flash |
+| Butterfree | 23 Whirlwind · 28 **Gust** · 34 Psybeam | Aerial Ace, Safeguard, Hyper Beam |
+| Eevee | Tackle, Tail Whip, Helping Hand · 8 Sand Attack · 16 Growl · 23 Quick Attack · 30 Bite | Dig, Iron Tail |
+| Growlithe | Bite, Roar · 7 Ember · 13 Leer · 19 Odor Sleuth · 25 Take Down | Dig, Aerial Ace, Iron Tail |
+| Machop | 13 Karate Chop · 19 Seismic Toss · 25 Revenge | Dig, Brick Break, Rock Tomb |
+| Pidgeotto | 13 Quick Attack · 20 Whirlwind · 27 Wing Attack | Aerial Ace |
+
+### Erika (proposta)
+
+Erika: Victreebel 29, Tangela 24, Vileplume 29 (Chlorophyll; Giga Drain,
+Sleep Powder, Stun Spore, Acid, Ingrain). Proposta: **quattro** Pokémon,
+livelli 25-30.
+
+| Pokémon | Lv | Mosse | Abilità (Gen 3) |
+| --- | --- | --- | --- |
+| Charmeleon | 30 | Ember, Metal Claw, Scary Face, Dig | Blaze |
+| Pikachu-Starter | 28 | Thunderbolt, Thunder Wave, Quick Attack, Slam | Static |
+| Butterfree | 28 | Confusion, Gust, Stun Spore, Sleep Powder | Compound Eyes |
+| Eevee | 25 | Tackle, Sand Attack, Growl, Quick Attack | Run Away |
+
+Perché:
+- **Eevee entra qui**: è il regalo della Villa di Azzurropoli, al Lv25 com'è
+  in FRLG, e porta verso l'Espeon del Monte Argento (che resta solo lì).
+  Contro Erika è debole: è il membro "di storia", non quello di forza.
+- **Butterfree torna** dalla panchina: Volante e Psico sono superefficaci su
+  tutti e tre (Gust impara al 28).
+- **Pikachu ha Thunderbolt** di livello (26), non dal Casinò.
+- **Gloom, Diglett e Mankey in panchina**: contro l'Erba non servono.
+- Onestà: un giocatore con Charmander ha Erika facile anche in FRLG. Qui la
+  difficoltà viene solo dalle polveri di Erika (sonno e paralisi) e da Giga
+  Drain più forte (75). Se in prova è banale, si abbassa Charmeleon o si
+  toglie Gust.
+
 ## 3. Premi
 
 L'asso di ogni capo, **Lv70**, alla prima vittoria, con le mosse di livello
@@ -348,7 +418,7 @@ all'ingresso (`OBJ_EVENT_GFX_GYM_GUY_HNS`):
 | `PewterCity_Gym_hns` | Brock | Brock | c'è |
 | `CeruleanCity_Gym_hns` | Misty | Misty | c'è |
 | `VermilionCity_Gym_hns` | Surge | Surge | c'è |
-| `CeladonCity_Gym_hns` | Erika | Erika | **manca: va aggiunto** |
+| `CeladonCity_Gym_hns` | Erika | Erika | **manca: va aggiunta un'aiutante donna** (la palestra di Erika è solo femminile) |
 | `FuchsiaCity_Gym_hns` | Janine | **Koga** | c'è |
 | `SaffronCity_Gym_hns` | Sabrina | Sabrina | c'è |
 | `SeafoamIslands_Gym_hns` | Blaine | Blaine | c'è |
@@ -424,8 +494,8 @@ a parte.
 | squadra di Red | 8 voci `PARTNER_RED_*` in `src/data/battle_partners.party`, caricate in `gPlayerParty` da una nuova `FillRedsPathParty` | `src/battle_partner.c` (`FillPartnerParty` riempie solo gli slot 3-5) |
 | squadra del giocatore | `SavePlayerParty` prima, `LoadPlayerParty` **sempre** dopo | come la Battle Frontier; la copia sta in RAM, la flash non cambia finché non si salva |
 | sprite di schiena | `TRAINER_PIC_BACK_RED` (l'unico dorso di Red: quello di FRLG) | `PlayerGetTrainerBackPicId` (`src/battle_controller_player.c`), un punto solo |
-| mugshot | Red (`TRAINER_PIC_FRONT_RED_HNS`) dal lato del giocatore | `src/battle_transition.c:2666` usa `PlayerGenderToFrontTrainerPicId`; la palette della banda (`sPlayerMugshotsPals`, riga 2324) dipende dal sesso |
-| sprite del capo in lotta | da decidere: HnS (coerente con l'overworld; Koga con lo sprite da Superquattro) o FRLG (compilati) | |
+| mugshot | Red **FRLG** (`TRAINER_PIC_FRONT_RED`, compilato), coerente col dorso FRLG | `src/battle_transition.c:2666` usa `PlayerGenderToFrontTrainerPicId`; la palette della banda (`sPlayerMugshotsPals`, riga 2324) dipende dal sesso |
+| sprite del capo in lotta | **FRLG** (decisione dell'utente): `TRAINER_PIC_FRONT_LEADER_{BROCK,MISTY,LT_SURGE,ERIKA,KOGA,SABRINA,BLAINE,GIOVANNI}_FRLG`, tutti compilati in HnS (`src/data/graphics/trainers.h`, senza `#if`) | |
 | zaino | quello del giocatore: nessun aggancio | |
 | fuga | impossibile | `B_RUN_TRAINER_BATTLE` è `TRUE` in questo repo: va bloccata in `CanPlayerForfeitNormalTrainerBattle` (`src/battle_main.c`) |
 | sconfitta | nessun soldo perso, ritorno allo script | `B_FLAG_NO_WHITEOUT`, oggi 0: serve un flag libero. Con il flag acceso lo script di sconfitta salta `getmoneyreward` (`jumpifnowhiteout`, `data/battle_scripts_1.s:4202`) e `battle_setup.c` torna allo script invece di svenire |
@@ -466,8 +536,12 @@ soluzione già pronta è `B_VAR_NO_BAG_USE`.
 
 ## Domande aperte
 
-1. **Erika**: il prossimo capo da costruire.
-2. **Sprite dei capi in lotta**: HnS (coerenti con l'overworld) o FRLG?
+1. **Squadra per Erika** (sezione 2).
+2. **Regola del Casinò**: Red non usa MT e Pokémon del Casinò?
+3. **Sprite dell'aiutante di Erika**: fra quelli femminili di HnS ci sono
+   `KIMONO_HNS` (in tema con Erika, ma in HGSS le ragazze in kimono sono
+   personaggi di Amarantopoli), `BEAUTY_HNS`, `LASS_HNS`, `PICNICKER_HNS`
+   (gli ultimi tre sono già allenatrici nella palestra) e `NURSE_HNS`.
 
 ## Scartato: i capi di Giallo
 
