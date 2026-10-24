@@ -1,4 +1,5 @@
 #include "global.h"
+#include "battle_partner.h"
 #include "bg.h"
 #include "event_data.h"
 #include "gpu_regs.h"
@@ -2360,6 +2361,8 @@ u32 GetBaseStatEqualizerValue(void)
 {
     static const u16 sEqualizerValues[] = {0, 100, 255, 500};
     u8 setting = gSaveBlock3Ptr->challengeSettings.tx_Challenges_BaseStatEqualizer;
+    if (IsRedsPathBattle())
+        return 0;
     if (setting >= ARRAY_COUNT(sEqualizerValues))
         return 0;
     return sEqualizerValues[setting];

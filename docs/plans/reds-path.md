@@ -456,10 +456,30 @@ e sconfitta come sempre): gli agganci arrivano con la A2.
 - Esclusi già in A1: level scaling (`IsTrainerExcludedFromScaling`) e
   TcloneR (`CanCatchTrainerMon`), tramite `IsRedsPathTrainer`
   (`include/battle_partner.h`), per id allenatore e non con un flag.
-- **Non decisi, da chiedere all'utente**: il randomizer (`RANDOMIZE_TRAINER_MON`
-  cambia le specie dei capi per classe) e le sfide `TrainerScalingIVs/EVs`
-  del challenge menu toccano anche questi otto capi; la squadra di Red no
-  (non passa da `CreateNPCTrainerParty`).
+- **Randomizer e challenge menu esclusi** (decisione dell'utente, 24/10):
+  `FLAG_REDS_PATH_BATTLE` (ex `FLAG_UNUSED_EXTENDED_86`) è il flag "lotta
+  di Red's Path in corso" della tabella "Stato salvato". Lo accende lo script
+  prima di caricare la squadra di Red e lo spegne dopo `LoadPlayerParty`; lo
+  spengono anche `Overworld_ResetBattleFlagsAndVars` (svenimento) e la
+  migrazione 10. `IsRedsPathBattle()` (`include/battle_partner.h`) lo legge:
+  - `RandomizerFeatureEnabled` restituisce FALSE per tutto (specie e mosse
+    dei capi, abilità, tipi, tabella dei tipi);
+  - Mirror (scambio e ripristino), `TrainerScalingIVs/EVs`,
+    `NoItemTrainer`, `NoItemPlayer`, `LessEscapes`, `BaseStatEqualizer`;
+  - Nuzlocke: i Pokémon di Red esausti non vengono cancellati né messi al
+    cimitero (come al Bug Contest), e una sconfitta non cancella il
+    salvataggio in Hardcore né rimpiazza la squadra.
+  Non toccati, perché agiscono solo su esperienza, EV ed evoluzioni della
+  squadra di Red, che il ripristino butta via: `LevelCap`, `ExpMultiplier`,
+  `NoEVs`, `EvoLimit`; esperienza ed evoluzioni restano un punto della A2.
+  Restano attive anche le *modalità* (`tx_Mode_*`: tipi Folletto, abilità
+  dei leggendari…), che non sono sfide.
+  Verificato in emulatore: con randomizer allenatori, Mirror e
+  `TrainerScalingIVs` accesi, Brock di Red's Path ha Geodude Lv12 con PS
+  massimi 31 (IV 0) e il giocatore ha Charmander; flag acceso durante la
+  lotta, spento dopo, squadra tornata. Controllo: la stessa Erika lanciata
+  da `Trainers → Try Battle` (senza flag) esce con uno Slowbro di Galar e la
+  squadra specchiata. Nuzlocke non provato in emulatore, solo letto.
 - Prima prova di difficoltà, per la C (una partita sola, giocata male):
   Brock ha battuto Charmander, Mankey e Butterfree con l'Onix a circa un
   quarto dei PS (Rock Tomb è 4× su Butterfree e lo mette KO prima che agisca). Serve l'emulatore

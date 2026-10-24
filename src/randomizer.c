@@ -4,6 +4,7 @@
 #include "main.h"
 #include "new_game.h"
 #include "item.h"
+#include "battle_partner.h"
 #include "event_data.h"
 #include "constants/flags.h"
 #include "field_control_avatar.h"
@@ -58,6 +59,11 @@ static const u16 sPreevolutionBabyMons[] =
 bool32 RandomizerFeatureEnabled(enum RandomizerFeature feature)
 {
     struct ChallengeSettings *settings = &gSaveBlock3Ptr->challengeSettings;
+
+    // Leaders' species and moves, abilities, types, type chart: Red's Path is
+    // fought as it was.
+    if (IsRedsPathBattle())
+        return FALSE;
 
     switch(feature)
     {

@@ -3,6 +3,7 @@
 #include "option_menu.h"
 #include "load_save.h"
 #include "battle.h"
+#include "battle_partner.h"
 #include "challenge_menu.h"
 #include "battle_controllers.h"
 #include "battle_pyramid.h"
@@ -2385,6 +2386,7 @@ static const u8 sText_NoItemsInBattle[] = _("Battle items are not allowed\nunder
 static void ItemMenu_UseInBattle(u8 taskId)
 {
     if (gSaveBlock3Ptr->challengeSettings.tx_Challenges_NoItemPlayer
+        && !IsRedsPathBattle()
         && GetItemPocket(gSpecialVar_ItemId) != POCKET_POKE_BALLS)
     {
         DisplayItemMessage(taskId, FONT_NORMAL, sText_NoItemsInBattle, HandleErrorMessage);

@@ -1081,6 +1081,12 @@ u8 LoadGameSave(u8 saveType)
         // one is not provably zero either. The first 82 are left alone, so
         // the Trainers already cloned stay counted.
         gSaveBlock2Ptr->pokedex.tclonerTrainerFlags[82] = 0;
+#if IS_HNS
+        // Red's Path's in-battle flag took FLAG_UNUSED_EXTENDED_86, which is
+        // not provably clear in every save. Left set, it would switch the
+        // randomizer and the challenges off outside the battle.
+        FlagClear(FLAG_REDS_PATH_BATTLE);
+#endif
         gSaveBlock1Ptr->saveVersion = 10;
     }
 

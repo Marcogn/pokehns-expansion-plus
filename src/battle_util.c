@@ -617,7 +617,7 @@ bool32 TryRunFromBattle(enum BattlerId battler)
             if (speedVar > (Random() & 0xFF))
                 effect++;
         }
-        else if (gSaveBlock3Ptr->challengeSettings.tx_Challenges_LessEscapes)
+        else if (gSaveBlock3Ptr->challengeSettings.tx_Challenges_LessEscapes && !IsRedsPathBattle())
         {
             speedVar = (gBattleMons[battler].speed * 128) / (gBattleMons[runningFromBattler].speed) + (gBattleStruct->runTries * 30);
             if (speedVar > (Random() & 512))

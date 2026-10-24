@@ -127,6 +127,9 @@ I primi 82 restano intatti, quindi gli allenatori già clonati restano contati.
 Un `STATIC_ASSERT` in `save.c` fissa la dimensione a 83: ogni crescita futura
 vuole il suo passo. Il quest book (`docs/plans/quest-log.md` §5) prenderà il
 numero 11.
+Lo stesso passo spegne `FLAG_REDS_PATH_BATTLE` (ex `FLAG_UNUSED_EXTENDED_86`,
+non dimostrabilmente a zero in ogni salvataggio): acceso fuori dalla lotta
+spegnerebbe randomizer e sfide del challenge menu.
 
 Verificato in emulatore, ROM di produzione: `.sav` dell'utente portato a mano a
 versione 9 con bit del TcloneR accesi (byte 14 `0x01`, 40 `0x5a`, 81 `0x80`) e

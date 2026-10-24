@@ -1,5 +1,6 @@
 #include "global.h"
 #include "battle.h"
+#include "battle_partner.h"
 #include "battle_anim.h"
 #include "challenge_menu.h"
 #include "battle_ai_main.h"
@@ -666,6 +667,7 @@ static void CB2_InitBattleInternal(void)
             CalculateEnemyPartyCount();
 
             if (gSaveBlock3Ptr->challengeSettings.tx_Challenges_Mirror
+             && !IsRedsPathBattle()
              && (gBattleTypeFlags & (BATTLE_TYPE_TRAINER | BATTLE_TYPE_DOUBLE)))
             {
                 if (!gSaveBlock3Ptr->challengeSettings.tx_Challenges_Mirror_Thief)
@@ -2241,7 +2243,7 @@ static u8 CreateNPCTrainerPartyFromTrainerWithId(struct Pokemon *party, const st
             }
         }
 
-        if (gSaveBlock3Ptr->challengeSettings.tx_Challenges_TrainerScalingIVs)
+        if (gSaveBlock3Ptr->challengeSettings.tx_Challenges_TrainerScalingIVs && !IsRedsPathBattle())
         {
             u8 iv = GetCurrentTrainerIVs();
             for (i = 0; i < monsCount; i++)
@@ -2252,7 +2254,7 @@ static u8 CreateNPCTrainerPartyFromTrainerWithId(struct Pokemon *party, const st
             }
         }
 
-        if (gSaveBlock3Ptr->challengeSettings.tx_Challenges_TrainerScalingEVs)
+        if (gSaveBlock3Ptr->challengeSettings.tx_Challenges_TrainerScalingEVs && !IsRedsPathBattle())
         {
             u8 ev = GetCurrentTrainerEVs();
             for (i = 0; i < monsCount; i++)
@@ -5936,6 +5938,7 @@ static void HandleEndTurn_FinishBattle(void)
 
         if (gSaveBlock3Ptr->challengeSettings.tx_Challenges_Mirror
          && !gSaveBlock3Ptr->challengeSettings.tx_Challenges_Mirror_Thief
+         && !IsRedsPathBattle()
          && (gBattleTypeFlags & (BATTLE_TYPE_TRAINER | BATTLE_TYPE_DOUBLE)))
         {
             for (u32 j = 0; j < PARTY_SIZE; j++)
@@ -6007,7 +6010,10 @@ static void HandleEndTurn_FinishBattle(void)
             TryPutBreakingNewsOnAir();
         }
 
-        if (IsNuzlockeEasyActive())
+        // Red's Path lends the player Red's team (SavePlayerParty before,
+        // LoadPlayerParty after, like the Bug Contest): a faint there is not
+        // a death, and the cemetery option would put Red's Pokemon in the PC.
+        if (IsNuzlockeEasyActive() && !IsRedsPathBattle())
         {
             if (!(gBattleTypeFlags & (BATTLE_TYPE_LINK
                                         | BATTLE_TYPE_LINK_IN_BATTLE
@@ -6030,7 +6036,8 @@ static void HandleEndTurn_FinishBattle(void)
                                         | BATTLE_TYPE_TOWER_LINK_MULTI
                                         | BATTLE_TYPE_RECORDED_LINK
                                         | BATTLE_TYPE_FRONTIER
-                                        | BATTLE_TYPE_TRAINER_HILL)))
+                                        | BATTLE_TYPE_TRAINER_HILL))
+             && !IsRedsPathBattle())
                 NuzlockeDeleteFaintedPartyPokemon();
             if (!(gBattleTypeFlags & (BATTLE_TYPE_DOUBLE
                                         | BATTLE_TYPE_LINK

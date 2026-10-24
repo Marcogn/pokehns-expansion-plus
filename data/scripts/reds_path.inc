@@ -6,11 +6,16 @@
 @ the Leader and puts the player's party back. Winning sets the Leader's
 @ Trainer flag, which is the "challenge won" state. The caller does the
 @ lock/release and everything around the battle (session B of the plan).
+@ FLAG_REDS_PATH_BATTLE is on for the whole of it, Red's team included: it
+@ keeps the randomizer and the challenge menu's rules out (IsRedsPathBattle).
 @
 @ Until the battle hooks of session A2 are in, a loss whites out as in any
 @ Trainer battle, and the script never gets to restore the party: the real
-@ team is still in the save, so a soft reset brings it back.
+@ team is still in the save, so a soft reset brings it back. The white-out
+@ clears FLAG_REDS_PATH_BATTLE (Overworld_ResetBattleFlagsAndVars), after
+@ the Nuzlocke rules have been kept away from Red's team.
 RedsPath_EventScript_Battle::
+	setflag FLAG_REDS_PATH_BATTLE
 	special SavePlayerParty
 	special RedsPath_LoadRedsParty
 	switch VAR_0x8004
@@ -22,8 +27,7 @@ RedsPath_EventScript_Battle::
 	case 5, RedsPath_EventScript_BattleSabrina
 	case 6, RedsPath_EventScript_BattleBlaine
 	case 7, RedsPath_EventScript_BattleGiovanni
-	special LoadPlayerParty
-	return
+	goto RedsPath_EventScript_BattleEnd
 
 RedsPath_EventScript_BattleBrock:
 	trainerbattle_no_intro TRAINER_REDS_PATH_BROCK_HNS, RedsPath_Text_BrockDefeat
@@ -59,6 +63,7 @@ RedsPath_EventScript_BattleGiovanni:
 
 RedsPath_EventScript_BattleEnd:
 	special LoadPlayerParty
+	clearflag FLAG_REDS_PATH_BATTLE
 	return
 
 @ Debug menu, "Red's Path…": challenge N with no map script around it.

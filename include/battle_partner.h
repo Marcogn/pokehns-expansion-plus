@@ -2,6 +2,7 @@
 #define BATTLE_PARTNER_H
 
 #include "difficulty.h"
+#include "event_data.h"
 #include "constants/battle_partner.h"
 
 void FillPartnerParty(u16 trainerId);
@@ -13,6 +14,20 @@ static inline bool32 IsRedsPathTrainer(u16 trainerId)
 {
 #if IS_HNS
     return trainerId >= TRAINER_REDS_PATH_BROCK_HNS && trainerId <= TRAINER_REDS_PATH_GIOVANNI_HNS;
+#else
+    return FALSE;
+#endif
+}
+
+// TRUE from just before Red's team is loaded until the player's own party is
+// back (FLAG_REDS_PATH_BATTLE, set and cleared by RedsPath_EventScript_Battle).
+// The challenge is a replay of Red's journey as it was, so the randomizer and
+// the challenge menu's rules stay out of it: the player's settings apply to
+// the player's own Pokemon, and these are not theirs.
+static inline bool32 IsRedsPathBattle(void)
+{
+#if IS_HNS
+    return FlagGet(FLAG_REDS_PATH_BATTLE);
 #else
     return FALSE;
 #endif
