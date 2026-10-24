@@ -189,7 +189,11 @@ MT a disposizione:
 - **MT28 Dig** (Celestopoli, dal Rocket dietro la casa svaligiata): il
   poliziotto si sposta con `FLAG_GOT_SS_TICKET`, cioè dopo Bill, che è
   raggiungibile prima di Misty. La imparano Charmander/Charmeleon, Mankey,
-  Pikachu; non Butterfree né Oddish.
+  Pikachu; non Butterfree né Oddish;
+- da terra (script `..._ItemTMxx` in `map.json`, sfuggiti alla prima
+  ricerca): **MT09 Bullet Seed** (Monte Luna 1F; la impara Oddish), MT46
+  Thief (Monte Luna B2F), MT05 Roar (Percorso 4), MT45 Attract (Percorso 24),
+  MT43 Secret Power (Percorso 25).
 
 Mosse di livello (FRLG) utili fino al Lv24:
 
@@ -206,10 +210,10 @@ Mosse di livello (FRLG) utili fino al Lv24:
 | Nidoran♂ / ♀ | Double Kick al 12, Poison Sting al 17 |
 | Ekans | Wrap, Leer · 8 Poison Sting · 13 Bite · 20 Glare |
 
-### Misty (proposta)
+### Misty (approvata, Charmander evoluto)
 
 Misty: Staryu 18 e Starmie 21 (Natural Cure, Recover, Water Pulse).
-Proposta: **quattro** Pokémon, livelli 18-21.
+**Quattro** Pokémon, livelli 18-21.
 
 | Pokémon | Lv | Mosse | Abilità (Gen 3) |
 | --- | --- | --- | --- |
@@ -230,9 +234,72 @@ Perché:
   circa il 97%. Contro due soli Pokémon può rendere la lotta banale; se in
   emulatore succede, si toglie Sleep Powder a uno dei due.
 
-Variante "Origins": nell'anime Charmander evolve **dopo** la lotta con
-Misty. Si può tenere Charmander al Lv15 (in Gen 3 basta premere B
-all'evoluzione): più fedele all'anime, più difficile.
+Variante "Origins" (Charmander non evoluto): scartata.
+
+Da decidere dopo la correzione delle MT: Oddish può avere **Bullet Seed** al
+posto di Absorb. In expansion è 25 di potenza per 2-5 colpi contro i 20 di
+Absorb; contro Misty è un salto netto, quindi la lasciamo fuori solo se la
+lotta risulta già facile.
+
+### Fra Misty e Surge: cosa si ottiene
+
+Mappe della storia prima della palestra di Surge: Percorsi 5 e 6, Sotterraneo,
+Aranciopoli, M/N Anna (dove si prende **Taglio**, necessario per entrare
+nella palestra), Percorso 11 con la Grotta Diglett, e con Taglio i Percorsi 2
+est e 9. Tunnel Roccioso (Rock Tunnel) e Lavandonia no: in storia vengono dopo Surge.
+
+| Dove | Pokémon (livelli) |
+| --- | --- |
+| Percorsi 5-6 | Pidgey 13-16, Meowth 10-16, **Oddish 13-16 (FR)** / Bellsprout (LG) |
+| Percorso 9 (con Taglio) | Rattata 14-17, Spearow 13-17, **Ekans 11-17 (FR)** / Sandshrew (LG) |
+| Percorso 11 | Spearow 13-17, Drowzee 11-15, **Ekans 12-15 (FR)** / Sandshrew (LG) |
+| Grotta Diglett | **Diglett 15-22**, Dugtrio 29-31 |
+| Amo Vecchio (Aranciopoli) | Magikarp |
+
+Scambi in gioco (`INGAME_TRADE_*`): Nidoran (ingresso nord del Sotterraneo),
+Farfetch'd per uno Spearow (Aranciopoli), Nidorino/Nidorina (Percorso 11),
+Mr. Mime per un Abra (casa del Percorso 2, con Taglio).
+
+MT: **MT31 Brick Break** e MT44 Rest (M/N Anna), **MT40 Aerial Ace**
+(Percorso 9, con Taglio), MN01 Cut. La MT34 Shock Wave arriva da Surge,
+quindi dopo.
+
+Mosse utili (FRLG, fino al Lv30):
+
+| Pokémon | Livello | MT compatibili qui |
+| --- | --- | --- |
+| Charmeleon | 20 Smokescreen · 27 Scary Face | Dig, Brick Break, Aerial Ace, Cut |
+| Pikachu | 20 Slam · **26 Thunderbolt** | Dig, Brick Break |
+| Oddish / Gloom (21) | 18 Sleep Powder · 23/24 Acid | Bullet Seed, Cut |
+| Mankey (Primeape 28) | 16 Fury Swipes · 21 Focus Energy · 26 Seismic Toss | Dig, Brick Break, Rock Tomb, Aerial Ace |
+| Diglett (Dugtrio 26) | Sand Attack, Scratch · 5 Growl · 9 Magnitude · **17 Dig** · 21 Fury Swipes · 25 Mud-Slap | Rock Tomb, Aerial Ace, Cut |
+| Butterfree | 18 Supersonic · 23 Whirlwind · 28 Gust | Aerial Ace |
+| Drowzee | Pound, Hypnosis · 7 Disable · 11 Confusion · 17 Headbutt · 21 Poison Gas | Brick Break |
+| Meowth | 10 Bite · 18 Pay Day · 25 Faint Attack | Dig, Aerial Ace |
+
+### Surge (proposta)
+
+Surge: Voltorb 21 (Sonic Boom, Screech, Shock Wave), Pikachu 18, Raichu 24
+(Thunder Wave, Double Team, Shock Wave); tutti con **Static** (paralisi al
+contatto). Proposta: **quattro** Pokémon, livelli 22-25.
+
+| Pokémon | Lv | Mosse | Abilità (Gen 3) |
+| --- | --- | --- | --- |
+| Charmeleon | 25 | Ember, Metal Claw, Dig, Brick Break | Blaze |
+| Diglett | 22 | Sand Attack, Magnitude, Dig, Fury Swipes | Arena Trap |
+| Gloom | 22 | Absorb, Poison Powder, Stun Spore, Sleep Powder | Chlorophyll |
+| Pikachu-Starter | 23 | Thunder Shock, Thunder Wave, Quick Attack, Slam | Static |
+
+Perché:
+- **Diglett entra qui**: immune all'Elettro, e la Grotta Diglett è proprio
+  accanto ad Aranciopoli. Resta Diglett (evolve al 26).
+- **Charmeleon** con Dig (MT28) colpisce tutti e tre di superefficace.
+- **Gloom** (Oddish evoluto al 21) resiste all'Elettro.
+- **Pikachu** resta: contro Surge non brilla, ma è il compagno fisso.
+- **Butterfree e Mankey in panchina**: Butterfree è debole all'Elettro.
+  Mankey con Dig e Brick Break sarebbe un'alternativa a Pikachu.
+- **Attenzione a Dig**: fa contatto, quindi rischia la paralisi di Static.
+  Fa parte della sfida.
 
 ## 3. Premi
 
@@ -253,9 +320,9 @@ le mosse):
 
 "Tutto come il capo palestra" (decisione dell'utente): **allenatore originale
 il capo** (nome e sesso), **Poké Ball** (i Pokémon degli allenatori di FRLG
-non hanno una ball diversa). Unica eccezione da confermare: gli IV del capo in
-FRLG sono 0, e un premio Lv70 con IV 0 sarebbe il più debole del suo genere;
-proposta IV 31 e la natura scelta per l'asso. Per la consegna con la squadra piena c'è già il percorso del TcloneR
+non hanno una ball diversa). Unica eccezione, approvata: **IV 31** (quelli
+del capo in FRLG sono 0, e un premio Lv70 con IV 0 sarebbe debolissimo).
+Natura: da scegliere asso per asso. Per la consegna con la squadra piena c'è già il percorso del TcloneR
 (`TClonerGiveRewardMon`, che manda al PC).
 
 ## 4. Come si costruisce (agganci verificati nel codice)
@@ -303,9 +370,11 @@ Pokémon prestati non devono risultare catturati).
 
 ## Domande aperte
 
-1. **Squadra per Misty** (sezione 2), e la variante "Origins".
-2. **Red gioca FireRed** (Oddish ed Ekans, non Bellsprout e Sandshrew)?
-3. **IV dei premi**: 0 come il capo, o 31?
+1. **Squadra per Surge** (sezione 2).
+2. **Bullet Seed** a Oddish contro Misty, al posto di Absorb?
+3. **Versione di Red**: FireRed (Oddish, Ekans) o LeafGreen (Bellsprout,
+   Sandshrew)? La squadra di Misty usa già Oddish, quindi oggi è FireRed.
+4. **Natura** di ogni asso premio.
 
 ## Scartato: i capi di Giallo
 
