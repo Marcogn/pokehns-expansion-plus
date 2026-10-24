@@ -1,7 +1,7 @@
 # Piano: Red's Path (le palestre di Kanto rigiocate con la squadra di Red)
 
 **Stato (24/10): piano, nessun codice.** Avversari decisi (sezione 1); squadra
-di Red decisa fino a Erika, Koga proposto (sezione 2); script e
+di Red decisa fino a Koga, Sabrina proposta (sezione 2); script e
 scena decisi (sezione 4); premi (sezione 3).
 
 ## L'idea
@@ -416,11 +416,11 @@ Mosse utili (FRLG):
 Abilità di Gen 3 utili qui: **Snorlax** Immunity o Thick Fat, **Poliwrath**
 Water Absorb o **Damp** (blocca Self-Destruct ed Explosion).
 
-### Koga (proposta)
+### Koga (approvata)
 
 Koga: Koffing 37, Muk 39, Koffing 37, Weezing 43 (Koffing e Weezing con
 Levitate; Self-Destruct, Sludge, Smokescreen, Toxic, Minimize, Acid Armor).
-Proposta: **sei** Pokémon, livelli 35-42.
+**Sei** Pokémon, livelli 35-42.
 
 | Pokémon | Lv | Mosse | Abilità (Gen 3) |
 | --- | --- | --- | --- |
@@ -446,6 +446,69 @@ Perché:
 - Onestà: Immunity e Damp tolgono a Koga le sue due armi migliori, e sei
   contro quattro è tanto. Se in prova è facile: si toglie Eevee o si
   abbassano i livelli di 2-3.
+
+### Fra Koga e Sabrina: cosa si ottiene
+
+Storia: Zafferanopoli (le guardie lasciano passare col Tè della Villa di
+Azzurropoli), Silph SpA, Dojo. Con Surf ci sono i Percorsi d'acqua, ma in
+erba nuova solo Tangela (Percorso 21, che però porta a Cinnabar: dopo).
+
+| Dove | Cosa |
+| --- | --- |
+| Silph SpA 7F | **Lapras Lv25** (regalo) |
+| Dojo di Zafferanopoli | **Hitmonlee o Hitmonchan Lv25** (uno a scelta) |
+| Surf ovunque | Tentacool 5-40 |
+
+MT nuove: **MT06 Toxic** (da Koga), **MT29 Psychic** (casa di Mr. Psychic,
+Zafferanopoli), MT01 Focus Punch (Silph 5F), MT08 Bulk Up (Silph 7F), MT41
+Torment (Silph 4F). La MT04 Calm Mind arriva da Sabrina, quindi dopo.
+
+Mosse utili (FRLG):
+
+| Pokémon | Livello | MT nuove compatibili |
+| --- | --- | --- |
+| Charizard | 44 Slash | Focus Punch, Toxic |
+| Pikachu | 41 Thunder | Focus Punch, Toxic |
+| Snorlax | 37 **Sleep Talk** · 41 Block · 45 Covet | Psychic, Focus Punch, Toxic |
+| Eevee | 30 **Bite** · 36 Baton Pass · 42 Take Down | Toxic |
+| Butterfree | 34 Psybeam · 40 Safeguard | **Psychic**, Toxic |
+| Poliwrath | 35 Submission | Bulk Up, Focus Punch, Psychic, Toxic |
+| Lapras | 13 Body Slam · 19 Confuse Ray · 25 Perish Song · **31 Ice Beam** | Psychic, Toxic |
+
+Nota su Sabrina in expansion: Kadabra e Alakazam hanno **Synchronize**, che
+rimanda paralisi, veleno e scottatura a chi li causa (il sonno no). Mr. Mime
+ha **Soundproof**: Snore non lo tocca.
+
+### Sabrina (proposta)
+
+Sabrina: Kadabra 38 (Psybeam, Reflect, Future Sight, Calm Mind), Mr. Mime 37
+(Barrier, Psybeam, Baton Pass, Calm Mind), Venomoth 38 (Psybeam, Gust, Leech
+Life, Supersonic), Alakazam 43 (Psychic, Recover, Future Sight, Calm Mind).
+Proposta: **sei** Pokémon, livelli 40-45.
+
+| Pokémon | Lv | Mosse | Abilità (Gen 3) |
+| --- | --- | --- | --- |
+| Charizard | 45 | Flamethrower, Wing Attack, Slash, Dig | Blaze |
+| Pikachu-Starter | 43 | Thunderbolt, Thunder, Thunder Wave, Quick Attack | Static |
+| Snorlax | 42 | Body Slam, Amnesia, Rest, Sleep Talk | Immunity |
+| Eevee | 41 | Bite, Return, Quick Attack, Sand Attack | Run Away |
+| Butterfree | 40 | Psybeam, Gust, Stun Spore, Sleep Powder | Compound Eyes |
+| Poliwrath | 40 | Surf, Hypnosis, Brick Break, Strength | Damp |
+
+Perché:
+- **Stessa squadra di Koga, più alta**: Red non prende nulla di nuovo a
+  Zafferanopoli. Lapras e Hitmon arrivano a Lv25, troppo indietro rispetto al
+  resto della squadra per entrare subito.
+- **Eevee ha il suo momento**: Bite è Buio, l'unica mossa superefficace sugli
+  Psico che Red ha a questo punto (senza Shadow Ball del Casinò).
+- **Snorlax** con Amnesia regge gli attacchi speciali; **Sleep Talk** al posto
+  di Snore, che contro Mr. Mime non funziona.
+- **Charizard** sistema Venomoth (Fuoco e Volante).
+- **Poliwrath** è debole agli Psico (Lotta): resta in squadra come rischio,
+  non come arma. In alternativa Lapras, se si vuole un cambio di squadra.
+- Psychic (MT29) non serve: contro Psico è resistito.
+- **Synchronize** fa parte della sfida: Thunder Wave su Alakazam paralizza
+  anche Pikachu.
 
 ## 3. Premi
 
@@ -609,7 +672,8 @@ soluzione già pronta è `B_VAR_NO_BAG_USE`.
 
 ## Domande aperte
 
-1. **Squadra per Koga** (sezione 2).
+1. **Squadra per Sabrina** (sezione 2): stessa di Koga più alta, o un cambio
+   (Lapras al posto di Poliwrath)?
 
 ## Scartato: i capi di Giallo
 
