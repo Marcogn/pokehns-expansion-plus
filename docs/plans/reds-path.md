@@ -1,7 +1,7 @@
 # Piano: Red's Path (le palestre di Kanto rigiocate con la squadra di Red)
 
 **Stato (24/10): piano, nessun codice.** Avversari decisi (sezione 1); squadra
-di Red decisa fino a Sabrina, Blaine proposto (sezione 2); script e
+di Red decisa fino a Blaine (sezione 2); script e
 scena decisi (sezione 4); premi (sezione 3).
 
 ## L'idea
@@ -539,12 +539,12 @@ Mosse utili (FRLG):
 Abilità che contano contro Blaine: Ponyta e Rapidash hanno **Flash Fire**
 (assorbono il Fuoco e si potenziano), Growlithe e Arcanine **Intimidate**.
 
-### Blaine (proposta)
+### Blaine (approvata)
 
 Blaine: Growlithe 42 (Bite, Roar, Take Down, Fire Blast), Ponyta 40 e
 Rapidash 42 (Stomp, Bounce, Fire Spin, Fire Blast), Arcanine 47 (Bite, Roar,
-Take Down, Fire Blast). Fire Blast in expansion è 110. Proposta: **sei**
-Pokémon, livelli 43-48.
+Take Down, Fire Blast). Fire Blast in expansion è 110. **Sei** Pokémon,
+livelli 43-48 (Lapras al posto di Butterfree: approvato).
 
 | Pokémon | Lv | Mosse | Abilità (Gen 3) |
 | --- | --- | --- | --- |
@@ -568,6 +568,27 @@ Perché:
 - **Eevee** prende Take Down (42).
 - Alternativa a Lapras: **Dugtrio** (Dig, Slash; Terra superefficace), ma
   contro Giovanni non servirebbe.
+
+### Da Red's Path al Monte Argento
+
+La squadra di Red al Monte Argento in HnS (`src/data/trainers_hns.party`):
+
+| `TRAINER_RED_HNS` | `TRAINER_RED_POSTOBC_HNS` (rivincita) |
+| --- | --- |
+| Pikachu-Starter 93 | Pikachu-Starter 95 |
+| Snorlax 77 | Snorlax 85 |
+| Charizard 79 | Charizard 87 |
+| Venusaur 79 | Venusaur 87 |
+| Blastoise 79 | Blastoise 86 |
+| Espeon 80 | Tauros-Paldea-Combat 85 |
+
+Red's Path finisce (da Blaine in poi) con Charizard, Pikachu-Starter,
+Snorlax, Eevee, Poliwrath, Lapras. In comune col Monte Argento: Charizard,
+Pikachu, Snorlax, ed Eevee che diventerà Espeon (evoluzione di Gen 2, fuori
+dal viaggio di Kanto). Venusaur e Blastoise **non sono ottenibili** in una
+partita a FireRed partita con Charmander (FRLG dà un solo starter, niente
+regali come in Giallo): si spiegano nei tre anni fra il viaggio e il Monte
+Argento, al posto di Poliwrath e Lapras.
 
 ## 3. Premi
 
@@ -757,7 +778,7 @@ soluzione già pronta è `B_VAR_NO_BAG_USE`.
 
 ## Domande aperte
 
-1. **Squadra per Blaine** (sezione 2): Lapras al posto di Butterfree?
+1. **Giovanni** (sezione 2): l'ultimo capo.
 
 ## Scartato: i capi di Giallo
 
