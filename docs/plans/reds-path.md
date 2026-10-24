@@ -1,7 +1,7 @@
 # Piano: Red's Path (le palestre di Kanto rigiocate con la squadra di Red)
 
 **Stato (24/10): piano, nessun codice.** Avversari decisi (sezione 1); squadra
-di Red decisa fino a Surge, Erika proposta (sezione 2); script e
+di Red decisa fino a Erika, Koga proposto (sezione 2); script e
 scena decisi (sezione 4); premi (sezione 3).
 
 ## L'idea
@@ -331,7 +331,7 @@ MT:
 - MN05 Flash (necessaria per il Tunnel Roccioso).
 
 **Il punto di rottura sono le MT del Casinò**: legali, ma Flamethrower e Ice
-Beam a questo punto stravolgono le sfide successive. Proposta di regola:
+Beam a questo punto stravolgono le sfide successive. Regola (approvata):
 **Red non usa le MT e i Pokémon del Casinò** (nella storia al Casinò ci va per
 il Team Rocket, non per giocare). Non serve comunque: Pikachu impara
 Thunderbolt **di livello al 26** e Charmeleon Flamethrower al 34.
@@ -348,11 +348,10 @@ Mosse utili (FRLG):
 | Machop | 13 Karate Chop · 19 Seismic Toss · 25 Revenge | Dig, Brick Break, Rock Tomb |
 | Pidgeotto | 13 Quick Attack · 20 Whirlwind · 27 Wing Attack | Aerial Ace |
 
-### Erika (proposta)
+### Erika (approvata)
 
 Erika: Victreebel 29, Tangela 24, Vileplume 29 (Chlorophyll; Giga Drain,
-Sleep Powder, Stun Spore, Acid, Ingrain). Proposta: **quattro** Pokémon,
-livelli 25-30.
+Sleep Powder, Stun Spore, Acid, Ingrain). **Quattro** Pokémon, livelli 25-30.
 
 | Pokémon | Lv | Mosse | Abilità (Gen 3) |
 | --- | --- | --- | --- |
@@ -373,6 +372,80 @@ Perché:
   difficoltà viene solo dalle polveri di Erika (sonno e paralisi) e da Giga
   Drain più forte (75). Se in prova è banale, si abbassa Charmeleon o si
   toglie Gust.
+
+### Fra Erika e Koga: cosa si ottiene
+
+Storia: Covo Rocket (Spettrosonda), Torre Pokémon, Mr. Fuji e il Poké Flauto,
+gli Snorlax dei Percorsi 12 e 16, Percorsi 12-18 (Pista Ciclabile con la Bici),
+Fuchsia con la Zona Safari. Zafferanopoli resta fuori: in storia viene dopo
+Koga (Silph, Sabrina, dojo con Hitmonlee/Hitmonchan, Lapras).
+
+| Dove | Pokémon (FireRed) |
+| --- | --- |
+| Torre Pokémon | Gastly 13-19, Haunter 20-25, Cubone 15-19 |
+| Percorsi 12 / 16 | **Snorlax Lv30** (uno per percorso, `setwildbattle`) |
+| Percorsi 12-15 | Oddish, Gloom 28-30, Pidgey, Pidgeotto 29, Venonat 24-26, Ditto 23-25 |
+| Percorsi 16-18 | Rattata, Raticate, Spearow, Fearow, Doduo 18-28 |
+| Zona Safari | Nidoran♂/♀, Nidorino, Nidorina, Exeggcute, Rhyhorn, Chansey, Kangaskhan, Scyther, Tauros, Venonat, Venomoth, Paras, Parasect, Doduo (22-33) |
+| Amo Buono (casa di Fuchsia) | Poliwag 5-15 (Percorsi 6, 22, 25, Fuchsia, Safari), Goldeen, Horsea, Krabby |
+| Super Amo (casa del Percorso 12) | **Poliwhirl 20-30** (Percorsi 6, 22, 25), Gyarados, Psyduck, Dratini/Dragonair (Safari) |
+
+Pietre evolutive in vendita al Centro Commerciale di Azzurropoli (4° piano):
+Fuoco, Foglia, Tuono, **Idro**. Quindi **Poliwrath è legale prima di Koga**:
+Poliwhirl col Super Amo, Pietraidrica comprata ad Azzurropoli.
+
+MT e MN nuove: MT12 Taunt, MT21 Frustration, MT49 Snatch (Covo Rocket), MT48
+Skill Swap (Percorso 12), MT27 Return (portineria nord del Percorso 12), MT18
+Rain Dance (Percorso 15), MT11 Sunny Day, MT47 Steel Wing, MT32 Double Team
+(Zona Safari), **MN02 Fly** (casa del Percorso 16), **MN03 Surf** (casa
+segreta della Safari), **MN04 Strength** (casa del Guardiano). La MT06 Toxic
+arriva da Koga, quindi dopo.
+
+Mosse utili (FRLG):
+
+| Pokémon | Livello | MT/MN compatibili |
+| --- | --- | --- |
+| Charizard (36) | 34 Flamethrower · 36 **Wing Attack** · 44 Slash | Dig, Brick Break, Aerial Ace, Steel Wing, Return, Fly, Strength |
+| Pikachu | 33 Agility · **41 Thunder** | Brick Break, Return, Rain Dance, Strength |
+| Butterfree | 28 Gust · **34 Psybeam** · 40 Safeguard | Aerial Ace, Return, Double Team |
+| Snorlax | 25 Rest · 29 Snore · **33 Body Slam** · 37 Sleep Talk · 41 Block | Brick Break, Rock Tomb, Return, Surf, Strength |
+| Poliwrath | Water Gun, Hypnosis, Double Slap · **35 Submission** | **Surf**, Brick Break, Rock Tomb, Return, Strength |
+| Eevee | 30 Bite · 36 Baton Pass | Dig, Return |
+| Dugtrio (26) | 21 Fury Swipes · 25 Mud-Slap · 26 Sand Tomb · 38 Slash | Dig, Rock Tomb, Aerial Ace |
+
+Abilità di Gen 3 utili qui: **Snorlax** Immunity o Thick Fat, **Poliwrath**
+Water Absorb o **Damp** (blocca Self-Destruct ed Explosion).
+
+### Koga (proposta)
+
+Koga: Koffing 37, Muk 39, Koffing 37, Weezing 43 (Koffing e Weezing con
+Levitate; Self-Destruct, Sludge, Smokescreen, Toxic, Minimize, Acid Armor).
+Proposta: **sei** Pokémon, livelli 35-42.
+
+| Pokémon | Lv | Mosse | Abilità (Gen 3) |
+| --- | --- | --- | --- |
+| Charizard | 42 | Flamethrower, Wing Attack, Scary Face, Dig | Blaze |
+| Pikachu-Starter | 41 | Thunderbolt, Thunder, Thunder Wave, Quick Attack | Static |
+| Butterfree | 38 | Psybeam, Gust, Stun Spore, Sleep Powder | Compound Eyes |
+| Poliwrath | 37 | Surf, Hypnosis, Brick Break, Strength | **Damp** |
+| Snorlax | 36 | Body Slam, Amnesia, Rest, Snore | **Immunity** |
+| Eevee | 35 | Return, Bite, Quick Attack, Sand Attack | Run Away |
+
+Perché:
+- **Snorlax entra qui**: i due Snorlax bloccano le strade per Fuchsia, e Red
+  ne ha uno al Monte Argento. Con Immunity Toxic non lo tocca.
+- **Poliwrath entra qui**, come volevi: Poliwhirl col Super Amo e Pietraidrica
+  (legali, vedi sopra). Damp spegne i Self-Destruct dei Koffing; Surf è la
+  MN della Safari.
+- **Charizard** al 36, come da evoluzione; Wing Attack di livello.
+- **Butterfree** con Psybeam (34) è superefficace su tutti e quattro.
+- **Eevee** resta: è il futuro Espeon del Monte Argento. Return (MT27) è la
+  mossa più forte che ha a questo punto.
+- **Panchina**: Dugtrio (Ground non tocca Koffing e Weezing per Levitate),
+  Gloom, Mankey.
+- Onestà: Immunity e Damp tolgono a Koga le sue due armi migliori, e sei
+  contro quattro è tanto. Se in prova è facile: si toglie Eevee o si
+  abbassano i livelli di 2-3.
 
 ## 3. Premi
 
@@ -418,7 +491,7 @@ all'ingresso (`OBJ_EVENT_GFX_GYM_GUY_HNS`):
 | `PewterCity_Gym_hns` | Brock | Brock | c'è |
 | `CeruleanCity_Gym_hns` | Misty | Misty | c'è |
 | `VermilionCity_Gym_hns` | Surge | Surge | c'è |
-| `CeladonCity_Gym_hns` | Erika | Erika | **manca: va aggiunta un'aiutante donna** (la palestra di Erika è solo femminile) |
+| `CeladonCity_Gym_hns` | Erika | Erika | **manca: va aggiunta un'aiutante donna** (la palestra di Erika è solo femminile), con lo sprite della fioraia di Fiordoropoli che dà la Sprinkler: `OBJ_EVENT_GFX_GIRL_1_HNS` |
 | `FuchsiaCity_Gym_hns` | Janine | **Koga** | c'è |
 | `SaffronCity_Gym_hns` | Sabrina | Sabrina | c'è |
 | `SeafoamIslands_Gym_hns` | Blaine | Blaine | c'è |
@@ -536,12 +609,7 @@ soluzione già pronta è `B_VAR_NO_BAG_USE`.
 
 ## Domande aperte
 
-1. **Squadra per Erika** (sezione 2).
-2. **Regola del Casinò**: Red non usa MT e Pokémon del Casinò?
-3. **Sprite dell'aiutante di Erika**: fra quelli femminili di HnS ci sono
-   `KIMONO_HNS` (in tema con Erika, ma in HGSS le ragazze in kimono sono
-   personaggi di Amarantopoli), `BEAUTY_HNS`, `LASS_HNS`, `PICNICKER_HNS`
-   (gli ultimi tre sono già allenatrici nella palestra) e `NURSE_HNS`.
+1. **Squadra per Koga** (sezione 2).
 
 ## Scartato: i capi di Giallo
 
