@@ -177,6 +177,17 @@ Verificato: `.sav` riportato a versione 12 (checksum del settore 1
 ricalcolato) con `a5…aa` in `seenHigh` → caricato a zero, `seen` (`0x05`)
 intatto; la stessa prova con una ROM senza il `memset` li lascia sporchi.
 
+### `SAVE_VERSION 14`: ordine delle icone della striscia (25/10)
+
+`u8 stripMenuOrder[4]` in coda a SaveBlock3, **offset 92** (dopo il quest
+book): SaveBlock3 a 96 byte su 116, ne restano 20. Un nibble per posto con
+id dell'icona + 1 (6 posti, 3 byte usati). Il passo `saveVersion < 14` lo
+azzera: zero è l'ordine di default, e comunque `GetIconOrder`
+(`strip_start_menu.c`) rifiuta tutto ciò che non è una permutazione, ma una
+spazzatura che lo fosse per caso mescolerebbe il menu. `STATIC_ASSERT`
+sull'offset in `save.c`. Verificato: un `.sav` a versione 13 carica con i
+4 byte a zero e ordine di default.
+
 ### C'è già un sistema di migrazione dei salvataggi: usalo
 
 Scoperto portando il Candy Jar, dopo aver scritto a mano un marker magico che

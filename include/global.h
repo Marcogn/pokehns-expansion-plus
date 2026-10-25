@@ -420,6 +420,11 @@ struct SaveBlock3
     // Appended after soundAndFieldOptions (SAVE_VERSION 12), which zeroes it
     // in older saves.
     struct QuestLogSaveData questLog;
+    // Appended after questLog (SAVE_VERSION 14): the order of the pause menu
+    // strip's icons (src/strip_start_menu.c), one nibble per slot holding
+    // icon id + 1. All zero - a new game or a migrated save - is the default
+    // order, and so is anything that is not a full permutation.
+    u8 stripMenuOrder[4];
 }; /* max size 1624 bytes */
 
 extern struct SaveBlock3 *gSaveBlock3Ptr;

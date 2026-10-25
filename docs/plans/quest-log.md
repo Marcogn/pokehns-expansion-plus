@@ -372,6 +372,15 @@ Trovato in più: la lista del libro è circolare come tutte quelle del gioco
 (la regola diceva il contrario). Dettagli nelle regole `quest_book.md` e
 `strip_menu.md`.
 
+**Dopo la fase 8** (25/10, PR #41 e #42): corretti anche i quattro rilievi
+rimandati; versione della hack nella finestra di salvataggio (issue #39);
+cornici delle finestre standard che dopo la striscia restavano nei colori
+della fascia (palette 14/15 non restituite al campo, sfuggito perché le
+prove confrontavano ROM che avevano già la striscia); **Select** sulla
+striscia sposta le icone, ordine in SaveBlock3 (`SAVE_VERSION 14`).
+Dettagli in `.claude/rules/strip_menu.md` e `save.md`; il README ha ora le
+righe del quest book, della striscia e di Red's Path.
+
 Dopo la fase 1 il quest book (2-4) e il menu (5-6) sono indipendenti. Se i
 token stringono, la fase 4 si fa una missione per volta.
 

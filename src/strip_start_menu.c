@@ -46,6 +46,7 @@
 #define STRIP_ICON_WIDTH    32
 #define STRIP_BANNER_WIDTH  224
 #define STRIP_ICON_Y        128
+#define STRIP_ICON_LIFT     6   // how far up an icon being moved sits
 
 // Tiles of the strip background, loaded at the start of BG0's char block
 // (field windows start at baseBlock 1, the strip's own at 48).
@@ -93,6 +94,8 @@ struct StripMenu
     u8 windowIds[STRIP_WIN_COUNT];
     u8 clockMinute;
     bool8 objWinWasOn;
+    bool8 moving;                       // Select lifted the icon under the cursor
+    u8 iconsBeforeMove[STRIP_MAX_ICONS]; // what B puts back
     u16 savedWinOut;
 };
 
@@ -116,7 +119,9 @@ static const struct WindowTemplate sStripWindowTemplates[STRIP_WIN_COUNT] =
 {
     [STRIP_WIN_NAME]  = {.bg = 0, .tilemapLeft = 0,  .tilemapTop = 11, .width = 7,  .height = 2, .paletteNum = STRIP_BG_PAL, .baseBlock = 48},
     [STRIP_WIN_CLOCK] = {.bg = 0, .tilemapLeft = 20, .tilemapTop = 11, .width = 10, .height = 2, .paletteNum = STRIP_BG_PAL, .baseBlock = 62},
-    [STRIP_WIN_HINTS] = {.bg = 0, .tilemapLeft = 6,  .tilemapTop = 18, .width = 24, .height = 2, .paletteNum = STRIP_BG_PAL, .baseBlock = 82},
+    // 28 tiles wide since Select joined the hints: the longest line (with the
+    // Pokégear) is 188 px, and 24 tiles left it 1 px of margin.
+    [STRIP_WIN_HINTS] = {.bg = 0, .tilemapLeft = 2,  .tilemapTop = 18, .width = 28, .height = 2, .paletteNum = STRIP_BG_PAL, .baseBlock = 82},
 };
 
 static const u8 sStripWindowFill[STRIP_WIN_COUNT] =
@@ -228,6 +233,37 @@ static bool32 IsIconAvailable(enum StripIcon icon)
 static bool32 IsPokegearAvailable(void)
 {
     return FlagGet(FLAG_SYS_POKENAV_GET);
+}
+
+// The player's order of the icons (gSaveBlock3Ptr->stripMenuOrder): slot i
+// holds icon id + 1 in nibble i. Anything but a full permutation - all zero
+// in a new game or a migrated save - is the default order.
+static void GetIconOrder(u8 *order)
+{
+    u32 i, icon, seen = 0;
+
+    for (i = 0; i < STRIP_ICON_COUNT; i++)
+    {
+        icon = (gSaveBlock3Ptr->stripMenuOrder[i / 2] >> ((i % 2) * 4)) & 0xF;
+        if (icon == 0 || icon > STRIP_ICON_COUNT || (seen & (1 << icon)))
+            break;
+        seen |= 1 << icon;
+        order[i] = icon - 1;
+    }
+    if (i < STRIP_ICON_COUNT)
+    {
+        for (i = 0; i < STRIP_ICON_COUNT; i++)
+            order[i] = i;
+    }
+}
+
+static void SetIconOrder(const u8 *order)
+{
+    u32 i;
+
+    memset(gSaveBlock3Ptr->stripMenuOrder, 0, sizeof(gSaveBlock3Ptr->stripMenuOrder));
+    for (i = 0; i < STRIP_ICON_COUNT; i++)
+        gSaveBlock3Ptr->stripMenuOrder[i / 2] |= (order[i] + 1) << ((i % 2) * 4);
 }
 
 static void FreezeFieldForMenu(void)
@@ -351,18 +387,20 @@ static void StripMenu_CreateIcons(void)
 static bool32 StripMenu_Init(void)
 {
     u32 i;
+    u8 order[STRIP_ICON_COUNT];
 
     sStrip = AllocZeroed(sizeof(*sStrip));
     if (sStrip == NULL)
         return FALSE;
 
+    GetIconOrder(order);
     for (i = 0; i < STRIP_ICON_COUNT; i++)
     {
-        if (IsIconAvailable(i))
+        if (IsIconAvailable(order[i]))
         {
-            if (i == sStripLastIcon)
+            if (order[i] == sStripLastIcon)
                 sStrip->cursor = sStrip->iconCount;
-            sStrip->icons[sStrip->iconCount++] = i;
+            sStrip->icons[sStrip->iconCount++] = order[i];
         }
     }
 
@@ -425,6 +463,12 @@ static void StripMenu_Destroy(void)
     CpuFastFill(0, GetBgTilemapBuffer(0), BG_SCREEN_SIZE);
     CpuFastFill(0, (void *)BG_CHAR_ADDR(2), STRIP_BG_TILE_COUNT * TILE_SIZE_4BPP);
     ScheduleBgCopyTilemapToVram(0);
+    // The strip took palettes 14 and 15, which are the field's window frame
+    // palettes (STD_WINDOW_PALETTE_NUM, DLG_WINDOW_PALETTE_NUM). Nothing
+    // reloads them before the next std window: the save info window and the
+    // Yes/No box drew their frame in the strip's blue, green and red until the
+    // next map load. Put back what the field loaded.
+    LoadMessageBoxAndBorderGfx();
 
     if (!sStrip->objWinWasOn)
         ClearGpuRegBits(REG_OFFSET_DISPCNT, DISPCNT_OBJWIN_ON);
@@ -496,14 +540,22 @@ static void StripMenu_PrintClock(void)
 }
 
 // The buttons are the game's own key glyphs (graphics/fonts/keypad_icons.png).
-static const u8 sText_HintsWithPokegear[] = _("{START_BUTTON} Save  {L_BUTTON} Card  {R_BUTTON} Pokégear ");
-static const u8 sText_Hints[] = _("{START_BUTTON} Save  {L_BUTTON} Card ");
+static const u8 sText_HintsWithPokegear[] = _("{SELECT_BUTTON} Move  {START_BUTTON} Save  {L_BUTTON} Card  {R_BUTTON} Pokégear ");
+static const u8 sText_Hints[] = _("{SELECT_BUTTON} Move  {START_BUTTON} Save  {L_BUTTON} Card ");
+static const u8 sText_HintsMoving[] = _("{DPAD_LEFTRIGHT} Move  {A_BUTTON} Place  {B_BUTTON} Cancel ");
 
 static void StripMenu_PrintHints(void)
 {
     u8 windowId = sStrip->windowIds[STRIP_WIN_HINTS];
-    const u8 *hints = IsPokegearAvailable() ? sText_HintsWithPokegear : sText_Hints;
+    const u8 *hints;
     s32 x;
+
+    if (sStrip->moving)
+        hints = sText_HintsMoving;
+    else if (IsPokegearAvailable())
+        hints = sText_HintsWithPokegear;
+    else
+        hints = sText_Hints;
 
     x = GetStringRightAlignXOffset(FONT_SMALL_NARROWER, hints, sStripWindowTemplates[STRIP_WIN_HINTS].width * 8);
     FillWindowPixelBuffer(windowId, PIXEL_FILL(sStripWindowFill[STRIP_WIN_HINTS]));
@@ -559,6 +611,124 @@ static void StripMenu_MoveCursor(s32 delta)
     StripMenu_PrintLabel();
 }
 
+// ---- Moving an icon (Select) ----
+//
+// The icons, their sprites and their Flash twins are permuted together, so
+// the sprite at index i is always the one of icons[i]; the cursor follows the
+// lifted icon. Nothing is saved until the icon is placed.
+
+static void StripMenu_PlaceIcons(void)
+{
+    u32 i;
+    s16 x = 24 + (STRIP_BANNER_WIDTH - sStrip->iconCount * STRIP_ICON_WIDTH) / 2;
+
+    for (i = 0; i < sStrip->iconCount; i++)
+    {
+        s16 y = STRIP_ICON_Y - ((sStrip->moving && i == sStrip->cursor) ? STRIP_ICON_LIFT : 0);
+
+        if (sStrip->spriteIds[i] != MAX_SPRITES)
+        {
+            gSprites[sStrip->spriteIds[i]].x = x + i * STRIP_ICON_WIDTH;
+            gSprites[sStrip->spriteIds[i]].y = y;
+        }
+        if (sStrip->twinIds[i] != MAX_SPRITES)
+        {
+            gSprites[sStrip->twinIds[i]].x = x + i * STRIP_ICON_WIDTH;
+            gSprites[sStrip->twinIds[i]].y = y;
+        }
+    }
+}
+
+static void StripMenu_SwapIcons(u32 a, u32 b)
+{
+    u8 temp;
+
+    SWAP(sStrip->icons[a], sStrip->icons[b], temp);
+    SWAP(sStrip->spriteIds[a], sStrip->spriteIds[b], temp);
+    SWAP(sStrip->twinIds[a], sStrip->twinIds[b], temp);
+}
+
+static void StripMenu_StartMove(void)
+{
+    PlaySE(SE_SELECT);
+    // The cursor may sit on the first icon only because the remembered one is
+    // not available: from here on, the remembered one is the icon in hand.
+    sStripLastIcon = sStrip->icons[sStrip->cursor];
+    memcpy(sStrip->iconsBeforeMove, sStrip->icons, sizeof(sStrip->icons));
+    sStrip->moving = TRUE;
+    StripMenu_PlaceIcons();
+    StripMenu_PrintHints();
+}
+
+static void StripMenu_MoveIcon(s32 delta)
+{
+    s32 next = sStrip->cursor + delta;
+
+    // No wrapping: past an end there is no neighbour to trade places with.
+    if (next < 0 || next >= sStrip->iconCount)
+        return;
+    PlaySE(SE_SELECT);
+    StripMenu_SwapIcons(sStrip->cursor, next);
+    sStrip->cursor = next;
+    StripMenu_PlaceIcons();
+}
+
+static void StripMenu_EndMove(void)
+{
+    sStrip->moving = FALSE;
+    StripMenu_PlaceIcons();
+    StripMenu_PrintHints();
+}
+
+// A or Select: the visible icons take the order on screen. Icons not
+// available yet keep their slots in the saved order, so each one shows up
+// where it was once the player gets it.
+static void StripMenu_PlaceMovedIcon(void)
+{
+    u8 order[STRIP_ICON_COUNT];
+    u32 i, shown = 0;
+
+    PlaySE(SE_SELECT);
+    GetIconOrder(order);
+    for (i = 0; i < STRIP_ICON_COUNT; i++)
+    {
+        if (IsIconAvailable(order[i]))
+            order[i] = sStrip->icons[shown++];
+    }
+    SetIconOrder(order);
+    StripMenu_EndMove();
+}
+
+// B: back to the order the move started from, cursor still on the same icon.
+static void StripMenu_CancelMove(void)
+{
+    u32 i, j;
+
+    PlaySE(SE_SELECT);
+    for (i = 0; i < sStrip->iconCount; i++)
+    {
+        for (j = i; j < sStrip->iconCount && sStrip->icons[j] != sStrip->iconsBeforeMove[i]; j++)
+            ;
+        if (j != i && j < sStrip->iconCount)
+            StripMenu_SwapIcons(i, j);
+        if (sStrip->icons[i] == sStripLastIcon)
+            sStrip->cursor = i;
+    }
+    StripMenu_EndMove();
+}
+
+static void StripMenu_HandleMoveInput(void)
+{
+    if (JOY_NEW(DPAD_LEFT))
+        StripMenu_MoveIcon(-1);
+    else if (JOY_NEW(DPAD_RIGHT))
+        StripMenu_MoveIcon(1);
+    else if (JOY_NEW(A_BUTTON | SELECT_BUTTON))
+        StripMenu_PlaceMovedIcon();
+    else if (JOY_NEW(B_BUTTON))
+        StripMenu_CancelMove();
+}
+
 static void StripMenu_StartCallback(u8 taskId, void (*open)(void))
 {
     PlaySE(SE_SELECT);
@@ -578,6 +748,12 @@ static void Task_StripMenu_HandleInput(u8 taskId)
     RtcCalcLocalTime();
     if (sStrip->clockMinute != gLocalTime.minutes)
         StripMenu_PrintClock();
+
+    if (sStrip->moving)
+    {
+        StripMenu_HandleMoveInput();
+        return;
+    }
 
     if (JOY_NEW(DPAD_LEFT))
     {
@@ -615,6 +791,10 @@ static void Task_StripMenu_HandleInput(u8 taskId)
     else if (JOY_NEW(R_BUTTON) && IsPokegearAvailable())
     {
         StripMenu_StartCallback(taskId, StartMenu_OpenPokegear);
+    }
+    else if (JOY_NEW(SELECT_BUTTON))
+    {
+        StripMenu_StartMove();
     }
 }
 
