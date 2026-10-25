@@ -50,12 +50,23 @@ paths:
   `DISPCNT_OBJWIN_ON` e `WINOUT`.
 - **Orologio**: 12 ore come la lista classica, giorno da `GetDayOfWeek()`
   (quello della radio del Pokégear); si ridisegna quando cambia il minuto.
-- **Grafica provvisoria** (`graphics/strip_start_menu/`): fascia e icone di
-  `pollythadon`; DexNav usa l'icona del PokéNav e Missioni quella di Save.
-  Tema scuro assente. Le fa la fase 6.
+- **Grafica** (`graphics/strip_start_menu/`, fase 6): fascia e icone di
+  Pokédex, Squadra, Borsa e Opzioni sono di `pollythadon`; `dexnav.png`
+  (radar) e `quests.png` (libro) sono disegnati qui, 32x32 per stato, metà
+  alta = non selezionata (grigi 11, 12, 14), metà bassa = selezionata, stessa
+  palette `icons.pal` (contorno bianco = entry 15). Indici contati sui `.png`.
+- **Tema scuro**: `bg_dark.pal`, stessi indici di `bg.pal`; cambiano solo le
+  entry usate dai tile della fascia e dalle finestre: 10 barra (40 → 16,16,20),
+  11 linguetta del nome (56 → 36,36,44), 12/13 fascia rossa (184,40,56 e
+  216,48,64 → 108,24,38 e 140,30,46), 14 bordo (192 → 84,84,96), 15
+  linguetta dell'orologio (216 → 56,56,68). Le entry 1-3 (testo) restano.
+  L'orologio, scuro su chiaro, in scuro usa `sTextColorLight`. Le icone non
+  cambiano palette (contorno bianco leggibile su tutte e due le fasce).
 - **Verificato in mGBA (25/10)** sul `.sav` dell'utente (Percorso 43): le sei
   voci, L, R, Start (No torna alla striscia, Sì salva e chiude), B e
   movimento dopo; Safari e Bug-Catching Contest (flag `0x860`/`0x861` via
   GDB) aprono la lista classica; Grotta Scura senza Flash (icone visibili,
-  entrata e ritorno). **Non provati**: Piramide, Pike, Union Room, link,
+  entrata e ritorno). **Fase 6 (25/10)**: icone nuove e tema scuro guardati in mGBA in entrambi i
+  temi (DexNav e Missioni selezionate; la striscia chiara è identica a prima).
+  **Non provati**: Piramide, Pike, Union Room, link,
   una partita nuova senza Pokédex né Pokémon (restano Borsa, Missioni, Opzioni).

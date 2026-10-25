@@ -1,6 +1,6 @@
 # Piano: quest book e menu di pausa a striscia
 
-**Stato (25/10): fasi 1-5 fatte (§5.1-§5.5), prossima la 6.** Si fa dopo Red's Path
+**Stato (25/10): fasi 1-6 fatte (§5.1-§5.6), prossima la 7.** Si fa dopo Red's Path
 ([`reds-path.md`](reds-path.md)), una fase per sessione (§5). Le ricerche sono già fatte: i fatti qui sotto sono
 verificati nel codice indicato, non vanno rifatte. I confronti e le
 opzioni scartate stanno in
@@ -267,6 +267,19 @@ Dettagli e trappole in `.claude/rules/strip_menu.md`.
   palette 14 e su quella delle icone. Le finestre della striscia stanno sulle
   entry 10, 11 e 15 di `bg.pal` (sfondo sotto il testo), il testo usa 1, 2 e 3:
   ridisegnando la fascia vanno tenute o spostate insieme.
+
+### 5.6 Fase 6, com'è stata fatta (25/10)
+
+Dettagli in `.claude/rules/strip_menu.md`.
+
+- Icone nuove `dexnav.png` (radar) e `quests.png` (libro con nastro), nella
+  palette delle altre; quelle in prestito (PokéNav, Save) tolte.
+- Tema scuro: `bg_dark.pal` per fascia e finestre, orologio con testo chiaro.
+  Fascia e icone di `pollythadon` restano com'erano.
+- Verificato in mGBA sul `.sav` dell'utente (tema scuro) e dopo averlo
+  portato a chiaro dalle opzioni: Missioni e DexNav selezionate, in tutti e
+  due i temi.
+- **Per la fase 7**: documentazione (`CHANGELOG.md`, report SG, regola).
 
 Dopo la fase 1 il quest book (2-4) e il menu (5-6) sono indipendenti. Se i
 token stringono, la fase 4 si fa una missione per volta.
