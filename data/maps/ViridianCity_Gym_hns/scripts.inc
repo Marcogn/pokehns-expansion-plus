@@ -105,8 +105,8 @@ ViridianCity_Gym_EventScript_GymGuy::
 	end
 
 ViridianCity_Gym_EventScript_GymGuyAfter::
-	msgbox ViridianCity_Gym_Text_Guide_Win, MSGBOX_NPC
-	end
+	setvar VAR_0x8004, 7
+	goto RedsPath_EventScript_Aide
 
 ViridianCity_Gym_Text_Guide:
 	.string "Yo, CHAMP in making!\p"
@@ -147,3 +147,7 @@ ViridianCity_Gym_Text_GymStatuePlayerWon::
     .string "WINNING TRAINERS:\n"
 	.string "BLUE, RED, {PLAYER}$"
 
+@ Red's Path (data/scripts/reds_path.inc): challenge 7.
+ViridianCity_Gym_EventScript_RedsPathTrigger::
+	setvar VAR_0x8004, 7
+	goto RedsPath_EventScript_IntroTrigger

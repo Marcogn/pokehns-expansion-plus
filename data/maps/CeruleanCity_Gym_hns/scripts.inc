@@ -156,8 +156,8 @@ CeruleanCity_Gym_EventScript_GymGuy::
 	end
 
 CeruleanCity_Gym_EventScript_GymGuyAfter::
-	msgbox CeruleanGym_Text_GuideWin, MSGBOX_NPC
-	end
+	setvar VAR_0x8004, 1
+	goto RedsPath_EventScript_Aide
 
 CeruleanCity_Gym_Text_GymStatue::
     .string "CERULEAN POKéMON GYM\n"
@@ -327,3 +327,8 @@ CeruleanGym_Text_Misty_ExplainTM:
 	.string "It's the WATER PULSE TM.\p"
 	.string "It causes damage and sometimes\n"
 	.string "causes confusion as well!$"
+
+@ Red's Path (data/scripts/reds_path.inc): challenge 1.
+CeruleanCity_Gym_EventScript_RedsPathTrigger::
+	setvar VAR_0x8004, 1
+	goto RedsPath_EventScript_IntroTrigger

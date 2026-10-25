@@ -260,8 +260,8 @@ FuchsiaCity_Gym_EventScript_GymGuy::
 	end
 
 FuchsiaCity_Gym_EventScript_GymGuyAfter::
-	msgbox FuchsiaCity_Gym_Text_GuideWin, MSGBOX_NPC
-	end
+	setvar VAR_0x8004, 4
+	goto RedsPath_EventScript_Aide
 
 FuchsiaCity_Gym_EventScript_GymStatue::
 	lockall
@@ -298,3 +298,7 @@ FuchsiaCity_Gym_Text_GuideWin:
 	.string "That was a great battle, trainer\n"
 	.string "from JOHTO!$"
 
+@ Red's Path (data/scripts/reds_path.inc): challenge 4.
+FuchsiaCity_Gym_EventScript_RedsPathTrigger::
+	setvar VAR_0x8004, 4
+	goto RedsPath_EventScript_IntroTrigger

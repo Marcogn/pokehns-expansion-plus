@@ -7,8 +7,8 @@ SaffronCity_Gym_EventScript_GymGuy::
 	end
 
 SaffronCity_Gym_EventScript_GymGuy2::
-	msgbox SaffronCity_Gym_Text_GymGuideWin, MSGBOX_NPC
-	end
+	setvar VAR_0x8004, 5
+	goto RedsPath_EventScript_Aide
 
 SaffronCity_Gym_EventScript_Rebecca::
 	trainerbattle_single TRAINER_REBECCA_HNS, SaffronCity_Gym_Text_MediumRebeccaSeen, SaffronCity_Gym_Text_MediumRebeccaBeaten
@@ -200,3 +200,8 @@ SaffronCity_Gym_Text_GymStatuePlayerWon::
     .string "LEADER: SABRINA\p"
     .string "WINNING TRAINERS:\n"
 	.string "BLUE, RED, {PLAYER}$"
+
+@ Red's Path (data/scripts/reds_path.inc): challenge 5.
+SaffronCity_Gym_EventScript_RedsPathTrigger::
+	setvar VAR_0x8004, 5
+	goto RedsPath_EventScript_IntroTrigger

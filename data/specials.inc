@@ -716,3 +716,10 @@ gSpecials::
 	def_special TClonerGiveRewardMon
 	def_special RedsPath_LoadRedsParty
 	def_special RedsPath_RestorePlayerParty
+	def_special RedsPath_IsGymLeaderBeaten, requests_effects=TRUE
+	def_special RedsPath_GetAideState
+	def_special RedsPath_WonSceneBattle
+	def_special RedsPath_EnterScene
+	def_special RedsPath_ExitScene
+	def_special RedsPath_BuildAideApproach
+	def_special RedsPath_GivePrize

@@ -185,3 +185,27 @@ CeladonCity_Gym_Text_GymStatuePlayerWon::
     .string "LEADER: ERIKA\p"
     .string "WINNING TRAINERS:\n"
 	.string "BLUE, RED, {PLAYER}$"
+
+@ Erika's Gym had no aide: she is here for Red's Path (docs/plans/reds-path.md),
+@ and Erika's Gym only takes women.
+CeladonCity_Gym_EventScript_GymGuy::
+	goto_if_set FLAG_DEFEATED_CELADON_GYM, CeladonCity_Gym_EventScript_GymGuyAfter
+	msgbox CeladonCity_Gym_Text_GymGuy, MSGBOX_NPC
+	end
+
+CeladonCity_Gym_EventScript_GymGuyAfter::
+	setvar VAR_0x8004, 3
+	goto RedsPath_EventScript_Aide
+
+CeladonCity_Gym_Text_GymGuy:
+	.string "Hi there! Here to challenge ERIKA?\p"
+	.string "Her GRASS-type POKéMON love the sun\n"
+	.string "and shrug off WATER moves.\p"
+	.string "FIRE, ICE and FLYING POKéMON will\n"
+	.string "help you a lot. Watch out for her\l"
+	.string "sleep and paralysis powders!$"
+
+@ Red's Path (data/scripts/reds_path.inc): challenge 3.
+CeladonCity_Gym_EventScript_RedsPathTrigger::
+	setvar VAR_0x8004, 3
+	goto RedsPath_EventScript_IntroTrigger

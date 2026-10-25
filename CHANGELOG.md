@@ -8,15 +8,33 @@ add the section before releasing. Feature details live in the tables of
 
 ## 2.0.6.PLUS.7
 
-### In progress (not playable yet)
+### Added
 - **Red's Path**, the eight Kanto Gyms replayed with Red's team of the time
-  against the Leaders as he met them (FireRed's). The battles are in, still
-  only reachable from the debug menu; the Gym guides who offer them, the
-  scene and the prizes come next. In these battles you play as Red (his
-  FireRed sprite and mugshot), you cannot run, Red's Pokémon gain no
-  experience and do not evolve, winning pays no prize money, and losing
-  costs no money and does not send you to a Pokémon Center: your own team is
-  back either way. The battle texts call you RED.
+  against the Leaders as he met them (FireRed's). Three years after Red saved
+  the region from Team Rocket, the Pokémon League lets trainers relive his
+  Gym battles in first person with an interactive VR headset.
+  - **Where**: the guide at the entrance of each Kanto Gym, once you have
+    beaten that Gym's own Leader. Erika's Gym now has a guide too. The first
+    time you walk out of a Kanto Gym after beating its Leader, the guide
+    calls you over and explains.
+  - **In order**, like Red: Brock, Misty, Lt. Surge, Erika, Koga (in
+    Fuchsia), Sabrina, Blaine (on the Seafoam Islands), Giovanni (in
+    Viridian). A guide whose challenge is not next tells you which one is,
+    and whether you still have to beat that Gym's Leader first.
+  - **The scene**: you put on the headset, and in the Gym you are Red, in
+    front of the Leader as he met them (Koga instead of Janine, Giovanni
+    instead of Blue), then the battle. In it you play as Red (his FireRed
+    sprite and mugshot), you cannot run, Red's Pokémon gain no experience
+    and do not evolve, winning pays no prize money, and losing costs no
+    money and does not send you to a Pokémon Center: your own team is back
+    either way, and you can try again. The battle texts call you RED.
+  - **Prizes**: each Leader's ace (Onix, Starmie, Raichu, Vileplume,
+    Weezing, Alakazam, Arcanine, Rhydon) at Lv70 with its level-up moves,
+    all IVs 31, a random nature, the Leader as its Original Trainer and a
+    Poké Ball. It always goes to your party: with a full party the guide
+    keeps it until you come back with room. Shininess is rolled when you
+    collect it, at the normal odds: save in front of the guide and you can
+    reset for a shiny.
 
 ## 2.0.6.PLUS.6
 

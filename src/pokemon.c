@@ -5402,7 +5402,7 @@ void CopyMon(void *dest, void *src, size_t size)
 // (TRAINER CATCH) does not, and a raw write left it undecryptable: a Bad Egg on
 // its next read. Re-key the substructs, and keep shininess, which is stored
 // relative to the OT ID (shinyModifier).
-static void SetMonOtIdRekeyed(struct Pokemon *mon, const u8 *otIdBytes)
+void SetMonOtIdRekeyed(struct Pokemon *mon, const u8 *otIdBytes)
 {
     struct BoxPokemon *boxMon = &mon->box;
     u32 otId = otIdBytes[0] | (otIdBytes[1] << 8) | (otIdBytes[2] << 16) | (otIdBytes[3] << 24);

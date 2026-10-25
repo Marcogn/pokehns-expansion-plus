@@ -489,7 +489,8 @@ void CameraUpdate(void)
     gTotalCameraPixelOffsetY -= movementSpeedY;
 }
 
-void MoveCameraAndRedrawMap(int deltaX, int deltaY) //unused
+// Red's Path moves the player across the Gym in one go with it (src/reds_path.c).
+void MoveCameraAndRedrawMap(int deltaX, int deltaY)
 {
     CameraMove(deltaX, deltaY);
     UpdateObjectEventsForCameraUpdate(deltaX, deltaY);

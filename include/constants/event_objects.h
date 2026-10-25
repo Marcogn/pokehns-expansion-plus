@@ -665,6 +665,7 @@
 #define LOCALID_NONE                              0
 #define LOCALID_CAMERA                          127
 #define LOCALID_BERRY_BLENDER_PLAYER_END        240 // This will use 5 (MAX_RFU_PLAYERS) IDs ending at 240, i.e. 236-240
+#define LOCALID_REDS_PATH_RED                   241 // Red in the Red's Path scene (src/reds_path.c)
 #define LOCALID_OW_ENCOUNTER_END                252 // This will use OWE_SPAWNS_MAX IDs ending at 252: 247-252 with Hasep's 6
 #define LOCALID_FOLLOWING_POKEMON               254
 #define LOCALID_PLAYER                          255

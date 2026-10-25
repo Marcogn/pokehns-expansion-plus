@@ -1089,6 +1089,19 @@ u8 LoadGameSave(u8 saveType)
 #endif
         gSaveBlock1Ptr->saveVersion = 10;
     }
+    if (gSaveBlock1Ptr->saveVersion < 11)
+    {
+#if IS_HNS
+        // Red's Path's introduction and prize flags took
+        // FLAG_UNUSED_EXTENDED_87..95, as unprovably clear as 86 was. A stray
+        // prize flag would swallow a prize that was never handed out.
+        u32 flag;
+
+        for (flag = FLAG_REDS_PATH_INTRO_SEEN; flag <= FLAG_REDS_PATH_PRIZE_GIOVANNI; flag++)
+            FlagClear(flag);
+#endif
+        gSaveBlock1Ptr->saveVersion = 11;
+    }
 
     // Add version migration steps here:
     // if (gSaveBlock1Ptr->saveVersion < 1)
