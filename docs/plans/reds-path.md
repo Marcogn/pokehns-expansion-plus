@@ -210,15 +210,9 @@ della porta, l'aiutante ha il punto esclamativo, si avvicina e dice:
 > ciascun capopalestra sconfitto in questo modo! Parla con me, organizzerò la
 > lotta con il capopalestra.
 
-> What a battle! It's been three years since a TRAINER from PALLET TOWN saved
-> the whole region from TEAM ROCKET. Every year the POKéMON LEAGUE holds RED'S
-> PATH: TRAINERS relive RED's GYM battles using only the POKéMON he had when
-> he first beat each LEADER. Don't miss it, there's a great prize for every
-> LEADER you beat this way! Just like RED, you have to take them on in order,
-> starting with BROCK in PEWTER CITY. Talk to me and I'll set up the battle.
-
 Aggiunta dell'utente (24/10): l'introduzione dice che le sfide vanno fatte in
-ordine.
+ordine. La prima proposta inglese è superata dal visore (sotto): quella da
+usare è la seconda.
 
 **Il visore (decisione dell'utente, 25/10).** Non si torna magicamente
 indietro nel tempo: la Lega fa rivivere le lotte di Red con un **visore VR
@@ -229,8 +223,7 @@ al posto suo, in prima persona. Testo dell'utente:
 > capipalestra attraverso questo visore VR interattivo. Avrai accesso alla
 > sua squadra e lotterai al posto suo in prima persona. Vuoi provare?
 
-L'introduzione inglese qui sopra va quindi riscritta così (proposta, da
-impaginare nella B):
+**Introduzione da usare** (proposta inglese, da impaginare nella B):
 
 > What a battle! It's been three years since a TRAINER from PALLET TOWN saved
 > the whole region from TEAM ROCKET. Every year the POKéMON LEAGUE holds RED'S
@@ -413,15 +406,19 @@ dell'emulatore.
 
 1. **Aiutante di Erika** in `CeladonCity_Gym_hns` (`OBJ_EVENT_GFX_GIRL_1_HNS`),
    con un dialogo normale da aiutante più Red's Path.
-2. **Script comune** (`data/scripts/reds_path.inc`): introduzione una volta
-   sola, attivata uscendo dalla palestra dopo il capo di HnS (punto
+2. **Script comune** (`data/scripts/reds_path.inc`), con la cornice del
+   **visore VR** (§4, "Il visore": nessun testo deve parlare di viaggio nel
+   tempo): introduzione una volta sola, attivata uscendo dalla palestra dopo il capo di HnS (punto
    esclamativo, l'aiutante si avvicina); domanda sì/no; controllo
    dell'ordine con "Beat the LEADER there first!"; la scena (sezione 4);
    ritorno all'ingresso; premio in squadra (Lv70, mosse di livello, allenatore
    originale il capo, Poké Ball, IV 31, natura casuale, shiny con le
    probabilità normali), squadra piena → torna dopo, "Here's your prize!";
    sconfitta → "Try again!"; complimenti finali dopo le otto.
-3. **Agganci** negli otto script delle palestre (aiutanti esistenti).
+3. **Agganci** negli otto script delle palestre (aiutanti esistenti). La lotta
+   si chiama con `RedsPath_EventScript_Battle` così com'è (vedi "Cosa ha
+   lasciato la A2 alla B" in fondo): vittoria e sconfitta si distinguono col
+   flag del capo.
 4. **Testi inglesi** dalla sezione 4, impaginati e controllati negli
    screenshot.
 5. **Verifica in emulatore**: percorso completo con flag forzati (debug o
