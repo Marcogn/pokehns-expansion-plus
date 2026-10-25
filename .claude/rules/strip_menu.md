@@ -52,7 +52,7 @@ paths:
   (quello della radio del Pokégear); si ridisegna quando cambia il minuto.
 - **Grafica** (`graphics/strip_start_menu/`, fase 6): fascia e icone di
   Pokédex, Squadra, Borsa e Opzioni sono di `pollythadon`; `dexnav.png`
-  (radar, 24 px) e `quests.png` (libro, 19x26 con nastro) sono disegnati qui, 32x32 per stato, metà
+  (radar, 19 px) e `quests.png` (libro, 15x19 con nastro; stessa altezza della Poké Ball, righe 7-25 del foglio) sono disegnati qui, 32x32 per stato, metà
   alta = non selezionata (grigi 11, 12, 14), metà bassa = selezionata, stessa
   palette `icons.pal` (contorno bianco = entry 15). Indici contati sui `.png`.
 - **Tema scuro**: `bg_dark.pal`, stessi indici di `bg.pal`; cambiano solo le
