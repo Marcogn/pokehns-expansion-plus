@@ -28,7 +28,28 @@ paths:
   `FadeInFromBlack`).
 - **Tasti**: frecce sinistra/destra (circolari), A apre, B chiude, **Start
   salva**, **L Scheda allenatore** (o Frontier Pass), **R Pokégear** solo con
-  `FLAG_SYS_POKENAV_GET` (senza, R non fa nulla e il suggerimento sparisce).
+  `FLAG_SYS_POKENAV_GET` (senza, R non fa nulla e il suggerimento sparisce),
+  **Select sposta** l'icona sotto il cursore (sotto).
+- **Riordino** (richiesta dell'utente, 25/10): Select solleva l'icona di
+  `STRIP_ICON_LIFT` px e la legenda passa a "Move / Place / Cancel";
+  sinistra/destra la scambiano con la vicina (senza giro: ai bordi si
+  ferma), A o Select la posano e salvano, B rimette l'ordine di partenza
+  (`iconsBeforeMove`). Icone, sprite e gemelli del Flash si permutano
+  insieme (`StripMenu_SwapIcons`), così l'indice i resta quello di
+  `icons[i]`; le posizioni le rifà `StripMenu_PlaceIcons`.
+  **Salvataggio**: `gSaveBlock3Ptr->stripMenuOrder`, 4 byte in coda a
+  SaveBlock3 (offset 92, `SAVE_VERSION 14`): nibble i = id dell'icona + 1.
+  Tutto a zero, o qualunque cosa non sia una permutazione completa, vale
+  l'ordine di default (`GetIconOrder`), quindi un byte rovinato non rompe il
+  menu. Le icone non disponibili tengono il loro posto nell'ordine completo
+  (`StripMenu_PlaceMovedIcon` riscrive solo i posti di quelle visibili).
+  La finestra dei suggerimenti è larga 28 tile (da colonna 2): con Select
+  la riga col Pokégear fa 188 px, e a 24 tile restava 1 px di margine.
+  Verificato in mGBA: ordine salvato (`32 41 65` = DexNav, Squadra, Pokédex,
+  …) e ritrovato dopo salvataggio e riavvio; B che annulla; fermo ai bordi;
+  senza DexNav (`0x962` spento) il Pokédex in testa salva `12 43 65` e il
+  DexNav riacceso torna al primo posto; Grotta Scura con Flash, icona
+  sollevata e spostata visibile fuori dal cerchio.
   R+Start apre ancora il debug: lo intercetta il campo prima del menu.
   Il cursore ricorda la voce (`sStripLastIcon`), come la lista classica.
 - **Salvataggio**: la striscia si smonta, poi `StartMenu_SaveFromStrip` fa

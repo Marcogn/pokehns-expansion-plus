@@ -18,7 +18,10 @@ add the section before releasing. Feature details live in the tables of
   map, in the style of Pokémon Unbound: Pokédex, DexNav, Party, Bag, Quests
   and Options, with the name of the selected entry and the day and time.
   **Start** saves, **L** opens the Trainer Card and **R** the Pokégear; B
-  closes. The Safari Zone, the Bug-Catching Contest, the Battle Pike and
+  closes. **Select** picks up the icon under the cursor: move it with left
+  and right, put it down with A or Select (B puts everything back). The
+  order is kept with your save, and an icon you do not have yet keeps its
+  place for when you get it. The Safari Zone, the Bug-Catching Contest, the Battle Pike and
   Pyramid, the Union Room and link rooms keep the classic list. The bar and
   the Pokédex, Party, Bag and Options icons come from pollythadon's
   Unbound-style start menu; the DexNav and Quests icons are new. It follows

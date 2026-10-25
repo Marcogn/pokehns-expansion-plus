@@ -119,6 +119,8 @@ STATIC_ASSERT(offsetof(struct SaveBlock3, questLog) == 60, SaveBlock3QuestLogOff
 // their place. 30 bytes, rounded up to a word by -mabi=apcs-gnu.
 STATIC_ASSERT(offsetof(struct QuestLogSaveData, seenHigh) == 24, QuestLogSeenHighOffset);
 STATIC_ASSERT(sizeof(struct QuestLogSaveData) == 32, QuestLogSaveDataSize);
+// And for the strip menu's icon order (SAVE_VERSION 14).
+STATIC_ASSERT(offsetof(struct SaveBlock3, stripMenuOrder) == 92, SaveBlock3StripMenuOrderOffset);
 // (sizeof(struct SoundAndFieldOptions) is 4, not 1: -mabi=apcs-gnu rounds every
 // struct up to a word. Harmless, but it is why this is not asserted.) Appending
 // must not push SaveBlock3 out of sector 0's 116-byte tail.
@@ -1126,6 +1128,15 @@ u8 LoadGameSave(u8 saveType)
         // level, so a quest already at Reward or Completed shows NEW once.
         memset(gSaveBlock3Ptr->questLog.seenHigh, 0, sizeof(gSaveBlock3Ptr->questLog.seenHigh));
         gSaveBlock1Ptr->saveVersion = 13;
+    }
+    if (gSaveBlock1Ptr->saveVersion < 14)
+    {
+        // The strip menu's icon order was appended to SaveBlock3, after the
+        // quest book. Zero is the default order; garbage would also fall back
+        // to it (it is checked on every read), but a stray byte that happened
+        // to be a valid order would silently shuffle the menu.
+        memset(gSaveBlock3Ptr->stripMenuOrder, 0, sizeof(gSaveBlock3Ptr->stripMenuOrder));
+        gSaveBlock1Ptr->saveVersion = 14;
     }
 
     // Add version migration steps here:
