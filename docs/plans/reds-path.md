@@ -40,7 +40,7 @@ Wild* in cui si rigioca una sfida con gli strumenti dei campioni di allora.)
 | Sconfitta | **nessuna perdita di soldi**, la lotta si chiude normalmente e si torna dall'aiutante |
 | Versione di Red | **FireRed** (Oddish, Ekans; niente Bellsprout e Sandshrew) |
 | Premi | l'**asso** di ogni capo, **Lv70**, mosse di livello al 70, **non shiny ma nemmeno bloccato**: probabilità normali, così si può cacciare lo shiny resettando |
-| Storia | tre anni dopo il viaggio di Red, la Lega organizza ogni anno l'evento "Red's Path" (dialoghi in sezione 4) |
+| Storia | tre anni dopo il viaggio di Red, la Lega organizza ogni anno l'evento "Red's Path": **un visore VR interattivo** (che in gioco non si vede) fa rivivere al giocatore le lotte di Red in prima persona, con la sua squadra. Niente viaggio nel tempo (decisione dell'utente, 25/10; dialoghi in sezione 4) |
 
 ## 1. Gli avversari
 
@@ -220,6 +220,26 @@ della porta, l'aiutante ha il punto esclamativo, si avvicina e dice:
 Aggiunta dell'utente (24/10): l'introduzione dice che le sfide vanno fatte in
 ordine.
 
+**Il visore (decisione dell'utente, 25/10).** Non si torna magicamente
+indietro nel tempo: la Lega fa rivivere le lotte di Red con un **visore VR
+interattivo**, che in gioco non si vede. Si usa la squadra di Red e si lotta
+al posto suo, in prima persona. Testo dell'utente:
+
+> Ogni anno facciamo rivivere l'esperienza delle lotte di Red coi
+> capipalestra attraverso questo visore VR interattivo. Avrai accesso alla
+> sua squadra e lotterai al posto suo in prima persona. Vuoi provare?
+
+L'introduzione inglese qui sopra va quindi riscritta così (proposta, da
+impaginare nella B):
+
+> What a battle! It's been three years since a TRAINER from PALLET TOWN saved
+> the whole region from TEAM ROCKET. Every year the POKéMON LEAGUE holds RED'S
+> PATH: with this interactive VR headset you relive RED's battles against the
+> GYM LEADERS. You get his team, the POKéMON he had back then, and you fight
+> in his place, in first person! There's a great prize for every LEADER you
+> beat. Just like RED, you have to take them on in order, starting with BROCK
+> in PEWTER CITY. Talk to me whenever you want to try!
+
 Una sola volta in tutto il gioco (un flag), non una per palestra.
 
 **Se il giocatore ne ha saltata una** (parla con l'aiutante della palestra N
@@ -235,12 +255,13 @@ non è ancora offerta), l'aiutante aggiunge (approvato):
 
 **Le volte successive, se la sfida di questa palestra è la prossima:**
 
-> Are you ready for RED'S PATH? → YES / NO
-> - YES: "Then let's go!" → parte la sfida
+> Want to relive RED's battle with BROCK? → YES / NO
+> - YES: "Put on the headset… Here we go!" → parte la sfida
 > - NO: "OK! Remember, there are great prizes!"
 
-**Sconfitta:** la lotta si chiude come una normale, si torna all'ingresso
-davanti all'aiutante: "Try again!".
+**Sconfitta:** la lotta si chiude come una normale (niente svenimento, niente
+soldi persi: fatto nella A2), si torna all'ingresso davanti all'aiutante:
+"Try again!".
 
 **Vittoria con posto in squadra:** congratulazioni e premio.
 **Vittoria con squadra piena:** congratulazioni, "Come back with room in your
@@ -250,7 +271,7 @@ party!". **Ritorno con posto libero:** "Here's your prize!".
 
 ### La scena (dopo il "sì")
 
-1. dissolvenza al nero;
+1. dissolvenza al nero: il giocatore indossa il visore (non si vede);
 2. nella palestra il giocatore diventa **Red** (sprite overworld
    `OBJ_EVENT_GFX_RED_NORMAL_HNS`), davanti al capo con lo **sprite giusto**:
    Koga (`OBJ_EVENT_GFX_KOGA_HNS`) al posto di Janine, Giovanni
@@ -261,8 +282,12 @@ party!". **Ritorno con posto libero:** "Here's your prize!".
 4. **mugshot** e lotta;
 5. dopo il messaggio di sconfitta del capo, di nuovo nella scena: **"RED
    WINS!"**, fanfara, dissolvenza al nero;
-6. di nuovo all'ingresso, davanti all'aiutante, nel punto in cui si era
-   lasciato il giocatore: congratulazioni e premio.
+6. il visore si toglie: di nuovo all'ingresso, davanti all'aiutante, nel punto
+   in cui si era lasciato il giocatore: congratulazioni e premio.
+
+Quello che si vede fra 1 e 6 è la simulazione: per questo il giocatore è Red
+e Janine e Blue sono Koga e Giovanni. Nessun testo deve far pensare a un
+viaggio nel tempo.
 
 Da decidere in fase di codice: Red come oggetto separato con il giocatore
 nascosto, oppure il giocatore con lo sprite cambiato; il capo di Gen 1 come
@@ -499,12 +524,13 @@ dettagli in `.claude/rules/reds_path.md`):
 - **Dopo `RedsPath_EventScript_Battle` lo script riprende sia dopo una
   vittoria sia dopo una sconfitta**: la B li distingue con il flag del capo
   (`TRAINER_FLAGS_START + TRAINER_REDS_PATH_*_HNS`, `goto_if_defeated`).
-- **Una vittoria dà il premio in soldi del capo** (Brock ₽1400, tutte e otto
-  ₽27100). Il piano non lo dice: da decidere con l'utente nella B (lasciarlo,
-  o toglierlo con un controllo in `GetTrainerMoneyToGive`).
-- Nei testi della lotta il nome è quello del giocatore ("You are challenged
-  by…" non nomina Red, "<NOME> is out of usable POKéMON!" sì): da decidere
-  nella B o nella C se dev'essere RED.
+- **Nessun premio in soldi alla vittoria** (decisione dell'utente, 25/10):
+  lo script di lotta salta `getmoneyreward` e il suo messaggio
+  (`jumpifredspathbattle`).
+- **Nei testi della lotta c'è sempre RED** (decisione dell'utente, 25/10):
+  "RED is challenged by…", "RED used <oggetto>!", "RED defeated…", e
+  `{B_PLAYER_NAME}` vale RED. Le domande al giocatore ("Would you like
+  to…") restano in seconda persona.
 - Il follower si aggiorna nel ripristino: nella scena della B, se il
   giocatore diventa Red prima della lotta, va nascosto lì (o
   `FLAG_TEMP_HIDE_FOLLOWER`).

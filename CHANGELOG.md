@@ -14,8 +14,9 @@ add the section before releasing. Feature details live in the tables of
   only reachable from the debug menu; the Gym guides who offer them, the
   scene and the prizes come next. In these battles you play as Red (his
   FireRed sprite and mugshot), you cannot run, Red's Pokémon gain no
-  experience and do not evolve, and losing costs no money and does not send
-  you to a Pokémon Center: your own team is back either way.
+  experience and do not evolve, winning pays no prize money, and losing
+  costs no money and does not send you to a Pokémon Center: your own team is
+  back either way. The battle texts call you RED.
 
 ## 2.0.6.PLUS.6
 

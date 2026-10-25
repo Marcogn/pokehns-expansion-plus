@@ -13521,6 +13521,16 @@ void BS_JumpIfNoWhiteOut(void)
         gBattlescriptCurrInstr = cmd->nextInstr;
 }
 
+void BS_JumpIfRedsPathBattle(void)
+{
+    NATIVE_ARGS(const u8 *jumpInstr);
+
+    if (IsRedsPathBattle())
+        gBattlescriptCurrInstr = cmd->jumpInstr;
+    else
+        gBattlescriptCurrInstr = cmd->nextInstr;
+}
+
 void BS_TryBoosterEnergy(void)
 {
     NATIVE_ARGS(u8 onFieldStatus);

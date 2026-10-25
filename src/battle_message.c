@@ -1,5 +1,6 @@
 #include "global.h"
 #include "battle.h"
+#include "battle_partner.h"
 #include "battle_anim.h"
 #include "battle_ai_util.h"
 #include "battle_controllers.h"
@@ -2417,6 +2418,26 @@ static const struct BattleWindowText *const sBattleTextOnWindowsInfo[] =
 
 static const u8 sRecordedBattleTextSpeeds[] = {8, 4, 1, 0};
 
+// Red's Path: the player relives Red's battle as Red, so the lines that
+// address the player as "You" name him instead. Only those a single Trainer
+// battle without a whiteout can show.
+static const u8 sText_RedsPathChallenged[] = _("RED is challenged by {B_TRAINER1_NAME_WITH_CLASS}!\p");
+static const u8 sText_RedsPathDefeated[] = _("RED defeated {B_TRAINER1_NAME_WITH_CLASS}!\p");
+static const u8 sText_RedsPathUsedItem[] = _("RED used {B_LAST_ITEM}!");
+
+static const u8 *GetRedsPathBattleString(const u8 *stringPtr)
+{
+    if (!IsRedsPathBattle())
+        return stringPtr;
+    if (stringPtr == sText_Trainer1WantsToBattle)
+        return sText_RedsPathChallenged;
+    if (stringPtr == sText_PlayerDefeatedLinkTrainerTrainer1)
+        return sText_RedsPathDefeated;
+    if (stringPtr == gBattleStringsTable[STRINGID_PLAYERUSEDITEM])
+        return sText_RedsPathUsedItem;
+    return stringPtr;
+}
+
 void BufferStringBattle(enum StringID stringID, enum BattlerId battler)
 {
     s32 i;
@@ -2917,6 +2938,7 @@ void BufferStringBattle(enum StringID stringID, enum BattlerId battler)
         break;
     }
 
+    stringPtr = GetRedsPathBattleString(stringPtr);
     BattleStringExpandPlaceholdersToDisplayedString(stringPtr);
 }
 
@@ -3105,6 +3127,9 @@ static const u8 *BattleStringGetOpponentName(u8 *text, u8 multiplayerId, enum Ba
     return toCpy;
 }
 
+// Red's Path: the player relives Red's battle as Red.
+static const u8 sText_RedsPathPlayerName[] = _("RED");
+
 static const u8 *BattleStringGetPlayerName(u8 *text, enum BattlerId battler)
 {
     const u8 *toCpy = NULL;
@@ -3114,6 +3139,8 @@ static const u8 *BattleStringGetPlayerName(u8 *text, enum BattlerId battler)
     case B_POSITION_PLAYER_LEFT:
         if (gBattleTypeFlags & BATTLE_TYPE_RECORDED)
             toCpy = gLinkPlayers[0].name;
+        else if (IsRedsPathBattle())
+            toCpy = sText_RedsPathPlayerName;
         else
             toCpy = gSaveBlock2Ptr->playerName;
         break;

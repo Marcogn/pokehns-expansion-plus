@@ -37,6 +37,8 @@ la C (taratura). Fino alla B alle lotte si arriva solo dal menu di debug
 | niente svenimento né soldi persi | **`B_FLAG_NO_WHITEOUT` è `FLAG_REDS_PATH_BATTLE`** (`include/config/battle.h`, solo HnS) |
 | niente esperienza | `Cmd_getexp` (`battle_script_commands.c`); senza esperienza niente Candy Jar |
 | niente evoluzioni | `TryEvolvePokemon` (`battle_main.c`) salta il giro |
+| niente premio in soldi | `jumpifredspathbattle` (`BS_JumpIfRedsPathBattle`) in testa a `BattleScript_LocalBattleWonReward` salta `getmoneyreward` e il messaggio |
+| sempre RED nei testi | `BattleStringGetPlayerName` (`{B_PLAYER_NAME}`) e `GetRedsPathBattleString` (`battle_message.c`) |
 
 **Perché `B_FLAG_NO_WHITEOUT` non ha un flag suo** (il piano ne prevedeva
 uno): sarebbe un altro bit di cui non si può dimostrare che sia a zero nei
@@ -54,9 +56,9 @@ capo; lo script di lotta salta `getmoneyreward` (`jumpifnowhiteout`) e la
 squadra non viene curata, ma tanto la sostituisce il ripristino. Lo script dopo
 `trainerbattle_no_intro` riprende sia dopo una vittoria sia dopo una
 sconfitta: la B li distingue con il flag del capo.
-**Vittoria**: il premio in soldi del capo arriva come in ogni lotta
-(Brock ₽1400, tutti e otto ₽27100). Il piano non dice niente: da decidere
-nella B.
+**Vittoria**: niente premio in soldi (decisione dell'utente): si salta
+`getmoneyreward` e il suo messaggio, si passa a Pay Day e Raccogli, che
+la squadra di Red non ha.
 
 **Evoluzioni**: senza esperienza non si sale di livello, ma
 `EVO_MODE_BATTLE_SPECIAL` fa evolvere anche senza (colpi critici, danni
@@ -77,9 +79,16 @@ invisibile).
 
 ## Cose da sapere
 
-- Nei testi della lotta il nome resta quello del giocatore ("You are
-  challenged by…", "<NOME> is out of usable POKéMON!"): RED compare solo nel
-  testo di sconfitta dei capi.
+- **RED nei testi della lotta** (decisione dell'utente): su questa base i
+  testi di lotta si rivolgono al giocatore con "You" e il nome compare quasi
+  mai. Le righe che una lotta di Red's Path può mostrare sono tre ("You are
+  challenged by…", "You used <oggetto>!", "You defeated…"): `GetRedsPathBattleString`
+  le scambia, per puntatore, con versioni "RED …" appena prima
+  dell'espansione. In più `{B_PLAYER_NAME}` vale RED. Le domande al giocatore
+  ("Would you like to…") restano in seconda persona: nel visore è lui che
+  gioca. Un testo nuovo con "You" che compaia in queste lotte va aggiunto lì.
+- La cornice è un **visore VR** (decisione dell'utente, piano §4): niente
+  viaggio nel tempo nei testi.
 - OT dei Pokémon di Red: `RED`, ID derivato dal nome (`GetPartnerOtId`).
   Vale l'obbedienza: con meno di 8 medaglie di Johto i livelli sopra il tetto
   disobbediscono. In gioco non succede (Kanto viene dopo), da debug sì.
@@ -114,6 +123,12 @@ XOR con `encryptionKey`, flag):
   Erika).
 - **Follower**: Vileplume tornato dopo la vittoria (prima della correzione
   spariva, anche camminando).
+
+Dopo la richiesta dell'utente (soldi e RED), stessa prova su Brock: "RED is
+challenged by LEADER BROCK!", "RED used POTION!", "RED defeated LEADER
+BROCK!", poi la frase di Brock e subito la mappa, senza la riga dei soldi;
+soldi invariati (23638) e flag di Brock acceso. Prima della modifica: "You
+defeated…" e "You got ₽1400 for winning!".
 
 Non provato: la sconfitta per tutti e otto (stesso codice), evoluzioni
 speciali in lotta (nessun Pokémon di Red ne ha), migrazione di un salvataggio

@@ -4159,6 +4159,8 @@ BattleScript_LocalBattleWonLoseTexts::
 	waitstate
 	printstring STRINGID_TRAINER2LOSETEXT
 BattleScript_LocalBattleWonReward::
+	@ Red's Path replays a battle Red already won: there is no prize to collect.
+	jumpifredspathbattle BattleScript_PayDayMoneyAndPickUpItems
 	getmoneyreward
 	printstring STRINGID_PLAYERGOTMONEY
 	waitmessage B_WAIT_TIME_LONG
