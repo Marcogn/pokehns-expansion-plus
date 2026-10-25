@@ -2235,6 +2235,12 @@
 	.4byte \jumpInstr
 	.endm
 
+	@ HnS: Red's Path (IsRedsPathBattle)
+	.macro jumpifredspathbattle jumpInstr:req
+	callnative BS_JumpIfRedsPathBattle
+	.4byte \jumpInstr
+	.endm
+
 	.macro tryboosterenergy onFieldStatus:req
 	callnative BS_TryBoosterEnergy
 	.byte \onFieldStatus

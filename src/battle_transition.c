@@ -21,6 +21,7 @@
 #include "trig.h"
 #include "util.h"
 #include "battle_setup.h"
+#include "battle_partner.h"
 #include "data.h"
 #include "constants/field_effects.h"
 #include "constants/songs.h"
@@ -2321,7 +2322,8 @@ static bool8 Mugshot_SetGfx(struct Task *task)
         mugshotColor = MUGSHOT_COLOR_PURPLE;
 
     LoadPalette(sOpponentMugshotsPals[mugshotColor], BG_PLTT_ID(15), PLTT_SIZE_4BPP);
-    LoadPalette(sPlayerMugshotsPals[gSaveBlock2Ptr->playerGender], BG_PLTT_ID(15) + 10, PLTT_SIZEOF(6));
+    // Red's Path: the player is Red, so the band is the male one.
+    LoadPalette(sPlayerMugshotsPals[IsRedsPathBattle() ? MALE : gSaveBlock2Ptr->playerGender], BG_PLTT_ID(15) + 10, PLTT_SIZEOF(6));
 
     for (i = 0; i < 20; i++)
     {
@@ -2663,7 +2665,8 @@ static void Mugshots_CreateTrainerPics(struct Task *task)
         SetOamMatrixRotationScaling(partnerSprite->oam.matrixNum, -512, 512, 0);
     }
 
-    task->tPlayerSpriteId = CreateTrainerSprite(PlayerGenderToFrontTrainerPicId(gSaveBlock2Ptr->playerGender),
+    // Red's Path: FRLG's Red, matching his back pic in the battle.
+    task->tPlayerSpriteId = CreateTrainerSprite(IsRedsPathBattle() ? TRAINER_PIC_FRONT_RED : PlayerGenderToFrontTrainerPicId(gSaveBlock2Ptr->playerGender),
                                                 DISPLAY_WIDTH + 32,
                                                 106,
                                                 0, NULL);

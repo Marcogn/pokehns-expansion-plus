@@ -6153,7 +6153,9 @@ static void TryEvolvePokemon(void)
 {
     s32 i;
 
-    for (i = 0; i < PARTY_SIZE; i++)
+    // Red's team is thrown away right after the battle, and an evolution scene
+    // would still mark the new species caught in the player's Pokedex.
+    for (i = IsRedsPathBattle() ? PARTY_SIZE : 0; i < PARTY_SIZE; i++)
     {
         if (!(sTriedEvolving & (1u << i)))
         {
@@ -6618,6 +6620,10 @@ bool32 CanPlayerForfeitNormalTrainerBattle(void)
         return FALSE;
 
     if (gBattleTypeFlags & BATTLE_TYPE_RECORDED_INVALID)
+        return FALSE;
+
+    // Red's Path is won or lost, never walked away from.
+    if (IsRedsPathBattle())
         return FALSE;
 
     return (gBattleTypeFlags & BATTLE_TYPE_TRAINER);

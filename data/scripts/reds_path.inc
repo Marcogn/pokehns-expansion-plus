@@ -7,13 +7,10 @@
 @ Trainer flag, which is the "challenge won" state. The caller does the
 @ lock/release and everything around the battle (session B of the plan).
 @ FLAG_REDS_PATH_BATTLE is on for the whole of it, Red's team included: it
-@ keeps the randomizer and the challenge menu's rules out (IsRedsPathBattle).
-@
-@ Until the battle hooks of session A2 are in, a loss whites out as in any
-@ Trainer battle, and the script never gets to restore the party: the real
-@ team is still in the save, so a soft reset brings it back. The white-out
-@ clears FLAG_REDS_PATH_BATTLE (Overworld_ResetBattleFlagsAndVars), after
-@ the Nuzlocke rules have been kept away from Red's team.
+@ keeps the randomizer and the challenge menu's rules out (IsRedsPathBattle),
+@ and it is also B_FLAG_NO_WHITEOUT. So a loss costs no money and comes back
+@ here like a win, with the Leader's flag still clear; and in the battle Red
+@ is drawn as Red, cannot run, gains no experience and does not evolve.
 RedsPath_EventScript_Battle::
 	setflag FLAG_REDS_PATH_BATTLE
 	special SavePlayerParty
@@ -62,7 +59,7 @@ RedsPath_EventScript_BattleGiovanni:
 	goto RedsPath_EventScript_BattleEnd
 
 RedsPath_EventScript_BattleEnd:
-	special LoadPlayerParty
+	special RedsPath_RestorePlayerParty
 	clearflag FLAG_REDS_PATH_BATTLE
 	return
 

@@ -1,8 +1,9 @@
 # Piano: Red's Path (le palestre di Kanto rigiocate con la squadra di Red)
 
-**Stato (24/10): sessione A1 fatta** (passi 1, 2, 3 e 5 della sessione A:
-`SAVE_VERSION 10`, otto capi, otto squadre di Red, voce di debug `Red's
-Path…`); restano A2, B e C. Avversari (§1), squadre di
+**Stato (25/10): sessione A fatta.** A1 (24/10): passi 1, 2, 3 e 5
+(`SAVE_VERSION 10`, otto capi, otto squadre di Red, voce di debug `Red's
+Path…`); A2 (25/10): passi 4, 6 e 7 (agganci di lotta, verifica, regola
+`.claude/rules/reds_path.md`). Restano B e C. Avversari (§1), squadre di
 Red (§2), premi (§3), script e scena (§4) decisi con l'utente.
 Implementazione in tre fasi, quattro sessioni (§5). Le ricerche da cui
 vengono le scelte (cosa era ottenibile prima di ogni capo, meccaniche,
@@ -39,7 +40,7 @@ Wild* in cui si rigioca una sfida con gli strumenti dei campioni di allora.)
 | Sconfitta | **nessuna perdita di soldi**, la lotta si chiude normalmente e si torna dall'aiutante |
 | Versione di Red | **FireRed** (Oddish, Ekans; niente Bellsprout e Sandshrew) |
 | Premi | l'**asso** di ogni capo, **Lv70**, mosse di livello al 70, **non shiny ma nemmeno bloccato**: probabilità normali, così si può cacciare lo shiny resettando |
-| Storia | tre anni dopo il viaggio di Red, la Lega organizza ogni anno l'evento "Red's Path" (dialoghi in sezione 4) |
+| Storia | tre anni dopo il viaggio di Red, la Lega organizza ogni anno l'evento "Red's Path": **un visore VR interattivo** (che in gioco non si vede) fa rivivere al giocatore le lotte di Red in prima persona, con la sua squadra. Niente viaggio nel tempo (decisione dell'utente, 25/10; dialoghi in sezione 4) |
 
 ## 1. Gli avversari
 
@@ -209,15 +210,28 @@ della porta, l'aiutante ha il punto esclamativo, si avvicina e dice:
 > ciascun capopalestra sconfitto in questo modo! Parla con me, organizzerò la
 > lotta con il capopalestra.
 
+Aggiunta dell'utente (24/10): l'introduzione dice che le sfide vanno fatte in
+ordine. La prima proposta inglese è superata dal visore (sotto): quella da
+usare è la seconda.
+
+**Il visore (decisione dell'utente, 25/10).** Non si torna magicamente
+indietro nel tempo: la Lega fa rivivere le lotte di Red con un **visore VR
+interattivo**, che in gioco non si vede. Si usa la squadra di Red e si lotta
+al posto suo, in prima persona. Testo dell'utente:
+
+> Ogni anno facciamo rivivere l'esperienza delle lotte di Red coi
+> capipalestra attraverso questo visore VR interattivo. Avrai accesso alla
+> sua squadra e lotterai al posto suo in prima persona. Vuoi provare?
+
+**Introduzione da usare** (proposta inglese, da impaginare nella B):
+
 > What a battle! It's been three years since a TRAINER from PALLET TOWN saved
 > the whole region from TEAM ROCKET. Every year the POKéMON LEAGUE holds RED'S
-> PATH: TRAINERS relive RED's GYM battles using only the POKéMON he had when
-> he first beat each LEADER. Don't miss it, there's a great prize for every
-> LEADER you beat this way! Just like RED, you have to take them on in order,
-> starting with BROCK in PEWTER CITY. Talk to me and I'll set up the battle.
-
-Aggiunta dell'utente (24/10): l'introduzione dice che le sfide vanno fatte in
-ordine.
+> PATH: with this interactive VR headset you relive RED's battles against the
+> GYM LEADERS. You get his team, the POKéMON he had back then, and you fight
+> in his place, in first person! There's a great prize for every LEADER you
+> beat. Just like RED, you have to take them on in order, starting with BROCK
+> in PEWTER CITY. Talk to me whenever you want to try!
 
 Una sola volta in tutto il gioco (un flag), non una per palestra.
 
@@ -234,12 +248,13 @@ non è ancora offerta), l'aiutante aggiunge (approvato):
 
 **Le volte successive, se la sfida di questa palestra è la prossima:**
 
-> Are you ready for RED'S PATH? → YES / NO
-> - YES: "Then let's go!" → parte la sfida
+> Want to relive RED's battle with BROCK? → YES / NO
+> - YES: "Put on the headset… Here we go!" → parte la sfida
 > - NO: "OK! Remember, there are great prizes!"
 
-**Sconfitta:** la lotta si chiude come una normale, si torna all'ingresso
-davanti all'aiutante: "Try again!".
+**Sconfitta:** la lotta si chiude come una normale (niente svenimento, niente
+soldi persi: fatto nella A2), si torna all'ingresso davanti all'aiutante:
+"Try again!".
 
 **Vittoria con posto in squadra:** congratulazioni e premio.
 **Vittoria con squadra piena:** congratulazioni, "Come back with room in your
@@ -249,7 +264,7 @@ party!". **Ritorno con posto libero:** "Here's your prize!".
 
 ### La scena (dopo il "sì")
 
-1. dissolvenza al nero;
+1. dissolvenza al nero: il giocatore indossa il visore (non si vede);
 2. nella palestra il giocatore diventa **Red** (sprite overworld
    `OBJ_EVENT_GFX_RED_NORMAL_HNS`), davanti al capo con lo **sprite giusto**:
    Koga (`OBJ_EVENT_GFX_KOGA_HNS`) al posto di Janine, Giovanni
@@ -260,8 +275,12 @@ party!". **Ritorno con posto libero:** "Here's your prize!".
 4. **mugshot** e lotta;
 5. dopo il messaggio di sconfitta del capo, di nuovo nella scena: **"RED
    WINS!"**, fanfara, dissolvenza al nero;
-6. di nuovo all'ingresso, davanti all'aiutante, nel punto in cui si era
-   lasciato il giocatore: congratulazioni e premio.
+6. il visore si toglie: di nuovo all'ingresso, davanti all'aiutante, nel punto
+   in cui si era lasciato il giocatore: congratulazioni e premio.
+
+Quello che si vede fra 1 e 6 è la simulazione: per questo il giocatore è Red
+e Janine e Blue sono Koga e Giovanni. Nessun testo deve far pensare a un
+viaggio nel tempo.
 
 Da decidere in fase di codice: Red come oggetto separato con il giocatore
 nascosto, oppure il giocatore con lo sprite cambiato; il capo di Gen 1 come
@@ -387,15 +406,19 @@ dell'emulatore.
 
 1. **Aiutante di Erika** in `CeladonCity_Gym_hns` (`OBJ_EVENT_GFX_GIRL_1_HNS`),
    con un dialogo normale da aiutante più Red's Path.
-2. **Script comune** (`data/scripts/reds_path.inc`): introduzione una volta
-   sola, attivata uscendo dalla palestra dopo il capo di HnS (punto
+2. **Script comune** (`data/scripts/reds_path.inc`), con la cornice del
+   **visore VR** (§4, "Il visore": nessun testo deve parlare di viaggio nel
+   tempo): introduzione una volta sola, attivata uscendo dalla palestra dopo il capo di HnS (punto
    esclamativo, l'aiutante si avvicina); domanda sì/no; controllo
    dell'ordine con "Beat the LEADER there first!"; la scena (sezione 4);
    ritorno all'ingresso; premio in squadra (Lv70, mosse di livello, allenatore
    originale il capo, Poké Ball, IV 31, natura casuale, shiny con le
    probabilità normali), squadra piena → torna dopo, "Here's your prize!";
    sconfitta → "Try again!"; complimenti finali dopo le otto.
-3. **Agganci** negli otto script delle palestre (aiutanti esistenti).
+3. **Agganci** negli otto script delle palestre (aiutanti esistenti). La lotta
+   si chiama con `RedsPath_EventScript_Battle` così com'è (vedi "Cosa ha
+   lasciato la A2 alla B" in fondo): vittoria e sconfitta si distinguono col
+   flag del capo.
 4. **Testi inglesi** dalla sezione 4, impaginati e controllati negli
    screenshot.
 5. **Verifica in emulatore**: percorso completo con flag forzati (debug o
@@ -439,8 +462,9 @@ e sconfitta come sempre): gli agganci arrivano con la A2.
 - La lotta passa da `RedsPath_EventScript_Battle` (`data/scripts/reds_path.inc`,
   `VAR_0x8004` = sfida 0-7): `special SavePlayerParty`, `special
   RedsPath_LoadRedsParty` (`FillRedsPathParty`, `src/battle_partner.c`),
-  `trainerbattle_no_intro`, `special LoadPlayerParty`. La B la chiama così
-  com'è; la voce di debug `Red's Path… → N` pure.
+  `trainerbattle_no_intro`, `special LoadPlayerParty` (dalla A2 `special
+  RedsPath_RestorePlayerParty`, che aggiorna anche il follower). La B la
+  chiama così com'è; la voce di debug `Red's Path… → N` pure.
 - **Una sconfitta oggi fa svenire e lascia in squadra quella di Red**
   (curata): lo script non arriva a `LoadPlayerParty`. La squadra vera è
   ancora nella flash, un soft reset la riporta (provato). Salvare dopo una
@@ -485,6 +509,28 @@ e sconfitta come sempre): gli agganci arrivano con la A2.
   quarto dei PS (Rock Tomb è 4× su Butterfree e lo mette KO prima che agisca). Serve l'emulatore
 (`docs/claude/emulator.md`) e il `.srm` dell'utente (migrazione nella A,
 palestre già battute nella B e nella C). Soulgold non serve.
+
+**Cosa ha lasciato la A2 alla B** (verificato in emulatore il 25/10,
+dettagli in `.claude/rules/reds_path.md`):
+
+- Agganci fatti come nella tabella "La lotta", con una differenza:
+  `B_FLAG_NO_WHITEOUT` **è** `FLAG_REDS_PATH_BATTLE`, non un flag nuovo (un
+  bit in più da migrare, e acceso per sbaglio toglierebbe lo svenimento
+  ovunque). L'esperienza è bloccata in `Cmd_getexp` da `IsRedsPathBattle()`,
+  non con `FLAG_DISABLE_EXP_GAIN`; le evoluzioni a fine lotta sono saltate.
+- **Dopo `RedsPath_EventScript_Battle` lo script riprende sia dopo una
+  vittoria sia dopo una sconfitta**: la B li distingue con il flag del capo
+  (`TRAINER_FLAGS_START + TRAINER_REDS_PATH_*_HNS`, `goto_if_defeated`).
+- **Nessun premio in soldi alla vittoria** (decisione dell'utente, 25/10):
+  lo script di lotta salta `getmoneyreward` e il suo messaggio
+  (`jumpifredspathbattle`).
+- **Nei testi della lotta c'è sempre RED** (decisione dell'utente, 25/10):
+  "RED is challenged by…", "RED used <oggetto>!", "RED defeated…", e
+  `{B_PLAYER_NAME}` vale RED. Le domande al giocatore ("Would you like
+  to…") restano in seconda persona.
+- Il follower si aggiorna nel ripristino: nella scena della B, se il
+  giocatore diventa Red prima della lotta, va nascosto lì (o
+  `FLAG_TEMP_HIDE_FOLLOWER`).
 
 Prompt da incollare (A1):
 

@@ -1,5 +1,6 @@
 #include "global.h"
 #include "battle.h"
+#include "battle_partner.h"
 #include "battle_hold_effects.h"
 #include "battle_message.h"
 #include "option_menu.h"
@@ -4144,7 +4145,8 @@ static void Cmd_getexp(void)
         if (IsOnPlayerSide(gBattlerFainted)
             || IsAiVsAiBattle()
             || !BattleTypeAllowsExp()
-            || FlagGet(FLAG_DISABLE_EXP_GAIN))
+            || FlagGet(FLAG_DISABLE_EXP_GAIN)
+            || IsRedsPathBattle()) // Red's team is only lent for the battle
         {
             gBattleScripting.getexpState = 6; // goto last case
         }
@@ -13514,6 +13516,16 @@ void BS_JumpIfNoWhiteOut(void)
     NATIVE_ARGS(const u8 *jumpInstr);
 
     if (FlagGet(B_FLAG_NO_WHITEOUT))
+        gBattlescriptCurrInstr = cmd->jumpInstr;
+    else
+        gBattlescriptCurrInstr = cmd->nextInstr;
+}
+
+void BS_JumpIfRedsPathBattle(void)
+{
+    NATIVE_ARGS(const u8 *jumpInstr);
+
+    if (IsRedsPathBattle())
         gBattlescriptCurrInstr = cmd->jumpInstr;
     else
         gBattlescriptCurrInstr = cmd->nextInstr;

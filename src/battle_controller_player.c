@@ -1,5 +1,6 @@
 #include "global.h"
 #include "battle.h"
+#include "battle_partner.h"
 #include "battle_anim.h"
 #include "battle_arena.h"
 #include "battle_controllers.h"
@@ -1911,6 +1912,8 @@ static enum TrainerPicID PlayerGetTrainerBackPicId(void)
 
     if (gBattleTypeFlags & BATTLE_TYPE_LINK)
         trainerPicId = LinkPlayerGetTrainerPicId(GetMultiplayerId());
+    else if (IsRedsPathBattle())
+        trainerPicId = TRAINER_PIC_BACK_RED; // FRLG's, the only back pic of Red
     else
         trainerPicId = gSaveBlock2Ptr->playerGender == FEMALE ? TRAINER_BACK_PIC_PLAYER_FEMALE : TRAINER_BACK_PIC_PLAYER_MALE;
 
