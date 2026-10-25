@@ -68,3 +68,28 @@ paths:
 - **mGBA**: `xdotool search --class mgba` restituisce **due** finestre; i
   tasti arrivano solo all'ultima (`tail -1`), con la prima sembra tutto
   bloccato.
+
+## Missioni reali (fase 4)
+
+- `src/data/quests.h`: quattro missioni a funzione. Per aggiungerne una
+  copia il modello: funzione di progresso, `steps`, `subquestInfo`.
+- **Footer: massimo due righe** di testo (provato: la terza esce dal
+  riquadro), circa 38 caratteri per riga.
+- **Stato `REWARD`**: il libro stampa il suo testo fisso "Your reward is
+  waiting. Return to {mappa}!", quindi per quel passo conta solo la `map`
+  (`desc` può essere NULL).
+- **Palette condivise**: due immagini oggetto con la stessa palette non si
+  possono creare "nuovo prima, vecchio dopo": il vecchio libera la palette
+  del nuovo (magenta). `ShowPicture` distrugge prima l'oggetto vecchio.
+- Verifica via GDB senza ROM strumentata: offset in SaveBlock1 `flags` 6540,
+  `vars` 6844; `gSaveBlock1Ptr` va letto (ASLR). Il libro legge lo stato
+  quando si apre, quindi chiudilo e riaprilo dopo ogni scrittura.
+- **Tema via GDB**: `IsDarkUiEnabled` legge `gSaveblock3.challengeSettings.darkUi`,
+  bit 2 del byte a `gSaveblock3 + 47` (0x02009253 nella build del 25/10;
+  ricontrolla con `objdump -d --disassemble=IsDarkUiEnabled`). Azzerarlo
+  porta il tema chiaro senza passare dal menu opzioni.
+- **Completate**: il libro mostra lo sprite e la mappa del passo 0
+  (`progress->step` resta 0): da rifinire, vedi il piano §5.4.
+- **Verifica fase 4**: tema chiaro, Red's Path completata e Blue a Viridian
+  guardati (25/10). Flag usati: badge 2176-2191, Red's Path intro 961,
+  allenatori `0x500 + 653..660`, premi 962-969.

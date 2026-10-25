@@ -17,12 +17,17 @@
 #define QUEST_BOOK_TEST_QUESTS 0
 #endif
 
+#define QUEST_JOHTO_BADGES 0
+#define QUEST_KANTO_BADGES 1
+#define QUEST_TCLONER      2
+#define QUEST_REDS_PATH    3
+
 #if QUEST_BOOK_TEST_QUESTS
-#define QUEST_TEST_STEPS  0
-#define QUEST_TEST_BADGES 1
-#define QUEST_COUNT       2
+#define QUEST_TEST_STEPS  4
+#define QUEST_TEST_BADGES 5
+#define QUEST_COUNT       6
 #else
-#define QUEST_COUNT       0
+#define QUEST_COUNT       4
 #endif
 
 // Quests that keep their state in the quest book because the game has it

@@ -9,6 +9,13 @@ add the section before releasing. Feature details live in the tables of
 ## 2.0.6.PLUS.7
 
 ### Added
+- **Quest book: the first four quests.** The QUESTS entry of the pause menu
+  now lists **Johto Badges** and **Kanto Badges** (one line per Gym, and what
+  to do next), **The TcloneR** (hidden until you meet the first scientist,
+  "Reward" when prizes are due) and **Red's Path** (hidden until the
+  introduction; one line per challenge, "Reward" when a prize waits).
+  They read the state the game already has, so they work on old saves.
+  Credit for the screen: PokemonSanFran's Unbound Quest Menu.
 - **Red's Path**, the eight Kanto Gyms replayed with Red's team of the time
   against the Leaders as he met them (FireRed's). Three years after Red saved
   the region from Team Rocket, the Pokémon League lets trainers relive his

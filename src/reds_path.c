@@ -151,6 +151,36 @@ static u32 GetNextChallenge(void)
     return i;
 }
 
+// Quest book (src/data/quests.h).
+bool32 RedsPath_IsIntroSeen(void)
+{
+    return FlagGet(FLAG_REDS_PATH_INTRO_SEEN);
+}
+
+bool32 RedsPath_IsChallengeWon(u32 challenge)
+{
+    return challenge < REDS_PATH_CHALLENGE_COUNT && IsChallengeWon(challenge);
+}
+
+// The first challenge won whose prize is not collected, REDS_PATH_CHALLENGE_COUNT
+// if there is none.
+u32 RedsPath_GetPrizeWaiting(void)
+{
+    u32 i;
+
+    for (i = 0; i < REDS_PATH_CHALLENGE_COUNT; i++)
+    {
+        if (IsChallengeWon(i) && !FlagGet(sGyms[i].prizeFlag))
+            break;
+    }
+    return i;
+}
+
+u32 RedsPath_GetNextChallenge(void)
+{
+    return GetNextChallenge();
+}
+
 // specialvar: is this Gym's own (HnS) Leader beaten? The trigger in front of
 // the door only shows the introduction after that.
 bool8 RedsPath_IsGymLeaderBeaten(void)

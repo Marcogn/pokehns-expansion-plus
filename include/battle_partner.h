@@ -8,6 +8,12 @@
 void FillPartnerParty(u16 trainerId);
 void FillRedsPathParty(u32 challenge);
 
+// What the quest book reads (src/reds_path.c).
+bool32 RedsPath_IsIntroSeen(void);
+bool32 RedsPath_IsChallengeWon(u32 challenge);
+u32 RedsPath_GetPrizeWaiting(void);
+u32 RedsPath_GetNextChallenge(void);
+
 // The eight Leaders of Red's Path, TRAINER_REDS_PATH_BROCK_HNS onwards. They
 // are fought as written: no level scaling, no TcloneR.
 static inline bool32 IsRedsPathTrainer(u16 trainerId)
