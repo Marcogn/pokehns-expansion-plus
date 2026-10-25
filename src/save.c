@@ -115,7 +115,10 @@ STATIC_ASSERT(offsetof(struct SaveBlock3, candyJarExp) == 52, SaveBlock3CandyJar
 STATIC_ASSERT(offsetof(struct SaveBlock3, soundAndFieldOptions) == 56, SaveBlock3SoundAndFieldOptionsOffset);
 // And for the quest book (SAVE_VERSION 12).
 STATIC_ASSERT(offsetof(struct SaveBlock3, questLog) == 60, SaveBlock3QuestLogOffset);
-STATIC_ASSERT(sizeof(struct QuestLogSaveData) == 24, QuestLogSaveDataSize);
+// seenHigh (SAVE_VERSION 13) was appended to it: the first 24 bytes keep
+// their place. 30 bytes, rounded up to a word by -mabi=apcs-gnu.
+STATIC_ASSERT(offsetof(struct QuestLogSaveData, seenHigh) == 24, QuestLogSeenHighOffset);
+STATIC_ASSERT(sizeof(struct QuestLogSaveData) == 32, QuestLogSaveDataSize);
 // (sizeof(struct SoundAndFieldOptions) is 4, not 1: -mabi=apcs-gnu rounds every
 // struct up to a word. Harmless, but it is why this is not asserted.) Appending
 // must not push SaveBlock3 out of sector 0's 116-byte tail.
@@ -1114,6 +1117,15 @@ u8 LoadGameSave(u8 saveType)
         // state pick up where the save is without any help.
         memset(&gSaveBlock3Ptr->questLog, 0, sizeof(gSaveBlock3Ptr->questLog));
         gSaveBlock1Ptr->saveVersion = 12;
+    }
+    if (gSaveBlock1Ptr->saveVersion < 13)
+    {
+        // seenHigh was appended to the quest book's state: same reason as
+        // above, the bytes after it held whatever was in the sector buffer.
+        // Zero leaves a quest seen in a version 12 save at the lowest seen
+        // level, so a quest already at Reward or Completed shows NEW once.
+        memset(gSaveBlock3Ptr->questLog.seenHigh, 0, sizeof(gSaveBlock3Ptr->questLog.seenHigh));
+        gSaveBlock1Ptr->saveVersion = 13;
     }
 
     // Add version migration steps here:

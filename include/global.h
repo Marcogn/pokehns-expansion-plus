@@ -371,6 +371,10 @@ struct QuestLogSaveData
     u8 seen[QUEST_SAVE_MAX_QUESTS / 8];
     u8 ownStates[QUEST_SAVE_MAX_OWN_SLOTS / 2]; // a QUEST_STATE_* nibble per own slot
     u8 subquests[QUEST_SAVE_MAX_SUBQUESTS / 8];
+    // Appended in SAVE_VERSION 13: with seen, a 2-bit level per quest (seen is
+    // bit 0, this bit 1), so that NEW comes back when a quest moves on to
+    // Reward or Completed (QuestLog_IsNew).
+    u8 seenHigh[QUEST_SAVE_MAX_QUESTS / 8];
 };
 
 struct SoundAndFieldOptions
