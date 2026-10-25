@@ -221,13 +221,28 @@ salvato oltre preferita/nuova): `QUEST_JOHTO_BADGES`, `QUEST_KANTO_BADGES`,
 - Bug del port trovato qui: due immagini oggetto con la stessa palette
   (Falkner e Pryce) si rompevano a vicenda (magenta); ora gli oggetti si
   distruggono uno alla volta.
-- **Verificato** sul `.sav` dell'utente (6 medaglie, Pryce come prossimo) e,
-  con flag/var scritti via GDB, Kanto (Surge, Blue a Cinnabar), Clair al Den,
-  TcloneR (tappe 2 e 5, premio), Red's Path (premio a Pewter, poi Misty).
-  **Non provati**: Blue a Viridian, i testi del tema chiaro, Red's Path
-  completata.
-- Da fare con l'utente: contenuto di Pokédex e leggendari (§7), il resto
-  dei passi di Johto (cosa sblocca ogni palestra non è nei testi).
+- **Verificato** in mGBA sul `.sav` dell'utente (6 medaglie, Pryce come
+  prossimo; Kanto bloccata) e, con flag/var scritti via GDB: Kanto (Surge,
+  Blue a Cinnabar e poi a Viridian), Clair al Den, TcloneR (tappe 2 e 5,
+  premio), Red's Path (premio a Pewter, poi Misty, **completata** con le 8
+  sottomissioni). **Tema chiaro** guardato: lista, Done/Active, sottomissioni.
+- **Non provato**: TcloneR completata (12 passi); `QUEST_LOG_OPEN` da script;
+  una partita vera fino a una missione (solo flag scritti a mano).
+- **Per la prossima sessione**
+  - Fase 5 (menu a striscia, §3.2) è indipendente dal libro: parte da qui.
+  - Rifinitura del libro, se serve: a missione **completata** il libro
+    mostra lo sprite del passo 0 (Falkner, Brock, lo scienziato), poco
+    sensato; basterebbe uno step finale in più, o un campo
+    `doneSprite` in `struct QuestInfo`. Le sottomissioni delle missioni
+    senza `subquestInfo` (TcloneR) non esistono.
+  - Contenuto ancora da fare: Pokédex a scaglioni, leggendari, le cinque
+    missioni di raccordo (§7). I passi di Johto non dicono cosa sblocca
+    ogni palestra (MN, eventi): solo il cancello di Blackthorn è nei testi,
+    letto in `BlackthornCity_hns/scripts.inc`.
+  - Il TcloneR non mostra il conteggio dei cloni (testi statici): servirebbe
+    un segnaposto numerico in `PrintFooter`.
+  - Il `.sav` di prova sta fuori dal repo; per riprovare: `.claude/rules/quest_book.md`,
+    sezione "Missioni reali" (offset di flag/var, bit del tema scuro).
 
 Dopo la fase 1 il quest book (2-4) e il menu (5-6) sono indipendenti. Se i
 token stringono, la fase 4 si fa una missione per volta.
