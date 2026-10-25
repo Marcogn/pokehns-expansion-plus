@@ -1,6 +1,6 @@
 # Piano: quest book e menu di pausa a striscia
 
-**Stato (25/10): fasi 1 (§5.1), 2 (§5.2), 3 (§5.3) e 4 (§5.4) fatte, prossima la 5.** Si fa dopo Red's Path
+**Stato (25/10): fasi 1-5 fatte (§5.1-§5.5), prossima la 6.** Si fa dopo Red's Path
 ([`reds-path.md`](reds-path.md)), una fase per sessione (§5). Le ricerche sono già fatte: i fatti qui sotto sono
 verificati nel codice indicato, non vanno rifatte. I confronti e le
 opzioni scartate stanno in
@@ -229,7 +229,7 @@ salvato oltre preferita/nuova): `QUEST_JOHTO_BADGES`, `QUEST_KANTO_BADGES`,
 - **Non provato**: TcloneR completata (12 passi); `QUEST_LOG_OPEN` da script;
   una partita vera fino a una missione (solo flag scritti a mano).
 - **Per la prossima sessione**
-  - Fase 5 (menu a striscia, §3.2) è indipendente dal libro: parte da qui.
+  - Fase 5 (menu a striscia, §3.2): fatta, §5.5.
   - Rifinitura del libro, se serve: a missione **completata** il libro
     mostra lo sprite del passo 0 (Falkner, Brock, lo scienziato), poco
     sensato; basterebbe uno step finale in più, o un campo
@@ -243,6 +243,30 @@ salvato oltre preferita/nuova): `QUEST_JOHTO_BADGES`, `QUEST_KANTO_BADGES`,
     un segnaposto numerico in `PrintFooter`.
   - Il `.sav` di prova sta fuori dal repo; per riprovare: `.claude/rules/quest_book.md`,
     sezione "Missioni reali" (offset di flag/var, bit del tema scuro).
+
+### 5.5 Fase 5, com'è stata fatta (25/10)
+
+Dettagli e trappole in `.claude/rules/strip_menu.md`.
+
+- `src/strip_start_menu.c`: port ridotto di `unbound_start_menu.c`, una
+  pagina, voci fisse, niente riordino né SaveBlock3. Nel gioco di
+  `pollythadon` il file oggi **non è agganciato** (Start apre il menu Rotom):
+  l'aggancio in `start_menu.c` è nostro.
+- La striscia sostituisce la lista solo nel caso normale; le eccezioni del §2
+  (più Multi Partner Room e link) restano classiche. Nessun ritorno di altre
+  schermate toccato.
+- Voce provvisoria `QUESTS` della lista classica tolta, con
+  `gText_MenuQuests`: il libro si apre dall'icona.
+- Grafica di `pollythadon`, provvisoria: DexNav e Missioni prendono in
+  prestito le icone PokéNav e Save. Niente tema scuro.
+- **Verificato in mGBA** sul `.sav` dell'utente: sei voci, L, R, Start
+  (annulla e salva), B; Safari e Bug-Catching Contest classici; Grotta Scura
+  senza Flash; icone che non entrano in VRAM (ROM strumentata).
+- **Non provati**: Piramide, Pike, Union Room, link; una partita nuova.
+- **Per la fase 6**: fascia e icone nuove (DexNav, Missioni), tema scuro su
+  palette 14 e su quella delle icone. Le finestre della striscia stanno sulle
+  entry 10, 11 e 15 di `bg.pal` (sfondo sotto il testo), il testo usa 1, 2 e 3:
+  ridisegnando la fascia vanno tenute o spostate insieme.
 
 Dopo la fase 1 il quest book (2-4) e il menu (5-6) sono indipendenti. Se i
 token stringono, la fase 4 si fa una missione per volta.

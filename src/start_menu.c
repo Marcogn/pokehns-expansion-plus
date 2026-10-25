@@ -47,8 +47,7 @@
 #include "window.h"
 #include "union_room.h"
 #include "dexnav.h"
-#include "quest_book.h"
-#include "constants/quests.h"
+#include "strip_start_menu.h"
 #include "wild_encounter.h"
 #include "constants/battle_frontier.h"
 #include "constants/rgb.h"
@@ -75,7 +74,6 @@ enum
     MENU_ACTION_DEBUG,
     MENU_ACTION_DEXNAV,
     MENU_ACTION_RETIRE_BUG_CONTEST,
-    MENU_ACTION_QUESTS,
 };
 
 // Save status
@@ -100,6 +98,7 @@ EWRAM_DATA static u8 sCurrentStartMenuActions[9] = {0};
 EWRAM_DATA static s8 sInitStartMenuData[2] = {0};
 
 EWRAM_DATA static u8 (*sSaveDialogCallback)(void) = NULL;
+EWRAM_DATA static bool8 sSaveFromStrip = FALSE;
 EWRAM_DATA static u8 sSaveDialogTimer = 0;
 EWRAM_DATA static bool8 sSavingComplete = FALSE;
 EWRAM_DATA static u8 sSaveInfoWindowId = 0;
@@ -119,7 +118,6 @@ static bool8 StartMenuBattlePyramidRetireCallback(void);
 static bool8 StartMenuBattlePyramidBagCallback(void);
 static bool8 StartMenuDebugCallback(void);
 static bool8 StartMenuDexNavCallback(void);
-static bool8 StartMenuQuestsCallback(void);
 static bool8 StartMenuBugContestRetireCallback(void);
 
 // Menu callbacks
@@ -154,6 +152,7 @@ static void SaveGameTask(u8 taskId);
 static void Task_SaveAfterLinkBattle(u8 taskId);
 static void Task_WaitForBattleTowerLinkSave(u8 taskId);
 static bool8 FieldCB_ReturnToFieldStartMenu(void);
+static void Task_SaveFromStrip(u8 taskId);
 
 static const struct WindowTemplate sWindowTemplate_SafariBalls = {
     .bg = 0,
@@ -226,7 +225,6 @@ static const struct MenuAction sStartMenuItems[] =
     [MENU_ACTION_PYRAMID_BAG]     = {gText_MenuBag,     {.u8_void = StartMenuBattlePyramidBagCallback}},
     [MENU_ACTION_DEBUG]           = {sText_MenuDebug,   {.u8_void = StartMenuDebugCallback}},
     [MENU_ACTION_DEXNAV]          = {gText_MenuDexNav,  {.u8_void = StartMenuDexNavCallback}},
-    [MENU_ACTION_QUESTS]          = {gText_MenuQuests,  {.u8_void = StartMenuQuestsCallback}},
     [MENU_ACTION_RETIRE_BUG_CONTEST] = {gText_MenuRetire, {.u8_void = StartMenuBugContestRetireCallback}},
 };
 
@@ -374,12 +372,6 @@ static void BuildNormalStartMenu(void)
         AddStartMenuAction(MENU_ACTION_POKEMON);
 
     AddStartMenuAction(MENU_ACTION_BAG);
-
-#if QUEST_COUNT > 0
-    // Provisional entry (docs/plans/quest-log.md): the strip menu of phase 5
-    // replaces it. Absent while the book has no quests to show.
-    AddStartMenuAction(MENU_ACTION_QUESTS);
-#endif
 
     if (FlagGet(FLAG_SYS_POKENAV_GET) == TRUE)
         AddStartMenuAction(MENU_ACTION_POKENAV);
@@ -671,8 +663,28 @@ static void CreateStartMenuTask(TaskFunc followupFunc)
     SetTaskFuncWithFollowupFunc(taskId, StartMenuTask, followupFunc);
 }
 
+// The strip (strip_start_menu.c) replaces the list where BuildStartMenuActions
+// would build the normal one; every special context keeps the classic list.
+static bool32 UseStripStartMenu(void)
+{
+    return !IsOverworldLinkActive()
+        && !InUnionRoom()
+        && !GetSafariZoneFlag()
+        && !GetBugContestFlag()
+        && !InBattlePike()
+        && CurrentBattlePyramidLocation() == PYRAMID_LOCATION_NONE
+        && !InMultiPartnerRoom()
+        && !(DEBUG_OVERWORLD_MENU == TRUE && DEBUG_OVERWORLD_IN_MENU == TRUE);
+}
+
 static bool8 FieldCB_ReturnToFieldStartMenu(void)
 {
+    if (UseStripStartMenu())
+    {
+        StripMenu_ReturnToField();
+        return TRUE;
+    }
+
     if (InitStartMenuStep() == FALSE)
     {
         return FALSE;
@@ -711,6 +723,12 @@ void Task_ShowStartMenu(u8 taskId)
 
 void ShowStartMenu(void)
 {
+    if (UseStripStartMenu())
+    {
+        StripMenu_Open();
+        return;
+    }
+
     if (!IsOverworldLinkActive())
     {
         FreezeObjectEvents();
@@ -1016,11 +1034,18 @@ static bool8 SaveCallback(void)
         return FALSE;
     case SAVE_CANCELED: // Back to start menu
         ClearDialogWindowAndFrameToTransparent(0, FALSE);
+        if (sSaveFromStrip)
+        {
+            sSaveFromStrip = FALSE;
+            StripMenu_Reopen();
+            return TRUE;
+        }
         InitStartMenu();
         gMenuCallback = HandleStartMenuInput;
         return FALSE;
     case SAVE_SUCCESS:
     case SAVE_ERROR:    // Close start menu
+        sSaveFromStrip = FALSE;
         ClearDialogWindowAndFrameToTransparent(0, TRUE);
         ScriptUnfreezeObjectEvents();
         UnlockPlayerFieldControls();
@@ -1175,8 +1200,12 @@ static bool8 SaveErrorTimer(void)
 
 static u8 SaveConfirmSaveCallback(void)
 {
-    ClearStdWindowAndFrame(GetStartMenuWindowId(), FALSE);
-    RemoveStartMenuWindow();
+    // The strip removes itself before saving: there is no list window.
+    if (!sSaveFromStrip)
+    {
+        ClearStdWindowAndFrame(GetStartMenuWindowId(), FALSE);
+        RemoveStartMenuWindow();
+    }
     ShowSaveInfoWindow();
 
     if (CurrentBattlePyramidLocation() != PYRAMID_LOCATION_NONE)
@@ -1636,6 +1665,27 @@ static void HideStartMenuWindow(void)
 void HideStartMenu(void)
 {
     PlaySE(SE_SELECT);
+    StartMenu_OnClose();
+    HideStartMenuWindow();
+}
+
+// Start on the strip: the classic save dialog, run by its own task since the
+// strip has no Task_ShowStartMenu. A cancel reopens the strip (SaveCallback).
+void StartMenu_SaveFromStrip(void)
+{
+    sSaveFromStrip = TRUE;
+    gMenuCallback = SaveStartCallback;
+    CreateTask(Task_SaveFromStrip, 0x50);
+}
+
+static void Task_SaveFromStrip(u8 taskId)
+{
+    if (gMenuCallback() == TRUE)
+        DestroyTask(taskId);
+}
+
+void StartMenu_OnClose(void)
+{
     // Sets VAR_TEMP_MTSILVER_RESUME_BLIZZARD_SE to 0 if the player is in Mt. Silver,
     // which is used to restart the SE_Blizzard which is stopped after opening the menu.
     // Ideal fix would be to create a new Background Music file of the Blizzard
@@ -1645,19 +1695,12 @@ void HideStartMenu(void)
     // Check variable aliases in vars_hns.h to ensire temporary variable is not used for anything else.
     if (gMapHeader.regionMapSectionId == MAPSEC_MT_SILVER && (gMapHeader.mapLayoutId == LAYOUT_MT_SILVER_SUMMIT_DAY_HNS || gMapHeader.mapLayoutId == LAYOUT_MT_SILVER_SUMMIT_NIGHT_HNS))
         VarSet(VAR_TEMP_MTSILVER_RESUME_BLIZZARD_SE, 0);
-    HideStartMenuWindow();
 }
 
 void AppendToList(u8 *list, u8 *pos, u8 newEntry)
 {
     list[*pos] = newEntry;
     (*pos)++;
-}
-
-static bool8 StartMenuQuestsCallback(void)
-{
-    CreateTask(Task_OpenQuestBookFromStartMenu, 0);
-    return TRUE;
 }
 
 static bool8 StartMenuDexNavCallback(void)
