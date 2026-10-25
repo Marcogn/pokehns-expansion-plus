@@ -35,13 +35,13 @@ SeafoamIslands_Gym_EventScript_Blaine_Defeated::
 	end
 
 SeafomIslands2_EventScript_GymGuide::
-	goto_if_set FLAG_TEMP_2, SeafomIslands2_EventScript_GymGuide2
-	msgbox SeafoamIslands_Gym_Text_GymGuideWin, MSGBOX_NPC
+	lock
+	faceplayer
+	setvar VAR_0x8004, 6
+	goto_if_set FLAG_TEMP_2, RedsPath_EventScript_AideLocked
+	msgbox SeafoamIslands_Gym_Text_GymGuideWin, MSGBOX_DEFAULT
 	setflag FLAG_TEMP_2
-	end
-SeafomIslands2_EventScript_GymGuide2::
-	msgbox SeafoamIslands_Gym_Text_GymGuideWin2, MSGBOX_NPC
-	end
+	goto RedsPath_EventScript_AideLocked
 
 SeafoamIslands_Gym_EventScript_GymStatue::
 	lockall
@@ -135,3 +135,10 @@ SeafoamIslands_Gym_Text_GymGuideWin2:
 	.string "A POKéMON GYM can be anywhere as\n"
 	.string "long as the GYM LEADER is there.\p"
 	.string "There's no need for a building.$"
+
+@ Red's Path (data/scripts/reds_path.inc): challenge 6. The way out is the
+@ ladder, and the tile above it is solid: the trigger is only on the aide's
+@ side of it, (19,22) and (20,22), where his walk does not cross the ladder.
+SeafoamIslands_Gym_EventScript_RedsPathTrigger::
+	setvar VAR_0x8004, 6
+	goto RedsPath_EventScript_IntroTrigger

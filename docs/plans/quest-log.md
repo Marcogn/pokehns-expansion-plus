@@ -129,7 +129,7 @@ la documentazione.
 
 | # | Fase | Modello | Cancello per passare oltre |
 | --- | --- | --- | --- |
-| 1 | **Fondamenta del quest book**: struct in coda a SaveBlock3, `STATIC_ASSERT`, migrazione (il prossimo `SAVE_VERSION` libero: la sessione A1 di Red's Path prende il 10), API delle tre sorgenti di stato, comando di script | **Opus 5.5** | build verde; un `.sav` di prima carica e il campo nuovo legge zero (emulatore) |
+| 1 | **Fondamenta del quest book**: struct in coda a SaveBlock3, `STATIC_ASSERT`, migrazione (il prossimo `SAVE_VERSION` libero: Red's Path ha preso il 10 e l'11, quindi il 12), API delle tre sorgenti di stato, comando di script | **Opus 5.5** | build verde; un `.sav` di prima carica e il campo nuovo legge zero (emulatore) |
 | 2 | **Port della schermata** (§3.1): lista, dettaglio, sottomissioni, filtri, preferite, con le correzioni della tabella. Aperta da una voce provvisoria del menu classico | **Sonnet 5.5** | due missioni di prova navigabili, screenshot guardati |
 | 3 | **Grafica del quest book**, tema chiaro e scuro | **Sonnet 5.5** | indici contati sui `.4bpp`, render offline, screenshot in tutti e due i temi (CLAUDE.md §2, `battle_ui.md`) |
 | 4 | **Prime missioni**: 16 medaglie, TcloneR, e Red's Path se la sua sessione B è in `master` (§7) | **Sonnet 5.5** | ogni passo verificato con un salvataggio o con il menu debug |
@@ -144,9 +144,9 @@ token stringono, la fase 4 si fa una missione per volta.
 **Ordine con Red's Path.** Red's Path (sessioni A1, A2, B, C del suo piano)
 viene prima. Due punti di contatto:
 
-- **migrazione**: Red's Path A1 usa `saveVersion < 10`; la fase 1 qui usa il
-  numero dopo. Se l'ordine si inverte, si invertono i numeri: conta quale
-  arriva prima in `master`;
+- **migrazione**: Red's Path usa `saveVersion < 10` (A1) e `< 11` (B, i
+  suoi nove flag); la fase 1 qui usa il **12**. Se un'altra migrazione
+  arriva prima in `master`, prende il numero dopo: conta l'ordine in `master`;
 - **la voce di Red's Path** nel quest book si aggiunge solo dopo la sua
   sessione B (prima non è raggiungibile in gioco). Le cinque missioni di
   raccordo (§7) vengono dopo tutte e due. Stima a giudizio:
@@ -245,8 +245,11 @@ comparire vanno confermati mappa per mappa.
   (§4 "Stato salvato"), quindi la sorgente è una funzione e non costa bit:
   - sfida vinta = flag di allenatore battuto di
     `TRAINER_REDS_PATH_<CAPO>_HNS` (id 653-660);
-  - premio ritirato = 8 flag propri di Red's Path;
-  - introduzione vista = 1 flag.
+  - premio ritirato = `FLAG_REDS_PATH_PRIZE_<CAPO>` (8 flag, sessione B);
+  - introduzione vista = `FLAG_REDS_PATH_INTRO_SEEN`.
+  La logica "prossima sfida / premio in attesa" esiste già in C:
+  `RedsPath_GetAideState` e `GetNextChallenge` (`src/reds_path.c`), da
+  riusare invece di riscriverla.
 
   Passi della missione: bloccata finché l'introduzione non è vista → "next
   challenge: <capo> in <città>" (la prima sfida col flag spento; se il capo

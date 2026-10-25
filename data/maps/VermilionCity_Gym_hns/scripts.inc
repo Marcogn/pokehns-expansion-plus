@@ -217,9 +217,8 @@ VermilionCity_Gym_EventScript_GymGuy::
 	end
 
 VermilionCity_Gym_EventScript_GymGuyPostVictory::
-	msgbox VermilionCity_Gym_Text_GymGuyPostVictory
-	release
-	end
+	setvar VAR_0x8004, 2
+	goto RedsPath_EventScript_AideLocked
 
 VermilionCity_Gym_EventScript_GymStatue::
 	lockall
@@ -434,3 +433,7 @@ VermilionCity_Gym_Text_OnlyTrashLocksWereReset::
     .string "Hey!\n"
     .string "The electric locks were reset!$"
 
+@ Red's Path (data/scripts/reds_path.inc): challenge 2.
+VermilionCity_Gym_EventScript_RedsPathTrigger::
+	setvar VAR_0x8004, 2
+	goto RedsPath_EventScript_IntroTrigger

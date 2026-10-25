@@ -174,7 +174,26 @@
       "dest_warp_id": "0"
     }
   ],
-  "coord_events": [],
+  "coord_events": [
+    {
+      "type": "trigger",
+      "x": 19,
+      "y": 22,
+      "elevation": 0,
+      "var": "VAR_TEMP_9",
+      "var_value": "0",
+      "script": "SeafoamIslands_Gym_EventScript_RedsPathTrigger"
+    },
+    {
+      "type": "trigger",
+      "x": 20,
+      "y": 22,
+      "elevation": 0,
+      "var": "VAR_TEMP_9",
+      "var_value": "0",
+      "script": "SeafoamIslands_Gym_EventScript_RedsPathTrigger"
+    }
+  ],
   "bg_events": [
     {
       "type": "sign",

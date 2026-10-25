@@ -207,7 +207,7 @@ In `.claude/rules/`, caricate da sole quando apri i file indicati.
 | `pc_box.md` | `SORT` e `SEARCH` nei box del PC |
 | `overworld_encounters.md` | Pokémon visibili nell'overworld: port, indoli, tetti, VRAM (piano in `docs/plans/`) |
 | `level_scaling.md` | level scaling di allenatori, selvatici (con tetto e margine) e lotte di script; soldi |
-| `reds_path.md` | Red's Path: capi, squadre di Red, agganci di lotta, follower dopo la lotta |
+| `reds_path.md` | Red's Path: capi, squadre di Red, agganci di lotta, aiutanti, scena e premi nelle palestre |
 
 Fuori dalle regole, da leggere quando serve: `docs/claude/emulator.md`,
 `docs/SOULGOLD_PORT_REPORT.md`. I piani in `docs/plans/` contengono le

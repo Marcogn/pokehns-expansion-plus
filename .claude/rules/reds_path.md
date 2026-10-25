@@ -5,15 +5,18 @@ paths:
   - "include/battle_partner.h"
   - "include/constants/battle_partner.h"
   - "src/data/battle_partners.party"
+  - "src/reds_path.c"
+  - "include/constants/reds_path.h"
+  - "data/maps/*_Gym_hns/**"
 ---
 
 # Red's Path (piano in `docs/plans/reds-path.md`)
 
 Il giocatore rigioca le otto palestre di Kanto con la squadra di Red di quel
 momento, contro i capi di FRLG. Fatte le sessioni A1 (dati, salvataggio,
-debug) e A2 (agganci di lotta); restano la B (script di mappa, scena, premi) e
-la C (taratura). Fino alla B alle lotte si arriva solo dal menu di debug
-(`Red's Path… → N`).
+debug), A2 (agganci di lotta) e B (aiutanti, scena, premi: sezione "Mondo"
+in fondo); resta la C (taratura). Le lotte si fanno dagli aiutanti delle
+palestre, o dal menu di debug (`Red's Path… → N`, senza scena).
 
 ## Pezzi e dove stanno
 
@@ -26,6 +29,8 @@ la C (taratura). Fino alla B alle lotte si arriva solo dal menu di debug
 | "lotta in corso" | `FLAG_REDS_PATH_BATTLE` (ex `FLAG_UNUSED_EXTENDED_86`), letto da `IsRedsPathBattle()` |
 | "è un capo di Red's Path" | `IsRedsPathTrainer(id)`, per id: level scaling e TcloneR |
 | "sfida vinta" | il flag "allenatore battuto" del capo, acceso solo alla vittoria |
+| "premio ritirato", "introduzione vista" | `FLAG_REDS_PATH_PRIZE_*`, `FLAG_REDS_PATH_INTRO_SEEN` (ex `FLAG_UNUSED_EXTENDED_87..95`, migrazione 11) |
+| aiutante, scena, premi | `src/reds_path.c` (tabella `sGyms`), `data/scripts/reds_path.inc`, costanti in `include/constants/reds_path.h` |
 
 ## Agganci di lotta (A2), tutti dietro `IsRedsPathBattle()`
 
@@ -133,3 +138,85 @@ defeated…" e "You got ₽1400 for winning!".
 Non provato: la sconfitta per tutti e otto (stesso codice), evoluzioni
 speciali in lotta (nessun Pokémon di Red ne ha), migrazione di un salvataggio
 a versione 9 (fatta nella A1, codice non toccato).
+
+## Mondo (sessione B, 25/10)
+
+Ogni palestra chiama lo script comune con `VAR_0x8004` = sfida: l'aiutante
+(dopo il capo di HnS) va a `RedsPath_EventScript_Aide`, le righe davanti
+all'uscita a `RedsPath_EventScript_IntroTrigger`. Tutto quello che dipende
+dalla palestra (capo, aiutante, posto della scena, sprite di Gen 1, asso,
+flag) sta in `sGyms` in `src/reds_path.c`. Gli stati dell'aiutante
+(`RedsPath_GetAideState`): offerta, premio in attesa, fuori ordine, già fatta
+qui, premi ancora altrove, tutto finito; "Beat the LEADER there first!" quando
+il capo di HnS della prossima sfida non è battuto.
+
+**La scena**: `RedsPath_EnterScene` a schermo nero sposta giocatore e camera
+davanti al capo (`MoveCameraAndRedrawMap`, prima marcata `unused`), rende
+invisibile il giocatore e crea **Red come oggetto a parte**
+(`LOCALID_REDS_PATH_RED` 241); Janine e Blue prendono lo sprite di Koga e
+Giovanni. `RedsPath_ExitScene` rimette tutto e riporta il giocatore dov'era.
+
+Trappole trovate in emulatore:
+
+- **Non cambiare la grafica del giocatore.** Era la prima versione: al
+  ritorno dalla lotta `SetPlayerAvatarObjectEventIdAndObjectId` ricava stato
+  e sesso dell'avatar dalla grafica (Red → maschio, a piedi) e rimette lo
+  sprite del giocatore: dopo la lotta si vedeva di nuovo il giocatore, e una
+  giocatrice sarebbe diventata maschio fino al cambio mappa. Gli oggetti
+  normali invece tengono la grafica cambiata (Koga resta Koga dopo la lotta).
+- **Il capo va cercato dopo lo spostamento**: dalla porta Janine e Blue sono
+  fuori schermo, e un oggetto fuori vista non esiste. Chi entra in vista con
+  lo spostamento non è congelato dal `lockall` (Koga si guardava intorno):
+  `FreezeObjectEvents()` alla fine di `RedsPath_EnterScene`.
+- **Gli script delle righe d'innesco**: expansion li prova "a secco"
+  (`RunScriptImmediatelyUntilEffect`) e li avvia solo se fanno qualcosa.
+  Uno special non dichiarato fa partire lo script vero; se poi finisce con
+  `end` senza `releaseall`, il passo del giocatore resta "tenuto" e il
+  giocatore non si muove più né apre il menu (visto due volte). Ora
+  `RedsPath_IsGymLeaderBeaten` è `requests_effects=TRUE` (non ha effetti), le
+  uscite anticipate non avviano nulla e quella che spegne l'innesco passa da
+  `releaseall`.
+- `msgbox` scrive `VAR_RESULT` (`waitbuttonpress`): l'esito del premio va
+  salvato prima del messaggio, o `Common_EventScript_GiftMon` non mostra
+  "received".
+- `CreateMon` non dà mosse: `GiveMonInitialMoveset` (il primo Onix ne era
+  senza).
+- I cammini dell'aiutante sono costruiti in RAM (`gRedsPathAideApproach`):
+  `applymovement` fa rientrare il follower, che è voluto, perché sta dietro
+  il giocatore spesso proprio dove l'aiutante si ferma (a Viridian ci finiva
+  sopra con `applymovement2`).
+- **Seafoam**: si esce da una scala, e la casella sopra è un muro; l'innesco
+  è solo a (19,22) e (20,22), dal lato dell'aiutante. Chi esce dall'altro
+  lato vede l'introduzione parlandogli (o in un'altra palestra: Blaine è
+  quasi sempre il penultimo capo).
+- OT dei premi: 7 caratteri, quindi `SURGE` e `GIOVANN`.
+
+### Verificato in emulatore (B, 25/10)
+
+Salvataggio dell'utente (versione 8 → 11), ROM strumentata con script di
+debug per gli scenari (debug.inc ripristinato prima del commit), RAM via GDB:
+
+- introduzione: uscendo da Pewter, Fuchsia, Viridian e Seafoam l'aiutante ha
+  il «!», si avvicina, parla e torna; entrando (verso nord) non scatta; con
+  il capo di HnS non battuto non parte nessuno script e si cammina sulla riga
+  senza blocchi; una volta sola (poi `VAR_TEMP_9` = 1);
+- le otto scene, lotte vinte in ordine (vittoria istantanea dal debug di
+  lotta): Red davanti al capo giusto, Koga e Giovanni compresi, prima e dopo
+  la lotta; "RED WINS!", ritorno davanti all'aiutante, congratulazioni;
+- sconfitta (Blaine, PS azzerati via GDB): niente "RED WINS!", "Try again!",
+  squadra del giocatore di nuovo a sei, sfida offerta di nuovo;
+- squadra piena → "Come back with room in your party!"; con un posto
+  libero: "Here's your prize!", "received RHYDON!"; Rhydon Lv70 con OT
+  `GIOVANN`, ID del capo, Poké Ball, mosse di livello, PS 248 (= IV 31);
+  Onix, ritirato prima della correzione delle mosse: OT `BROCK`, PS 150;
+- tre reset davanti all'aiutante: tre personalità diverse con lo stesso OT,
+  cioè lo shiny si ritira a ogni reset;
+- fuori ordine con e senza capo di HnS battuto, "già fatta qui", premi
+  ancora altrove, complimenti finali;
+- migrazione 11: `.sav` portato a versione 10 con i nove flag accesi →
+  versione 11 e flag spenti, bit vicini intatti.
+
+Non provato: giocatrice (Red è un oggetto a parte apposta), richiesta del
+soprannome (l'opzione era spenta), reset a metà scena (non si può salvare
+dentro uno script), innesco a Cerulean, Vermilion, Celadon e Saffron (stesso
+codice, posizioni controllate sulla mappa delle collisioni).

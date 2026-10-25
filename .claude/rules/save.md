@@ -126,7 +126,7 @@ restano 21). Il passo `saveVersion < 10` azzera **solo** il byte 82
 I primi 82 restano intatti, quindi gli allenatori già clonati restano contati.
 Un `STATIC_ASSERT` in `save.c` fissa la dimensione a 83: ogni crescita futura
 vuole il suo passo. Il quest book (`docs/plans/quest-log.md` §5) prenderà il
-numero 11.
+numero 12 (l'11 è andato a Red's Path, sotto).
 Lo stesso passo spegne `FLAG_REDS_PATH_BATTLE` (ex `FLAG_UNUSED_EXTENDED_86`,
 non dimostrabilmente a zero in ogni salvataggio): acceso fuori dalla lotta
 spegnerebbe randomizer e sfide del challenge menu.
@@ -136,6 +136,18 @@ versione 9 con bit del TcloneR accesi (byte 14 `0x01`, 40 `0x5a`, 81 `0x80`) e
 byte 82 a `0xFF`, caricato e salvato: versione 10, i tre byte uguali, byte 82
 a 0. Il `.sav` vero dell'utente (versione 8, 2.0.6.PLUS.4) passa 8 → 10 con la
 squadra identica byte per byte.
+
+### `SAVE_VERSION 11`: Red's Path (sessione B, 25/10)
+
+Nove flag nuovi, `FLAG_REDS_PATH_INTRO_SEEN` e `FLAG_REDS_PATH_PRIZE_*`
+(ex `FLAG_UNUSED_EXTENDED_87..95`): come l'86, non si può dimostrare che
+siano a zero in ogni salvataggio, e un flag di premio acceso per caso
+mangerebbe un premio mai dato. Il passo `saveVersion < 11` li spegne tutti
+(sono contigui, un ciclo da `INTRO_SEEN` a `PRIZE_GIOVANNI`). Restano liberi
+`FLAG_UNUSED_EXTENDED_96..99` (stessa avvertenza).
+Verificato: `.sav` portato a mano a versione 10 con i nove bit accesi
+(byte 120 `0xFE`, 121 `0xC3` dei flag) → caricato: versione 11, byte 120
+`0x00`, 121 `0xC0` (i due bit alti sono altri flag, intatti).
 
 ### C'è già un sistema di migrazione dei salvataggi: usalo
 

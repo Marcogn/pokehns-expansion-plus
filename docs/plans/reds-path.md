@@ -1,9 +1,11 @@
 # Piano: Red's Path (le palestre di Kanto rigiocate con la squadra di Red)
 
-**Stato (25/10): sessione A fatta.** A1 (24/10): passi 1, 2, 3 e 5
+**Stato (25/10): sessioni A e B fatte.** A1 (24/10): passi 1, 2, 3 e 5
 (`SAVE_VERSION 10`, otto capi, otto squadre di Red, voce di debug `Red's
 Path…`); A2 (25/10): passi 4, 6 e 7 (agganci di lotta, verifica, regola
-`.claude/rules/reds_path.md`). Restano B e C. Avversari (§1), squadre di
+`.claude/rules/reds_path.md`); B (25/10): aiutanti, introduzione, scena,
+premi, `SAVE_VERSION 11` (vedi "Cosa ha lasciato la B alla C" in fondo).
+Resta la C. Avversari (§1), squadre di
 Red (§2), premi (§3), script e scena (§4) decisi con l'utente.
 Implementazione in tre fasi, quattro sessioni (§5). Le ricerche da cui
 vengono le scelte (cosa era ottenibile prima di ogni capo, meccaniche,
@@ -310,8 +312,9 @@ a parte.
   battuto (`TRAINER_FLAGS_START + id`) è già il "sfida vinta", acceso da
   `trainerbattle` solo alla vittoria. La prossima sfida è la prima con il
   flag spento: basta per il controllo dell'ordine.
-- **8 flag** "premio ritirato".
-- **1 flag** "introduzione vista".
+- **8 flag** "premio ritirato" (`FLAG_REDS_PATH_PRIZE_<CAPO>`, sessione B).
+- **1 flag** "introduzione vista" (`FLAG_REDS_PATH_INTRO_SEEN`). I nove sono
+  `FLAG_UNUSED_EXTENDED_87..95`, azzerati dalla migrazione `saveVersion < 11`.
 - **1 flag** per `B_FLAG_NO_WHITEOUT` e **1 flag** "lotta di Red's Path in
   corso" (sprite di schiena, mugshot, fuga, TcloneR, level scaling), da
   spegnere sempre dopo la lotta e in `Overworld_ResetBattleFlagsAndVars`.
@@ -532,6 +535,34 @@ dettagli in `.claude/rules/reds_path.md`):
   giocatore diventa Red prima della lotta, va nascosto lì (o
   `FLAG_TEMP_HIDE_FOLLOWER`).
 
+**Cosa ha lasciato la B alla C** (verificato in emulatore il 25/10,
+dettagli e trappole nella sezione "Mondo" di `.claude/rules/reds_path.md`):
+
+- Fatto come nel §4, con le scelte tecniche rimaste aperte: **Red è un
+  oggetto a parte** sopra il giocatore invisibile (cambiare lo sprite del
+  giocatore non regge al ritorno dalla lotta), **il capo di Gen 1 è lo
+  stesso oggetto con la grafica cambiata** (Janine → Koga, Blue → Giovanni).
+  Tutto ciò che dipende dalla palestra sta in `sGyms` (`src/reds_path.c`).
+- Testi: la proposta inglese del §4 così com'è; aggiunti "You've already
+  relived RED's battle with X!" (sfida già fatta in quella palestra), una
+  riga per i premi rimasti in altre palestre a sfide finite, e le
+  congratulazioni dopo "RED WINS!" ("Congratulations! You beat X just like
+  RED did!"). La fanfara di "RED WINS!" è quella della medaglia.
+- **L'aiutante di Erika** è a (7,16), accanto alla statua come a Pewter, con
+  un consiglio su Erika prima della medaglia.
+- **Seafoam**: si esce da una scala e la casella sopra è un muro, quindi
+  l'introduzione scatta solo uscendo dal lato dell'aiutante (19,22)-(20,22);
+  dall'altro lato si vede parlandogli. Blaine è quasi sempre il penultimo
+  capo, quindi in pratica l'introduzione arriva prima da un'altra palestra.
+- OT dei premi a 7 caratteri: `SURGE`, `GIOVANN`. Il premio non passa dal
+  randomizer (è l'asso del capo, come deciso); con la sfida "un tipo solo"
+  attiva un asso di un altro tipo finisce nel PC come ogni regalo.
+- Il quest book (`quest-log.md` §7) ha i nomi dei flag; la sua migrazione
+  diventa la 12.
+- Per la C: le lotte si raggiungono dagli aiutanti (o dal debug, senza
+  scena). Per rigiocare una sfida già vinta basta spegnere il flag
+  dell'allenatore (`TRAINER_FLAGS_START + 653..660`).
+
 Prompt da incollare (A1):
 
 > Implementa la sessione A1 di `docs/plans/reds-path.md` (passi 1, 2, 3 e 5
@@ -557,9 +588,7 @@ Prompt da incollare (C):
 
 ## Domande aperte
 
-Nessuna di design. Le scelte tecniche rimaste (Red come oggetto separato o
-sprite del giocatore cambiato, capo di Gen 1 come oggetto a grafica variabile
-o separato) sono della sessione B; i ritocchi di bilanciamento della C.
+Nessuna di design. Restano i ritocchi di bilanciamento della C.
 
 ## Scartato
 

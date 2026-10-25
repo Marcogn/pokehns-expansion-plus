@@ -114,8 +114,8 @@ PewterCity_Gym_EventScript_GymGuy::
 	end
 
 PewterCity_Gym_EventScript_GymGuyAfter::
-	msgbox PewterCity_Gym_Text_Guide_Win, MSGBOX_NPC
-	end
+	setvar VAR_0x8004, 0
+	goto RedsPath_EventScript_Aide
 
 
 PewterCity_Gym_EventScript_GymStatue::
@@ -189,3 +189,8 @@ PewterCity_Gym_Text_BrockNotRequestedMon:
 PewterCity_Gym_Text_BrockTradeCompleted:
 	.string "BROCK: How's WOODY doing?\n"
 	.string "BONSLY are tougher than they look!$"
+
+@ Red's Path (data/scripts/reds_path.inc): challenge 0.
+PewterCity_Gym_EventScript_RedsPathTrigger::
+	setvar VAR_0x8004, 0
+	goto RedsPath_EventScript_IntroTrigger

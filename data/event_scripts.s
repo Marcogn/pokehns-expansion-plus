@@ -67,6 +67,7 @@
 #include "constants/trade.h"
 #include "constants/trainer_hill.h"
 #include "constants/tcloner.h"
+#include "constants/reds_path.h"
 #include "constants/trainer_tower.h"
 #include "constants/trainers.h"
 #include "constants/trainer_card.h"
