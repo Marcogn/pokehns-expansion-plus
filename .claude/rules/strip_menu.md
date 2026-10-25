@@ -40,8 +40,16 @@ paths:
 - **VRAM di BG0**: le 36 tile della fascia vanno all'inizio del char block 2
   (la finestra dei dialoghi parte da baseBlock 1, le finestre della striscia
   da 48); all'uscita si azzerano solo quelle 36 tile, non tutto il blocco
-  come faceva l'originale. Palette 14 (fascia) e 15 (testo): le finestre
-  standard le ricaricano da sole.
+  come faceva l'originale. Palette 14 (fascia) e 15 (testo) sono **le
+  palette delle cornici del campo** (`STD_WINDOW_PALETTE_NUM`,
+  `DLG_WINDOW_PALETTE_NUM`) e nessuno le ricarica prima della finestra
+  standard dopo: per questo `StripMenu_Destroy` chiama
+  `LoadMessageBoxAndBorderGfx()`. Senza, la finestra di salvataggio e il
+  Sì/No avevano la cornice nei colori della fascia (blu, verde, angoli
+  rossi) fino al cambio di mappa: lo ha visto l'utente confrontando con la
+  2.0.6.PLUS.4, ed era sfuggito perché le prove confrontavano ROM che
+  avevano già la striscia. Una prova di aspetto va fatta contro una ROM
+  **di prima** della feature.
 - **VRAM degli oggetti**: 6 fogli da 32 tile. Se uno non entra
   (`LoadCompressedSpriteSheet` restituisce **`TAG_NONE`**, non 0) la voce
   resta senza icona ma con etichetta e funziona. Provato con una ROM che fa

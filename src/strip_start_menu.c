@@ -425,6 +425,12 @@ static void StripMenu_Destroy(void)
     CpuFastFill(0, GetBgTilemapBuffer(0), BG_SCREEN_SIZE);
     CpuFastFill(0, (void *)BG_CHAR_ADDR(2), STRIP_BG_TILE_COUNT * TILE_SIZE_4BPP);
     ScheduleBgCopyTilemapToVram(0);
+    // The strip took palettes 14 and 15, which are the field's window frame
+    // palettes (STD_WINDOW_PALETTE_NUM, DLG_WINDOW_PALETTE_NUM). Nothing
+    // reloads them before the next std window: the save info window and the
+    // Yes/No box drew their frame in the strip's blue, green and red until the
+    // next map load. Put back what the field loaded.
+    LoadMessageBoxAndBorderGfx();
 
     if (!sStrip->objWinWasOn)
         ClearGpuRegBits(REG_OFFSET_DISPCNT, DISPCNT_OBJWIN_ON);
