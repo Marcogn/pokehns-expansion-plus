@@ -47,6 +47,8 @@
 #include "window.h"
 #include "union_room.h"
 #include "dexnav.h"
+#include "quest_book.h"
+#include "constants/quests.h"
 #include "wild_encounter.h"
 #include "constants/battle_frontier.h"
 #include "constants/rgb.h"
@@ -73,6 +75,7 @@ enum
     MENU_ACTION_DEBUG,
     MENU_ACTION_DEXNAV,
     MENU_ACTION_RETIRE_BUG_CONTEST,
+    MENU_ACTION_QUESTS,
 };
 
 // Save status
@@ -116,6 +119,7 @@ static bool8 StartMenuBattlePyramidRetireCallback(void);
 static bool8 StartMenuBattlePyramidBagCallback(void);
 static bool8 StartMenuDebugCallback(void);
 static bool8 StartMenuDexNavCallback(void);
+static bool8 StartMenuQuestsCallback(void);
 static bool8 StartMenuBugContestRetireCallback(void);
 
 // Menu callbacks
@@ -222,6 +226,7 @@ static const struct MenuAction sStartMenuItems[] =
     [MENU_ACTION_PYRAMID_BAG]     = {gText_MenuBag,     {.u8_void = StartMenuBattlePyramidBagCallback}},
     [MENU_ACTION_DEBUG]           = {sText_MenuDebug,   {.u8_void = StartMenuDebugCallback}},
     [MENU_ACTION_DEXNAV]          = {gText_MenuDexNav,  {.u8_void = StartMenuDexNavCallback}},
+    [MENU_ACTION_QUESTS]          = {gText_MenuQuests,  {.u8_void = StartMenuQuestsCallback}},
     [MENU_ACTION_RETIRE_BUG_CONTEST] = {gText_MenuRetire, {.u8_void = StartMenuBugContestRetireCallback}},
 };
 
@@ -369,6 +374,12 @@ static void BuildNormalStartMenu(void)
         AddStartMenuAction(MENU_ACTION_POKEMON);
 
     AddStartMenuAction(MENU_ACTION_BAG);
+
+#if QUEST_COUNT > 0
+    // Provisional entry (docs/plans/quest-log.md): the strip menu of phase 5
+    // replaces it. Absent while the book has no quests to show.
+    AddStartMenuAction(MENU_ACTION_QUESTS);
+#endif
 
     if (FlagGet(FLAG_SYS_POKENAV_GET) == TRUE)
         AddStartMenuAction(MENU_ACTION_POKENAV);
@@ -1641,6 +1652,12 @@ void AppendToList(u8 *list, u8 *pos, u8 newEntry)
 {
     list[*pos] = newEntry;
     (*pos)++;
+}
+
+static bool8 StartMenuQuestsCallback(void)
+{
+    CreateTask(Task_OpenQuestBookFromStartMenu, 0);
+    return TRUE;
 }
 
 static bool8 StartMenuDexNavCallback(void)
