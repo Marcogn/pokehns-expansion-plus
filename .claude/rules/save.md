@@ -125,8 +125,7 @@ restano 21). Il passo `saveVersion < 10` azzera **solo** il byte 82
 (SaveBlock2 + 0x28 + 82): la migrazione 9 aveva pulito i primi 82, non quello.
 I primi 82 restano intatti, quindi gli allenatori già clonati restano contati.
 Un `STATIC_ASSERT` in `save.c` fissa la dimensione a 83: ogni crescita futura
-vuole il suo passo. Il quest book (`docs/plans/quest-log.md` §5) prenderà il
-numero 12 (l'11 è andato a Red's Path, sotto).
+vuole il suo passo. Il quest book ha preso il 12 (sotto).
 Lo stesso passo spegne `FLAG_REDS_PATH_BATTLE` (ex `FLAG_UNUSED_EXTENDED_86`,
 non dimostrabilmente a zero in ogni salvataggio): acceso fuori dalla lotta
 spegnerebbe randomizer e sfide del challenge menu.
@@ -148,6 +147,21 @@ mangerebbe un premio mai dato. Il passo `saveVersion < 11` li spegne tutti
 Verificato: `.sav` portato a mano a versione 10 con i nove bit accesi
 (byte 120 `0xFE`, 121 `0xC3` dei flag) → caricato: versione 11, byte 120
 `0x00`, 121 `0xC0` (i due bit alti sono altri flag, intatti).
+
+### `SAVE_VERSION 12`: quest book (fase 1, 25/10)
+
+`struct QuestLogSaveData` (24 byte) in coda a SaveBlock3, **offset 60**:
+SaveBlock3 arriva a 84 byte su 116, ne restano 32. Dentro: preferita e
+"vista" per 48 missioni (6 + 6 byte), un nibble di stato per 16 missioni a
+stato proprio (8 byte), 32 bit di sottomissioni proprie (4 byte). Capienze in
+`include/constants/quests.h` (`QUEST_SAVE_MAX_*`), fissate da
+`STATIC_ASSERT` in `save.c` (offset e dimensione) e in `quest_log.c`
+(`QUEST_COUNT` e gli altri non le superano). Alzarne una allarga la struct:
+serve un passo nuovo. Il passo `saveVersion < 12` azzera la struct; nessun
+flag o var toccato. `NewGameInitData` la azzera con `ClearSav3()`, ed è
+giusto così: non è un'opzione scelta dal titolo, non va salvata e
+ripristinata. Polarità: tutto a zero = non preferita, non vista (cioè
+"nuova"), bloccata, non fatta.
 
 ### C'è già un sistema di migrazione dei salvataggi: usalo
 

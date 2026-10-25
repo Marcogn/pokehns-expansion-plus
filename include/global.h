@@ -22,6 +22,7 @@
 #include "constants/easy_chat.h"
 #include "constants/trainer_hill.h"
 #include "constants/tcloner.h"
+#include "constants/quests.h"
 #include "constants/trainer_tower.h"
 #include "constants/items.h"
 #include "constants/moves.h"
@@ -362,6 +363,16 @@ struct ChallengeSettings
                                 // the only spare bit.
 };
 
+// Quest book (src/quest_log.c). Every bit reads 0 as its default: not a
+// favourite, not seen yet, locked, not done.
+struct QuestLogSaveData
+{
+    u8 favorite[QUEST_SAVE_MAX_QUESTS / 8];
+    u8 seen[QUEST_SAVE_MAX_QUESTS / 8];
+    u8 ownStates[QUEST_SAVE_MAX_OWN_SLOTS / 2]; // a QUEST_STATE_* nibble per own slot
+    u8 subquests[QUEST_SAVE_MAX_SUBQUESTS / 8];
+};
+
 struct SoundAndFieldOptions
 {
     u8 fastHms:1;            // 0 = off (default, as in Soulgold)
@@ -402,6 +413,9 @@ struct SaveBlock3
     // Appended after candyJarExp (SAVE_VERSION 8). Every field reads 0 as its
     // default, so a fresh save and a migrated one agree without extra code.
     struct SoundAndFieldOptions soundAndFieldOptions;
+    // Appended after soundAndFieldOptions (SAVE_VERSION 12), which zeroes it
+    // in older saves.
+    struct QuestLogSaveData questLog;
 }; /* max size 1624 bytes */
 
 extern struct SaveBlock3 *gSaveBlock3Ptr;

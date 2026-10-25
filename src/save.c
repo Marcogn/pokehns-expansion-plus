@@ -113,6 +113,9 @@ STATIC_ASSERT(offsetof(struct SaveBlock3, candyJarExp) == 52, SaveBlock3CandyJar
 // Same rule for the sound/field options byte (SAVE_VERSION 8): the migration
 // that zeroes it is only correct while it stays at the end.
 STATIC_ASSERT(offsetof(struct SaveBlock3, soundAndFieldOptions) == 56, SaveBlock3SoundAndFieldOptionsOffset);
+// And for the quest book (SAVE_VERSION 12).
+STATIC_ASSERT(offsetof(struct SaveBlock3, questLog) == 60, SaveBlock3QuestLogOffset);
+STATIC_ASSERT(sizeof(struct QuestLogSaveData) == 24, QuestLogSaveDataSize);
 // (sizeof(struct SoundAndFieldOptions) is 4, not 1: -mabi=apcs-gnu rounds every
 // struct up to a word. Harmless, but it is why this is not asserted.) Appending
 // must not push SaveBlock3 out of sector 0's 116-byte tail.
@@ -1101,6 +1104,16 @@ u8 LoadGameSave(u8 saveType)
             FlagClear(flag);
 #endif
         gSaveBlock1Ptr->saveVersion = 11;
+    }
+    if (gSaveBlock1Ptr->saveVersion < 12)
+    {
+        // The quest book's state was appended to SaveBlock3, so in a save
+        // written before it existed those bytes hold whatever was in the
+        // sector buffer: random favourites, own quests in random states.
+        // Zero is every field's default. The quests that read the game's own
+        // state pick up where the save is without any help.
+        memset(&gSaveBlock3Ptr->questLog, 0, sizeof(gSaveBlock3Ptr->questLog));
+        gSaveBlock1Ptr->saveVersion = 12;
     }
 
     // Add version migration steps here:

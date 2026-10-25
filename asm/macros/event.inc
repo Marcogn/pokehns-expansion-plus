@@ -2999,6 +2999,15 @@
 	.2byte \move
 	.endm
 
+	@ Quest book (include/constants/quests.h): reads or sets a quest's state
+	@ with action = QUEST_LOG_*. Queries write VAR_RESULT. quest and arg may be vars.
+	.macro questlog action:req, quest:req, arg=0
+	.byte SCR_OP_QUESTLOG
+	.byte \action
+	.2byte \quest
+	.2byte \arg
+	.endm
+
 	@ Shows the message box containing the help window and its header and description.
 	.macro showhelpwindow id:req
 	callnative ShowHelpInfoWindow, requests_effects=1

@@ -52,6 +52,7 @@
 #include "constants/moves.h"
 #include "constants/mystery_gift.h"
 #include "constants/party_menu.h"
+#include "constants/quests.h"
 #include "constants/pokeball.h"
 #include "constants/pokedex.h"
 #include "constants/pokemon.h"
