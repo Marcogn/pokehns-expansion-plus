@@ -40,9 +40,8 @@ paths:
   che il nuovo sprite condivide. Gli oggetti si distruggono con quella
   funzione (con `OW_GFX_COMPRESS` il foglio resterebbe in VRAM, uno in più per
   ogni missione sfogliata).
-- **Entrate**: l'icona Missioni del menu a striscia (fase 5,
-  `.claude/rules/strip_menu.md`; la voce provvisoria `QUESTS` della lista
-  classica è stata tolta); `questlog QUEST_LOG_OPEN` da script, da far
+- **Entrate**: l'icona Missioni del menu a striscia
+  (`.claude/rules/strip_menu.md`; la lista classica non ha più la voce); `questlog QUEST_LOG_OPEN` da script, da far
   seguire da `waitstate`.
 - **Missioni di prova**: `-DQUEST_BOOK_TEST_QUESTS=1` non c'è nel Makefile;
   si cambia il `#define` in `include/constants/quests.h` (a 1 aggiunge due
