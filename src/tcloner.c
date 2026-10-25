@@ -78,6 +78,17 @@ static void AdvanceRewardStep(void)
     VarSet(VAR_TCLONER_REWARDS, VarGet(VAR_TCLONER_REWARDS) + 1);
 }
 
+// Quest book (src/data/quests.h): is a reward due, and have all been handed out.
+bool32 TClonerIsRewardDue(void)
+{
+    return GetDueReward() != NULL;
+}
+
+bool32 TClonerAllRewardsClaimed(void)
+{
+    return VarGet(VAR_TCLONER_REWARDS) >= TCLONER_REWARD_STEPS;
+}
+
 // special: what the next reward is, in VAR_RESULT (TCLONER_REWARD_*). An item
 // comes back in VAR_0x8000/VAR_0x8001 for giveitem, which shows the standard
 // "Obtained" message; the script then claims it with TClonerClaimItemReward,

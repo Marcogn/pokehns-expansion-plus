@@ -68,3 +68,19 @@ paths:
 - **mGBA**: `xdotool search --class mgba` restituisce **due** finestre; i
   tasti arrivano solo all'ultima (`tail -1`), con la prima sembra tutto
   bloccato.
+
+## Missioni reali (fase 4)
+
+- `src/data/quests.h`: quattro missioni a funzione. Per aggiungerne una
+  copia il modello: funzione di progresso, `steps`, `subquestInfo`.
+- **Footer: massimo due righe** di testo (provato: la terza esce dal
+  riquadro), circa 38 caratteri per riga.
+- **Stato `REWARD`**: il libro stampa il suo testo fisso "Your reward is
+  waiting. Return to {mappa}!", quindi per quel passo conta solo la `map`
+  (`desc` può essere NULL).
+- **Palette condivise**: due immagini oggetto con la stessa palette non si
+  possono creare "nuovo prima, vecchio dopo": il vecchio libera la palette
+  del nuovo (magenta). `ShowPicture` distrugge prima l'oggetto vecchio.
+- Verifica via GDB senza ROM strumentata: offset in SaveBlock1 `flags` 6540,
+  `vars` 6844; `gSaveBlock1Ptr` va letto (ASLR). Il libro legge lo stato
+  quando si apre, quindi chiudilo e riaprilo dopo ogni scrittura.

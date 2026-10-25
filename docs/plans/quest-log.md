@@ -1,6 +1,6 @@
 # Piano: quest book e menu di pausa a striscia
 
-**Stato (25/10): fasi 1 (§5.1), 2 (§5.2) e 3 (§5.3) fatte, prossima la 4.** Si fa dopo Red's Path
+**Stato (25/10): fasi 1 (§5.1), 2 (§5.2), 3 (§5.3) e 4 (§5.4) fatte, prossima la 5.** Si fa dopo Red's Path
 ([`reds-path.md`](reds-path.md)), una fase per sessione (§5). Le ricerche sono già fatte: i fatti qui sotto sono
 verificati nel codice indicato, non vanno rifatte. I confronti e le
 opzioni scartate stanno in
@@ -200,6 +200,34 @@ Il tema chiaro resta com'era; dettagli in `.claude/rules/quest_book.md`.
 - Verificato in emulatore, tutti e due i temi: lista, "Close" (senza
   immagine), sottomissioni. Non provati: Pokémon e oggetto sul riquadro
   scuro, `QUEST_LOG_OPEN`.
+
+### 5.4 Fase 4, com'è stata fatta (25/10)
+
+Quattro missioni in `src/data/quests.h`, tutte a **funzione** (nessun bit
+salvato oltre preferita/nuova): `QUEST_JOHTO_BADGES`, `QUEST_KANTO_BADGES`,
+`QUEST_TCLONER`, `QUEST_REDS_PATH`. Dettagli in `.claude/rules/quest_book.md`.
+
+- Medaglie: il passo è la **prima palestra mancante** nell'ordine canonico
+  (numero di medaglia; Kanto: Janine prima di Sabrina come nel §7). Non è
+  un ordine imposto dal gioco. Clair ha due passi: palestra, poi Dragon's
+  Den (`FLAG_DEFEATED_BLACKTHORN_GYM`; la medaglia la dà il Den). Blue:
+  Cinnabar, poi Viridian. Kanto è bloccata finché manca la medaglia 8.
+- TcloneR: bloccata a `VAR_TCLONER_STAGE` 0; passo = tappa; premio da
+  ritirare se `TClonerIsRewardDue()`; completata a 12 passi consegnati. I
+  testi sono statici: niente conteggio dei cloni.
+- Red's Path: bloccata prima di `FLAG_REDS_PATH_INTRO_SEEN`; passi 0-7 =
+  prossima sfida, 8-15 = premio in attesa in quella palestra; 8
+  sottomissioni.
+- Bug del port trovato qui: due immagini oggetto con la stessa palette
+  (Falkner e Pryce) si rompevano a vicenda (magenta); ora gli oggetti si
+  distruggono uno alla volta.
+- **Verificato** sul `.sav` dell'utente (6 medaglie, Pryce come prossimo) e,
+  con flag/var scritti via GDB, Kanto (Surge, Blue a Cinnabar), Clair al Den,
+  TcloneR (tappe 2 e 5, premio), Red's Path (premio a Pewter, poi Misty).
+  **Non provati**: Blue a Viridian, i testi del tema chiaro, Red's Path
+  completata.
+- Da fare con l'utente: contenuto di Pokédex e leggendari (§7), il resto
+  dei passi di Johto (cosa sblocca ogni palestra non è nei testi).
 
 Dopo la fase 1 il quest book (2-4) e il menu (5-6) sono indipendenti. Se i
 token stringono, la fase 4 si fa una missione per volta.

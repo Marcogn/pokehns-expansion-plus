@@ -781,6 +781,14 @@ static void ShowPicture(u32 sprite, u32 type)
     if (sBook->spriteId[sBook->spriteSlot] == SPRITE_NONE && type == QUEST_SPRITE_NONE)
         return;
     DestroyPicture(slot);
+    // Two object pictures can share a palette (Pryce and Falkner do):
+    // destroying the old one after creating the new one would free the
+    // palette out from under it and draw it magenta. Objects go one at a time.
+    if (type == QUEST_SPRITE_OBJECT && sBook->spriteType[sBook->spriteSlot] == QUEST_SPRITE_OBJECT)
+    {
+        DestroyPicture(sBook->spriteSlot);
+        slot = sBook->spriteSlot;
+    }
     switch (type)
     {
     case QUEST_SPRITE_OBJECT:
@@ -807,7 +815,8 @@ static void ShowPicture(u32 sprite, u32 type)
     sBook->spriteId[slot] = spriteId;
     sBook->spriteType[slot] = type;
     sBook->spriteGfx[slot] = sprite;
-    DestroyPicture(sBook->spriteSlot);
+    if (slot != sBook->spriteSlot)
+        DestroyPicture(sBook->spriteSlot);
     sBook->spriteSlot = slot;
     SetPictureBoxVisible(sBook->spriteId[slot] != SPRITE_NONE);
 }
