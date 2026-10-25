@@ -285,7 +285,6 @@ static const struct QuestStep sTcloneSteps[] =
 
 static const struct QuestStep sTcloneDone = { sText_TcloneDone, sText_PalletTown, OBJ_EVENT_GFX_SCIENTIST_M_HNS, QUEST_SPRITE_OBJECT };
 
-// No map on the prize rows: any scientist pays them, wherever he is.
 static const u8 sText_Got[] = _("Got");
 static const u8 sText_Tclone10[] = _("10 clones");
 static const u8 sText_Tclone20[] = _("20 clones");
@@ -310,6 +309,7 @@ static const u8 sText_TclonePrize9[] = _("A Weezing, cloned at Lv. 50.");
 static const u8 sText_TclonePrize10[] = _("An Arbok, cloned at Lv. 50.");
 static const u8 sText_TclonePrize11[] = _("A Meowth, cloned at Lv. 50.");
 
+// No map on the prize rows: any scientist pays them, wherever he is.
 #define TCLONE_ITEM(clones, n, item) { sText_Tclone##clones, sText_TclonePrize##n, NULL, item, QUEST_SPRITE_ITEM, sText_Got }
 #define TCLONE_MON(clones, n, species) { sText_Tclone##clones, sText_TclonePrize##n, NULL, species, QUEST_SPRITE_MON, sText_Got }
 static const struct QuestSubquestInfo sTcloneSubquests[TCLONER_REWARD_STEPS] =

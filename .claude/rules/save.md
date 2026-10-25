@@ -125,7 +125,7 @@ restano 21). Il passo `saveVersion < 10` azzera **solo** il byte 82
 (SaveBlock2 + 0x28 + 82): la migrazione 9 aveva pulito i primi 82, non quello.
 I primi 82 restano intatti, quindi gli allenatori già clonati restano contati.
 Un `STATIC_ASSERT` in `save.c` fissa la dimensione a 83: ogni crescita futura
-vuole il suo passo. Il quest book ha preso il 12 (sotto).
+vuole il suo passo. Il quest book ha preso il 12 e il 13 (sotto).
 Lo stesso passo spegne `FLAG_REDS_PATH_BATTLE` (ex `FLAG_UNUSED_EXTENDED_86`,
 non dimostrabilmente a zero in ogni salvataggio): acceso fuori dalla lotta
 spegnerebbe randomizer e sfide del challenge menu.
@@ -162,6 +162,20 @@ flag o var toccato. `NewGameInitData` la azzera con `ClearSav3()`, ed è
 giusto così: non è un'opzione scelta dal titolo, non va salvata e
 ripristinata. Polarità: tutto a zero = non preferita, non vista (cioè
 "nuova"), bloccata, non fatta.
+
+### `SAVE_VERSION 13`: "NEW" del quest book (fase 8, 25/10)
+
+`seenHigh[6]` in coda a `struct QuestLogSaveData` (offset 24 nella struct,
+84 in SaveBlock3): con `seen` fa un livello di 2 bit per missione (mai vista,
+attiva, premio, completata), così "NEW" torna quando la missione sale di
+livello. La struct passa da 24 a **32 byte** (30 arrotondati a parola da
+`-mabi=apcs-gnu`), SaveBlock3 a 92 su 116: ne restano 24. `STATIC_ASSERT` su
+offset di `seenHigh` e dimensione. Il passo `saveVersion < 13` azzera solo
+`seenHigh`; `seen` resta, quindi una missione già vista in un salvataggio 12
+vale "attiva" e, se è già a premio o completata, mostra NEW una volta.
+Verificato: `.sav` riportato a versione 12 (checksum del settore 1
+ricalcolato) con `a5…aa` in `seenHigh` → caricato a zero, `seen` (`0x05`)
+intatto; la stessa prova con una ROM senza il `memset` li lascia sporchi.
 
 ### C'è già un sistema di migrazione dei salvataggi: usalo
 

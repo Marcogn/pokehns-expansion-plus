@@ -18,20 +18,33 @@ paths:
   `StringAppendN`, PSF scriveva in 32 senza controllo); un'unica allocazione
   per le righe (PSF la rifaceva a ogni filtro senza liberare); lista
   ricostruita sul posto, **senza** la dissolvenza a blend fra le liste;
-  nessuna modifica a `ListMenu_ProcessInput` (la lista del libro si ferma
-  alle estremità, le altre del gioco restano com'erano); la palette 15 si
+  nessuna modifica a `ListMenu_ProcessInput` (la lista è circolare, Su
+  dalla prima voce va su "Close", come **tutte** le liste del gioco: lo fa
+  già il `ListMenu` di questo repo, non è la modifica di PSF); la palette 15 si
   carica da `gStandardMenuPalette` (PSF ereditava quella del campo e ne
   caricava 0x60 byte da un file da 32).
 - **Comandi**: A su una missione con sottomissioni la apre, B torna (cursore
   ripristinato), R cambia filtro (tutte / non iniziate / attive / premio /
   completate), Start ordina A-Z (le bloccate in fondo, per non rivelare i
-  nomi), Select preferita (va in cima, nome verde). "NEW" rosso finché il
-  cursore non è passato sulla missione.
+  nomi), Select preferita (va in cima, nome verde; il cursore la segue,
+  `RebuildListOn`). "NEW" rosso finché il cursore non è passato sulla
+  missione **al suo livello attuale**: livelli mai vista / attiva (o
+  sbloccata) / premio / completata, 2 bit salvati (`seen` + `seenHigh`,
+  `SAVE_VERSION 13`). È NEW solo un livello **più alto** di quello visto;
+  quando si scende (TcloneR: premio ritirato, torna attiva) `QuestLog_SyncSeen`,
+  all'apertura del libro, abbassa quello salvato senza NEW, così il premio
+  dopo torna NEW. Limite: premio ritirato e il successivo già maturato senza
+  aprire il libro in mezzo restano allo stesso livello, niente NEW.
 - **Testi**: `struct QuestStep` (`desc`, `map`, `sprite`, `spriteType`)
-  indicizzata da `QuestLog_GetStep`; `doneDesc`; `struct QuestSubquestInfo`
+  indicizzata da `QuestLog_GetStep`; `done` (un `QuestStep` con testo, mappa
+  e immagine della missione completata: lo step su cui resta una completata
+  è spesso lo 0, cioè la prima palestra); `struct QuestSubquestInfo`
   per le sottomissioni (nome, testo, mappa, immagine, etichetta a destra:
   compaiono solo a sottomissione fatta, prima c'è `??????`). `{STR_VAR_2}`
-  nei testi vale la mappa dello step. Una missione senza `steps` si mostra
+  nei testi vale la mappa dello step; `{STR_VAR_1}` e `{STR_VAR_3}` li riempie
+  `bufferText` della missione, se c'è (TcloneR: cloni fatti e cloni del
+  prossimo premio, `TClonerGetNextRewardClones`). Una sottomissione con
+  `map` NULL non stampa "Location". Una missione senza `steps` si mostra
   vuota. Nomi di missione: **non oltre ~20 caratteri**, la riga ha a fianco
   il glifo A e "NEW" e l'etichetta di stato parte a x=200.
 - **Immagini**: `QUEST_SPRITE_OBJECT/ITEM/MON`. Due slot alternati, quello
@@ -62,9 +75,10 @@ paths:
   oggetto/oggetto/Pokémon, sottomissioni con scorrimento e frecce, B con
   cursore ripristinato, R su tutti e cinque i filtri, Start A-Z, Select;
   e dal menu di avvio di una nuova partita (voce, apertura, B che torna al
-  menu). **Non provato**: `QUEST_LOG_OPEN` da script. Il tema scuro è stato
-  guardato in fase 3 (lista, Close, sottomissioni); non Pokémon/oggetto sul
-  riquadro scuro.
+  menu). `QUEST_LOG_OPEN` da script provato in fase 8 (ROM strumentata:
+  apre, B chiude, lo script riprende dopo `waitstate`); chiede
+  `SCREFF_HARDWARE` come `fadescreen`, perché sfuma lo schermo. Pokémon e
+  oggetto sul riquadro scuro guardati in fase 8.
 - **mGBA**: `xdotool search --class mgba` restituisce **due** finestre; i
   tasti arrivano solo all'ultima (`tail -1`), con la prima sembra tutto
   bloccato.
@@ -75,9 +89,10 @@ paths:
   copia il modello: funzione di progresso, `steps`, `subquestInfo`.
 - **Footer: massimo due righe** di testo (provato: la terza esce dal
   riquadro), circa 38 caratteri per riga.
-- **Stato `REWARD`**: il libro stampa il suo testo fisso "Your reward is
-  waiting. Return to {mappa}!", quindi per quel passo conta solo la `map`
-  (`desc` può essere NULL).
+- **Stato `REWARD`**: con `desc` NULL il libro stampa il suo testo fisso
+  "Your reward is waiting. Return to {mappa}!" (Red's Path); con un `desc`
+  stampa quello (TcloneR: il premio lo paga lo scienziato che incontri,
+  non un posto).
 - **Palette condivise**: due immagini oggetto con la stessa palette non si
   possono creare "nuovo prima, vecchio dopo": il vecchio libera la palette
   del nuovo (magenta). `ShowPicture` distrugge prima l'oggetto vecchio.
@@ -88,8 +103,25 @@ paths:
   bit 2 del byte a `gSaveblock3 + 47` (0x02009253 nella build del 25/10;
   ricontrolla con `objdump -d --disassemble=IsDarkUiEnabled`). Azzerarlo
   porta il tema chiaro senza passare dal menu opzioni.
-- **Completate**: il libro mostra lo sprite e la mappa del passo 0
-  (`progress->step` resta 0): da rifinire, vedi il piano §5.4.
+- **Completate**: mostrano `done` (Johto: Lance, Indigo Plateau; Kanto:
+  Blue, Viridian; TcloneR: scienziato, Pallet; Red's Path: Red).
+- **Kanto** si sblocca con `FLAG_IS_CHAMPION` (Hall of Fame di HnS), non con
+  l'ottava medaglia: a Kanto si arriva con il biglietto della S.S. Aqua, che
+  Elm dà dopo la Lega.
+- **TcloneR**: 12 sottomissioni, una per premio di `sRewards` (`tcloner.c`),
+  fatte se `VAR_TCLONER_REWARDS` le ha superate. **Le due liste vanno tenute
+  allineate a mano.**
 - **Verifica fase 4**: tema chiaro, Red's Path completata e Blue a Viridian
   guardati (25/10). Flag usati: badge 2176-2191, Red's Path intro 961,
   allenatori `0x500 + 653..660`, premi 962-969.
+- **Verifica fase 8** (tema scuro, `.sav` dell'utente): TcloneR attiva con
+  conteggio, premio (NEW che torna), ritirato (niente NEW), completata con le
+  12 righe; Johto completata con Kanto ancora bloccata a 8 medaglie, Kanto
+  attiva con `FLAG_IS_CHAMPION` (`0x89F`); Select su una missione fuori
+  schermo. **Partita vera**: volo ad Azalea, dialogo con lo scienziato a
+  (54,10), TcloneR da `??????` ad attiva con NEW. Var: `VAR_TCLONER_STAGE`
+  `0x40C2`, `_COUNT` `0x40E5`, `_REWARDS` `0x40FC`.
+- **GDB**: `gSaveBlock1Ptr` cambia a ogni ritorno al campo (ASLR): rileggilo
+  subito prima di scrivere, o la scrittura va nella copia vecchia e sembra
+  ignorata. `interrupt` è asincrono: aspetta "SIGINT" nell'output prima dei
+  comandi.
