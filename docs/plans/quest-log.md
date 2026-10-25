@@ -136,7 +136,7 @@ la documentazione.
 | 5 | **Menu a striscia** (§3.2) con le decisioni del §2 | **Opus 5.5** | ogni voce aperta e chiusa in emulatore, eccezioni comprese |
 | 6 | **Grafica della striscia**: fascia, icone nuove per DexNav e Missioni, tema scuro | **Sonnet 5.5** | come la fase 3 |
 | 7 | **Documentazione**: `CHANGELOG.md`, `docs/SOULGOLD_PORT_REPORT.md` (l'origine è PSF/pollythadon, non SG), regola nuova in `.claude/rules/` | **Haiku 5.5** | testi riletti contro il codice |
-| 8 | **Revisione finale** del diff (`/code-review` medio) prima della release | **Opus 5.5** | build verde, ROM consegnata zippata |
+| 8 | **Revisione finale** del diff (`/code-review` medio) prima della release, **più i punti aperti del §5.7**: ognuno va provato in emulatore e, se rotto, corretto | **Opus 5.5** | build verde, ogni punto del §5.7 provato o corretto (o motivato), ROM consegnata zippata |
 
 ### 5.1 Fase 1, com'è stata fatta (25/10)
 
@@ -294,10 +294,39 @@ Dettagli in `.claude/rules/strip_menu.md`.
     riferimenti a "provvisorio" rimasti.
   - Dopo la 7: fase 8, revisione finale (`/code-review` medio), build
     verde, ROM zippata.
-- **Ancora aperto, non bloccante**: eccezioni della striscia non provate
-  (Piramide, Pike, Union Room, link, partita nuova senza Pokédex);
-  `QUEST_LOG_OPEN` da script; TcloneR completata; rifiniture del libro in
-  §5.4 (sprite a missione completata, conteggio dei cloni).
+- **Punti aperti**: li controlla e corregge Opus nella fase 8 (elenco sotto,
+  tabella di fase 8).
+
+### 5.7 Punti aperti per la fase 8 (Opus 5.5)
+
+Nessuno blocca le fasi precedenti, ma **nessuno è stato provato**: Opus li
+verifica uno per uno (emulatore, GDB per flag e var: `.claude/rules/quest_book.md`
+e `strip_menu.md`) e corregge ciò che trova rotto.
+
+**Striscia** (`src/strip_start_menu.c`, `src/start_menu.c`)
+1. Eccezioni che devono restare alla lista classica: **Piramide**, **Battle
+   Pike**, **Union Room**, **link**, Multi Partner Room. Vanno forzate (flag
+   o ROM strumentata) e il menu deve aprirsi, selezionare e chiudersi.
+2. **Partita nuova** senza Pokédex né Pokémon: devono restare solo Borsa,
+   Missioni, Opzioni; nessun crash né cursore su una voce assente.
+3. Ritorno da **ogni** schermata della striscia (Pokédex, DexNav, Squadra,
+   Borsa, Missioni, Opzioni, Scheda, Pokégear): la striscia si riapre sulla
+   stessa voce.
+
+**Quest book** (`src/quest_book.c`, `src/data/quests.h`)
+4. `questlog QUEST_LOG_OPEN` **da script** (poi `waitstate`): mai provato.
+5. **TcloneR completata** (12 passi consegnati): stato, testo, sprite.
+6. A missione **completata** il libro mostra sprite e mappa del passo 0
+   (Falkner, Brock, lo scienziato): da correggere con uno step finale o un
+   campo `doneSprite` in `struct QuestInfo`.
+7. TcloneR: testi statici, **niente conteggio dei cloni** (servirebbe un
+   segnaposto numerico in `PrintFooter`); le sottomissioni non esistono.
+8. Pokémon e oggetto sul riquadro **scuro** dell'immagine: mai guardati.
+9. Una **partita vera** fino a una missione: finora solo flag scritti a mano.
+
+**Revisione del diff** (`/code-review` medio) su tutto il lavoro delle fasi
+1-6: save (`SAVE_VERSION 12`, offset, migrazione), nuovo opcode, VRAM e
+palette, `#if` bilanciati (CLAUDE.md §1).
 
 Dopo la fase 1 il quest book (2-4) e il menu (5-6) sono indipendenti. Se i
 token stringono, la fase 4 si fa una missione per volta.
