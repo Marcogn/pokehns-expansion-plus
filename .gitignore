@@ -68,6 +68,7 @@ __pycache__
 .map_version
 /pokehns-*.png
 src/data/trainers_hns.h
+src/data/hns_version.h
 tools/poryscript
 porymap.user.json
 tools/mid2gbs/.venv

@@ -48,6 +48,7 @@
 #include "union_room.h"
 #include "dexnav.h"
 #include "strip_start_menu.h"
+#include "data/hns_version.h"
 #include "wild_encounter.h"
 #include "constants/battle_frontier.h"
 #include "constants/rgb.h"
@@ -255,12 +256,15 @@ static const struct WindowTemplate sWindowTemplates_LinkBattleSave[] =
     DUMMY_WIN_TEMPLATE
 };
 
+// Two rows taller than Emerald's for the version line: 14x12 tiles end at
+// baseBlock 176, well before the Yes/No window (0x125), and the frame's last
+// row is 13, right above the dialog box's frame at row 14.
 static const struct WindowTemplate sSaveInfoWindowTemplate = {
     .bg = 0,
     .tilemapLeft = 1,
     .tilemapTop = 1,
     .width = 14,
-    .height = 10,
+    .height = 12,
     .paletteNum = 15,
     .baseBlock = 8
 };
@@ -1625,6 +1629,10 @@ static void Task_SaveAfterLinkBattle(u8 taskId)
     }
 }
 
+static const u8 sText_SavingVersion[] = _("VERSION");
+// HNS_VERSION_TEXT comes from src/data/hns_version.h, written by the build.
+static const u8 sText_VersionNumber[] = _(HNS_VERSION_TEXT);
+
 static void ShowSaveInfoWindow(void)
 {
     struct WindowTemplate saveInfoWindow = sSaveInfoWindowTemplate;
@@ -1686,6 +1694,18 @@ static void ShowSaveInfoWindow(void)
     BufferSaveMenuText(SAVE_MENU_PLAY_TIME, gStringVar4, color);
     xOffset = GetStringRightAlignXOffset(FONT_NORMAL, gStringVar4, 0x70);
     AddTextPrinterParameterized(sSaveInfoWindowId, FONT_NORMAL, gStringVar4, xOffset, yOffset, TEXT_SKIP_DRAW, NULL);
+
+    // Print the hack's version (HNS_VERSION, as on the title screen), so that
+    // whoever reports a bug can read it off the save screen. In the labels'
+    // grey, not the player's colour: it is about the game, not the player.
+    // The number is in the narrow font, as v2.0.6.PLUS.7 leaves 5 px to the
+    // label in the normal one; a version too long even so drops the label
+    // rather than run into it.
+    yOffset += 16;
+    xOffset = GetStringRightAlignXOffset(FONT_NARROW, sText_VersionNumber, 0x70);
+    if (xOffset >= GetStringWidth(FONT_NORMAL, sText_SavingVersion, 0) + 4)
+        AddTextPrinterParameterized(sSaveInfoWindowId, FONT_NORMAL, sText_SavingVersion, 0, yOffset, TEXT_SKIP_DRAW, NULL);
+    AddTextPrinterParameterized(sSaveInfoWindowId, FONT_NARROW, sText_VersionNumber, xOffset, yOffset, TEXT_SKIP_DRAW, NULL);
 
     CopyWindowToVram(sSaveInfoWindowId, COPYWIN_GFX);
 }

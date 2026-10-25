@@ -467,7 +467,7 @@ clean-teachables_intermediates:
 	@echo "rm -Rf <LEARNSET_HELPERS_BUILD_DIR>"
 
 clean-generated: clean-teachables_intermediates
-	@rm -f $(AUTO_GEN_TARGETS)
+	@rm -f $(AUTO_GEN_TARGETS) src/data/hns_version.h
 	@echo "rm -f <AUTO_GEN_TARGETS>"
 
 clean-teachables: clean-teachables_intermediates
