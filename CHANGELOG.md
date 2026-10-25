@@ -8,6 +8,11 @@ add the section before releasing. Feature details live in the tables of
 
 ## 2.0.6.PLUS.7
 
+### Added
+- **The version in the save menu**: the save window now shows the version
+  of the hack under the play time, the same one as on the title screen, so
+  it can be read off the save screen when reporting a bug.
+
 ### Changed
 - **New pause menu**: a strip of icons at the bottom of the screen, over the
   map, in the style of Pokémon Unbound: Pokédex, DexNav, Party, Bag, Quests

@@ -14,11 +14,14 @@ paths:
 **Nel suo gioco quel file non è più agganciato** (Start apre un menu Rotom,
 `rotom_start_menu.c`): l'aggancio qui è nostro, non copiato.
 
-- **Quando c'è**: `UseStripStartMenu()` in `start_menu.c` ricalca i rami di
-  `BuildStartMenuActions`: link, Union Room, Safari, Bug-Catching Contest,
-  Battle Pike, Piramide, Multi Partner Room e `DEBUG_OVERWORLD_IN_MENU`
-  tengono la lista classica. Decide in due punti: `ShowStartMenu` (Start sul
-  campo) e `FieldCB_ReturnToFieldStartMenu` (ritorno da una schermata).
+- **Quando c'è**: `GetStartMenuContext()` in `start_menu.c` è l'unico posto
+  che decide il contesto (link, Union Room, Safari, Bug-Catching Contest,
+  Battle Pike, Piramide, Multi Partner Room, `DEBUG_OVERWORLD_IN_MENU`,
+  normale): `BuildStartMenuActions` sceglie la lista da lì, e
+  `UseStripStartMenu()` mostra la striscia solo nel contesto normale. Un
+  contesto speciale nuovo va aggiunto **solo** lì. La striscia si decide in
+  due punti: `ShowStartMenu` (Start sul campo) e
+  `FieldCB_ReturnToFieldStartMenu` (ritorno da una schermata).
 - **Ritorni**: nessuno toccato. Le schermate tornano con
   `CB2_ReturnToFieldWithOpenMenu` → `FieldCB_ReturnToFieldStartMenu` →
   `StripMenu_ReturnToField` (striscia disegnata a schermo nero, poi
@@ -83,5 +86,12 @@ paths:
   di tasti col partner: con un emulatore solo non si raggiunge; il ramo è
   lo stesso di `BuildStartMenuActions`); una partita nuova vera (provata
   spegnendo i flag, non dall'inizio).
-- `UseStripStartMenu` e `BuildStartMenuActions` elencano gli stessi contesti
-  in due posti: un contesto speciale nuovo va aggiunto a **tutti e due**.
+- **Cosa apre ogni icona**: le stesse funzioni della lista classica,
+  `StartMenu_OpenPokedex/Party/Bag/Pokegear/TrainerCard/Options/DexNav`
+  (`start_menu.c`). Le callback della lista ci aggiungono solo quello che è
+  della lista (attesa della dissolvenza, finestre extra di Safari/Piramide,
+  orologio); la striscia le chiama da `Task_StripMenu_FadeAndRun` a schermo
+  nero. Solo il libro ha una funzione sua (`StripMenu_OpenQuestBook`): la
+  lista classica non lo apre. Provato (25/10): tutte e otto dalla striscia,
+  e Pokédex, Squadra, Borsa, Pokégear, Scheda e Opzioni dalla lista classica
+  (Pike e Union Room forzate).

@@ -302,6 +302,12 @@ ifneq ($(MAKECMDGOALS),generated)
 $(shell mkdir -p $(BUILD_DIR); [ -f $(HNS_VERSION_STAMP) ] && [ "$$(cat $(HNS_VERSION_STAMP))" = '$(HNS_VERSION)' ] || echo '$(HNS_VERSION)' > $(HNS_VERSION_STAMP))
 endif
 
+# The same version, as text, for the save menu (src/start_menu.c). scaninc
+# does not list a header that does not exist yet, so the object names it.
+src/data/hns_version.h: tools/version_header.py $(HNS_VERSION_STAMP)
+	python3 tools/version_header.py '$(HNS_VERSION)' $@
+$(C_BUILDDIR)/start_menu.o: src/data/hns_version.h
+
 $(TITLESCREENGFXDIR)/hns/press_start.4bpp: %.4bpp: %.png tools/version_strip.py $(HNS_VERSION_STAMP)
 	$(GFX) $< $@
 ifneq ($(HNS_VERSION),)

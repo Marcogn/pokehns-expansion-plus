@@ -19,19 +19,15 @@
 #include "field_player_avatar.h"
 #include "field_screen_effect.h"
 #include "field_weather.h"
-#include "frontier_pass.h"
 #include "gpu_regs.h"
 #include "international_string_util.h"
-#include "item_menu.h"
 #include "main.h"
 #include "malloc.h"
 #include "menu.h"
 #include "option_menu.h"
 #include "overworld.h"
 #include "palette.h"
-#include "party_menu.h"
 #include "pokedex.h"
-#include "pokenav.h"
 #include "quest_book.h"
 #include "rtc.h"
 #include "script.h"
@@ -42,7 +38,6 @@
 #include "strip_start_menu.h"
 #include "task.h"
 #include "text.h"
-#include "trainer_card.h"
 #include "window.h"
 #include "constants/characters.h"
 #include "constants/songs.h"
@@ -172,32 +167,28 @@ static const union AffineAnimCmd sAffineAnim_IconWiggle[] =
 
 static const union AffineAnimCmd *const sIconAffineAnims[] = {sAffineAnim_IconWiggle};
 
-static bool8 StripCallback_Pokedex(void);
-static bool8 StripCallback_DexNav(void);
-static bool8 StripCallback_Party(void);
-static bool8 StripCallback_Bag(void);
-static bool8 StripCallback_Quests(void);
-static bool8 StripCallback_Options(void);
-static bool8 StripCallback_TrainerCard(void);
-static bool8 StripCallback_Pokegear(void);
+static void StripMenu_OpenQuestBook(void);
 
+// What an icon opens, once the screen is black and the strip is gone. The
+// classic list's entries open the same screens through the same functions
+// (StartMenu_Open*, start_menu.c), so a fix to one reaches the other.
 struct StripMenuItem
 {
     const u8 *label;
     struct CompressedSpriteSheet sheet;
-    bool8 (*callback)(void);
+    void (*open)(void);
 };
 
 #define ICON_SHEET(gfx, tileTag) {.data = gfx, .size = 0x400, .tag = tileTag}
 
 static const struct StripMenuItem sStripMenuItems[STRIP_ICON_COUNT] =
 {
-    [STRIP_ICON_POKEDEX] = {COMPOUND_STRING("Pokédex"), ICON_SHEET(sPokedexIconGfx, STRIP_TILETAG_POKEDEX), StripCallback_Pokedex},
-    [STRIP_ICON_DEXNAV]  = {COMPOUND_STRING("DexNav"),  ICON_SHEET(sDexNavIconGfx,  STRIP_TILETAG_DEXNAV),  StripCallback_DexNav},
-    [STRIP_ICON_PARTY]   = {COMPOUND_STRING("Party"),   ICON_SHEET(sPartyIconGfx,   STRIP_TILETAG_PARTY),   StripCallback_Party},
-    [STRIP_ICON_BAG]     = {COMPOUND_STRING("Bag"),     ICON_SHEET(sBagIconGfx,     STRIP_TILETAG_BAG),     StripCallback_Bag},
-    [STRIP_ICON_QUESTS]  = {COMPOUND_STRING("Quests"),  ICON_SHEET(sQuestsIconGfx,  STRIP_TILETAG_QUESTS),  StripCallback_Quests},
-    [STRIP_ICON_OPTIONS] = {COMPOUND_STRING("Options"), ICON_SHEET(sOptionsIconGfx, STRIP_TILETAG_OPTIONS), StripCallback_Options},
+    [STRIP_ICON_POKEDEX] = {COMPOUND_STRING("Pokédex"), ICON_SHEET(sPokedexIconGfx, STRIP_TILETAG_POKEDEX), StartMenu_OpenPokedex},
+    [STRIP_ICON_DEXNAV]  = {COMPOUND_STRING("DexNav"),  ICON_SHEET(sDexNavIconGfx,  STRIP_TILETAG_DEXNAV),  StartMenu_OpenDexNav},
+    [STRIP_ICON_PARTY]   = {COMPOUND_STRING("Party"),   ICON_SHEET(sPartyIconGfx,   STRIP_TILETAG_PARTY),   StartMenu_OpenParty},
+    [STRIP_ICON_BAG]     = {COMPOUND_STRING("Bag"),     ICON_SHEET(sBagIconGfx,     STRIP_TILETAG_BAG),     StartMenu_OpenBag},
+    [STRIP_ICON_QUESTS]  = {COMPOUND_STRING("Quests"),  ICON_SHEET(sQuestsIconGfx,  STRIP_TILETAG_QUESTS),  StripMenu_OpenQuestBook},
+    [STRIP_ICON_OPTIONS] = {COMPOUND_STRING("Options"), ICON_SHEET(sOptionsIconGfx, STRIP_TILETAG_OPTIONS), StartMenu_OpenOptions},
 };
 
 static const struct SpritePalette sIconsSpritePalette = {sIconsPal, STRIP_PALTAG_ICONS};
@@ -205,6 +196,8 @@ static const struct SpritePalette sIconsSpritePalette = {sIconsPal, STRIP_PALTAG
 static EWRAM_DATA struct StripMenu *sStrip = NULL;
 // The entry under the cursor, kept across openings like the classic list's.
 static EWRAM_DATA u8 sStripLastIcon = 0;
+// The screen chosen, kept past the strip's own data, freed before it opens.
+static EWRAM_DATA void (*sStripOpen)(void) = NULL;
 
 static void Task_StripMenu_HandleInput(u8 taskId);
 static void Task_StripMenu_WaitFadeIn(u8 taskId);
@@ -566,10 +559,10 @@ static void StripMenu_MoveCursor(s32 delta)
     StripMenu_PrintLabel();
 }
 
-static void StripMenu_StartCallback(u8 taskId, bool8 (*callback)(void))
+static void StripMenu_StartCallback(u8 taskId, void (*open)(void))
 {
     PlaySE(SE_SELECT);
-    gMenuCallback = callback;
+    sStripOpen = open;
     FadeScreen(FADE_TO_BLACK, 0);
     gTasks[taskId].func = Task_StripMenu_FadeAndRun;
 }
@@ -601,7 +594,7 @@ static void Task_StripMenu_HandleInput(u8 taskId)
         // Same rule as the classic list: an empty Pokédex does not open.
         if (icon == STRIP_ICON_POKEDEX && GetNationalPokedexCount(FLAG_GET_SEEN) == 0)
             return;
-        StripMenu_StartCallback(taskId, sStripMenuItems[icon].callback);
+        StripMenu_StartCallback(taskId, sStripMenuItems[icon].open);
     }
     else if (JOY_NEW(B_BUTTON))
     {
@@ -617,11 +610,11 @@ static void Task_StripMenu_HandleInput(u8 taskId)
     }
     else if (JOY_NEW(L_BUTTON))
     {
-        StripMenu_StartCallback(taskId, StripCallback_TrainerCard);
+        StripMenu_StartCallback(taskId, StartMenu_OpenTrainerCard);
     }
     else if (JOY_NEW(R_BUTTON) && IsPokegearAvailable())
     {
-        StripMenu_StartCallback(taskId, StripCallback_Pokegear);
+        StripMenu_StartCallback(taskId, StartMenu_OpenPokegear);
     }
 }
 
@@ -631,67 +624,12 @@ static void Task_StripMenu_FadeAndRun(u8 taskId)
     {
         StripMenu_Destroy();
         PlayRainStoppingSoundEffect();
-        gMenuCallback();
+        sStripOpen();
         DestroyTask(taskId);
     }
 }
 
-// The callbacks run once the screen is black and the strip is gone.
-static bool8 StripCallback_Pokedex(void)
-{
-    IncrementGameStat(GAME_STAT_CHECKED_POKEDEX);
-    CleanupOverworldWindowsAndTilemaps();
-    SetMainCallback2(CB2_OpenPokedex);
-    return TRUE;
-}
-
-static bool8 StripCallback_DexNav(void)
-{
-    CreateTask(Task_OpenDexNavFromStartMenu, 0);
-    return TRUE;
-}
-
-static bool8 StripCallback_Party(void)
-{
-    CleanupOverworldWindowsAndTilemaps();
-    SetMainCallback2(CB2_PartyMenuFromStartMenu);
-    return TRUE;
-}
-
-static bool8 StripCallback_Bag(void)
-{
-    CleanupOverworldWindowsAndTilemaps();
-    SetMainCallback2(CB2_BagMenuFromStartMenu);
-    return TRUE;
-}
-
-static bool8 StripCallback_Quests(void)
+static void StripMenu_OpenQuestBook(void)
 {
     CreateTask(Task_OpenQuestBookFromStartMenu, 0);
-    return TRUE;
-}
-
-static bool8 StripCallback_Options(void)
-{
-    CleanupOverworldWindowsAndTilemaps();
-    SetMainCallback2(CB2_InitOptionMenu);
-    gMain.savedCallback = CB2_ReturnToFieldWithOpenMenu;
-    return TRUE;
-}
-
-static bool8 StripCallback_TrainerCard(void)
-{
-    CleanupOverworldWindowsAndTilemaps();
-    if (FlagGet(FLAG_SYS_FRONTIER_PASS))
-        ShowFrontierPass(CB2_ReturnToFieldWithOpenMenu);
-    else
-        ShowPlayerTrainerCard(CB2_ReturnToFieldWithOpenMenu);
-    return TRUE;
-}
-
-static bool8 StripCallback_Pokegear(void)
-{
-    CleanupOverworldWindowsAndTilemaps();
-    SetMainCallback2(CB2_InitPokeNav);
-    return TRUE;
 }

@@ -139,7 +139,8 @@ static bool32 IsChallengeWon(u32 challenge)
 }
 
 // The first challenge not won yet, REDS_PATH_CHALLENGE_COUNT once all are.
-static u32 GetNextChallenge(void)
+// The quest book reads it too (src/data/quests.h).
+u32 RedsPath_GetNextChallenge(void)
 {
     u32 i;
 
@@ -176,11 +177,6 @@ u32 RedsPath_GetPrizeWaiting(void)
     return i;
 }
 
-u32 RedsPath_GetNextChallenge(void)
-{
-    return GetNextChallenge();
-}
-
 // specialvar: is this Gym's own (HnS) Leader beaten? The trigger in front of
 // the door only shows the introduction after that.
 bool8 RedsPath_IsGymLeaderBeaten(void)
@@ -194,7 +190,7 @@ bool8 RedsPath_IsGymLeaderBeaten(void)
 u16 RedsPath_GetAideState(void)
 {
     u32 i, challenge = GetChallenge();
-    u32 next = GetNextChallenge();
+    u32 next = RedsPath_GetNextChallenge();
 
     StringCopy(gStringVar3, sGyms[challenge].leaderName);
     if (next < REDS_PATH_CHALLENGE_COUNT)

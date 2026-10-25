@@ -353,13 +353,13 @@ palette, `#if` bilanciati (CLAUDE.md §1).
 - Select riportava il cursore in cima: ora segue la missione.
 - Punto 7, su decisione dell'utente: conteggio dei cloni (`bufferText`,
   `{STR_VAR_1}`/`{STR_VAR_3}`) e 12 sottomissioni, una per premio.
-- **Non corretti, motivati**: i contesti della lista classica copiati in
-  `UseStripStartMenu` (sono gli stessi oggi; annotato nella regola); le
-  callback della striscia che ricopiano quelle della lista (sette funzioni
-  di poche righe, un refactor di `start_menu.c` fuori misura per la fase);
-  lo stato ricalcolato più volte per ricostruzione della lista (4 missioni,
-  costo trascurabile); due funzioni involucro (`RedsPath_GetNextChallenge`,
-  `GetQuestState`).
+- Gli altri quattro, rimandati in un primo momento, corretti su richiesta
+  dell'utente in un secondo giro: un solo `GetStartMenuContext()` per la
+  lista classica e la striscia; le icone della striscia aprono le schermate
+  con le stesse funzioni della lista (`StartMenu_Open*`); lo stato delle
+  missioni letto una volta per ricostruzione della lista; tolti i due
+  involucri (`RedsPath_GetNextChallenge` è ora la funzione stessa,
+  `GetQuestState` sostituita dalla cache).
 - Tolta `CountBadgeFlags`, mai usata (warning).
 
 Punti del §5.7, tutti in mGBA sul `.sav` dell'utente: 1 Pike, Piramide,

@@ -252,11 +252,13 @@ static u32 GetStateLevel(u32 state)
 // Only a step up is new. A quest can step down - the TcloneR goes back from
 // Reward to Active once the prize is collected - and that is not news;
 // QuestLog_SyncSeen lowers the stored level so that the next Reward is.
-bool32 QuestLog_IsNew(u32 quest)
+// state is the quest's QuestLog_GetState, which the book already has: a
+// function quest would run its progress function again for it.
+bool32 QuestLog_IsNew(u32 quest, u32 state)
 {
     if (quest >= QUEST_COUNT)
         return FALSE;
-    return GetStateLevel(QuestLog_GetState(quest)) > GetSeenLevel(quest);
+    return GetStateLevel(state) > GetSeenLevel(quest);
 }
 
 void QuestLog_MarkSeen(u32 quest)

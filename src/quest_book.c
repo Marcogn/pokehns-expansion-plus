@@ -101,6 +101,7 @@ struct QuestBook
     u16 row;
     u16 parentScroll;       // where the main list was left on entering a quest
     u16 parentRow;
+    u8 states[QUEST_COUNT]; // QUEST_STATE_*, see ReadQuestStates
 };
 
 static EWRAM_DATA struct QuestBook *sBook = NULL;
@@ -450,14 +451,20 @@ static void Task_QuestBookWaitFadeIn(u8 taskId)
 
 // ---- The list ----
 
-static u32 GetQuestState(u32 quest)
+// Every quest's state, read once per list rebuild: a function quest runs its
+// progress function on each read, and the sort, the rows, the header and the
+// state tags all ask.
+static void ReadQuestStates(void)
 {
-    return QuestLog_GetState(quest);
+    u32 quest;
+
+    for (quest = 0; quest < QUEST_COUNT; quest++)
+        sBook->states[quest] = QuestLog_GetState(quest);
 }
 
 static bool32 HasSubquestList(u32 quest)
 {
-    return QuestLog_GetSubquestCount(quest) != 0 && GetQuestState(quest) >= QUEST_STATE_ACTIVE;
+    return QuestLog_GetSubquestCount(quest) != 0 && sBook->states[quest] >= QUEST_STATE_ACTIVE;
 }
 
 // Favourites first; then A-Z (quests still locked last, so the order does not
@@ -471,8 +478,8 @@ static bool32 QuestComesBefore(u32 a, u32 b)
         return favA;
     if (sBook->alpha)
     {
-        bool32 lockedA = GetQuestState(a) == QUEST_STATE_LOCKED;
-        bool32 lockedB = GetQuestState(b) == QUEST_STATE_LOCKED;
+        bool32 lockedA = sBook->states[a] == QUEST_STATE_LOCKED;
+        bool32 lockedB = sBook->states[b] == QUEST_STATE_LOCKED;
 
         if (lockedA != lockedB)
             return lockedB;
@@ -493,7 +500,7 @@ static u32 CollectQuests(void)
 
     for (quest = 0; quest < QUEST_COUNT; quest++)
     {
-        if (sBook->filter == FILTER_ALL || GetQuestState(quest) == sFilterStates[sBook->filter])
+        if (sBook->filter == FILTER_ALL || sBook->states[quest] == sFilterStates[sBook->filter])
             sBook->order[count++] = quest;
     }
     // Insertion sort: QUEST_COUNT is small.
@@ -523,7 +530,7 @@ static u8 *GetRowName(u32 row)
 
 static void BuildQuestRowName(u8 *dst, u32 quest)
 {
-    u32 state = GetQuestState(quest);
+    u32 state = sBook->states[quest];
 
     dst[0] = EOS;
     if (state == QUEST_STATE_LOCKED)
@@ -536,7 +543,7 @@ static void BuildQuestRowName(u8 *dst, u32 quest)
     AppendBounded(dst, QuestLog_GetName(quest));
     if (HasSubquestList(quest))
         AppendBounded(dst, sText_SubquestButton);
-    if (QuestLog_IsNew(quest))
+    if (QuestLog_IsNew(quest, state))
         AppendBounded(dst, sText_ColorRed);
 }
 
@@ -598,7 +605,7 @@ static void PrintHeader(void)
         shown = 0;
         for (i = 0; i < QUEST_COUNT; i++)
         {
-            u32 state = GetQuestState(i);
+            u32 state = sBook->states[i];
 
             if (sBook->filter == FILTER_ALL ? state != QUEST_STATE_LOCKED : state == sFilterStates[sBook->filter])
                 shown++;
@@ -665,6 +672,7 @@ static void RebuildListOn(bool32 restoreCursor, s32 focusId)
     u32 i, maxShowed;
 
     DestroyList();
+    ReadQuestStates();
     BuildItems();
     maxShowed = min(sBook->numRows, ROWS_SHOWN);
 
@@ -736,7 +744,7 @@ static void PrintStateTag(u8 windowId, u32 id, u8 y)
     }
     else
     {
-        switch (GetQuestState(id))
+        switch (sBook->states[id])
         {
         case QUEST_STATE_COMPLETED:
             text = sText_Done;
@@ -897,7 +905,7 @@ static void ShowSubquestDetails(u32 subquest)
 static void ShowQuestDetails(u32 quest)
 {
     const struct QuestInfo *info = QuestLog_GetInfo(quest);
-    u32 state = GetQuestState(quest);
+    u32 state = sBook->states[quest];
     const struct QuestStep *step = NULL;
     const u8 *map, *desc;
 

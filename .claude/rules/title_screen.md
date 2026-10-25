@@ -3,6 +3,7 @@ paths:
   - "src/title_screen.c"
   - "graphics/title_screen/**"
   - "tools/version_strip.py"
+  - "tools/version_header.py"
   - "graphics_file_rules.mk"
 ---
 
@@ -54,3 +55,21 @@ script la sposta per restare dentro (verificato in mGBA con
 `1234.5678.9.PLUS.PLUS`, 147 px, x 48-194); oltre 160 si ferma.
 R, E, T e A di PRESS START non sono nella tabella: T e A hanno larghezze
 irregolari, e finora non servivano.
+
+**La stessa versione nel menu di salvataggio** (issue #39; l'issue diceva
+menu Start, l'utente ha cambiato idea): `tools/version_header.py` scrive
+`src/data/hns_version.h` (generato, in `.gitignore`) con `HNS_VERSION_TEXT`,
+normalizzato come la striscia del titolo (`v` minuscola, resto maiuscolo).
+Senza versione scrive **`dev build`**: il titolo invece tiene la striscia
+del PNG (`v2.0.6.PLUS.1`), quindi in un clone senza tag i due non
+coincidono; con `HNS_VERSION` (la release) sì. Lo riscrive solo se il testo
+cambia. `scaninc` non elenca un header che ancora non esiste: per questo
+`start_menu.o` lo nomina a mano in `graphics_file_rules.mk`.
+`ShowSaveInfoWindow` (`start_menu.c`): finestra alta 12 tile invece di 10
+(finisce al baseBlock 176, prima del Sì/No a 0x125; cornice fino alla riga
+13, il riquadro dei dialoghi parte dalla 14). Il numero è nel font stretto:
+nel normale `v2.0.6.PLUS.7` lasciava 5 px all'etichetta. Se non entra
+comunque, l'etichetta "VERSION" sparisce e resta il numero; oltre 20
+caratteri la build si ferma. Verificato in mGBA con `v2.0.6.PLUS.7`,
+`v2.0.6.PLUS.10`, `v12.34.56.PLUS.99` (senza etichetta) e `dev build`, con
+e senza Pokédex, e un salvataggio completo.
