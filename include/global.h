@@ -418,11 +418,12 @@ struct Pokedex
     // Trainers whose Pokemon the TcloneR has already cloned: each one counts
     // once (src/tcloner.c). Carved out of the front of Emerald's old dex flags
     // filler, which nothing reads or writes, so SaveBlock2 keeps its layout;
-    // the SAVE_VERSION 9 migration zeroes it in older saves. It sits outside
+    // the SAVE_VERSION 9 migration zeroes it in older saves (and 10 the byte
+    // Red's Path added). It sits outside
     // the #if below so that freeing the filler cannot take it along.
     /*0x10*/ u8 tclonerTrainerFlags[TCLONER_TRAINER_FLAGS_BYTES];
 #if FREE_EXTRA_SEEN_FLAGS_SAVEBLOCK2 == FALSE
-    /*0x62*/ u8 filler[0x68 - TCLONER_TRAINER_FLAGS_BYTES]; // Previously Dex Flags, feel free to remove.
+    /*0x63*/ u8 filler[0x68 - TCLONER_TRAINER_FLAGS_BYTES]; // Previously Dex Flags, feel free to remove.
 #endif //FREE_EXTRA_SEEN_FLAGS_SAVEBLOCK2
 };
 

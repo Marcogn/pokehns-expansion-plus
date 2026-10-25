@@ -1,4 +1,5 @@
 #include "global.h"
+#include "battle_partner.h"
 #include "battle_pike.h"
 #include "battle_pyramid.h"
 #include "bug_contest.h"
@@ -168,6 +169,9 @@ static bool32 IsTrainerExcludedFromScaling(u16 trainerId)
 #endif
         return TRUE;
     }
+    // Red's Path replays the Leaders as Red met them, levels included.
+    if (IsRedsPathTrainer(trainerId))
+        return TRUE;
 
     return FALSE;
 }

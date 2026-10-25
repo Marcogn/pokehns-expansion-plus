@@ -714,3 +714,4 @@ gSpecials::
 	def_special TClonerGetNextReward
 	def_special TClonerClaimItemReward
 	def_special TClonerGiveRewardMon
+	def_special RedsPath_LoadRedsParty

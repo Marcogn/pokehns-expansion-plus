@@ -115,6 +115,28 @@ il checksum per settore: somma di u32 sui soli `size` byte di dati (non la
 coda di SaveBlock3), `(s >> 16) + s` troncato a 16 bit, a `0xFF6`; lo slot
 attivo è quello col `counter` (`0xFFC`) più alto.
 
+### `SAVE_VERSION 10`: Red's Path (sessione A1, 24/10)
+
+Red's Path aggiunge gli allenatori 653-660 (`TRAINERS_COUNT_HNS` 661) e
+`TcloneR` deve poterli indicizzare (`STATIC_ASSERT(TRAINERS_COUNT <=
+TCLONER_TRAINER_FLAGS_BYTES * 8)` in `tcloner.c`): **`TCLONER_TRAINER_FLAGS_BYTES`
+è passato da 82 a 83**, sempre dal vecchio filler del Pokédex (104 byte: ne
+restano 21). Il passo `saveVersion < 10` azzera **solo** il byte 82
+(SaveBlock2 + 0x28 + 82): la migrazione 9 aveva pulito i primi 82, non quello.
+I primi 82 restano intatti, quindi gli allenatori già clonati restano contati.
+Un `STATIC_ASSERT` in `save.c` fissa la dimensione a 83: ogni crescita futura
+vuole il suo passo. Il quest book (`docs/plans/quest-log.md` §5) prenderà il
+numero 11.
+Lo stesso passo spegne `FLAG_REDS_PATH_BATTLE` (ex `FLAG_UNUSED_EXTENDED_86`,
+non dimostrabilmente a zero in ogni salvataggio): acceso fuori dalla lotta
+spegnerebbe randomizer e sfide del challenge menu.
+
+Verificato in emulatore, ROM di produzione: `.sav` dell'utente portato a mano a
+versione 9 con bit del TcloneR accesi (byte 14 `0x01`, 40 `0x5a`, 81 `0x80`) e
+byte 82 a `0xFF`, caricato e salvato: versione 10, i tre byte uguali, byte 82
+a 0. Il `.sav` vero dell'utente (versione 8, 2.0.6.PLUS.4) passa 8 → 10 con la
+squadra identica byte per byte.
+
 ### C'è già un sistema di migrazione dei salvataggi: usalo
 
 Scoperto portando il Candy Jar, dopo aver scritto a mano un marker magico che

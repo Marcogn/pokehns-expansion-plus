@@ -674,8 +674,19 @@
 #define TRAINER_RED_POSTOBC_HNS               650
 #define TRAINER_MISTY_POSTOBC_HNS             651
 #define TRAINER_ERIKA_POSTOBC_HNS             652
+// Red's Path (docs/plans/reds-path.md): the eight Kanto Leaders as Red met
+// them, in the order of his journey. Each one's Trainer flag is the
+// "challenge won" state, so the range must stay contiguous and in this order.
+#define TRAINER_REDS_PATH_BROCK_HNS           653
+#define TRAINER_REDS_PATH_MISTY_HNS           654
+#define TRAINER_REDS_PATH_SURGE_HNS           655
+#define TRAINER_REDS_PATH_ERIKA_HNS           656
+#define TRAINER_REDS_PATH_KOGA_HNS            657
+#define TRAINER_REDS_PATH_SABRINA_HNS         658
+#define TRAINER_REDS_PATH_BLAINE_HNS          659
+#define TRAINER_REDS_PATH_GIOVANNI_HNS        660
 
-#define TRAINERS_COUNT_HNS                       653
+#define TRAINERS_COUNT_HNS                       661
 #define MAX_TRAINERS_COUNT_HNS                   864
 
 #endif  // GUARD_CONSTANTS_OPPONENTS_HNS_H

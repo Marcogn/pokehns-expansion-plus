@@ -1,4 +1,5 @@
 #include "global.h"
+#include "battle_partner.h"
 #include "overworld.h"
 #include "constants/heal_locations.h"
 #include "battle_pyramid.h"
@@ -396,7 +397,7 @@ static void (*const sMovementStatusHandler[])(struct LinkPlayerObjectEvent *, st
 // code
 void DoWhiteOut(void)
 {
-    if (IsNuzlockeActive() || IsNuzlockeEasyActive())
+    if ((IsNuzlockeActive() || IsNuzlockeEasyActive()) && !IsRedsPathBattle())
     {
         if (GetFirstAliveBoxPokemon() == IN_BOX_COUNT * TOTAL_BOXES_COUNT)
         {
@@ -478,6 +479,9 @@ void Overworld_ResetBattleFlagsAndVars(void)
     FlagClear(B_FLAG_DYNAMAX_BATTLE);
     FlagClear(B_FLAG_SKY_BATTLE);
     FlagClear(B_FLAG_NO_WHITEOUT);
+#if IS_HNS
+    FlagClear(FLAG_REDS_PATH_BATTLE);
+#endif
 }
 #endif
 
@@ -2101,7 +2105,9 @@ void CB2_WhiteOut(void)
     {
         FieldClearVBlankHBlankCallbacks();
         StopMapMusic();
-        if (gSaveBlock3Ptr->challengeSettings.tx_Challenges_NuzlockeHardcore && !FlagGet(FLAG_END_NUZLOCKE))
+        // Losing Red's Path loses with Red's team, not the player's.
+        if (gSaveBlock3Ptr->challengeSettings.tx_Challenges_NuzlockeHardcore && !FlagGet(FLAG_END_NUZLOCKE)
+         && !IsRedsPathBattle())
         {
             ClearSaveData();
             DoSoftReset();

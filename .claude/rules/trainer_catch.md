@@ -34,7 +34,9 @@ cambiata solo la riga in `CanCatchTrainerMon()`.
   la squadra del secondo sta in `gEnemyParty[3..5]`: decide l'indice di
   squadra, non il lato. `CB2_EndTrainerBattle` / `CB2_EndRematchBattle` sul
   ramo `B_OUTCOME_CAUGHT` passano l'id a `TClonerRecordCatch` (`tcloner.c`).
-- **Un allenatore conta una volta (D1)**: bitfield di 82 byte
+- **Un allenatore conta una volta (D1)**: bitfield di 82 byte (83 dal
+  `SAVE_VERSION 10`, per gli allenatori 653-660 di Red's Path, che però
+  non si possono catturare: `CanCatchTrainerMon` li esclude)
   `pokedex.tclonerTrainerFlags` in SaveBlock2, ricavato dal `filler[0x68]`
   di `struct Pokedex` (104 byte misurati, non 108 come dice il commento di
   `config/save.h`; nessun lettore né scrittore in `src/`). La struct resta

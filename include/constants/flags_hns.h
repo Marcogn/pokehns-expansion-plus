@@ -967,7 +967,7 @@
 #define FLAG_HIDE_TCLONER_GOLDENROD                (HNS_EXTENDED_CONTENT_START + 83) // TcloneR scientist, set by TCloner_EventScript_UpdateNpcs
 #define FLAG_HIDE_TCLONER_CERULEAN                 (HNS_EXTENDED_CONTENT_START + 84) // TcloneR scientist, set by TCloner_EventScript_UpdateNpcs
 #define FLAG_HIDE_TCLONER_PALLET                   (HNS_EXTENDED_CONTENT_START + 85) // TcloneR scientist, set by TCloner_EventScript_UpdateNpcs
-#define FLAG_UNUSED_EXTENDED_86                     (HNS_EXTENDED_CONTENT_START + 86)
+#define FLAG_REDS_PATH_BATTLE                      (HNS_EXTENDED_CONTENT_START + 86) // Red's Path battle under way: no randomizer or challenges (data/scripts/reds_path.inc)
 #define FLAG_UNUSED_EXTENDED_87                     (HNS_EXTENDED_CONTENT_START + 87)
 #define FLAG_UNUSED_EXTENDED_88                     (HNS_EXTENDED_CONTENT_START + 88)
 #define FLAG_UNUSED_EXTENDED_89                     (HNS_EXTENDED_CONTENT_START + 89)

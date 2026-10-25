@@ -8,8 +8,18 @@
 #define PARTNER_SILVER_MEGANIUM_HNS 3
 #define PARTNER_SILVER_TYPHLOSION_HNS 4
 #define PARTNER_SILVER_FERALIGATR_HNS 5
-#define PARTNER_DUMMY 6
-#define PARTNER_COUNT 7
+// Red's Path: Red's team for each challenge, in order (FillRedsPathParty).
+#define PARTNER_RED_BROCK 6
+#define PARTNER_RED_MISTY 7
+#define PARTNER_RED_SURGE 8
+#define PARTNER_RED_ERIKA 9
+#define PARTNER_RED_KOGA 10
+#define PARTNER_RED_SABRINA 11
+#define PARTNER_RED_BLAINE 12
+#define PARTNER_RED_GIOVANNI 13
+#define REDS_PATH_CHALLENGE_COUNT 8
+#define PARTNER_DUMMY 14
+#define PARTNER_COUNT 15
 //Tests need PARTNER_COUNT to be at least 3 so we add a dummy partner
 
 #endif  // GUARD_CONSTANTS_BATTLE_PARTNERS_H
