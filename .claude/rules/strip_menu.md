@@ -68,5 +68,20 @@ paths:
   GDB) aprono la lista classica; Grotta Scura senza Flash (icone visibili,
   entrata e ritorno). **Fase 6 (25/10)**: icone nuove e tema scuro guardati in mGBA in entrambi i
   temi (DexNav e Missioni selezionate; la striscia chiara è identica a prima).
-  **Non provati**: Piramide, Pike, Union Room, link,
-  una partita nuova senza Pokédex né Pokémon (restano Borsa, Missioni, Opzioni).
+- **Verificato in fase 8 (25/10)**, forzando le condizioni via GDB invece di
+  warpare: Pike e Piramide scrivendo `gMapHeader.mapLayoutId` (offset 18;
+  1264 Pike room normal, 1254 Pyramid top), Multi Partner Room e Union Room
+  scrivendo `location` (SaveBlock1 + 8: 30/46 con `VAR_FRONTIER_BATTLE_MODE`
+  2, 56/60): lista classica in tutti e quattro, e dalla Borsa della Piramide
+  si torna alla lista. Tolte le condizioni torna la striscia. Ritorno sulla
+  stessa voce da Pokédex, DexNav, Squadra, Borsa, Missioni, Opzioni, Scheda
+  (L) e Pokégear (R). Senza Pokédex, Pokémon, DexNav e Pokégear (flag `0x890`,
+  `0x891`, `0x892`, `0x962` spenti, `sStripLastIcon` sul Pokédex): tre voci,
+  cursore sulla Borsa, R muto e senza suggerimento.
+- **Non provati**: il **link** (`IsOverworldLinkActive` è
+  `gMain.callback1 == CB1_OverworldLink`, e Start in link passa dallo scambio
+  di tasti col partner: con un emulatore solo non si raggiunge; il ramo è
+  lo stesso di `BuildStartMenuActions`); una partita nuova vera (provata
+  spegnendo i flag, non dall'inizio).
+- `UseStripStartMenu` e `BuildStartMenuActions` elencano gli stessi contesti
+  in due posti: un contesto speciale nuovo va aggiunto a **tutti e due**.

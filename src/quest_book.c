@@ -115,6 +115,7 @@ static void Task_OpenQuestBookFromScript(u8 taskId);
 static void MoveCursorFunc(s32 id, bool8 onInit, struct ListMenu *list);
 static void PrintStateTag(u8 windowId, u32 id, u8 y);
 static void RebuildList(bool32 restoreCursor);
+static void RebuildListOn(bool32 restoreCursor, s32 focusId);
 static void ShowDetails(s32 id);
 static void SetPictureBoxVisible(bool32 visible);
 static const u8 *GetHeaderColors(void);
@@ -414,6 +415,7 @@ static void QuestBook_Setup(void)
         sBook->listTaskId = TASK_NONE;
         sBook->arrowTaskId = TASK_NONE;
         CreateTask(Task_QuestBookWaitFadeIn, 0);
+        QuestLog_SyncSeen();
         RebuildList(FALSE);
         BlendPalettes(PALETTES_ALL, 16, RGB_BLACK);
         BeginNormalPaletteFade(PALETTES_ALL, 0, 16, 0, RGB_BLACK);
@@ -653,7 +655,14 @@ static void ClampCursor(void)
 
 static void RebuildList(bool32 restoreCursor)
 {
-    u32 maxShowed;
+    RebuildListOn(restoreCursor, LIST_NOTHING_CHOSEN);
+}
+
+// With a focus id, the cursor lands on that row (after Select the quest has
+// moved, favourites go first), scrolling as little as possible.
+static void RebuildListOn(bool32 restoreCursor, s32 focusId)
+{
+    u32 i, maxShowed;
 
     DestroyList();
     BuildItems();
@@ -668,6 +677,15 @@ static void RebuildList(bool32 restoreCursor)
     {
         sBook->scroll = 0;
         sBook->row = 0;
+    }
+    for (i = 0; focusId != LIST_NOTHING_CHOSEN && i < sBook->numRows; i++)
+    {
+        if (sBook->items[i].id == focusId)
+        {
+            sBook->scroll = i < maxShowed ? 0 : i - (maxShowed - 1);
+            sBook->row = i - sBook->scroll;
+            break;
+        }
     }
     ClampCursor();
 
@@ -838,9 +856,11 @@ static void SetPictureBoxVisible(bool32 visible)
     LoadPalette(&colors[1], BG_PLTT_ID(0) + PICTURE_BOX_BORDER, sizeof(u16));
 }
 
-static void PrintFooter(const u8 *map, const u8 *desc)
+static void PrintFooter(const u8 *map, const u8 *desc, void (*bufferText)(void))
 {
     FillWindowPixelBuffer(WIN_FOOTER, PIXEL_FILL(0));
+    if (bufferText != NULL)
+        bufferText();
     if (map != NULL)
     {
         StringCopy(gStringVar2, map);
@@ -864,12 +884,12 @@ static void ShowSubquestDetails(u32 subquest)
     {
         const struct QuestSubquestInfo *sub = &info->subquestInfo[subquest];
 
-        PrintFooter(sub->map, sub->desc);
+        PrintFooter(sub->map, sub->desc, info->bufferText);
         ShowPicture(sub->sprite, sub->spriteType);
     }
     else
     {
-        PrintFooter(NULL, NULL);
+        PrintFooter(NULL, NULL, NULL);
         ShowPicture(0, QUEST_SPRITE_NONE);
     }
 }
@@ -883,30 +903,34 @@ static void ShowQuestDetails(u32 quest)
 
     if (state == QUEST_STATE_LOCKED)
     {
-        PrintFooter(NULL, NULL);
+        PrintFooter(NULL, NULL, NULL);
         ShowPicture(0, QUEST_SPRITE_NONE);
         return;
     }
     // A quest with no texts yet is shown, just empty.
-    if (info->steps != NULL && info->numSteps != 0)
+    if (state == QUEST_STATE_COMPLETED && info->done != NULL)
+        step = info->done;
+    else if (info->steps != NULL && info->numSteps != 0)
         step = &info->steps[QuestLog_GetStep(quest)];
     map = step != NULL ? step->map : NULL;
-    if (map == NULL && info->steps != NULL)
+    if (map == NULL && step != info->done && info->steps != NULL)
         map = info->steps[0].map;
 
     switch (state)
     {
     case QUEST_STATE_COMPLETED:
-        desc = info->doneDesc;
+        desc = step != NULL ? step->desc : NULL;
         break;
     case QUEST_STATE_REWARD:
-        desc = sText_ReturnForReward;
+        // The step's own text if it has one: where to collect may not be a
+        // place ("any TcloneR scientist").
+        desc = step != NULL && step->desc != NULL ? step->desc : sText_ReturnForReward;
         break;
     default:
         desc = step != NULL ? step->desc : sText_NothingYet;
         break;
     }
-    PrintFooter(map, desc);
+    PrintFooter(map, desc, info->bufferText);
     if (step != NULL)
         ShowPicture(step->sprite, step->spriteType);
     else
@@ -917,7 +941,7 @@ static void ShowDetails(s32 id)
 {
     if (id == LIST_CANCEL)
     {
-        PrintFooter(NULL, NULL);
+        PrintFooter(NULL, NULL, NULL);
         ShowPicture(0, QUEST_SPRITE_NONE);
     }
     else if (sBook->inSubquests)
@@ -981,7 +1005,7 @@ static void Task_QuestBookMain(u8 taskId)
             {
                 PlaySE(SE_SELECT);
                 QuestLog_SetFavorite(id, !QuestLog_IsFavorite(id));
-                RebuildList(FALSE);
+                RebuildListOn(FALSE, id);
             }
         }
         break;

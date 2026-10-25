@@ -23,9 +23,14 @@ add the section before releasing. Feature details live in the tables of
 ### Added
 - **Quest book: the first four quests.** The Quests entry of the pause menu
   now lists **Johto Badges** and **Kanto Badges** (one line per Gym, and what
-  to do next), **The TcloneR** (hidden until you meet the first scientist,
-  "Reward" when prizes are due) and **Red's Path** (hidden until the
-  introduction; one line per challenge, "Reward" when a prize waits).
+  to do next; Kanto shows up once you are Champion), **The TcloneR** (hidden
+  until you meet the first scientist; how many Pokémon you have cloned, how
+  many the next prize wants, and one line per prize, "Reward" when one is
+  due) and **Red's Path** (hidden until the introduction; one line per
+  challenge, "Reward" when a prize waits). A finished quest shows where it
+  ended, not its first step. **NEW** marks a quest you have not looked at
+  since it appeared, became "Reward" or was completed. Select keeps the
+  cursor on the quest it marks as favourite.
   They read the state the game already has, so they work on old saves.
   Credit for the screen: PokemonSanFran's Unbound Quest Menu.
 - **Red's Path**, the eight Kanto Gyms replayed with Red's team of the time

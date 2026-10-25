@@ -1,6 +1,6 @@
 # Piano: quest book e menu di pausa a striscia
 
-**Stato (25/10): fasi 1-7 fatte (§5.1-§5.7), prossima la 8.** Si fa dopo Red's Path
+**Stato (25/10): tutte e otto le fasi fatte (§5.1-§5.8).** Restano il contenuto del §7 e la release. Si fa dopo Red's Path
 ([`reds-path.md`](reds-path.md)), una fase per sessione (§5). Le ricerche sono già fatte: i fatti qui sotto sono
 verificati nel codice indicato, non vanno rifatte. I confronti e le
 opzioni scartate stanno in
@@ -334,6 +334,44 @@ e `strip_menu.md`) e corregge ciò che trova rotto.
 1-6: save (`SAVE_VERSION 12`, offset, migrazione), nuovo opcode, VRAM e
 palette, `#if` bilanciati (CLAUDE.md §1).
 
+### 5.8 Fase 8, com'è stata fatta (25/10)
+
+`/code-review` medio su `4d282bfe..HEAD`: dieci rilievi, sei corretti.
+
+- `questlog QUEST_LOG_OPEN` chiedeva solo `SCREFF_V1`: ora anche
+  `SCREFF_HARDWARE`, come `fadescreen` (sfuma e cambia schermata).
+- **NEW non tornava** mai sulle missioni a var e a funzione: decisione
+  dell'utente, livelli visti a 2 bit, `SAVE_VERSION 13` (6 byte,
+  `.claude/rules/save.md`).
+- Missione completata con sprite e mappa del passo 0 (punto 6): campo
+  `done` in `struct QuestInfo`, al posto di `doneDesc`.
+- Kanto attiva con l'ottava medaglia di Johto, prima di poterci andare: ora
+  con `FLAG_IS_CHAMPION`. Il testo di Johto completata diceva "Kanto is open
+  now!": ora "On to the Pokémon League!".
+- TcloneR, premio con "Location: the TcloneR scientist": ora testo proprio
+  ("show your clones to a TcloneR scientist") e la mappa dello stadio.
+- Select riportava il cursore in cima: ora segue la missione.
+- Punto 7, su decisione dell'utente: conteggio dei cloni (`bufferText`,
+  `{STR_VAR_1}`/`{STR_VAR_3}`) e 12 sottomissioni, una per premio.
+- **Non corretti, motivati**: i contesti della lista classica copiati in
+  `UseStripStartMenu` (sono gli stessi oggi; annotato nella regola); le
+  callback della striscia che ricopiano quelle della lista (sette funzioni
+  di poche righe, un refactor di `start_menu.c` fuori misura per la fase);
+  lo stato ricalcolato più volte per ricostruzione della lista (4 missioni,
+  costo trascurabile); due funzioni involucro (`RedsPath_GetNextChallenge`,
+  `GetQuestState`).
+- Tolta `CountBadgeFlags`, mai usata (warning).
+
+Punti del §5.7, tutti in mGBA sul `.sav` dell'utente: 1 Pike, Piramide,
+Multi Partner Room e Union Room forzati via GDB (lista classica); **link non
+provato** (serve un partner); 2 senza Pokédex, Pokémon, DexNav e Pokégear
+(flag spenti, non una partita nuova da zero); 3 ritorno da tutte e otto le
+schermate; 4 `QUEST_LOG_OPEN` con una ROM strumentata; 5, 7, 8 guardati; 6
+corretto; 9 **partita vera**: volo ad Azalea, scienziato, TcloneR sbloccata.
+Trovato in più: la lista del libro è circolare come tutte quelle del gioco
+(la regola diceva il contrario). Dettagli nelle regole `quest_book.md` e
+`strip_menu.md`.
+
 Dopo la fase 1 il quest book (2-4) e il menu (5-6) sono indipendenti. Se i
 token stringono, la fase 4 si fa una missione per volta.
 
@@ -370,10 +408,11 @@ Basta Sonnet, o Haiku se la condizione esiste già.
    salvati finiscono sulla missione sbagliata.
 4. Verifica in emulatore con un caso che fallisce prima della condizione.
 
-**Capienza**, stimata sui 56 byte liberi di SaveBlock3 (448 bit): una
-missione che legge lo stato del gioco costa 2 bit (preferita, nuova), una
-con stato proprio 5, una sottomissione 1. Fanno circa 200 missioni del
-primo tipo o 90 del secondo, meno lo spazio che servirà ad altro. Gli
+**Capienza**: la struct salvata ha posto per 48 missioni (`QUEST_SAVE_MAX_*`);
+oltre serve un passo di migrazione. Una missione che legge lo stato del
+gioco costa 3 bit (preferita, livello visto a 2 bit), una con stato proprio
+7, una sottomissione propria 1. In SaveBlock3 restano 24 byte dopo il
+`SAVE_VERSION 13`. Gli
 indici di PSF sono `u8`, quindi 255 al massimo. SaveBlock3 si può allargare
 fino a 1624 byte togliendo l'assert sul primo chunk: non provato.
 

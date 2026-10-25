@@ -15,7 +15,9 @@
 #include "constants/event_objects.h"
 #include "constants/flags.h"
 #include "constants/items.h"
+#include "constants/species.h"
 #include "constants/vars.h"
+#include "string_util.h"
 
 // ---- Badges: one quest per region, one subquest per Gym ----
 //
@@ -27,7 +29,7 @@
 static const u8 sText_Won[] = _("Won");
 
 static const u8 sText_JohtoName[] = _("Johto Badges");
-static const u8 sText_JohtoDone[] = _("All eight Johto Badges are\nyours. Kanto is open now!");
+static const u8 sText_JohtoDone[] = _("All eight Johto Badges are\nyours. On to the Pokémon League!");
 
 static const u8 sText_JohtoStep0[] = _("Challenge Falkner at the\nViolet City Gym.");
 static const u8 sText_JohtoStep1[] = _("Challenge Bugsy at the\nAzalea Town Gym.");
@@ -48,6 +50,9 @@ static const u8 sText_Olivine[] = _("Olivine City");
 static const u8 sText_Mahogany[] = _("Mahogany Town");
 static const u8 sText_Blackthorn[] = _("Blackthorn City");
 static const u8 sText_DragonsDen[] = _("Dragon's Den");
+static const u8 sText_IndigoPlateau[] = _("Indigo Plateau");
+
+static const struct QuestStep sJohtoDone = { sText_JohtoDone, sText_IndigoPlateau, OBJ_EVENT_GFX_LANCE_HNS, QUEST_SPRITE_OBJECT };
 
 static const struct QuestStep sJohtoSteps[] =
 {
@@ -102,18 +107,6 @@ static const struct QuestSubquestInfo sJohtoSubquests[] =
     { sText_JohtoBadge6, sText_JohtoBadgeDesc6, sText_Mahogany,   OBJ_EVENT_GFX_PRYCE_HNS,   QUEST_SPRITE_OBJECT, sText_Won },
     { sText_JohtoBadge7, sText_JohtoBadgeDesc7, sText_Blackthorn, OBJ_EVENT_GFX_CLAIR_HNS,   QUEST_SPRITE_OBJECT, sText_Won },
 };
-
-static u32 CountBadgeFlags(const u16 *flags, u32 count)
-{
-    u32 i, done = 0;
-
-    for (i = 0; i < count; i++)
-    {
-        if (FlagGet(flags[i]))
-            done++;
-    }
-    return done;
-}
 
 // The first Gym of the list without its badge, count if every one is won.
 static u32 FirstMissingBadge(const u16 *flags, u32 count)
@@ -173,6 +166,8 @@ static const u8 sText_Saffron[] = _("Saffron City");
 static const u8 sText_Seafoam[] = _("Seafoam Islands");
 static const u8 sText_Cinnabar[] = _("Cinnabar Island");
 static const u8 sText_Viridian[] = _("Viridian City");
+
+static const struct QuestStep sKantoDone = { sText_KantoDone, sText_Viridian, OBJ_EVENT_GFX_BLUE_HNS, QUEST_SPRITE_OBJECT };
 
 static const struct QuestStep sKantoSteps[] =
 {
@@ -234,9 +229,10 @@ static void GetKantoProgress(struct QuestProgress *progress)
         progress->state = QUEST_STATE_COMPLETED;
         return;
     }
-    // Unknown until the Johto league is done (the Reception Gate wants the
-    // eighth badge), or a Kanto badge turns up some other way.
-    if (next == 0 && !FlagGet(FLAG_BADGE08_GET))
+    // Unknown until the player is Champion (Kanto is reached on the S.S.
+    // Aqua, whose ticket Elm gives after the League), or a Kanto badge turns
+    // up some other way. The eighth Johto badge alone is too early.
+    if (next == 0 && !FlagGet(FLAG_IS_CHAMPION))
     {
         progress->state = QUEST_STATE_LOCKED;
         return;
@@ -255,8 +251,9 @@ static bool32 IsKantoBadgeDone(u32 subquest)
 // ---- TcloneR ----
 //
 // Hidden until the first scientist has been met (VAR_TCLONER_STAGE, set by
-// the scientist's script). The step is that stage. The text has no clone
-// count: the book prints static strings, and VAR_TCLONER_COUNT is not one.
+// the scientist's script). The step is that stage. Each prize of the reward
+// table (sRewards in tcloner.c) is a subquest, done once collected
+// (VAR_TCLONER_REWARDS counts them in order): keep the two lists in step.
 
 static const u8 sText_TcloneName[] = _("The TcloneR");
 static const u8 sText_TcloneMap[] = _("Johto and Kanto");
@@ -264,8 +261,8 @@ static const u8 sText_TcloneDone[] = _("Every prize collected.\nThe TcloneR has 
 static const u8 sText_TcloneStep0[] = _("Nothing to do yet.");
 static const u8 sText_TcloneStep1[] = _("Look for more scientists in\nMahogany, Goldenrod, Cerulean.");
 static const u8 sText_TcloneStep4[] = _("A scientist now works at Oak's\nLab. Clone Pokémon for prizes.");
-static const u8 sText_TcloneStep5[] = _("Clone Trainers' Pokémon. Every ten\nclones, a prize awaits.");
-static const u8 sText_TcloneReward[] = _("the TcloneR scientist");
+static const u8 sText_TcloneStep5[] = _("Clones so far: {STR_VAR_1}.\nNext prize at {STR_VAR_3} clones.");
+static const u8 sText_TcloneReward[] = _("A prize is waiting: show your\nclones to a TcloneR scientist!");
 static const u8 sText_PalletTown[] = _("Pallet Town");
 
 static const struct QuestStep sTcloneSteps[] =
@@ -276,10 +273,60 @@ static const struct QuestStep sTcloneSteps[] =
     [3] = { sText_TcloneStep1, sText_TcloneMap,   OBJ_EVENT_GFX_SCIENTIST_M_HNS, QUEST_SPRITE_OBJECT },
     [4] = { sText_TcloneStep4, sText_PalletTown,  OBJ_EVENT_GFX_SCIENTIST_M_HNS, QUEST_SPRITE_OBJECT },
     [5] = { sText_TcloneStep5, sText_PalletTown,  OBJ_EVENT_GFX_SCIENTIST_M_HNS, QUEST_SPRITE_OBJECT },
-    [6] = { NULL,              sText_TcloneReward, OBJ_EVENT_GFX_SCIENTIST_M_HNS, QUEST_SPRITE_OBJECT },
+    // A prize is paid by whichever scientist the player meets next: before
+    // stage 4 he can be in any of the cities of step 1, after it at Oak's Lab.
+    [6] = { sText_TcloneReward, sText_TcloneMap,  OBJ_EVENT_GFX_SCIENTIST_M_HNS, QUEST_SPRITE_OBJECT },
+    [7] = { sText_TcloneReward, sText_PalletTown, OBJ_EVENT_GFX_SCIENTIST_M_HNS, QUEST_SPRITE_OBJECT },
 };
 
-#define TCLONE_STEP_REWARD 6
+#define TCLONE_STEP_LAB          4
+#define TCLONE_STEP_REWARD       6
+#define TCLONE_STEP_REWARD_LAB   7
+
+static const struct QuestStep sTcloneDone = { sText_TcloneDone, sText_PalletTown, OBJ_EVENT_GFX_SCIENTIST_M_HNS, QUEST_SPRITE_OBJECT };
+
+static const u8 sText_Got[] = _("Got");
+static const u8 sText_Tclone10[] = _("10 clones");
+static const u8 sText_Tclone20[] = _("20 clones");
+static const u8 sText_Tclone30[] = _("30 clones");
+static const u8 sText_Tclone40[] = _("40 clones");
+static const u8 sText_Tclone50[] = _("50 clones");
+static const u8 sText_Tclone60[] = _("60 clones");
+static const u8 sText_Tclone70[] = _("70 clones");
+static const u8 sText_Tclone80[] = _("80 clones");
+static const u8 sText_Tclone90[] = _("90 clones");
+static const u8 sText_Tclone100[] = _("100 clones");
+static const u8 sText_TclonePrize0[] = _("20 Quick Balls.");
+static const u8 sText_TclonePrize1[] = _("10 Nuggets.");
+static const u8 sText_TclonePrize2[] = _("20 Ultra Balls.");
+static const u8 sText_TclonePrize3[] = _("15 Max Repels.");
+static const u8 sText_TclonePrize4[] = _("10 Rare Candies.");
+static const u8 sText_TclonePrize5[] = _("10 Big Nuggets.");
+static const u8 sText_TclonePrize6[] = _("A Totodile, cloned at Lv. 5.");
+static const u8 sText_TclonePrize7[] = _("A Chikorita, cloned at Lv. 5.");
+static const u8 sText_TclonePrize8[] = _("A Cyndaquil, cloned at Lv. 5.");
+static const u8 sText_TclonePrize9[] = _("A Weezing, cloned at Lv. 50.");
+static const u8 sText_TclonePrize10[] = _("An Arbok, cloned at Lv. 50.");
+static const u8 sText_TclonePrize11[] = _("A Meowth, cloned at Lv. 50.");
+
+// No map on the prize rows: any scientist pays them, wherever he is.
+#define TCLONE_ITEM(clones, n, item) { sText_Tclone##clones, sText_TclonePrize##n, NULL, item, QUEST_SPRITE_ITEM, sText_Got }
+#define TCLONE_MON(clones, n, species) { sText_Tclone##clones, sText_TclonePrize##n, NULL, species, QUEST_SPRITE_MON, sText_Got }
+static const struct QuestSubquestInfo sTcloneSubquests[TCLONER_REWARD_STEPS] =
+{
+    TCLONE_ITEM(10,   0, ITEM_QUICK_BALL),
+    TCLONE_ITEM(20,   1, ITEM_NUGGET),
+    TCLONE_ITEM(30,   2, ITEM_ULTRA_BALL),
+    TCLONE_ITEM(40,   3, ITEM_MAX_REPEL),
+    TCLONE_ITEM(50,   4, ITEM_RARE_CANDY),
+    TCLONE_ITEM(60,   5, ITEM_BIG_NUGGET),
+    TCLONE_MON(70,    6, SPECIES_TOTODILE),
+    TCLONE_MON(80,    7, SPECIES_CHIKORITA),
+    TCLONE_MON(90,    8, SPECIES_CYNDAQUIL),
+    TCLONE_MON(100,   9, SPECIES_WEEZING),
+    TCLONE_MON(100,  10, SPECIES_ARBOK),
+    TCLONE_MON(100,  11, SPECIES_MEOWTH),
+};
 
 static void GetTclonerProgress(struct QuestProgress *progress)
 {
@@ -298,11 +345,23 @@ static void GetTclonerProgress(struct QuestProgress *progress)
     if (TClonerIsRewardDue())
     {
         progress->state = QUEST_STATE_REWARD;
-        progress->step = TCLONE_STEP_REWARD;
+        progress->step = stage >= TCLONE_STEP_LAB ? TCLONE_STEP_REWARD_LAB : TCLONE_STEP_REWARD;
         return;
     }
     progress->state = QUEST_STATE_ACTIVE;
     progress->step = stage;
+}
+
+static bool32 IsTclonePrizeCollected(u32 subquest)
+{
+    return VarGet(VAR_TCLONER_REWARDS) > subquest;
+}
+
+// {STR_VAR_1} clones so far, {STR_VAR_3} needed for the next prize.
+static void BufferTclonerText(void)
+{
+    ConvertIntToDecimalStringN(gStringVar1, VarGet(VAR_TCLONER_COUNT), STR_CONV_MODE_LEFT_ALIGN, 5);
+    ConvertIntToDecimalStringN(gStringVar3, TClonerGetNextRewardClones(), STR_CONV_MODE_LEFT_ALIGN, 3);
 }
 
 // ---- Red's Path ----
@@ -314,6 +373,7 @@ static void GetTclonerProgress(struct QuestProgress *progress)
 static const u8 sText_RedsName[] = _("Red's Path");
 static const u8 sText_RedsMap[] = _("Kanto Gyms");
 static const u8 sText_RedsDone[] = _("Red's journey is finished:\nall eight Gyms and prizes.");
+static const struct QuestStep sRedsDone = { sText_RedsDone, sText_RedsMap, OBJ_EVENT_GFX_RED_NORMAL_HNS, QUEST_SPRITE_OBJECT };
 
 static const u8 sText_RedsStep0[] = _("Win the Gym, then ask the aide\nto play Red against Brock.");
 static const u8 sText_RedsStep1[] = _("Win the Gym, then ask the aide\nto play Red against Misty.");
@@ -434,6 +494,8 @@ static const u8 sText_TestBadgesDesc[] = _("Collect the badges.\nPress {A_BUTTON
 static const u8 sText_TestBadgesDone[] = _("Every badge found.");
 static const u8 sText_TestBadgesMap[] = _("Johto");
 static const u8 sText_TestFound[] = _("Won");
+static const struct QuestStep sTestStepsDone = { sText_TestStepsDone, NULL, OBJ_EVENT_GFX_RED, QUEST_SPRITE_OBJECT };
+static const struct QuestStep sTestBadgesDone = { sText_TestBadgesDone, sText_TestBadgesMap, OBJ_EVENT_GFX_LITTLE_GIRL, QUEST_SPRITE_OBJECT };
 
 static const u8 sText_TestBadgeName0[] = _("Zephyr Badge");
 static const u8 sText_TestBadgeName1[] = _("Hive Badge");
@@ -495,7 +557,7 @@ static const struct QuestInfo sQuests[QUEST_COUNT] =
         .subquestSource = QUEST_SOURCE_FUNC,
         .isSubquestDone = IsJohtoBadgeDone,
         .steps = sJohtoSteps,
-        .doneDesc = sText_JohtoDone,
+        .done = &sJohtoDone,
         .subquestInfo = sJohtoSubquests,
     },
     [QUEST_KANTO_BADGES] =
@@ -508,7 +570,7 @@ static const struct QuestInfo sQuests[QUEST_COUNT] =
         .subquestSource = QUEST_SOURCE_FUNC,
         .isSubquestDone = IsKantoBadgeDone,
         .steps = sKantoSteps,
-        .doneDesc = sText_KantoDone,
+        .done = &sKantoDone,
         .subquestInfo = sKantoSubquests,
     },
     [QUEST_TCLONER] =
@@ -517,8 +579,13 @@ static const struct QuestInfo sQuests[QUEST_COUNT] =
         .source = QUEST_SOURCE_FUNC,
         .numSteps = NELEMS(sTcloneSteps),
         .getProgress = GetTclonerProgress,
+        .numSubquests = NELEMS(sTcloneSubquests),
+        .subquestSource = QUEST_SOURCE_FUNC,
+        .isSubquestDone = IsTclonePrizeCollected,
         .steps = sTcloneSteps,
-        .doneDesc = sText_TcloneDone,
+        .done = &sTcloneDone,
+        .subquestInfo = sTcloneSubquests,
+        .bufferText = BufferTclonerText,
     },
     [QUEST_REDS_PATH] =
     {
@@ -530,7 +597,7 @@ static const struct QuestInfo sQuests[QUEST_COUNT] =
         .subquestSource = QUEST_SOURCE_FUNC,
         .isSubquestDone = IsRedsPathChallengeDone,
         .steps = sRedsSteps,
-        .doneDesc = sText_RedsDone,
+        .done = &sRedsDone,
         .subquestInfo = sRedsSubquests,
     },
 #if QUEST_BOOK_TEST_QUESTS
@@ -542,7 +609,7 @@ static const struct QuestInfo sQuests[QUEST_COUNT] =
         .var = VAR_TCLONER_STAGE,
         .doneValue = 5,
         .steps = sTestStepsSteps,
-        .doneDesc = sText_TestStepsDone,
+        .done = &sTestStepsDone,
     },
     [QUEST_TEST_BADGES] =
     {
@@ -554,7 +621,7 @@ static const struct QuestInfo sQuests[QUEST_COUNT] =
         .subquestSource = QUEST_SOURCE_FUNC,
         .isSubquestDone = IsTestBadgeDone,
         .steps = sTestBadgesSteps,
-        .doneDesc = sText_TestBadgesDone,
+        .done = &sTestBadgesDone,
         .subquestInfo = sTestBadgesSubquests,
     },
 #endif

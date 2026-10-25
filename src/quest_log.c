@@ -33,6 +33,17 @@ static void SetBit(u8 *bits, u32 bit, bool32 set)
         bits[bit / 8] &= ~(1 << (bit % 8));
 }
 
+// Seen levels: see QuestLog_IsNew.
+enum
+{
+    SEEN_NEVER,
+    SEEN_ACTIVE,    // unlocked or active
+    SEEN_REWARD,
+    SEEN_COMPLETED,
+};
+
+static void SetSeenLevel(u32 quest, u32 level);
+
 static const struct QuestInfo *GetQuest(u32 quest)
 {
     if (quest >= QUEST_COUNT)
@@ -128,7 +139,7 @@ u32 QuestLog_GetStep(u32 quest)
 }
 
 // Only own quests have a state to set: the others follow the game's state.
-// A change shows the quest as new again.
+// Any change shows the quest as new again, even one inside the same seen level.
 bool32 QuestLog_SetState(u32 quest, u32 state)
 {
     const struct QuestInfo *info = GetQuest(quest);
@@ -139,7 +150,7 @@ bool32 QuestLog_SetState(u32 quest, u32 state)
     if (GetOwnState(info->ownSlot) != state)
     {
         SetOwnState(info->ownSlot, state);
-        SetBit(gSaveBlock3Ptr->questLog.seen, quest, FALSE);
+        SetSeenLevel(quest, SEEN_NEVER);
     }
     return TRUE;
 }
@@ -206,19 +217,66 @@ void QuestLog_SetFavorite(u32 quest, bool32 favorite)
         SetBit(gSaveBlock3Ptr->questLog.favorite, quest, favorite);
 }
 
-// Stored as "seen", so that zero - a new game, or an old save after the
-// migration - shows every quest the player can see as new.
+// NEW is a seen level against the level of the quest's state: a quest is new
+// when it has reached a level the player has not looked at yet. Stored as
+// "seen", so that zero - a new game, or an old save after the migration -
+// shows every quest the player can see as new. Two bits per quest: seen holds
+// bit 0, seenHigh (SAVE_VERSION 13) bit 1.
+static u32 GetSeenLevel(u32 quest)
+{
+    return GetBit(gSaveBlock3Ptr->questLog.seen, quest)
+         | (GetBit(gSaveBlock3Ptr->questLog.seenHigh, quest) << 1);
+}
+
+static void SetSeenLevel(u32 quest, u32 level)
+{
+    SetBit(gSaveBlock3Ptr->questLog.seen, quest, level & 1);
+    SetBit(gSaveBlock3Ptr->questLog.seenHigh, quest, level >> 1);
+}
+
+static u32 GetStateLevel(u32 state)
+{
+    switch (state)
+    {
+    case QUEST_STATE_LOCKED:
+        return SEEN_NEVER;
+    case QUEST_STATE_REWARD:
+        return SEEN_REWARD;
+    case QUEST_STATE_COMPLETED:
+        return SEEN_COMPLETED;
+    default:
+        return SEEN_ACTIVE;
+    }
+}
+
+// Only a step up is new. A quest can step down - the TcloneR goes back from
+// Reward to Active once the prize is collected - and that is not news;
+// QuestLog_SyncSeen lowers the stored level so that the next Reward is.
 bool32 QuestLog_IsNew(u32 quest)
 {
-    if (quest >= QUEST_COUNT || QuestLog_GetState(quest) == QUEST_STATE_LOCKED)
+    if (quest >= QUEST_COUNT)
         return FALSE;
-    return !GetBit(gSaveBlock3Ptr->questLog.seen, quest);
+    return GetStateLevel(QuestLog_GetState(quest)) > GetSeenLevel(quest);
 }
 
 void QuestLog_MarkSeen(u32 quest)
 {
     if (quest < QUEST_COUNT)
-        SetBit(gSaveBlock3Ptr->questLog.seen, quest, TRUE);
+        SetSeenLevel(quest, GetStateLevel(QuestLog_GetState(quest)));
+}
+
+// Called when the book opens. A Reward collected and the next one due before
+// the book is opened again stays at the same level, and shows no NEW.
+void QuestLog_SyncSeen(void)
+{
+    u32 quest, level;
+
+    for (quest = 0; quest < QUEST_COUNT; quest++)
+    {
+        level = GetStateLevel(QuestLog_GetState(quest));
+        if (level < GetSeenLevel(quest))
+            SetSeenLevel(quest, level);
+    }
 }
 
 const u8 *QuestLog_GetName(u32 quest)
@@ -247,6 +305,10 @@ bool8 ScrCmd_questlog(struct ScriptContext *ctx)
     case QUEST_LOG_SET_STATE:
     case QUEST_LOG_SET_SUBQUEST:
         Script_RequestEffects(SCREFF_V1 | SCREFF_SAVE);
+        break;
+    case QUEST_LOG_OPEN:
+        // Fades the screen and switches to the book, like fadescreen.
+        Script_RequestEffects(SCREFF_V1 | SCREFF_HARDWARE);
         break;
     default:
         Script_RequestEffects(SCREFF_V1);

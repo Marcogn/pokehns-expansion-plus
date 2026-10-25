@@ -54,8 +54,13 @@ struct QuestInfo
     // The screen's texts. steps is indexed by QuestLog_GetStep, so it has
     // numSteps entries; step 0 is also what a quest that is not yet active shows.
     const struct QuestStep *steps;
-    const u8 *doneDesc;                       // shown once completed
+    // Shown once completed instead of a step: steps[] are what to do, and the
+    // step a completed quest is left on (often 0) points to the wrong place.
+    const struct QuestStep *done;
     const struct QuestSubquestInfo *subquestInfo; // numSubquests entries
+    // Called before the quest's texts are printed, to fill gStringVar1 and
+    // gStringVar3 for them ({STR_VAR_2} is the map). NULL if they use neither.
+    void (*bufferText)(void);
 };
 
 void QuestLog_GetProgress(u32 quest, struct QuestProgress *progress);
@@ -70,6 +75,7 @@ bool32 QuestLog_IsFavorite(u32 quest);
 void QuestLog_SetFavorite(u32 quest, bool32 favorite);
 bool32 QuestLog_IsNew(u32 quest);
 void QuestLog_MarkSeen(u32 quest);
+void QuestLog_SyncSeen(void);
 const u8 *QuestLog_GetName(u32 quest);
 const struct QuestInfo *QuestLog_GetInfo(u32 quest);
 

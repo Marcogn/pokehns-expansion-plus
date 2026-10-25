@@ -89,6 +89,15 @@ bool32 TClonerAllRewardsClaimed(void)
     return VarGet(VAR_TCLONER_REWARDS) >= TCLONER_REWARD_STEPS;
 }
 
+// The clone count the next reward wants, 0 once every reward is claimed (the
+// quest book's TcloneR text).
+u32 TClonerGetNextRewardClones(void)
+{
+    u16 step = VarGet(VAR_TCLONER_REWARDS);
+
+    return step < TCLONER_REWARD_STEPS ? sRewards[step].clones : 0;
+}
+
 // special: what the next reward is, in VAR_RESULT (TCLONER_REWARD_*). An item
 // comes back in VAR_0x8000/VAR_0x8001 for giveitem, which shows the standard
 // "Obtained" message; the script then claims it with TClonerClaimItemReward,
