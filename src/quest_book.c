@@ -13,6 +13,7 @@
 #include "malloc.h"
 #include "menu.h"
 #include "menu_helpers.h"
+#include "option_menu.h"
 #include "overworld.h"
 #include "palette.h"
 #include "pokemon_icon.h"
@@ -70,6 +71,7 @@ enum
 enum
 {
     COLOR_HEADER,
+    COLOR_HEADER_DARK,
     COLOR_REWARD,
     COLOR_DONE,
     COLOR_ACTIVE,
@@ -114,10 +116,42 @@ static void MoveCursorFunc(s32 id, bool8 onInit, struct ListMenu *list);
 static void PrintStateTag(u8 windowId, u32 id, u8 y);
 static void RebuildList(bool32 restoreCursor);
 static void ShowDetails(s32 id);
+static void SetPictureBoxVisible(bool32 visible);
+static const u8 *GetHeaderColors(void);
 
 static const u32 sQuestBookTiles[] = INCBIN_U32("graphics/quest_book/menu.4bpp.smol");
 static const u32 sQuestBookTilemap[] = INCBIN_U32("graphics/quest_book/menu.bin.smolTM");
 static const u16 sQuestBookPalette[] = INCBIN_U16("graphics/quest_book/menu.gbapal");
+static const u16 sQuestBookPaletteDark[] = INCBIN_U16("graphics/quest_book/menu_dark.gbapal");
+
+// Entries of the book palette that only the picture box uses (fill and border,
+// counted on menu.4bpp): with no picture they take the footer's colour, which
+// makes the box disappear without touching the tilemap.
+#define PICTURE_BOX_FILL    1
+#define PICTURE_BOX_BORDER  6
+#define FOOTER_FILL         10
+
+// Text colours for the dark theme, on palette 15. The standard menu palette
+// has dark grey text for a light page; the page here is near black. The light
+// text goes on its own entry and 2 stays dark grey: the A and R button glyphs
+// are a white pill with a letter in entry 2, and a light letter on the white
+// pill can't be read. The red/green/blue state tags get brighter versions.
+#define DARK_THEME_TEXT 10
+
+static const u16 sDarkTextPalette[PLTT_SIZE_4BPP / sizeof(u16)] =
+{
+    [0] = RGB_WHITE,
+    [1] = RGB_WHITE,
+    [2] = RGB(12, 12, 12),
+    [3] = RGB(26, 26, 25),
+    [4] = RGB(31, 12, 12),  // red: NEW, reward
+    [5] = RGB(31, 23, 14),
+    [6] = RGB(11, 27, 10),  // green: done, favourites
+    [7] = RGB(18, 30, 18),
+    [8] = RGB(14, 21, 31),  // blue: active
+    [9] = RGB(20, 24, 30),
+    [DARK_THEME_TEXT] = RGB(28, 27, 22),
+};
 
 static const u8 sText_AllHeader[] = _("All Quests");
 static const u8 sText_UnlockedHeader[] = _("Not Started");
@@ -198,6 +232,7 @@ static const struct WindowTemplate sWindowTemplates[] =
 static const u8 sFontColors[][3] =
 {
     [COLOR_HEADER] = { TEXT_COLOR_TRANSPARENT, TEXT_COLOR_DARK_GRAY, TEXT_COLOR_TRANSPARENT },
+    [COLOR_HEADER_DARK] = { TEXT_COLOR_TRANSPARENT, DARK_THEME_TEXT, TEXT_COLOR_TRANSPARENT },
     [COLOR_REWARD] = { TEXT_COLOR_TRANSPARENT, TEXT_COLOR_RED,       TEXT_COLOR_TRANSPARENT },
     [COLOR_DONE]   = { TEXT_COLOR_TRANSPARENT, TEXT_COLOR_GREEN,     TEXT_COLOR_TRANSPARENT },
     [COLOR_ACTIVE] = { TEXT_COLOR_TRANSPARENT, TEXT_COLOR_BLUE,      TEXT_COLOR_TRANSPARENT },
@@ -347,9 +382,18 @@ static void QuestBook_Setup(void)
         if (FreeTempTileDataBuffersIfPossible())
             return;
         CopyToBgTilemapBuffer(1, sQuestBookTilemap, 0, 0);
-        LoadPalette(sQuestBookPalette, BG_PLTT_ID(0), PLTT_SIZE_4BPP);
-        // The windows print on palette 15; it holds the standard text colours.
-        LoadPalette(gStandardMenuPalette, BG_PLTT_ID(15), PLTT_SIZE_4BPP);
+        // The windows print on palette 15; it holds the text colours.
+        if (IsDarkUiEnabled())
+        {
+            LoadPalette(sQuestBookPaletteDark, BG_PLTT_ID(0), PLTT_SIZE_4BPP);
+            LoadPalette(sDarkTextPalette, BG_PLTT_ID(15), PLTT_SIZE_4BPP);
+        }
+        else
+        {
+            LoadPalette(sQuestBookPalette, BG_PLTT_ID(0), PLTT_SIZE_4BPP);
+            LoadPalette(gStandardMenuPalette, BG_PLTT_ID(15), PLTT_SIZE_4BPP);
+        }
+        SetPictureBoxVisible(FALSE);
         InitWindows(sWindowTemplates);
         DeactivateAllTextPrinters();
         FillWindowPixelBuffer(WIN_LIST, PIXEL_FILL(0));
@@ -564,15 +608,15 @@ static void PrintHeader(void)
     StringCopy(gStringVar3, context);
     if (!sBook->inSubquests && sBook->alpha)
         StringAppend(gStringVar3, sText_AlphaSuffix);
-    AddTextPrinterParameterized4(WIN_HEADER, FONT_SMALL, 10, 1, 0, 1, sFontColors[COLOR_HEADER], 0, gStringVar3);
+    AddTextPrinterParameterized4(WIN_HEADER, FONT_SMALL, 10, 1, 0, 1, GetHeaderColors(), 0, gStringVar3);
 
     ConvertIntToDecimalStringN(gStringVar1, shown, STR_CONV_MODE_LEFT_ALIGN, 3);
     ConvertIntToDecimalStringN(gStringVar2, total, STR_CONV_MODE_LEFT_ALIGN, 3);
     StringExpandPlaceholders(gStringVar4, sText_Count);
-    AddTextPrinterParameterized4(WIN_HEADER, FONT_SMALL, 167, 1, 0, 1, sFontColors[COLOR_HEADER], 0, gStringVar4);
+    AddTextPrinterParameterized4(WIN_HEADER, FONT_SMALL, 167, 1, 0, 1, GetHeaderColors(), 0, gStringVar4);
 
     if (!sBook->inSubquests)
-        AddTextPrinterParameterized4(WIN_HEADER, FONT_SMALL, 198, 1, 0, 1, sFontColors[COLOR_HEADER], 0, sText_TypeButton);
+        AddTextPrinterParameterized4(WIN_HEADER, FONT_SMALL, 198, 1, 0, 1, GetHeaderColors(), 0, sText_TypeButton);
     CopyWindowToVram(WIN_HEADER, COPYWIN_FULL);
 }
 
@@ -635,7 +679,7 @@ static void RebuildList(bool32 restoreCursor)
     gMultiuseListMenuTemplate.item_X = 23;
     gMultiuseListMenuTemplate.cursor_X = 15;
     gMultiuseListMenuTemplate.upText_Y = 1;
-    gMultiuseListMenuTemplate.cursorPal = TEXT_COLOR_DARK_GRAY;
+    gMultiuseListMenuTemplate.cursorPal = GetHeaderColors()[1];
     gMultiuseListMenuTemplate.fillValue = 0;
     gMultiuseListMenuTemplate.cursorShadowPal = TEXT_COLOR_TRANSPARENT;
     gMultiuseListMenuTemplate.lettersSpacing = 1;
@@ -659,7 +703,7 @@ static void RebuildList(bool32 restoreCursor)
 static void PrintStateTag(u8 windowId, u32 id, u8 y)
 {
     const u8 *text = NULL;
-    u32 color = COLOR_HEADER;
+    u32 color = IsDarkUiEnabled() ? COLOR_HEADER_DARK : COLOR_HEADER;
 
     if (id == (u32)LIST_CANCEL)
         return;
@@ -765,6 +809,24 @@ static void ShowPicture(u32 sprite, u32 type)
     sBook->spriteGfx[slot] = sprite;
     DestroyPicture(sBook->spriteSlot);
     sBook->spriteSlot = slot;
+    SetPictureBoxVisible(sBook->spriteId[slot] != SPRITE_NONE);
+}
+
+static const u8 *GetHeaderColors(void)
+{
+    return sFontColors[IsDarkUiEnabled() ? COLOR_HEADER_DARK : COLOR_HEADER];
+}
+
+static void SetPictureBoxVisible(bool32 visible)
+{
+    const u16 *pal = IsDarkUiEnabled() ? sQuestBookPaletteDark : sQuestBookPalette;
+    u16 colors[2];
+
+    colors[0] = pal[visible ? PICTURE_BOX_FILL : FOOTER_FILL];
+    colors[1] = pal[visible ? PICTURE_BOX_BORDER : FOOTER_FILL];
+    // Two entries written one by one: they are not next to each other.
+    LoadPalette(&colors[0], BG_PLTT_ID(0) + PICTURE_BOX_FILL, sizeof(u16));
+    LoadPalette(&colors[1], BG_PLTT_ID(0) + PICTURE_BOX_BORDER, sizeof(u16));
 }
 
 static void PrintFooter(const u8 *map, const u8 *desc)
