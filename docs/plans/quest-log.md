@@ -1,6 +1,6 @@
 # Piano: quest book e menu di pausa a striscia
 
-**Stato (25/10): fase 1 fatta (§5.1), prossima la 2.** Si fa dopo Red's Path
+**Stato (25/10): fasi 1 (§5.1) e 2 (§5.2) fatte, prossima la 3.** Si fa dopo Red's Path
 ([`reds-path.md`](reds-path.md)), una fase per sessione (§5). Le ricerche sono già fatte: i fatti qui sotto sono
 verificati nel codice indicato, non vanno rifatte. I confronti e le
 opzioni scartate stanno in
@@ -173,6 +173,20 @@ in SaveBlock2 vanno sostituiti, non portati).
   24 byte a zero; la stessa prova su una ROM senza il `memset` li lascia
   sporchi. Il `.sav` dell'utente (2.0.6.PLUS.4, versione 8) passa a 12 con
   squadra identica byte per byte, soldi e Candy Jar uguali.
+
+### 5.2 Fase 2, com'è stata fatta (25/10)
+
+Dettagli e trappole in `.claude/rules/quest_book.md`.
+
+- `src/quest_book.c`: schermata portata da PSF, sull'API della fase 1.
+  Voce provvisoria `QUESTS` nel menu normale solo se `QUEST_COUNT > 0`;
+  `QUEST_LOG_OPEN` per gli script (da far seguire da `waitstate`).
+- Testi nella tabella: `steps` (indicizzati da `QuestLog_GetStep`),
+  `doneDesc`, `subquestInfo`. Immagini: oggetto, strumento, Pokémon.
+- Grafica **di PSF, provvisoria**; la fase 3 la sostituisce.
+- Due missioni di prova dietro `QUEST_BOOK_TEST_QUESTS` (spente).
+- Verificato in emulatore (vedi la regola); non provati `QUEST_LOG_OPEN` e
+  il tema scuro.
 
 Dopo la fase 1 il quest book (2-4) e il menu (5-6) sono indipendenti. Se i
 token stringono, la fase 4 si fa una missione per volta.

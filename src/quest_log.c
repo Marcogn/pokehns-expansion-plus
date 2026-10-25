@@ -1,5 +1,6 @@
 #include "global.h"
 #include "event_data.h"
+#include "quest_book.h"
 #include "quest_log.h"
 #include "script.h"
 #include "string_util.h"
@@ -229,6 +230,11 @@ const u8 *QuestLog_GetName(u32 quest)
     return info->name;
 }
 
+const struct QuestInfo *QuestLog_GetInfo(u32 quest)
+{
+    return GetQuest(quest);
+}
+
 // questlog action, quest, arg (asm/macros/event.inc). Quest and arg may be vars.
 bool8 ScrCmd_questlog(struct ScriptContext *ctx)
 {
@@ -266,6 +272,9 @@ bool8 ScrCmd_questlog(struct ScriptContext *ctx)
         break;
     case QUEST_LOG_BUFFER_NAME:
         StringCopy(gStringVar1, QuestLog_GetName(quest));
+        break;
+    case QUEST_LOG_OPEN:
+        QuestBook_OpenFromScript();
         break;
     }
     return FALSE;

@@ -7,7 +7,23 @@
 // Quest ids. They index the saved favourite and seen bits, so a new quest is
 // appended, never inserted: inserting one moves every later quest's bits onto
 // the wrong quest in existing saves.
-#define QUEST_COUNT 0
+//
+// QUEST_BOOK_TEST_QUESTS adds two throwaway quests (src/data/quests.h) that
+// exercise every path of the screen: a var quest with sprites of the three
+// kinds, and a function quest with function subquests. Off in every build
+// that ships; build with -DQUEST_BOOK_TEST_QUESTS=1 to look at the screen
+// before the real quests exist.
+#ifndef QUEST_BOOK_TEST_QUESTS
+#define QUEST_BOOK_TEST_QUESTS 0
+#endif
+
+#if QUEST_BOOK_TEST_QUESTS
+#define QUEST_TEST_STEPS  0
+#define QUEST_TEST_BADGES 1
+#define QUEST_COUNT       2
+#else
+#define QUEST_COUNT       0
+#endif
 
 // Quests that keep their state in the quest book because the game has it
 // nowhere else take one of these slots (QUEST_SOURCE_OWN). Same rule: append.
@@ -45,5 +61,12 @@
 #define QUEST_LOG_GET_SUBQUEST  3 // questlog QUEST_LOG_GET_SUBQUEST, quest, subquest
 #define QUEST_LOG_SET_SUBQUEST  4 // questlog QUEST_LOG_SET_SUBQUEST, quest, subquest (own subquests only)
 #define QUEST_LOG_BUFFER_NAME   5 // questlog QUEST_LOG_BUFFER_NAME, quest: name into gStringVar1
+#define QUEST_LOG_OPEN          6 // questlog QUEST_LOG_OPEN: opens the quest book; follow it with waitstate
+
+// The picture shown beside a quest's text (struct QuestStep, QuestSubquestInfo).
+#define QUEST_SPRITE_NONE   0
+#define QUEST_SPRITE_OBJECT 1 // sprite = OBJ_EVENT_GFX_*
+#define QUEST_SPRITE_ITEM   2 // sprite = ITEM_*
+#define QUEST_SPRITE_MON    3 // sprite = SPECIES_*
 
 #endif // GUARD_CONSTANTS_QUESTS_H

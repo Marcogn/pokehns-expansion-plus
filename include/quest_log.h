@@ -12,6 +12,27 @@ struct QuestProgress
     u8 step;  // what to do now: indexes the quest's texts, clamped to numSteps
 };
 
+// What the quest book shows for one step of a quest: the text saying what to
+// do now, where, and a picture of who or what to look for.
+struct QuestStep
+{
+    const u8 *desc;
+    const u8 *map;     // where; NULL falls back to step 0's
+    u16 sprite;        // QUEST_SPRITE_* decides what it is
+    u8 spriteType;
+};
+
+// A subquest line. Name, text and picture show once it is done, "??????" before.
+struct QuestSubquestInfo
+{
+    const u8 *name;
+    const u8 *desc;
+    const u8 *map;
+    u16 sprite;
+    u8 spriteType;
+    const u8 *type;    // the tag printed at the right of the row ("Found", "Caught")
+};
+
 typedef void (*QuestProgressFunc)(struct QuestProgress *progress);
 typedef bool32 (*SubquestDoneFunc)(u32 subquest);
 
@@ -30,6 +51,11 @@ struct QuestInfo
     u8 subquestSource;             // QUEST_SOURCE_FUNC or QUEST_SOURCE_OWN
     u8 subquestBitStart;           // QUEST_SOURCE_OWN subquests
     SubquestDoneFunc isSubquestDone; // QUEST_SOURCE_FUNC subquests
+    // The screen's texts. steps is indexed by QuestLog_GetStep, so it has
+    // numSteps entries; step 0 is also what a quest that is not yet active shows.
+    const struct QuestStep *steps;
+    const u8 *doneDesc;                       // shown once completed
+    const struct QuestSubquestInfo *subquestInfo; // numSubquests entries
 };
 
 void QuestLog_GetProgress(u32 quest, struct QuestProgress *progress);
@@ -45,5 +71,6 @@ void QuestLog_SetFavorite(u32 quest, bool32 favorite);
 bool32 QuestLog_IsNew(u32 quest);
 void QuestLog_MarkSeen(u32 quest);
 const u8 *QuestLog_GetName(u32 quest);
+const struct QuestInfo *QuestLog_GetInfo(u32 quest);
 
 #endif // GUARD_QUEST_LOG_H
