@@ -1,6 +1,6 @@
 # Piano: quest book e menu di pausa a striscia
 
-**Stato (24/10): deciso, da implementare.** Si fa dopo Red's Path
+**Stato (25/10): fase 1 fatta (§5.1), prossima la 2.** Si fa dopo Red's Path
 ([`reds-path.md`](reds-path.md)), una fase per sessione (§5). Le ricerche sono già fatte: i fatti qui sotto sono
 verificati nel codice indicato, non vanno rifatte. I confronti e le
 opzioni scartate stanno in
@@ -137,6 +137,42 @@ la documentazione.
 | 6 | **Grafica della striscia**: fascia, icone nuove per DexNav e Missioni, tema scuro | **Sonnet 5.5** | come la fase 3 |
 | 7 | **Documentazione**: `CHANGELOG.md`, `docs/SOULGOLD_PORT_REPORT.md` (l'origine è PSF/pollythadon, non SG), regola nuova in `.claude/rules/` | **Haiku 5.5** | testi riletti contro il codice |
 | 8 | **Revisione finale** del diff (`/code-review` medio) prima della release | **Opus 5.5** | build verde, ROM consegnata zippata |
+
+### 5.1 Fase 1, com'è stata fatta (25/10)
+
+Da qui parte la fase 2: il port della schermata usa questa API, non lo
+stato a bit di PSF (`QuestMenu_GetSetQuestState` e `questData`/`subQuests`
+in SaveBlock2 vanno sostituiti, non portati).
+
+- **Salvataggio**: `struct QuestLogSaveData`, 24 byte in coda a SaveBlock3
+  (offset 60, SaveBlock3 a 84 su 116), `SAVE_VERSION 12`. Capienze e
+  layout in `.claude/rules/save.md`.
+- **Costanti** (`include/constants/quests.h`): `QUEST_COUNT` (oggi 0),
+  `QUEST_OWN_SLOT_COUNT`, `QUEST_OWN_SUBQUEST_COUNT`, `QUEST_SOURCE_*`,
+  `QUEST_STATE_*` (bloccata, sbloccata, attiva, premio, completata),
+  `QUEST_LOG_*` del comando di script.
+- **Tabella**: `src/data/quests.h`, `struct QuestInfo` (`include/quest_log.h`).
+  Le sorgenti: `QUEST_SOURCE_VAR` (0 = bloccata, da `doneValue` in su
+  completata, in mezzo attiva con passo = valore), `QUEST_SOURCE_FUNC`
+  (`getProgress` riempie stato e passo), `QUEST_SOURCE_OWN` (`ownSlot`,
+  nibble salvato). Sottomissioni da funzione (`isSubquestDone`) o da bit
+  propri (`subquestBitStart`). Testi, mappe e sprite **non ci sono ancora**:
+  li aggiunge la fase 2 alla stessa struct, indicizzati da
+  `QuestLog_GetStep`, che è già limitato a `numSteps` (il controllo che
+  mancava in PSF).
+- **API** (`src/quest_log.c`): `QuestLog_GetProgress/GetState/GetStep`,
+  `SetState` (solo missioni a stato proprio; un cambio la rimette "nuova"),
+  `GetSubquestCount`, `IsSubquestDone`, `SetSubquestDone`,
+  `CountSubquestsDone` (la x di x/y), `IsFavorite/SetFavorite`,
+  `IsNew/MarkSeen` (salvato come "vista": zero = nuova), `GetName`.
+- **Script**: `questlog azione, missione[, arg]`, opcode `0xf7`
+  (`SCR_OP_QUESTLOG`), missione e arg possono essere var; le domande
+  scrivono `VAR_RESULT`. Manca `QUEST_LOG_OPEN`: lo aggiunge la fase 2.
+- **Verificato in emulatore**: un `.sav` riportato a mano a versione 11 con
+  spazzatura nei 24 byte (`a5a4a7…`) carica e risalva a versione 12 con i
+  24 byte a zero; la stessa prova su una ROM senza il `memset` li lascia
+  sporchi. Il `.sav` dell'utente (2.0.6.PLUS.4, versione 8) passa a 12 con
+  squadra identica byte per byte, soldi e Candy Jar uguali.
 
 Dopo la fase 1 il quest book (2-4) e il menu (5-6) sono indipendenti. Se i
 token stringono, la fase 4 si fa una missione per volta.
