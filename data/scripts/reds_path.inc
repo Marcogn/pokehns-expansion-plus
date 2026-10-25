@@ -59,7 +59,7 @@ RedsPath_EventScript_BattleGiovanni:
 	goto RedsPath_EventScript_BattleEnd
 
 RedsPath_EventScript_BattleEnd:
-	special LoadPlayerParty
+	special RedsPath_RestorePlayerParty
 	clearflag FLAG_REDS_PATH_BATTLE
 	return
 

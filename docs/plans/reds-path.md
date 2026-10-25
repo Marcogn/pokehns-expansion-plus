@@ -1,8 +1,9 @@
 # Piano: Red's Path (le palestre di Kanto rigiocate con la squadra di Red)
 
-**Stato (24/10): sessione A1 fatta** (passi 1, 2, 3 e 5 della sessione A:
-`SAVE_VERSION 10`, otto capi, otto squadre di Red, voce di debug `Red's
-Path…`); restano A2, B e C. Avversari (§1), squadre di
+**Stato (25/10): sessione A fatta.** A1 (24/10): passi 1, 2, 3 e 5
+(`SAVE_VERSION 10`, otto capi, otto squadre di Red, voce di debug `Red's
+Path…`); A2 (25/10): passi 4, 6 e 7 (agganci di lotta, verifica, regola
+`.claude/rules/reds_path.md`). Restano B e C. Avversari (§1), squadre di
 Red (§2), premi (§3), script e scena (§4) decisi con l'utente.
 Implementazione in tre fasi, quattro sessioni (§5). Le ricerche da cui
 vengono le scelte (cosa era ottenibile prima di ogni capo, meccaniche,
@@ -439,8 +440,9 @@ e sconfitta come sempre): gli agganci arrivano con la A2.
 - La lotta passa da `RedsPath_EventScript_Battle` (`data/scripts/reds_path.inc`,
   `VAR_0x8004` = sfida 0-7): `special SavePlayerParty`, `special
   RedsPath_LoadRedsParty` (`FillRedsPathParty`, `src/battle_partner.c`),
-  `trainerbattle_no_intro`, `special LoadPlayerParty`. La B la chiama così
-  com'è; la voce di debug `Red's Path… → N` pure.
+  `trainerbattle_no_intro`, `special LoadPlayerParty` (dalla A2 `special
+  RedsPath_RestorePlayerParty`, che aggiorna anche il follower). La B la
+  chiama così com'è; la voce di debug `Red's Path… → N` pure.
 - **Una sconfitta oggi fa svenire e lascia in squadra quella di Red**
   (curata): lo script non arriva a `LoadPlayerParty`. La squadra vera è
   ancora nella flash, un soft reset la riporta (provato). Salvare dopo una
@@ -485,6 +487,27 @@ e sconfitta come sempre): gli agganci arrivano con la A2.
   quarto dei PS (Rock Tomb è 4× su Butterfree e lo mette KO prima che agisca). Serve l'emulatore
 (`docs/claude/emulator.md`) e il `.srm` dell'utente (migrazione nella A,
 palestre già battute nella B e nella C). Soulgold non serve.
+
+**Cosa ha lasciato la A2 alla B** (verificato in emulatore il 25/10,
+dettagli in `.claude/rules/reds_path.md`):
+
+- Agganci fatti come nella tabella "La lotta", con una differenza:
+  `B_FLAG_NO_WHITEOUT` **è** `FLAG_REDS_PATH_BATTLE`, non un flag nuovo (un
+  bit in più da migrare, e acceso per sbaglio toglierebbe lo svenimento
+  ovunque). L'esperienza è bloccata in `Cmd_getexp` da `IsRedsPathBattle()`,
+  non con `FLAG_DISABLE_EXP_GAIN`; le evoluzioni a fine lotta sono saltate.
+- **Dopo `RedsPath_EventScript_Battle` lo script riprende sia dopo una
+  vittoria sia dopo una sconfitta**: la B li distingue con il flag del capo
+  (`TRAINER_FLAGS_START + TRAINER_REDS_PATH_*_HNS`, `goto_if_defeated`).
+- **Una vittoria dà il premio in soldi del capo** (Brock ₽1400, tutte e otto
+  ₽27100). Il piano non lo dice: da decidere con l'utente nella B (lasciarlo,
+  o toglierlo con un controllo in `GetTrainerMoneyToGive`).
+- Nei testi della lotta il nome è quello del giocatore ("You are challenged
+  by…" non nomina Red, "<NOME> is out of usable POKéMON!" sì): da decidere
+  nella B o nella C se dev'essere RED.
+- Il follower si aggiorna nel ripristino: nella scena della B, se il
+  giocatore diventa Red prima della lotta, va nascosto lì (o
+  `FLAG_TEMP_HIDE_FOLLOWER`).
 
 Prompt da incollare (A1):
 

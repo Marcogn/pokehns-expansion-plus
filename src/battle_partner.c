@@ -5,7 +5,9 @@
 #include "battle_frontier.h"
 #include "data.h"
 #include "event_data.h"
+#include "event_object_movement.h"
 #include "frontier_util.h"
+#include "load_save.h"
 #include "difficulty.h"
 #include "string_util.h"
 #include "text.h"
@@ -219,4 +221,14 @@ void FillRedsPathParty(u32 challenge)
 void RedsPath_LoadRedsParty(void)
 {
     FillRedsPathParty(gSpecialVar_0x8004);
+}
+
+// special: puts the player's party back after the battle. The follower was
+// last updated on the way back to the field, from Red's team (none, after a
+// loss: they have all fainted), and nothing else refreshes it until the next
+// map load, so it has to be done here.
+void RedsPath_RestorePlayerParty(void)
+{
+    LoadPlayerParty();
+    UpdateFollowingPokemon();
 }
