@@ -102,18 +102,17 @@ struct StripMenu
 };
 
 static const u32 sPokedexIconGfx[] = INCBIN_U32("graphics/strip_start_menu/pokedex.4bpp.smol");
-// Provisional: DexNav and Quests borrow the PokéNav and Save icons until the
-// strip graphics phase draws their own.
-static const u32 sDexNavIconGfx[] = INCBIN_U32("graphics/strip_start_menu/pokenav.4bpp.smol");
+static const u32 sDexNavIconGfx[] = INCBIN_U32("graphics/strip_start_menu/dexnav.4bpp.smol");
 static const u32 sPartyIconGfx[] = INCBIN_U32("graphics/strip_start_menu/party.4bpp.smol");
 static const u32 sBagIconGfx[] = INCBIN_U32("graphics/strip_start_menu/bag.4bpp.smol");
-static const u32 sQuestsIconGfx[] = INCBIN_U32("graphics/strip_start_menu/save.4bpp.smol");
+static const u32 sQuestsIconGfx[] = INCBIN_U32("graphics/strip_start_menu/quests.4bpp.smol");
 static const u32 sOptionsIconGfx[] = INCBIN_U32("graphics/strip_start_menu/options.4bpp.smol");
 static const u16 sIconsPal[] = INCBIN_U16("graphics/strip_start_menu/icons.gbapal");
 
 static const u32 sStripBgTiles[] = INCBIN_U32("graphics/strip_start_menu/tiles.4bpp.smol");
 static const u32 sStripBgTilemap[] = INCBIN_U32("graphics/strip_start_menu/map.bin.smolTM");
 static const u16 sStripBgPal[] = INCBIN_U16("graphics/strip_start_menu/bg.gbapal");
+static const u16 sStripBgPalDark[] = INCBIN_U16("graphics/strip_start_menu/bg_dark.gbapal");
 
 // Each window sits on a part of the strip background and is filled with the
 // colour under it: dark tab on the left, light tab on the right, dark bar at
@@ -307,7 +306,7 @@ static void StripMenu_LoadBg(void)
     CpuFastFill(0, tilemap, BG_SCREEN_SIZE);
     DecompressAndLoadBgGfxUsingHeap(0, sStripBgTiles, 0, 0, 0);
     DecompressDataWithHeaderWram(sStripBgTilemap, tilemap);
-    LoadPalette(sStripBgPal, BG_PLTT_ID(STRIP_BG_PAL), PLTT_SIZE_4BPP);
+    LoadPalette(IsDarkUiEnabled() ? sStripBgPalDark : sStripBgPal, BG_PLTT_ID(STRIP_BG_PAL), PLTT_SIZE_4BPP);
     LoadPalette(gStandardMenuPalette, BG_PLTT_ID(15), PLTT_SIZE_4BPP);
     ScheduleBgCopyTilemapToVram(0);
 }
@@ -499,7 +498,7 @@ static void StripMenu_PrintClock(void)
 
     x = GetStringCenterAlignXOffset(FONT_SMALL, gStringVar4, sStripWindowTemplates[STRIP_WIN_CLOCK].width * 8);
     FillWindowPixelBuffer(windowId, PIXEL_FILL(sStripWindowFill[STRIP_WIN_CLOCK]));
-    AddTextPrinterParameterized4(windowId, FONT_SMALL, x, 1, 0, 0, sTextColorDark, TEXT_SKIP_DRAW, gStringVar4);
+    AddTextPrinterParameterized4(windowId, FONT_SMALL, x, 1, 0, 0, IsDarkUiEnabled() ? sTextColorLight : sTextColorDark, TEXT_SKIP_DRAW, gStringVar4);
     CopyWindowToVram(windowId, COPYWIN_FULL);
 }
 
