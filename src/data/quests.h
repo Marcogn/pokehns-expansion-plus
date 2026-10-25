@@ -302,12 +302,12 @@ static const u8 sText_TclonePrize2[] = _("20 Ultra Balls.");
 static const u8 sText_TclonePrize3[] = _("15 Max Repels.");
 static const u8 sText_TclonePrize4[] = _("10 Rare Candies.");
 static const u8 sText_TclonePrize5[] = _("10 Big Nuggets.");
-static const u8 sText_TclonePrize6[] = _("A Totodile, cloned at Lv. 5.");
-static const u8 sText_TclonePrize7[] = _("A Chikorita, cloned at Lv. 5.");
-static const u8 sText_TclonePrize8[] = _("A Cyndaquil, cloned at Lv. 5.");
-static const u8 sText_TclonePrize9[] = _("A Weezing, cloned at Lv. 50.");
-static const u8 sText_TclonePrize10[] = _("An Arbok, cloned at Lv. 50.");
-static const u8 sText_TclonePrize11[] = _("A Meowth, cloned at Lv. 50.");
+static const u8 sText_TclonePrize6[] = _("A shiny Totodile, at Lv. 5.");
+static const u8 sText_TclonePrize7[] = _("A shiny Chikorita, at Lv. 5.");
+static const u8 sText_TclonePrize8[] = _("A shiny Cyndaquil, at Lv. 5.");
+static const u8 sText_TclonePrize9[] = _("A shiny Weezing, at Lv. 50.");
+static const u8 sText_TclonePrize10[] = _("A shiny Arbok, at Lv. 50.");
+static const u8 sText_TclonePrize11[] = _("A shiny Meowth, at Lv. 50.");
 
 // No map on the prize rows: any scientist pays them, wherever he is.
 #define TCLONE_ITEM(clones, n, item) { sText_Tclone##clones, sText_TclonePrize##n, NULL, item, QUEST_SPRITE_ITEM, sText_Got }
