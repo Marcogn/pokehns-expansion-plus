@@ -1,6 +1,6 @@
 # Piano: quest book e menu di pausa a striscia
 
-**Stato (25/10): fasi 1 (§5.1) e 2 (§5.2) fatte, prossima la 3.** Si fa dopo Red's Path
+**Stato (25/10): fasi 1 (§5.1), 2 (§5.2) e 3 (§5.3) fatte, prossima la 4.** Si fa dopo Red's Path
 ([`reds-path.md`](reds-path.md)), una fase per sessione (§5). Le ricerche sono già fatte: i fatti qui sotto sono
 verificati nel codice indicato, non vanno rifatte. I confronti e le
 opzioni scartate stanno in
@@ -187,6 +187,19 @@ Dettagli e trappole in `.claude/rules/quest_book.md`.
 - Due missioni di prova dietro `QUEST_BOOK_TEST_QUESTS` (spente).
 - Verificato in emulatore (vedi la regola); non provati `QUEST_LOG_OPEN` e
   il tema scuro.
+
+### 5.3 Fase 3, com'è stata fatta (25/10)
+
+Decisione dell'utente: **ritinteggiare la grafica di PSF**, non ridisegnarla.
+Il tema chiaro resta com'era; dettagli in `.claude/rules/quest_book.md`.
+
+- `graphics/quest_book/menu_dark.pal`: palette scura, stessi indici dei
+  `.4bpp` (nessun tile toccato). Testo scuro in `sDarkTextPalette` (pal 15).
+- Il riquadro bianco dell'immagine sparisce senza immagine: usa due entry
+  usate solo da lui, che prendono il colore del fondo.
+- Verificato in emulatore, tutti e due i temi: lista, "Close" (senza
+  immagine), sottomissioni. Non provati: Pokémon e oggetto sul riquadro
+  scuro, `QUEST_LOG_OPEN`.
 
 Dopo la fase 1 il quest book (2-4) e il menu (5-6) sono indipendenti. Se i
 token stringono, la fase 4 si fa una missione per volta.

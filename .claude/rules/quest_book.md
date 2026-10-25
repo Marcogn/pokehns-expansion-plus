@@ -47,16 +47,24 @@ paths:
   si cambia il `#define` in `include/constants/quests.h` (a 1 aggiunge due
   missioni: var con le tre immagini, funzione con 8 sottomissioni a
   medaglie). **Rimetterlo a 0 prima del commit.**
-- **Grafica provvisoria**: `graphics/quest_book/` è quella di PSF
-  (`menu.png/.pal/.bin`) com'è, compreso il riquadro bianco dell'immagine
-  che resta anche senza immagine. La rifà la fase 3.
+- **Grafica (fase 3)**: tile e tilemap sono quelli di PSF; cambiano solo le
+  palette. Indici contati sul `.png` (= `.4bpp`): 1 e 6 = riquadro
+  dell'immagine (**solo lì**), 2 carta, 3 righe tratteggiate, 4/5 cornice
+  oro, 7/8 margine, 9-12 pannello blu. `menu_dark.pal` ridefinisce 1-12.
+  Senza immagine `SetPictureBoxVisible(FALSE)` mette 1 e 6 al colore 10
+  (pannello): il riquadro sparisce senza toccare la tilemap.
+- **Testo scuro**: pal 15 è `sDarkTextPalette`. Il testo chiaro sta sulla
+  entry 10 e **non** sulla 2, perché i glifi A e R sono una pillola bianca
+  con la lettera sulla entry 2: con la 2 chiara la lettera non si legge
+  (provato). Intestazione e lista usano `GetHeaderColors()`.
 - **Verifica fatta (25/10)**: ROM di prova che parte dritta dal libro
   (`CB2_TestBoot` in `main.c`, poi ripristinato): lista, dettaglio con
   oggetto/oggetto/Pokémon, sottomissioni con scorrimento e frecce, B con
   cursore ripristinato, R su tutti e cinque i filtri, Start A-Z, Select;
   e dal menu di avvio di una nuova partita (voce, apertura, B che torna al
-  menu). **Non provato**: `QUEST_LOG_OPEN` da script, e la schermata con
-  il tema scuro.
+  menu). **Non provato**: `QUEST_LOG_OPEN` da script. Il tema scuro è stato
+  guardato in fase 3 (lista, Close, sottomissioni); non Pokémon/oggetto sul
+  riquadro scuro.
 - **mGBA**: `xdotool search --class mgba` restituisce **due** finestre; i
   tasti arrivano solo all'ultima (`tail -1`), con la prima sembra tutto
   bloccato.
