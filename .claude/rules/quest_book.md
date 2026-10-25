@@ -53,6 +53,12 @@ paths:
   che il nuovo sprite condivide. Gli oggetti si distruggono con quella
   funzione (con `OW_GFX_COMPRESS` il foglio resterebbe in VRAM, uno in più per
   ogni missione sfogliata).
+- **Stato in cache**: `RebuildListOn` legge lo stato di ogni missione una
+  volta (`ReadQuestStates` → `sBook->states`); ordinamento, righe,
+  intestazione, etichette e dettaglio leggono la cache, e `QuestLog_IsNew`
+  riceve lo stato invece di ricalcolarlo. Vale perché il libro non cambia
+  lo stato delle missioni mentre è aperto: se un giorno lo farà (premio
+  ritirato dal libro), va riletto dopo.
 - **Entrate**: l'icona Missioni del menu a striscia
   (`.claude/rules/strip_menu.md`; la lista classica non ha più la voce); `questlog QUEST_LOG_OPEN` da script, da far
   seguire da `waitstate`.

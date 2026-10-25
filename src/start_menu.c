@@ -314,44 +314,76 @@ void SetDexPokemonPokenavFlags(void) // unused
     FlagSet(FLAG_SYS_POKENAV_GET);
 }
 
+// Where the player is, as far as the start menu cares. The one place that
+// decides it: BuildStartMenuActions picks the list from it, and
+// UseStripStartMenu shows the strip only in START_MENU_CONTEXT_NORMAL.
+enum StartMenuContext
+{
+    START_MENU_CONTEXT_LINK,
+    START_MENU_CONTEXT_UNION_ROOM,
+    START_MENU_CONTEXT_SAFARI,
+    START_MENU_CONTEXT_BUG_CONTEST,
+    START_MENU_CONTEXT_BATTLE_PIKE,
+    START_MENU_CONTEXT_BATTLE_PYRAMID,
+    START_MENU_CONTEXT_MULTI_PARTNER_ROOM,
+    START_MENU_CONTEXT_DEBUG,
+    START_MENU_CONTEXT_NORMAL,
+};
+
+static enum StartMenuContext GetStartMenuContext(void)
+{
+    if (IsOverworldLinkActive() == TRUE)
+        return START_MENU_CONTEXT_LINK;
+    if (InUnionRoom() == TRUE)
+        return START_MENU_CONTEXT_UNION_ROOM;
+    if (GetSafariZoneFlag() == TRUE)
+        return START_MENU_CONTEXT_SAFARI;
+    if (GetBugContestFlag() == TRUE)
+        return START_MENU_CONTEXT_BUG_CONTEST;
+    if (InBattlePike())
+        return START_MENU_CONTEXT_BATTLE_PIKE;
+    if (CurrentBattlePyramidLocation() != PYRAMID_LOCATION_NONE)
+        return START_MENU_CONTEXT_BATTLE_PYRAMID;
+    if (InMultiPartnerRoom())
+        return START_MENU_CONTEXT_MULTI_PARTNER_ROOM;
+    if (DEBUG_OVERWORLD_MENU == TRUE && DEBUG_OVERWORLD_IN_MENU == TRUE)
+        return START_MENU_CONTEXT_DEBUG;
+    return START_MENU_CONTEXT_NORMAL;
+}
+
 static void BuildStartMenuActions(void)
 {
     sNumStartMenuActions = 0;
 
-    if (IsOverworldLinkActive() == TRUE)
+    switch (GetStartMenuContext())
     {
+    case START_MENU_CONTEXT_LINK:
         BuildLinkModeStartMenu();
-    }
-    else if (InUnionRoom() == TRUE)
-    {
+        break;
+    case START_MENU_CONTEXT_UNION_ROOM:
         BuildUnionRoomStartMenu();
-    }
-    else if (GetSafariZoneFlag() == TRUE)
-    {
+        break;
+    case START_MENU_CONTEXT_SAFARI:
         BuildSafariZoneStartMenu();
-    }
-    else if (GetBugContestFlag() == TRUE)
-    {
+        break;
+    case START_MENU_CONTEXT_BUG_CONTEST:
         BuildBugContestStartMenu();
-    }
-    else if (InBattlePike())
-    {
+        break;
+    case START_MENU_CONTEXT_BATTLE_PIKE:
         BuildBattlePikeStartMenu();
-    }
-    else if (CurrentBattlePyramidLocation() != PYRAMID_LOCATION_NONE)
-    {
+        break;
+    case START_MENU_CONTEXT_BATTLE_PYRAMID:
         BuildBattlePyramidStartMenu();
-    }
-    else if (InMultiPartnerRoom())
-    {
+        break;
+    case START_MENU_CONTEXT_MULTI_PARTNER_ROOM:
         BuildMultiPartnerRoomStartMenu();
-    }
-    else
-    {
-        if (DEBUG_OVERWORLD_MENU == TRUE && DEBUG_OVERWORLD_IN_MENU == TRUE)
-            BuildDebugStartMenu();
-        else
-            BuildNormalStartMenu();
+        break;
+    case START_MENU_CONTEXT_DEBUG:
+        BuildDebugStartMenu();
+        break;
+    case START_MENU_CONTEXT_NORMAL:
+        BuildNormalStartMenu();
+        break;
     }
 }
 
@@ -667,14 +699,7 @@ static void CreateStartMenuTask(TaskFunc followupFunc)
 // would build the normal one; every special context keeps the classic list.
 static bool32 UseStripStartMenu(void)
 {
-    return !IsOverworldLinkActive()
-        && !InUnionRoom()
-        && !GetSafariZoneFlag()
-        && !GetBugContestFlag()
-        && !InBattlePike()
-        && CurrentBattlePyramidLocation() == PYRAMID_LOCATION_NONE
-        && !InMultiPartnerRoom()
-        && !(DEBUG_OVERWORLD_MENU == TRUE && DEBUG_OVERWORLD_IN_MENU == TRUE);
+    return GetStartMenuContext() == START_MENU_CONTEXT_NORMAL;
 }
 
 static bool8 FieldCB_ReturnToFieldStartMenu(void)
@@ -802,15 +827,64 @@ static bool8 HandleStartMenuInput(void)
     return FALSE;
 }
 
+// What each entry opens, once the screen is black and the menu's own windows
+// are gone. Shared with the strip (strip_start_menu.c), which has no list
+// windows to remove.
+void StartMenu_OpenPokedex(void)
+{
+    IncrementGameStat(GAME_STAT_CHECKED_POKEDEX);
+    CleanupOverworldWindowsAndTilemaps();
+    SetMainCallback2(CB2_OpenPokedex);
+}
+
+void StartMenu_OpenParty(void)
+{
+    CleanupOverworldWindowsAndTilemaps();
+    SetMainCallback2(CB2_PartyMenuFromStartMenu);
+}
+
+void StartMenu_OpenBag(void)
+{
+    CleanupOverworldWindowsAndTilemaps();
+    SetMainCallback2(CB2_BagMenuFromStartMenu); // Display bag menu
+}
+
+void StartMenu_OpenPokegear(void)
+{
+    CleanupOverworldWindowsAndTilemaps();
+    SetMainCallback2(CB2_InitPokeNav);  // Display PokéNav
+}
+
+void StartMenu_OpenTrainerCard(void)
+{
+    CleanupOverworldWindowsAndTilemaps();
+    if (IsOverworldLinkActive() || InUnionRoom())
+        ShowPlayerTrainerCard(CB2_ReturnToFieldWithOpenMenu); // Display trainer card
+    else if (FlagGet(FLAG_SYS_FRONTIER_PASS))
+        ShowFrontierPass(CB2_ReturnToFieldWithOpenMenu); // Display frontier pass
+    else
+        ShowPlayerTrainerCard(CB2_ReturnToFieldWithOpenMenu); // Display trainer card
+}
+
+void StartMenu_OpenOptions(void)
+{
+    CleanupOverworldWindowsAndTilemaps();
+    SetMainCallback2(CB2_InitOptionMenu); // Display option menu
+    gMain.savedCallback = CB2_ReturnToFieldWithOpenMenu;
+}
+
+void StartMenu_OpenDexNav(void)
+{
+    CreateTask(Task_OpenDexNavFromStartMenu, 0);
+}
+
 bool8 StartMenuPokedexCallback(void)
 {
     if (!gPaletteFade.active)
     {
-        IncrementGameStat(GAME_STAT_CHECKED_POKEDEX);
         PlayRainStoppingSoundEffect();
         RemoveExtraStartMenuWindows();
-        CleanupOverworldWindowsAndTilemaps();
-        SetMainCallback2(CB2_OpenPokedex);
+        StartMenu_OpenPokedex();
 
         return TRUE;
     }
@@ -824,8 +898,7 @@ static bool8 StartMenuPokemonCallback(void)
     {
         PlayRainStoppingSoundEffect();
         RemoveExtraStartMenuWindows();
-        CleanupOverworldWindowsAndTilemaps();
-        SetMainCallback2(CB2_PartyMenuFromStartMenu);
+        StartMenu_OpenParty();
 
         return TRUE;
     }
@@ -846,8 +919,7 @@ static bool8 StartMenuBagCallback(void)
     {
         PlayRainStoppingSoundEffect();
         RemoveExtraStartMenuWindows();
-        CleanupOverworldWindowsAndTilemaps();
-        SetMainCallback2(CB2_BagMenuFromStartMenu); // Display bag menu
+        StartMenu_OpenBag();
 
         return TRUE;
     }
@@ -861,8 +933,7 @@ static bool8 StartMenuPokeNavCallback(void)
     {
         PlayRainStoppingSoundEffect();
         RemoveExtraStartMenuWindows();
-        CleanupOverworldWindowsAndTilemaps();
-        SetMainCallback2(CB2_InitPokeNav);  // Display PokéNav
+        StartMenu_OpenPokegear();
 
         return TRUE;
     }
@@ -876,14 +947,7 @@ static bool8 StartMenuPlayerNameCallback(void)
     {
         PlayRainStoppingSoundEffect();
         RemoveExtraStartMenuWindows();
-        CleanupOverworldWindowsAndTilemaps();
-
-        if (IsOverworldLinkActive() || InUnionRoom())
-            ShowPlayerTrainerCard(CB2_ReturnToFieldWithOpenMenu); // Display trainer card
-        else if (FlagGet(FLAG_SYS_FRONTIER_PASS))
-            ShowFrontierPass(CB2_ReturnToFieldWithOpenMenu); // Display frontier pass
-        else
-            ShowPlayerTrainerCard(CB2_ReturnToFieldWithOpenMenu); // Display trainer card
+        StartMenu_OpenTrainerCard();
 
         return TRUE;
     }
@@ -907,9 +971,7 @@ static bool8 StartMenuOptionCallback(void)
     {
         PlayRainStoppingSoundEffect();
         RemoveExtraStartMenuWindows();
-        CleanupOverworldWindowsAndTilemaps();
-        SetMainCallback2(CB2_InitOptionMenu); // Display option menu
-        gMain.savedCallback = CB2_ReturnToFieldWithOpenMenu;
+        StartMenu_OpenOptions();
 
         return TRUE;
     }
@@ -1705,7 +1767,7 @@ void AppendToList(u8 *list, u8 *pos, u8 newEntry)
 
 static bool8 StartMenuDexNavCallback(void)
 {
-    CreateTask(Task_OpenDexNavFromStartMenu, 0);
+    StartMenu_OpenDexNav();
     return TRUE;
 }
 

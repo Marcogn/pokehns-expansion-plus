@@ -13,6 +13,13 @@ void SaveForBattleTowerLink(void);
 void HideStartMenu(void);
 void StartMenu_OnClose(void);
 void StartMenu_SaveFromStrip(void);
+void StartMenu_OpenPokedex(void);
+void StartMenu_OpenParty(void);
+void StartMenu_OpenBag(void);
+void StartMenu_OpenPokegear(void);
+void StartMenu_OpenTrainerCard(void);
+void StartMenu_OpenOptions(void);
+void StartMenu_OpenDexNav(void);
 void AppendToList(u8 *list, u8 *pos, u8 newEntry);
 
 #endif // GUARD_START_MENU_H

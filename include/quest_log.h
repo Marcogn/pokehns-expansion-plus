@@ -73,7 +73,7 @@ bool32 QuestLog_SetSubquestDone(u32 quest, u32 subquest);
 u32 QuestLog_CountSubquestsDone(u32 quest);
 bool32 QuestLog_IsFavorite(u32 quest);
 void QuestLog_SetFavorite(u32 quest, bool32 favorite);
-bool32 QuestLog_IsNew(u32 quest);
+bool32 QuestLog_IsNew(u32 quest, u32 state);
 void QuestLog_MarkSeen(u32 quest);
 void QuestLog_SyncSeen(void);
 const u8 *QuestLog_GetName(u32 quest);
