@@ -68,9 +68,9 @@ release is in [`CHANGELOG.md`](CHANGELOG.md).
 
 ## New features
 
-Three groups: what was **ported from Soulgold**, what was **already in the
-codebase and was switched on or reworked**, and what was **written from
-scratch** for this fork. Where a feature mixes origins, the notes say which half
+Four groups: what was **ported from Soulgold**, what was **already in the
+codebase and was switched on or reworked**, what was **ported from other
+projects**, and what was **written from scratch** for this fork. Where a feature mixes origins, the notes say which half
 is whose.
 
 ### Ported from Soulgold
@@ -84,7 +84,7 @@ is whose.
 | Dark UI | `DARK UI` LIGHT/DARK | Darkens the bag and the whole battle HUD. |
 | Shiny healthbox | — | A shiny Pokémon gets a gold battle box, in both themes. |
 | Shiny Genome | — | Turns a Pokémon shiny. Sold at the Viridian City Mart for 1000. |
-| Compact start menu | — | The menu window grows with the number of entries, so nine fit. |
+| Compact start menu | — | The menu window grows with the number of entries, so nine fit. Since the strip pause menu (below) it is the list of the places that keep it: Safari Zone, Bug-Catching Contest, Battle Pike and Pyramid, Union Room, link and the Multi Partner Room. |
 | Candy Jar | — | A Key Item that skims 90% of the Exp from every battle and turns it into Exp. Candies. Elm's Aide hands it over in the Violet City Pokémon Center along with the Togepi Egg. |
 | Shiny parents | — | A Day-Care Egg is 4x as likely to be shiny with one shiny parent, 8x with two. |
 | Exp. Candy order | — | Sorting the bag by type lists the Exp. Candies by size, biggest first. |
@@ -116,6 +116,13 @@ Switched on or finished, with nothing written for this fork except the wiring:
 | HGSS Pokédex | `src/pokedex_plus_hgss.c`, already present | Used as-is. The party-menu entry point (see *Written from scratch*) is what was added. |
 | Wild Pokémon in the overworld | pokeemerald-expansion PR #8434 (expansion 1.16), ported with its fixes up to 1.16.4 | Always on; `WILD BATTLES` OFF turns them off too. Up to 6 on land, 4 in the Safari Zone, 3 on water, in caves and indoors; with it on, tall grass, surfing and caves stop starting random battles, while fishing, Rock Smash, Headbutt, Sweet Scent and the DexNav stay. Written here: a **temperament per species family** rolled at each spawn (wander, watch, come closer, chase, flee, vanish; weights modelled on the Wilds of Kanto mod), lower caps on water, in caves and in the Safari Zone, the Bug-Catching Contest left classic, the Safari Pokéblock bonus, faster spawning where grass is sparse, and fixes for full sprite memory (no crash screen, room kept for icons). On water they swim, with HnS's own surf-mount sprites. Shiny ones sparkle and stay on the map; roamers can appear among them. |
 
+### Ported from other projects
+
+| Feature | Where it came from | Notes |
+| --- | --- | --- |
+| Quest book | PokemonSanFran's *Unbound Quest Menu* (`complex_quests` branch) | Opened from the Quests icon of the pause menu. For each quest: its state (locked, active, reward waiting, done), what to do next and where, with a picture; A opens its list (the badges, the prizes, the Leaders). R filters by state, Start sorts A-Z, Select marks a favourite; **NEW** marks a quest you have not looked at since it appeared, became "Reward" or was completed. The quests read the state the game already has, so they work on old saves: **Johto Badges** and **Kanto Badges** (the next Gym, one line per badge; Kanto shows up once you are Champion), **The TcloneR** (clones so far, the next prize, one line per prize) and **Red's Path** (the next challenge, one line per Leader). Rewritten on this fork's save data and state sources; follows the Dark UI. |
+| Pause menu strip | pollythadon's Unbound-style start menu (`unbound_start_menu.c`) | Start opens a strip of icons over the map instead of the list: Pokédex, DexNav, Party, Bag, Quests, Options, with the name of the entry and the day and time. **Start** saves, **L** opens the Trainer Card, **R** the Pokégear, B closes. **Select** picks up an icon: move it with left and right, put it down with A or Select (B undoes); the order is kept with your save, and an icon you do not have yet keeps its place. The special places listed under *Compact start menu* keep the list. Changed from the original: one page instead of several, Select instead of R to reorder, icons visible under Flash; the DexNav and Quests icons are new, and it follows the Dark UI. |
+
 ### Written from scratch
 
 | Feature | Option | Notes |
@@ -127,7 +134,8 @@ Switched on or finished, with nothing written for this fork except the wiring:
 | Catching Trainers' Pokémon | TcloneR key item in the Bag, from Elm's former assistant (replaced the `TRAINER CATCH` option) | A Ball thrown at a Trainer's Pokémon works like on a wild one, and the battle ends with the catch. The Trainer does not count as beaten: no badge, no story step, and they challenge you again. They stop noticing you until you leave the map, so you can walk away; talk to them to fight again straight away. Their team is back in full every battle. Facility, link and partner battles and Mirror Mode are left out. Each Trainer cloned once counts towards rewards every 10 clones, up to 100, paid out by the assistant in Azalea, Mahogany, Goldenrod, Cerulean and Oak's lab. |
 | Full party editor (debug) | Debug menu → Party → Edit Pokemon → Edit All… | Level, shininess, nature (the stat one, as a Mint sets it), ability, Tera type, IVs, EVs and moves of a party Pokémon, each screen starting from its current values. |
 | Force Shiny (debug) | Debug menu → Flags & Vars → Toggle Force Shiny | Every wild, gift and hatched Pokémon comes out shiny while it is on. |
-| Title screen | — | A "+" after the HEART & SOUL banner and the fork's version under PRESS START. |
+| Title screen and version | — | A "+" after the HEART & SOUL banner and the fork's version under PRESS START. The save window shows the same version under the play time, so it can be read off when reporting a bug ("dev build" on a build without a release tag). |
+| Red's Path | The guide at the entrance of each Kanto Gym, once its Leader is beaten | The eight Kanto Gyms replayed in order with Red's team of the time against the Leaders as he met them, in a VR headset. You play as Red, cannot run, gain no Exp. and lose nothing; each win gives that Leader's ace at Lv70 as a prize (kept by the guide if your party is full). |
 | Box sort and search | A on the box name → `SORT` / `SEARCH` | **Sort** this box or all boxes, by Pokédex number or by species name. Numbers follow the Johto Pokédex until the National Dex is unlocked (Prof. Oak says so when he hands it over), then the national one; within a species the highest level comes first, Eggs and empty slots go last. Sorting all boxes asks first. **Search** picks a letter group, then a species present in the boxes, then A jumps to each one box after box, with a shiny sparkle on shiny ones. Both are hidden while holding a Pokémon. Only slots change: nothing new in the save. |
 
 ### Shops and prices
@@ -178,6 +186,15 @@ temperament weights are modelled on
 art and the music are the work of the **Pokémon Heart & Soul** team and its
 contributors, listed in [`CREDITS.md`](CREDITS.md), which is inherited
 unchanged from upstream.
+
+**Other projects.** The quest book screen is PokemonSanFran's
+[*Unbound Quest Menu*](https://github.com/PokemonSanFran/pokeemerald/wiki/Unbound-Quest-Menu),
+itself built on the Unbound quest menu, and the work of the people its
+documentation credits. The pause menu strip, its band and its Pokédex,
+Party, Bag and Options icons are
+[**pollythadon**](https://github.com/pollythadon/pokeemerald-expansion)'s
+Unbound-style start menu. Both were ported by hand and rewritten where this
+fork needed it (save data, state sources, one page, Flash, dark theme).
 
 **The chain below** applies to this fork unchanged: **`pokemonHnS-expansion`**,
 RHH's **`pokeemerald-expansion`**, resetes12's **`Modern Emerald`** and pret's
