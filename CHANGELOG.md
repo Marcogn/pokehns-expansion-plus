@@ -6,6 +6,17 @@ tag `v2.0.6.PLUS.3`) as the release notes, and refuses to run without one:
 add the section before releasing. Feature details live in the tables of
 [`README.md`](README.md).
 
+## 2.0.6.PLUS.7
+
+### In progress (not playable yet)
+- **Red's Path**, the eight Kanto Gyms replayed with Red's team of the time
+  against the Leaders as he met them (FireRed's). The battles are in, still
+  only reachable from the debug menu; the Gym guides who offer them, the
+  scene and the prizes come next. In these battles you play as Red (his
+  FireRed sprite and mugshot), you cannot run, Red's Pokémon gain no
+  experience and do not evolve, and losing costs no money and does not send
+  you to a Pokémon Center: your own team is back either way.
+
 ## 2.0.6.PLUS.6
 
 ### Changed
