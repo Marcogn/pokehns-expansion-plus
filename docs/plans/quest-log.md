@@ -279,7 +279,25 @@ Dettagli in `.claude/rules/strip_menu.md`.
 - Verificato in mGBA sul `.sav` dell'utente (tema scuro) e dopo averlo
   portato a chiaro dalle opzioni: Missioni e DexNav selezionate, in tutti e
   due i temi.
-- **Per la fase 7**: documentazione (`CHANGELOG.md`, report SG, regola).
+- Approvata dall'utente dopo due giri sulle dimensioni: le icone nuove
+  stanno nel riquadro della Poké Ball (19 px, righe 7-25 del foglio).
+- **Handoff per la fase 7 (Haiku 5.5, documentazione)**
+  - `CHANGELOG.md`, sezione `2.0.6.PLUS.7`: la voce "New pause menu" dice
+    ancora "The icons are provisional": va corretta (ora DexNav e Quests
+    hanno icone proprie, e c'è il tema scuro). Aggiungere i crediti per le
+    icone di `pollythadon` solo dopo averne verificato gli autori nel suo
+    repo (§5, Crediti). Leggere ogni frase contro il codice.
+  - `docs/SOULGOLD_PORT_REPORT.md`: nessuna riga su quest book e striscia;
+    l'origine è PSF/pollythadon, non SG (dirlo).
+  - Regole `.claude/rules/quest_book.md` e `strip_menu.md`: già
+    aggiornate fino alla fase 6; riletterle contro il codice, e togliere i
+    riferimenti a "provvisorio" rimasti.
+  - Dopo la 7: fase 8, revisione finale (`/code-review` medio), build
+    verde, ROM zippata.
+- **Ancora aperto, non bloccante**: eccezioni della striscia non provate
+  (Piramide, Pike, Union Room, link, partita nuova senza Pokédex);
+  `QUEST_LOG_OPEN` da script; TcloneR completata; rifiniture del libro in
+  §5.4 (sprite a missione completata, conteggio dei cloni).
 
 Dopo la fase 1 il quest book (2-4) e il menu (5-6) sono indipendenti. Se i
 token stringono, la fase 4 si fa una missione per volta.
