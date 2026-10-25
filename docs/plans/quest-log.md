@@ -1,6 +1,6 @@
 # Piano: quest book e menu di pausa a striscia
 
-**Stato (25/10): fasi 1-6 fatte (§5.1-§5.6), prossima la 7.** Si fa dopo Red's Path
+**Stato (25/10): fasi 1-7 fatte (§5.1-§5.7), prossima la 8.** Si fa dopo Red's Path
 ([`reds-path.md`](reds-path.md)), una fase per sessione (§5). Le ricerche sono già fatte: i fatti qui sotto sono
 verificati nel codice indicato, non vanno rifatte. I confronti e le
 opzioni scartate stanno in
@@ -297,7 +297,13 @@ Dettagli in `.claude/rules/strip_menu.md`.
 - **Punti aperti**: li controlla e corregge Opus nella fase 8 (elenco sotto,
   tabella di fase 8).
 
-### 5.7 Punti aperti per la fase 8 (Opus 5.5)
+### 5.7 Fase 7 (25/10) e punti aperti per la fase 8 (Opus 5.5)
+
+Fase 7 fatta: `CHANGELOG.md` (voce della striscia corretta, icone e tema
+scuro), report di porting (quest book e striscia non sono di SG) e regole
+riviste contro il codice. Gli autori delle icone (hedara, vol) **non sono
+stati verificati** (nessun credito nel README del repo di pollythadon): la
+voce cita solo lui.
 
 Nessuno blocca le fasi precedenti, ma **nessuno è stato provato**: Opus li
 verifica uno per uno (emulatore, GDB per flag e var: `.claude/rules/quest_book.md`

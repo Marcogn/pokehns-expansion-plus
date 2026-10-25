@@ -14,7 +14,10 @@ add the section before releasing. Feature details live in the tables of
   and Options, with the name of the selected entry and the day and time.
   **Start** saves, **L** opens the Trainer Card and **R** the Pokégear; B
   closes. The Safari Zone, the Bug-Catching Contest, the Battle Pike and
-  Pyramid and the Union Room keep the classic list. The icons are provisional.
+  Pyramid, the Union Room and link rooms keep the classic list. The bar and
+  the Pokédex, Party, Bag and Options icons come from pollythadon's
+  Unbound-style start menu; the DexNav and Quests icons are new. It follows
+  the Dark UI option.
   Credit: pollythadon's Unbound-style start menu.
 
 ### Added

@@ -63,6 +63,11 @@ follower nel menu SwSh, badge `SEL`/`HM` leggibili nei due temi (difetto
 presente anche in SG), prezzi e negozi (README), `SORT` e `SEARCH` nei box
 del PC (SG non li ha; `.claude/rules/pc_box.md`).
 
+Quest book (schermata di PokemonSanFran, `complex_quests`) e menu di pausa a
+striscia (`unbound_start_menu.c` di pollythadon): **non vengono da Soulgold**
+(SG non ha né l'uno né l'altro). Dettagli in `.claude/rules/quest_book.md`,
+`.claude/rules/strip_menu.md` e `docs/plans/quest-log.md`.
+
 ---
 
 ## 4. Aggiornamenti di Soulgold dopo il port: cosa è stato applicato
