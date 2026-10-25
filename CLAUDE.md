@@ -208,6 +208,7 @@ In `.claude/rules/`, caricate da sole quando apri i file indicati.
 | `overworld_encounters.md` | Pokémon visibili nell'overworld: port, indoli, tetti, VRAM (piano in `docs/plans/`) |
 | `level_scaling.md` | level scaling di allenatori, selvatici (con tetto e margine) e lotte di script; soldi |
 | `quest_book.md` | quest book: schermata, testi, immagini, missioni di prova |
+| `strip_menu.md` | menu di pausa a striscia: quando c'è, tasti, salvataggio, VRAM, Flash |
 | `reds_path.md` | Red's Path: capi, squadre di Red, agganci di lotta, aiutanti, scena e premi nelle palestre |
 
 Fuori dalle regole, da leggere quando serve: `docs/claude/emulator.md`,

@@ -11,6 +11,8 @@ void SaveGame(void);
 void CB2_SetUpSaveAfterLinkBattle(void);
 void SaveForBattleTowerLink(void);
 void HideStartMenu(void);
+void StartMenu_OnClose(void);
+void StartMenu_SaveFromStrip(void);
 void AppendToList(u8 *list, u8 *pos, u8 newEntry);
 
 #endif // GUARD_START_MENU_H

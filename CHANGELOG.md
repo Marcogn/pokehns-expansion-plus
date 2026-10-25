@@ -8,8 +8,17 @@ add the section before releasing. Feature details live in the tables of
 
 ## 2.0.6.PLUS.7
 
+### Changed
+- **New pause menu**: a strip of icons at the bottom of the screen, over the
+  map, in the style of Pokémon Unbound: Pokédex, DexNav, Party, Bag, Quests
+  and Options, with the name of the selected entry and the day and time.
+  **Start** saves, **L** opens the Trainer Card and **R** the Pokégear; B
+  closes. The Safari Zone, the Bug-Catching Contest, the Battle Pike and
+  Pyramid and the Union Room keep the classic list. The icons are provisional.
+  Credit: pollythadon's Unbound-style start menu.
+
 ### Added
-- **Quest book: the first four quests.** The QUESTS entry of the pause menu
+- **Quest book: the first four quests.** The Quests entry of the pause menu
   now lists **Johto Badges** and **Kanto Badges** (one line per Gym, and what
   to do next), **The TcloneR** (hidden until you meet the first scientist,
   "Reward" when prizes are due) and **Red's Path** (hidden until the
