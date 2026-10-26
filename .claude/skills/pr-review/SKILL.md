@@ -17,7 +17,8 @@ Claude Code attribution footer.
 - Has it been reviewed already on its current head? Look at the reviews and
   comments: a review on an older commit covers only that commit. Answer
   the user's question ("hai fatto la review?") with that fact first.
-- CI: read the `build` check on the head. Red CI comes before the review
+- CI: read the `build-hns` check on the head (`build` is only the gate
+  that follows it). Red CI comes before the review
   (it is work now).
 
 ## 2. Generic review
@@ -74,9 +75,12 @@ Go through the diff for each; every hit is a finding with file:line.
 
 ## Note on "automatic" reviews
 
-This skill runs when invoked or when this session is woken by an event of
-a PR it is subscribed to. Whether marking a PR ready wakes the session is
-not guaranteed; if the user wants a review that starts on its own on
-"Ready for review", that is a GitHub Actions workflow (a separate change,
+Marking a PR "Ready for review" sends a `pull_request.ready_for_review`
+event to the session subscribed to that PR (seen on #45, 26/10). So the
+session that opened the PR, if it is still subscribed, gets woken: on that
+event, run this skill without waiting to be asked. A session that is no
+longer subscribed (PR opened elsewhere, subscription dropped) gets nothing;
+then the review starts only from `/pr-review`. A review that starts on its
+own regardless of sessions is a GitHub Actions workflow (a separate change,
 it needs an API key in the repo secrets): propose it, do not add it
 silently.
