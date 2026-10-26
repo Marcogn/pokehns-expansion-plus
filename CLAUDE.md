@@ -174,6 +174,12 @@ Ognuna è costata ore; il racconto completo sta nella regola indicata.
   tarati su questo repo.
 - Una schermata che non installa il suo `SetVBlankCallback` eredita quello del
   chiamante.
+- **`LoadPalette` a schermo nero lo riaccende**: scrive anche il buffer
+  sfumato, quindi quei colori tornano pieni finché qualcuno non risfuma. Mai
+  caricare palette fra una dissolvenza al nero e la schermata dopo
+  (`strip_menu.md`: un fotogramma di tile colorate aprendo il quest book).
+  Un lampo di un fotogramma si cattura con 40 `import` di fila subito dopo il
+  tasto, confrontando la luminosità media.
 - **`make hns` non è una build RELEASE: un `assertf` che fallisce mostra al
   giocatore una schermata blu.** Va bene solo per errori di programma, mai per
   stati che il gioco raggiunge (VRAM piena, tabella oggetti piena)
