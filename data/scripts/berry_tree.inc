@@ -32,12 +32,16 @@ BerryTree_EventScript_Hns_PickBerry::
 	special IncrementDailyPickedBerries
 	special ObjectEventInteractionRemoveBerryTree
 	message BerryTree_Text_Hns_Picked
+	delay 10
+	@ Before the replanting below, which reloads VAR_0x8006 with the new tree's data.
+	showberrydescription
 	playfanfare MUS_OBTAIN_BERRY
 	special ObjectEventInteractionPlantBerryTree
 	incrementgamestat GAME_STAT_PLANTED_BERRIES
 	special IncrementDailyPlantedBerries
 	waitmessage
 	waitfanfare
+	hideitemdescription
 	release
 	end
 

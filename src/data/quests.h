@@ -259,10 +259,10 @@ static const u8 sText_TcloneName[] = _("The TcloneR");
 static const u8 sText_TcloneMap[] = _("Johto and Kanto");
 static const u8 sText_TcloneDone[] = _("Every prize collected.\nThe TcloneR has no more to give.");
 static const u8 sText_TcloneStep0[] = _("Nothing to do yet.");
-static const u8 sText_TcloneStep1[] = _("Look for more scientists in\nMahogany, Goldenrod, Cerulean.");
+static const u8 sText_TcloneStep1[] = _("Find the scientist again in\nMahogany, Goldenrod, Cerulean.");
 static const u8 sText_TcloneStep4[] = _("A scientist now works at Oak's\nLab. Clone Pokémon for prizes.");
 static const u8 sText_TcloneStep5[] = _("Clones so far: {STR_VAR_1}.\nNext prize at {STR_VAR_3} clones.");
-static const u8 sText_TcloneReward[] = _("A prize is waiting: show your\nclones to a TcloneR scientist!");
+static const u8 sText_TcloneReward[] = _("A prize is waiting: show your\nclones to the scientist!");
 static const u8 sText_PalletTown[] = _("Pallet Town");
 
 static const struct QuestStep sTcloneSteps[] =
@@ -273,8 +273,8 @@ static const struct QuestStep sTcloneSteps[] =
     [3] = { sText_TcloneStep1, sText_TcloneMap,   OBJ_EVENT_GFX_SCIENTIST_M_HNS, QUEST_SPRITE_OBJECT },
     [4] = { sText_TcloneStep4, sText_PalletTown,  OBJ_EVENT_GFX_SCIENTIST_M_HNS, QUEST_SPRITE_OBJECT },
     [5] = { sText_TcloneStep5, sText_PalletTown,  OBJ_EVENT_GFX_SCIENTIST_M_HNS, QUEST_SPRITE_OBJECT },
-    // A prize is paid by whichever scientist the player meets next: before
-    // stage 4 he can be in any of the cities of step 1, after it at Oak's Lab.
+    // The single scientist pays the prize wherever the scientist stands: before
+    // stage 4 in any of the cities of step 1, after it at Oak's Lab.
     [6] = { sText_TcloneReward, sText_TcloneMap,  OBJ_EVENT_GFX_SCIENTIST_M_HNS, QUEST_SPRITE_OBJECT },
     [7] = { sText_TcloneReward, sText_PalletTown, OBJ_EVENT_GFX_SCIENTIST_M_HNS, QUEST_SPRITE_OBJECT },
 };

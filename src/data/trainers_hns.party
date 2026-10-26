@@ -16018,7 +16018,7 @@ Pic: Leader Brock Frlg
 Gender: Male
 Music: Hg Boy 1
 Double Battle: No
-AI: Check Bad Move / Try To Faint / Check Viability
+AI: Smart Trainer
 Mugshot: Orange
 
 Geodude
@@ -16043,7 +16043,7 @@ Pic: Leader Misty Frlg
 Gender: Female
 Music: Hg Boy 1
 Double Battle: No
-AI: Check Bad Move / Try To Faint / Check Viability
+AI: Smart Trainer
 Mugshot: Light Blue
 Items: Super Potion
 
@@ -16072,7 +16072,7 @@ Pic: Leader Lt Surge Frlg
 Gender: Male
 Music: Hg Boy 1
 Double Battle: No
-AI: Check Bad Move / Try To Faint / Check Viability
+AI: Smart Trainer
 Mugshot: Yellow
 Items: Super Potion / Full Heal
 
@@ -16110,7 +16110,7 @@ Pic: Leader Erika Frlg
 Gender: Female
 Music: Hg Boy 1
 Double Battle: No
-AI: Check Bad Move / Try To Faint / Check Viability
+AI: Smart Trainer
 Mugshot: Green
 Items: Hyper Potion / Full Heal
 
@@ -16148,7 +16148,7 @@ Pic: Leader Koga Frlg
 Gender: Male
 Music: Hg Boy 1
 Double Battle: No
-AI: Check Bad Move / Try To Faint / Check Viability
+AI: Smart Trainer
 Mugshot: Purple
 Items: Hyper Potion / Hyper Potion / Full Heal
 
@@ -16195,7 +16195,7 @@ Pic: Leader Sabrina Frlg
 Gender: Female
 Music: Hg Boy 1
 Double Battle: No
-AI: Check Bad Move / Try To Faint / Check Viability
+AI: Smart Trainer
 Mugshot: Pink
 Items: Hyper Potion / Hyper Potion / Full Heal
 
@@ -16242,7 +16242,7 @@ Pic: Leader Blaine Frlg
 Gender: Male
 Music: Hg Boy 1
 Double Battle: No
-AI: Check Bad Move / Try To Faint / Check Viability
+AI: Smart Trainer
 Mugshot: Dark Red
 Items: Hyper Potion / Hyper Potion / Full Heal
 
@@ -16289,7 +16289,7 @@ Pic: Leader Giovanni Frlg
 Gender: Male
 Music: Hg Boy 1
 Double Battle: No
-AI: Check Bad Move / Try To Faint / Check Viability
+AI: Smart Trainer
 Mugshot: Dark Red
 Items: Hyper Potion / Hyper Potion / Full Heal
 

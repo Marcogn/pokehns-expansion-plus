@@ -24,6 +24,7 @@ palestre, o dal menu di debug (`Red's Path… → N`, senza scena).
 | --- | --- |
 | otto capi, id 653-660 | `TRAINER_REDS_PATH_*_HNS` (`include/constants/opponents_hns.h`), squadre in `src/data/trainers_hns.party` |
 | otto squadre di Red | `PARTNER_RED_*` in `src/data/battle_partners.party`, caricate negli slot 0-5 da `FillRedsPathParty` (`src/battle_partner.c`) |
+| AI dei capi | `AI: Smart Trainer` (`AI_FLAG_SMART_TRAINER`, senza Prediction) nei `.party` degli otto capi, verificato in `src/data/trainers_hns.h`. Prima era `Basic Trainer` scritto per esteso. Nessuna opzione del challenge menu cambia l'AI |
 | la lotta | `RedsPath_EventScript_Battle` (`data/scripts/reds_path.inc`), `VAR_0x8004` = sfida 0-7 |
 | ripristino della squadra | `special RedsPath_RestorePlayerParty`: `LoadPlayerParty` più `UpdateFollowingPokemon` (sotto) |
 | "lotta in corso" | `FLAG_REDS_PATH_BATTLE` (ex `FLAG_UNUSED_EXTENDED_86`), letto da `IsRedsPathBattle()` |

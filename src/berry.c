@@ -2301,6 +2301,8 @@ void ObjectEventInteractionPickBerryTree(void)
 #if IS_HNS
     gSpecialVar_0x8004 = AddBagItem(BerryTypeToItemId(berry), GetBerryCountByBerryTreeId(id));
     sLastPickedBerryType = berry;
+    // The item for showberrydescription: GetBerryTreeData left the berry count here.
+    gSpecialVar_0x8006 = BerryTypeToItemId(berry);
 #else
     u8 mutation = GetTreeMutationValue(id);
 

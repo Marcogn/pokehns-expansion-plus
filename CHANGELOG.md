@@ -8,7 +8,34 @@ add the section before releasing. Feature details live in the tables of
 
 ## 2.0.6.PLUS.8
 
+### Added
+- **Item description box** (from Soulgold): picking up, finding or being
+  given an item now shows its icon and description in a box at the top of the
+  screen, every time, until the "put away in the pocket" message is
+  dismissed. Berries picked from a tree show it too. Long descriptions
+  wrap by width into two lines.
+- **Frostbite** (from Soulgold, from Pokémon Legends: Arceus) replaces
+  freezing. A Pokémon hit by an Ice move is no longer locked in place: it
+  keeps moving, its special moves do half damage and it loses 1/8 of its HP
+  at the end of every turn (the same as a burn in this game). The "FRB"
+  icon shows in the battle box, the Summary and both party menus; an Ice
+  Heal cures it. A Pokémon already frozen in an old save stays frozen
+  until it thaws. The Ice Punch tutor now says "frostbite".
+
+### Changed
+- **Red's Path Leaders** now fight with the Smart Trainer AI: they switch a
+  Pokémon that is losing the matchup and pick their moves more carefully.
+  The Leaders of the post-game keep their stronger AI.
+- **The TcloneR quest** no longer speaks of several scientists: there is
+  one, and the quest book tells you to find the scientist again.
+
 ### Fixed
+- **Headbutt with a blank wild Pokémon**: Headbutting a tree could start a
+  battle against a nameless Lv0 Pokémon that fainted at once, when a visible
+  wild Pokémon appeared nearby during the battle transition. The Headbutt
+  script let go of the player before the battle had started, so the
+  overworld kept running and the new Pokémon overwrote the one from the
+  tree. Headbutt now waits for the battle like Rock Smash does.
 - **TcloneR in story scenes**: a Ball no longer works in a battle that is
   part of a scene (the Mahogany hideout alarm grunts, Silver, the Team Rocket
   admins, the Kimono Girls, Red and the like). Catching there cut the scene

@@ -100,3 +100,15 @@ numero da `data/maps/map_groups.json`, es. Violet Gym = 3/5).
   mentre gli strumenti installati restano: rilanciare `Xvfb` prima di `mgba`.
 - Modificare un `.sav` a mano (checksum per settore): `.claude/rules/save.md`,
   sezione `SAVE_VERSION 9`.
+
+## Debug: variabili e stati (sessione small-features-1, 26/10)
+
+- `Flags & Vars → Set Var XYZ…` mostra l'indice **decimale** (0x4000 = 16384):
+  la riga sotto dà l'esadecimale, controllala (0x40C2 = 16578). Passo del
+  campo: Destra/Sinistra 1 → 10 → 100.
+- `Party → Edit Pokemon → Inflict Status1 → Party-wide` dà uno stato a tutta
+  la squadra (c'è anche Frostbite); `Give X → Give item XYZ` vuole l'id
+  decimale (Ice Heal 46). Il cursore dei menu debug si azzera a ogni apertura.
+- La nuova partita: le pagine delle opzioni si scorrono con **R**, l'ultima
+  chiede conferma; poi la scena della camera resta ferma ma R+Start apre il
+  debug lo stesso.

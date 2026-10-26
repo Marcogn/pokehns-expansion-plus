@@ -52,8 +52,9 @@ Da `pret/pokefirered` `src/data/trainer_parties.h`, identiche a quelle che
 expansion ha già in `src/data/trainers_frlg.party` (`TRAINER_LEADER_*`).
 Specie e livelli sono quelli di Rosso/Blu (`pret/pokered`), tranne l'ultimo
 Pokémon di Giovanni (Rhyhorn 50 in FRLG, Rhydon 50 in R/B). Nessuno strumento
-tenuto; le cure sono quelle che il capo usa dalla borsa. IV 0. AI FRLG:
-`Check Bad Move / Try To Faint / Check Viability`.
+tenuto; le cure sono quelle che il capo usa dalla borsa. IV 0. AI: era FRLG (`Check Bad
+Move / Try To Faint / Check Viability`), dal 26/10 **`Smart Trainer`** (piano
+`small-features-1`).
 
 | Capo | Cure | Squadra (asso in grassetto) |
 | --- | --- | --- |
@@ -374,7 +375,7 @@ dell'emulatore `docs/claude/emulator.md`.
 2. **Otto capi** in `include/constants/opponents_hns.h` (653-660,
    `TRAINERS_COUNT_HNS` 661) e in `src/data/trainers_hns.party`: squadre FRLG
    della sezione 1 con le variazioni (Rhydon 50), abilità scritte, IV 0, cure,
-   AI FRLG, sprite FRLG (`TRAINER_PIC_FRONT_LEADER_*_FRLG`), mugshot, testo
+   AI Smart Trainer (era FRLG), sprite FRLG (`TRAINER_PIC_FRONT_LEADER_*_FRLG`), mugshot, testo
    di sconfitta. Esclusi dal level scaling (`IsTrainerExcludedFromScaling`)
    e dal TcloneR.
 3. **Otto squadre di Red** (riepilogo della sezione 2) in
