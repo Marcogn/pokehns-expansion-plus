@@ -79,6 +79,8 @@ they changed.
 
 - Link the plan from the related rule or from CLAUDE.md §7 only if it adds
   a new area (`.claude/rules/<area>.md` with `paths:`).
+- Add the plan to `docs/SUMMARY.md` (with the other plans): the
+  `docs_validate` check fails on any `docs/**/*.md` it does not list.
 - Commit `Plan: <feature>` on the session branch, push, draft PR.
 - Tell the user: phases with model and gate, which ones will need their
   `.srm`, and the command to start: `/next-phase <feature>`.
