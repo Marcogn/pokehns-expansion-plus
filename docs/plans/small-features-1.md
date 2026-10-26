@@ -256,10 +256,14 @@ azzera a ogni riapertura.
   Ghicocche), Flash usato (stesso ramo di "senza Flash"). Per chiudere:
   script strumentato con `showberrydescription` / `finditem` su una tessera
   nota.
-- **Visto di passaggio, non indagato**: sul salvataggio dell'utente, in erba
-  alta, due volte una lotta OWE con riquadro avversario vuoto (nome vuoto, Lv0)
-  e "gained 0 Exp"; subito dopo lotte normali. Non so se è preesistente
-  (non provato sulla ROM di `master`).
+- **Anomalia del "wild !" Lv0, spiegata e corretta (26/10)**: non era un OWE
+  né questa fase, era la **Testata**. Lo script di HnS rilasciava il
+  giocatore prima della lotta (`goto` incondizionato prima del `waitstate`,
+  dall'import iniziale); durante la transizione uno spawn di OWE riscriveva e
+  azzerava `gEnemyParty`. Provato con due ROM strumentate gemelle (dettagli e
+  regola in `field.md`): con lo script vecchio la lotta parte con specie 0 e
+  89/89 fotogrammi sbloccati, con quello nuovo 0/89 e la specie della Testata.
+  Corretto nello stesso branch, commit a parte.
 - **Quando camminare in emulatore**: la prima pressione di una freccia gira
   soltanto, la seconda muove; `k.sh Left 3` fa due passi. Warp di debug a un
   numero di mappa: il campo "Map" riparte da 0 dopo il gruppo.

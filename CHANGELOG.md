@@ -30,6 +30,12 @@ add the section before releasing. Feature details live in the tables of
   one, and the quest book tells you to find the scientist again.
 
 ### Fixed
+- **Headbutt with a blank wild Pokémon**: Headbutting a tree could start a
+  battle against a nameless Lv0 Pokémon that fainted at once, when a visible
+  wild Pokémon appeared nearby during the battle transition. The Headbutt
+  script let go of the player before the battle had started, so the
+  overworld kept running and the new Pokémon overwrote the one from the
+  tree. Headbutt now waits for the battle like Rock Smash does.
 - **TcloneR in story scenes**: a Ball no longer works in a battle that is
   part of a scene (the Mahogany hideout alarm grunts, Silver, the Team Rocket
   admins, the Kimono Girls, Red and the like). Catching there cut the scene

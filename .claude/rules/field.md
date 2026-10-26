@@ -56,3 +56,25 @@ salvataggio (`FIRST_TIME` vorrebbe 113 byte, vedi il piano).
   l'icona si crea due volte (la seconda come finestra OBJ).
 - Un oggetto aggiunto a mano in uno script deve chiamare `hideitemdescription`
   dopo ogni `showitemdescription`, altrimenti il riquadro resta.
+
+## Testata: aspettare la lotta prima di `releaseall` (26/10)
+
+- In `field_move_scripts_hns.inc` la Testata faceva `special
+  RockSmashWildEncounter` e subito `goto EventScript_EndHeadbutt`
+  (`releaseall`): il `waitstate` dopo era irraggiungibile (import iniziale di
+  HnS, `2e22dff0`). Ora `goto_if_eq VAR_RESULT, FALSE, ...` e `waitstate`,
+  come Spaccaroccia.
+- **Perché conta**: lo spawn degli OWE genera il Pokémon **dentro
+  `gEnemyParty`** e poi lo azzera (`SetSpeciesInfoForOWE`,
+  `wild_encounter_ow.c`), e gira solo a controlli sbloccati. Uno script che
+  avvia una lotta e fa `releaseall` prima di `waitstate` lascia 89
+  fotogrammi di transizione a controlli sbloccati: se in quel momento nasce
+  un OWE, la lotta parte con l'avversario azzerato ("wild !", Lv0, sviene
+  subito). **Regola**: ogni script che crea un selvatico e poi avvia la
+  lotta deve tenere i controlli bloccati fino a `waitstate`/`dowildbattle`.
+- Misura (ROM strumentate, salvataggio dell'utente, Route 31, Testata forzata
+  al 100% e spawn OWE forzato): script vecchio, Testata = Pineco, lotta =
+  specie 0, 89/89 fotogrammi sbloccati; script nuovo, Exeggcute = Exeggcute,
+  0/89; lotta da contatto con un OWE (controllo) 0/89.
+- Gli "alberelli con i puntini rossi" di Route 31 sono alberi da Testata, non
+  alberi di bacche.

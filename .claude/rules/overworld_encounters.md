@@ -385,3 +385,15 @@ riflettono come prima; salvataggio e caricamento.
 Mappa ASCII dei tile riflettenti di un layout (per trovare un punto di
 prova): HnS ha **640** metatile primari (`include/fieldmap.h`), non 512;
 la collisione sono i bit 10-11 di ogni u16 di `map.bin`.
+
+## Lo spawn usa `gEnemyParty` (26/10)
+
+`SetSpeciesInfoForOWE` genera il Pokémon dello spawn in `gEnemyParty[0]`
+(stesse funzioni dei selvatici a passi) e poi chiama `ZeroEnemyPartyMons()`.
+Lo spawn gira solo a controlli sbloccati e senza `DN_FLAG_SEARCHING`. Quindi
+qualunque percorso che crea un selvatico, avvia la transizione e **sblocca i
+controlli prima che la lotta inizi** perde l'avversario: la lotta parte con
+specie 0. È successo con la Testata (`releaseall` prima di `waitstate`,
+dettagli in `field.md`). Il DexNav è protetto perché
+`ScriptContext_SetupScript` blocca i controlli nello stesso fotogramma in cui
+`EndDexNavSearch` spegne il flag.
