@@ -9,6 +9,11 @@ add the section before releasing. Feature details live in the tables of
 ## 2.0.6.PLUS.8
 
 ### Added
+- **Item description box** (from Soulgold): picking up, finding or being
+  given an item now shows its icon and description in a box at the top of the
+  screen, every time, until the "put away in the pocket" message is
+  dismissed. Berries and Apricorns from trees use it too. Long descriptions
+  wrap by width into two lines.
 - **Frostbite** (from Soulgold, from Pokémon Legends: Arceus) replaces
   freezing. A Pokémon hit by an Ice move is no longer locked in place: it
   keeps moving, its special moves do half damage and it loses 1/8 of its HP

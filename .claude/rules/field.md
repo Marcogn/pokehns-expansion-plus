@@ -7,6 +7,7 @@ paths:
   - "src/shop.c"
   - "src/field_effect.c"
   - "src/fldeff_*.c"
+  - "src/overworld.c"
 ---
 
 # Script di campo, MN, negozi, nickname
@@ -32,3 +33,26 @@ paths:
 
 - **Mente**: tutte e 21 già in vendita al negozio di fiori di Goldenrod, dietro
   medaglia 3 e dietro il toggle `MODE_MINTS` del challenge menu.
+
+## Descrizione dell'oggetto ottenuto (`src/overworld.c`, piano `small-features-1` fase 2)
+
+`OW_SHOW_ITEM_DESCRIPTIONS` vale `OW_ITEM_DESCRIPTIONS_ALWAYS`: nessun campo di
+salvataggio (`FIRST_TIME` vorrebbe 113 byte, vedi il piano).
+
+- Comandi `showitemdescription` / `showberrydescription` / `hideitemdescription`:
+  il riquadro è la finestra (1,1) 28x3 tile, l'icona è uno sprite a (26,24).
+  `EventScript_ObtainedItem`, `EventScript_PickUpItem` e
+  `EventScript_PutHiddenItemInPocket` (`obtain_item.inc`), più alberi di bacche
+  e di Ghicocche (`berry_tree.inc`, `apricorn_tree.inc`, `headerType` 1 che
+  scrive in `gStringVar3`).
+- A capo **per pixel**: `StringCopy` + `StripLineBreaks` +
+  `BreakStringAutomatic(196, 2, FONT_SMALL, HIDE_SCROLL_PROMPT)`; il vecchio
+  conteggio di 32 caratteri non limitava le righe. Una riga sola va a y=4.
+- La palette dell'icona ha il tag suo `ITEM_PALETTE_TAG` (`ITEM_TAG |
+  BLEND_IMMUNE_FLAG`); `DestroyItemIconSprite` libera tile e palette con i
+  rispettivi tag. Tile e palette con tag diversi: se se ne cambia uno, va
+  cambiato anche nel `Free*ByTag`.
+- Con grotta buia o Piramide (`GetFlashLevel() > 0 || InBattlePyramid_()`)
+  l'icona si crea due volte (la seconda come finestra OBJ).
+- Un oggetto aggiunto a mano in uno script deve chiamare `hideitemdescription`
+  dopo ogni `showitemdescription`, altrimenti il riquadro resta.

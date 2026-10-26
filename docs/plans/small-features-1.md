@@ -1,6 +1,6 @@
 # Piano: descrizione degli oggetti, Frostbite, AI di Red's Path, documentazione per gli agenti
 
-**Stato (26/10): fase 1 fatta. Prossima: fase 2.**
+**Stato (26/10): fasi 1 e 2 fatte. Prossima: fase 3.**
 
 ## 1. Cosa si fa
 
@@ -221,6 +221,44 @@ ma il debug funziona lo stesso (`Give X`, `Warp to map warp`). Il menu a
 striscia (Start) apre per ultimo il tasto usato; il riquadro Quest/Party/
 Options si raggiunge con Destra. Nelle schermate di debug il cursore si
 azzera a ogni riapertura.
+### 5.2 Fase 2, com'è stata fatta (26/10)
+
+- `OW_SHOW_ITEM_DESCRIPTIONS = OW_ITEM_DESCRIPTIONS_ALWAYS`
+  (`include/config/overworld.h:21`). In `src/overworld.c`: a capo in pixel
+  (`ReformatItemDescription` ora sono 5 righe) e `ITEM_PALETTE_TAG`. Il
+  `RemoveFieldMugshot()` di Soulgold non serve (§3). Tratti e trappole nella
+  regola `field.md`.
+- **Build**: verde, ROM 31 897 108 byte = **95,06 %** (+656 rispetto alla fase 1).
+- **Verifica in emulatore** (ROM strumentata con `debug.inc` Script 7 =
+  `giveitem` di TM13, Pamtre Berry, Potion; ripristinato prima del commit),
+  nuova partita:
+  - regalo (`EventScript_ObtainedItem`): TM13 con la descrizione su due righe,
+    Pamtre Berry (59 caratteri, la più lunga) su due righe dentro il riquadro,
+    Potion su una riga (y=4);
+  - oggetto a terra (`finditem`, Script 2): riquadro con "found one POTION";
+  - **nessuna tile residua**: confronto pixel delle 32 righe in alto prima e
+    dopo una raccolta = **0 pixel diversi**; con il riquadro aperto 7376
+    (controllo che il confronto vede la differenza);
+  - Dark Cave senza Flash (`handleFlash`): icona visibile, riquadro che sparisce,
+    nessun crash;
+  - Safari di Johto Low Mid (11 Pokémon-oggetto, OWE attivi): icona e riquadro
+    ci sono, nessuna schermata blu (un OWE aggressivo ha iniziato una lotta
+    mentre premevo A, normale).
+- **Non provati direttamente** (stesso codice, solo il buffer cambia):
+  oggetto nascosto, albero di bacche (`gStringVar3`), Ghicocca, Flash usato
+  (stesso ramo di "senza Flash"), la prova col `.srm` dell'utente. Su Route 30
+  "Ready map trees" del debug non ha fatto maturare l'albero visto: scegli un
+  albero piantato dal giocatore, o fai uno script strumentato con
+  `showberrydescription`.
+- **Quando camminare in emulatore**: la prima pressione di una freccia gira
+  soltanto, la seconda muove; `k.sh Left 3` fa due passi. Warp di debug a un
+  numero di mappa: il campo "Map" riparte da 0 dopo il gruppo.
+
+**Handoff per la fase 3 (Sonnet 5.5).** Documentazione per gli agenti, nessun
+codice. Ricorda che la regola `field.md` ora ha `src/overworld.c` tra i `paths:`
+(la fase 3 li restringe): tienila stretta. Il piano (§5 fase 3) chiede la
+checklist dei titoletti prima/dopo; fai `grep -c '^#\|\*\*'` delle regole
+oggi, prima di spostare niente.
 
 Le fasi 1, 2 e 3 sono indipendenti: l'ordine è dal più economico da
 verificare al meno, ma si possono scambiare.
