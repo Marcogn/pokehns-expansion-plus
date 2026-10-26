@@ -244,12 +244,22 @@ azzera a ogni riapertura.
   - Safari di Johto Low Mid (11 Pokémon-oggetto, OWE attivi): icona e riquadro
     ci sono, nessuna schermata blu (un OWE aggressivo ha iniziato una lotta
     mentre premevo A, normale).
+- **Col `.srm` dell'utente** (`v2.0.6.plus.4`, 6 medaglie, Pokédex 120,
+  Vileplume): il salvataggio vecchio si carica con la ROM nuova; stessa ROM
+  strumentata nel Safari Low Mid con gli OWE attivi: TM13 e Potion mostrano
+  il riquadro, che sparisce a ogni raccolta, nessuna schermata blu.
 - **Non provati direttamente** (stesso codice, solo il buffer cambia):
-  oggetto nascosto, albero di bacche (`gStringVar3`), Ghicocca, Flash usato
-  (stesso ramo di "senza Flash"), la prova col `.srm` dell'utente. Su Route 30
-  "Ready map trees" del debug non ha fatto maturare l'albero visto: scegli un
-  albero piantato dal giocatore, o fai uno script strumentato con
-  `showberrydescription`.
+  oggetto nascosto (Azalea Town ha un Full Heal a (26,14): non l'ho trovato
+  contando i passi), albero di bacche (`gStringVar3`; due tentativi sul
+  salvataggio dell'utente interrotti da lotte OWE, e "Ready map trees" non
+  fa maturare l'albero di Route 30), Ghicocca (nessuna mappa HnS ha alberi di
+  Ghicocche), Flash usato (stesso ramo di "senza Flash"). Per chiudere:
+  script strumentato con `showberrydescription` / `finditem` su una tessera
+  nota.
+- **Visto di passaggio, non indagato**: sul salvataggio dell'utente, in erba
+  alta, due volte una lotta OWE con riquadro avversario vuoto (nome vuoto, Lv0)
+  e "gained 0 Exp"; subito dopo lotte normali. Non so se è preesistente
+  (non provato sulla ROM di `master`).
 - **Quando camminare in emulatore**: la prima pressione di una freccia gira
   soltanto, la seconda muove; `k.sh Left 3` fa due passi. Warp di debug a un
   numero di mappa: il campo "Map" riparte da 0 dopo il gruppo.
