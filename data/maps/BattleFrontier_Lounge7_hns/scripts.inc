@@ -565,8 +565,8 @@ BattleFrontier_Lounge7_Text_PsychUpDesc_hns::
 
 BattleFrontier_Lounge7_Text_IcePunchDesc_hns::
 	.string "An icy punch\n"
-	.string "that may\n"
-	.string "freeze the foe.$"
+	.string "that may give\n"
+	.string "frostbite.$"
 
 BattleFrontier_Lounge7_Text_ThunderPunchDesc_hns::
 	.string "An electrified\n"

@@ -8,6 +8,22 @@ add the section before releasing. Feature details live in the tables of
 
 ## 2.0.6.PLUS.8
 
+### Added
+- **Frostbite** (from Soulgold, from Pokémon Legends: Arceus) replaces
+  freezing. A Pokémon hit by an Ice move is no longer locked in place: it
+  keeps moving, its special moves do half damage and it loses 1/8 of its HP
+  at the end of every turn (the same as a burn in this game). The "FRB"
+  icon shows in the battle box, the Summary and both party menus; an Ice
+  Heal cures it. A Pokémon already frozen in an old save stays frozen
+  until it thaws. The Ice Punch tutor now says "frostbite".
+
+### Changed
+- **Red's Path Leaders** now fight with the Smart Trainer AI: they switch a
+  Pokémon that is losing the matchup and pick their moves more carefully.
+  The Leaders of the post-game keep their stronger AI.
+- **The TcloneR quest** no longer speaks of several scientists: there is
+  one, and the quest book tells you to find the scientist again.
+
 ### Fixed
 - **TcloneR in story scenes**: a Ball no longer works in a battle that is
   part of a scene (the Mahogany hideout alarm grunts, Silver, the Team Rocket
