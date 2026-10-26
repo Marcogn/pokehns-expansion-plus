@@ -171,6 +171,29 @@ combatti con una copia della squadra avversaria, e "thief" te la lascia dopo.
   `BattleSetup_GetTrainerPostBattleScript` (le due strade, `gotopostbattlescript`
   e `gotobeatenscript`) restituiscono `EventScript_TrainerMonCaught`, che fa solo
   `releaseall; end`. Il flag si azzera all'inizio di ogni lotta con allenatore.
+- **Niente cattura nelle lotte di scena (26/10)**: quel `releaseall; end` va
+  bene per chi ti vede o con cui parli (dopo c'è al massimo la registrazione
+  del numero, i `trainerbattle_single` con event script), ma in una lotta
+  dentro una scena salta il resto: al covo di Mahogany i grunt dell'allarme
+  restavano in mappa e la statua non passava a 2, con Silver e gli admin la
+  storia non avanzava. `IsCutsceneTrainerBattle()` (`battle_util.c`) blocca
+  i modi `SINGLE_NO_INTRO_TEXT`, `TWO_TRAINERS_NO_INTRO` ed `EARLY_RIVAL`,
+  tranne le classi Leader/Leader Kanto/Elite Four/Champion (vanilla e
+  `_HNS`), dove dopo c'è solo il premio e si rifà parlandoci. Scelta
+  dell'utente fra questa regola e "niente cattura contro il Team Rocket":
+  i grunt normali del covo restano catturabili. Censimento per classe dei
+  `trainerbattle_no_intro` (mappe `_hns` e `data/scripts`): 21 Silver,
+  7 grunt, 5 admin/Giovanni, 8 Kimono Girl, Red due volte e Steven, 77
+  capi/Superquattro/Campione, il resto sparso. I `trainerbattle_single` con
+  event script sono tutti registrazioni del numero: lasciati catturabili.
+  Effetto collaterale accettato: anche i quattro allenatori finti della
+  palestra di Fuchsia (no_intro, dopo c'è solo un messaggio) non si clonano più.
+  Verificato in emulatore sul salvataggio dell'utente con una ROM strumentata
+  (script di debug 7 = `trainerbattle_no_intro` con Falkner, 8 = con
+  `TRAINER_GRUNT_17_HNS`, entrambi seguiti da un `msgbox`): sul grunt
+  "Don't be a thief!", Master Ball 20 → 20, vinta la lotta compare il
+  messaggio dopo; su Falkner "Gotcha! PIDGEY was caught!" e lo script
+  finisce come prima, senza il messaggio dopo.
 - Verificato in emulatore: opzione accesa **da PC a partita iniziata**, Master
   Ball su Pidgey di Bird Keeper Rod e di Falkner, Pokédex/esperienza/nickname
   normali, ball consumata (5 → 4), **nessuna medaglia**, Falkner sfida di nuovo;
