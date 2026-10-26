@@ -43,8 +43,15 @@ salvataggio (`FIRST_TIME` vorrebbe 113 byte, vedi il piano).
   il riquadro è la finestra (1,1) 28x3 tile, l'icona è uno sprite a (26,24).
   `EventScript_ObtainedItem`, `EventScript_PickUpItem` e
   `EventScript_PutHiddenItemInPocket` (`obtain_item.inc`), più alberi di bacche
-  e di Ghicocche (`berry_tree.inc`, `apricorn_tree.inc`, `headerType` 1 che
-  scrive in `gStringVar3`).
+  e di Ghicocche (`headerType` 1, che scrive in `gStringVar3`).
+- **Alberi di bacche in HnS**: si compila il ramo `#if IS_HNS` di
+  `berry_tree.inc` (`BerryTree_EventScript_Hns_PickBerry`, raccoglie e
+  ripianta), non quello vanilla. Il riquadro va mostrato **prima** di
+  `ObjectEventInteractionPlantBerryTree`, che richiama `GetBerryTreeData` e
+  rimette in `VAR_0x8006` i dati del nuovo albero. L'id dell'oggetto lo scrive
+  `ObjectEventInteractionPickBerryTree` (ramo HnS): `GetBerryTreeData` ci
+  lascia il **numero** di bacche, che `ScriptShowItemDescription` leggerebbe
+  come id. Nessuna mappa HnS ha alberi di Ghicocche.
 - A capo **per pixel**: `StringCopy` + `StripLineBreaks` +
   `BreakStringAutomatic(196, 2, FONT_SMALL, HIDE_SCROLL_PROMPT)`; il vecchio
   conteggio di 32 caratteri non limitava le righe. Una riga sola va a y=4.
@@ -72,9 +79,9 @@ salvataggio (`FIRST_TIME` vorrebbe 113 byte, vedi il piano).
   un OWE, la lotta parte con l'avversario azzerato ("wild !", Lv0, sviene
   subito). **Regola**: ogni script che crea un selvatico e poi avvia la
   lotta deve tenere i controlli bloccati fino a `waitstate`/`dowildbattle`.
-- Misura (ROM strumentate, salvataggio dell'utente, Route 31, Testata forzata
+- Misura (ROM strumentate, salvataggio dell'utente, Route 43, Testata forzata
   al 100% e spawn OWE forzato): script vecchio, Testata = Pineco, lotta =
   specie 0, 89/89 fotogrammi sbloccati; script nuovo, Exeggcute = Exeggcute,
   0/89; lotta da contatto con un OWE (controllo) 0/89.
-- Gli "alberelli con i puntini rossi" di Route 31 sono alberi da Testata, non
+- Gli "alberelli con i puntini rossi" di Route 43 sono alberi da Testata, non
   alberi di bacche.

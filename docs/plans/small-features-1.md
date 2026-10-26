@@ -248,14 +248,32 @@ azzera a ogni riapertura.
   Vileplume): il salvataggio vecchio si carica con la ROM nuova; stessa ROM
   strumentata nel Safari Low Mid con gli OWE attivi: TM13 e Potion mostrano
   il riquadro, che sparisce a ogni raccolta, nessuna schermata blu.
-- **Non provati direttamente** (stesso codice, solo il buffer cambia):
-  oggetto nascosto (Azalea Town ha un Full Heal a (26,14): non l'ho trovato
-  contando i passi), albero di bacche (`gStringVar3`; due tentativi sul
-  salvataggio dell'utente interrotti da lotte OWE, e "Ready map trees" non
-  fa maturare l'albero di Route 30), Ghicocca (nessuna mappa HnS ha alberi di
-  Ghicocche), Flash usato (stesso ramo di "senza Flash"). Per chiudere:
-  script strumentato con `showberrydescription` / `finditem` su una tessera
-  nota.
+- **Alberi di bacche: in HnS il riquadro non c'era (26/10).** HnS compila
+  il ramo `#if IS_HNS` di `berry_tree.inc` (raccoglie e ripianta subito,
+  `BerryTree_EventScript_Hns_PickBerry`), che **non** chiamava
+  `showberrydescription`/`hideitemdescription`: le chiamate citate al §3
+  sono nel ramo vanilla `#else`. Aggiunte nello script HnS, fra la raccolta e
+  il ripianto (`ObjectEventInteractionPlantBerryTree` richiama
+  `GetBerryTreeData` e ricarica `VAR_0x8006`); l'id dell'oggetto lo scrive
+  `ObjectEventInteractionPickBerryTree` in `VAR_0x8006`, perché lì
+  `GetBerryTreeData` aveva messo il **numero** di bacche. Nel ramo vanilla, e
+  in Soulgold (`berry_tree.inc`, `ScriptShowItemDescription` di SG letti il
+  26/10), `showberrydescription` legge proprio quel numero come id: non visto
+  in gioco, non toccato.
+- **Albero vero, salvataggio dell'utente**: Route 30, warp di debug 0/12/0,
+  albero (23,38): "Mark picked the 5 Oran Berries." con icona e "A hold item
+  that restores 10 HP in battle.", il riquadro sparisce col messaggio,
+  l'albero rinasce germogliato.
+- **Oggetto nascosto vero, salvataggio dell'utente**: flag dei nascosti letti
+  in RAM (`SaveBlock1 + 0x198C`, controllati sulle medaglie: 1-6 accese, 7-8
+  spente), scelto il Potion di New Bark (7,7), flag 637 spento; posizione letta
+  a ogni passo (`SaveBlock1 + 4`, dopo `saveVersion`): da (6,7) verso destra,
+  "Mark found one POTION!" con il riquadro, poi "put away", riquadro sparito.
+  Righe in alto prima/dopo: 41 pixel diversi, tutti in x 130-142 / y 0-4,
+  uno sprite che si muove sul bordo; il riquadro starebbe in x 8-232 / y 8-39.
+- **Ghicocche**: nessuna mappa HnS ha alberi di Ghicocche (grep dei
+  `map.json`), quindi non c'è un caso da provare. Flash usato: stesso ramo
+  di "senza Flash", non provato a parte.
 - **Anomalia del "wild !" Lv0, spiegata e corretta (26/10)**: non era un OWE
   né questa fase, era la **Testata**. Lo script di HnS rilasciava il
   giocatore prima della lotta (`goto` incondizionato prima del `waitstate`,
