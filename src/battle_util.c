@@ -44,6 +44,7 @@
 #include "constants/abilities.h"
 #include "constants/battle_anim.h"
 #include "constants/battle_move_effects.h"
+#include "constants/battle_setup.h"
 #include "constants/battle_script_commands.h"
 #include "constants/battle_string_ids.h"
 #include "constants/items.h"
@@ -10828,6 +10829,40 @@ bool32 IsAllowedToUseBag(void)
     }
 }
 
+// A catch ends the map script right after the battle (EventScript_TrainerMonCaught).
+// Approach/talk battles have nothing after it but the match call sign-up, but a
+// battle fought inside a cutscene (trainerbattle_no_intro and friends) does: the
+// grunt walking off, removeobject, the story var. Cut short, the cutscene is left
+// half-played (Mahogany hideout alarm grunts, Silver, Team Rocket admins).
+// Gym Leaders, Elite Four and Champion are fought the same way, but what follows
+// is only the reward, and talking to them again restarts the battle.
+static bool32 IsCutsceneTrainerBattle(void)
+{
+    switch (TRAINER_BATTLE_PARAM.mode)
+    {
+    case TRAINER_BATTLE_SINGLE_NO_INTRO_TEXT:
+    case TRAINER_BATTLE_TWO_TRAINERS_NO_INTRO:
+    case TRAINER_BATTLE_EARLY_RIVAL:
+        break;
+    default:
+        return FALSE;
+    }
+
+    switch (GetTrainerClassFromId(TRAINER_BATTLE_PARAM.opponentA))
+    {
+    case TRAINER_CLASS_LEADER:
+    case TRAINER_CLASS_ELITE_FOUR:
+    case TRAINER_CLASS_CHAMPION:
+    case TRAINER_CLASS_LEADER_HNS:
+    case TRAINER_CLASS_LEADER_KANTO_HNS:
+    case TRAINER_CLASS_ELITE_FOUR_HNS:
+    case TRAINER_CLASS_CHAMPION_HNS:
+        return FALSE;
+    default:
+        return TRUE;
+    }
+}
+
 // The TcloneR key item (it replaced the TRAINER CATCH option of the challenge
 // menu): carrying it lets a Ball work on a Trainer's Pokemon. Only the ordinary
 // overworld Trainer battles qualify. Facilities, link and recorded battles have their
@@ -10857,6 +10892,8 @@ bool32 CanCatchTrainerMon(void)
         return FALSE;
     // Red's Path is fought with Red's borrowed team: nothing is caught there.
     if (IsRedsPathTrainer(TRAINER_BATTLE_PARAM.opponentA))
+        return FALSE;
+    if (IsCutsceneTrainerBattle())
         return FALSE;
     return TRUE;
 }

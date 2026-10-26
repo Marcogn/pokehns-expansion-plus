@@ -6,6 +6,18 @@ tag `v2.0.6.PLUS.3`) as the release notes, and refuses to run without one:
 add the section before releasing. Feature details live in the tables of
 [`README.md`](README.md).
 
+## 2.0.6.PLUS.8
+
+### Fixed
+- **TcloneR in story scenes**: a Ball no longer works in a battle that is
+  part of a scene (the Mahogany hideout alarm grunts, Silver, the Team Rocket
+  admins, the Kimono Girls, Red and the like). Catching there cut the scene
+  short: the Trainers stayed on the map or walked off into the dark, and the
+  story did not move on. The Trainer knocks the Ball away and it is not used
+  up. Gym Leaders, the Elite Four and the Champion can still be cloned, and
+  so can every Trainer who spots you or that you talk to, Rocket grunts
+  included.
+
 ## 2.0.6.PLUS.7
 
 ### Added
