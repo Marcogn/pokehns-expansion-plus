@@ -463,12 +463,6 @@ static void StripMenu_Destroy(void)
     CpuFastFill(0, GetBgTilemapBuffer(0), BG_SCREEN_SIZE);
     CpuFastFill(0, (void *)BG_CHAR_ADDR(2), STRIP_BG_TILE_COUNT * TILE_SIZE_4BPP);
     ScheduleBgCopyTilemapToVram(0);
-    // The strip took palettes 14 and 15, which are the field's window frame
-    // palettes (STD_WINDOW_PALETTE_NUM, DLG_WINDOW_PALETTE_NUM). Nothing
-    // reloads them before the next std window: the save info window and the
-    // Yes/No box drew their frame in the strip's blue, green and red until the
-    // next map load. Put back what the field loaded.
-    LoadMessageBoxAndBorderGfx();
 
     if (!sStrip->objWinWasOn)
         ClearGpuRegBits(REG_OFFSET_DISPCNT, DISPCNT_OBJWIN_ON);
@@ -477,11 +471,26 @@ static void StripMenu_Destroy(void)
     FREE_AND_SET_NULL(sStrip);
 }
 
+// The strip took palettes 14 and 15, which are the field's window frame
+// palettes (STD_WINDOW_PALETTE_NUM, DLG_WINDOW_PALETTE_NUM), and nothing
+// reloads them before the next std window: the save info window and the
+// Yes/No box drew their frame in the strip's blue, green and red until the
+// next map load. Only where the strip goes back to the field, though: before
+// a screen opens the screen is black, and LoadPalette writes the faded buffer
+// too, so the two palettes came back in full colour for the frames the screen
+// takes to set up (the quest book flashed its half-loaded tiles). The screen
+// loads its own palettes, and the field reloads these when it comes back.
+static void StripMenu_DestroyToField(void)
+{
+    StripMenu_Destroy();
+    LoadMessageBoxAndBorderGfx();
+}
+
 // B: back to the field, as HideStartMenu does for the classic list.
 static void StripMenu_Close(void)
 {
     PlaySE(SE_SELECT);
-    StripMenu_Destroy();
+    StripMenu_DestroyToField();
     StartMenu_OnClose();
     ScriptUnfreezeObjectEvents();
     UnlockPlayerFieldControls();
@@ -780,7 +789,7 @@ static void Task_StripMenu_HandleInput(u8 taskId)
     else if (JOY_NEW(START_BUTTON))
     {
         PlaySE(SE_SELECT);
-        StripMenu_Destroy();
+        StripMenu_DestroyToField();
         DestroyTask(taskId);
         StartMenu_SaveFromStrip();
     }

@@ -64,13 +64,18 @@ paths:
   come faceva l'originale. Palette 14 (fascia) e 15 (testo) sono **le
   palette delle cornici del campo** (`STD_WINDOW_PALETTE_NUM`,
   `DLG_WINDOW_PALETTE_NUM`) e nessuno le ricarica prima della finestra
-  standard dopo: per questo `StripMenu_Destroy` chiama
-  `LoadMessageBoxAndBorderGfx()`. Senza, la finestra di salvataggio e il
-  Sì/No avevano la cornice nei colori della fascia (blu, verde, angoli
-  rossi) fino al cambio di mappa: lo ha visto l'utente confrontando con la
-  2.0.6.PLUS.4, ed era sfuggito perché le prove confrontavano ROM che
-  avevano già la striscia. Una prova di aspetto va fatta contro una ROM
-  **di prima** della feature.
+  standard dopo: senza, salvataggio e Sì/No avevano la cornice nei colori
+  della fascia fino al cambio di mappa (visto dall'utente contro la
+  2.0.6.PLUS.4; sfuggito perché le prove confrontavano ROM che avevano già
+  la striscia: una prova d'aspetto va fatta contro una ROM **di prima**).
+  Le rimette `StripMenu_DestroyToField` (`LoadMessageBoxAndBorderGfx`),
+  **solo** su B e sul salvataggio. Non in `StripMenu_Destroy`: prima di
+  aprire una schermata lo schermo è nero, e `LoadPalette` scrive anche il
+  buffer sfumato, quindi le due palette tornavano a colori pieni per i
+  fotogrammi in cui la schermata si monta. Il quest book mostrava così un
+  fotogramma di tile colorate (segnalato dall'utente su Retroid Pocket 5,
+  riprodotto in mGBA con 40 screenshot di fila: luminosità 0,46 dopo il
+  nero, contro 0 con la correzione).
 - **VRAM degli oggetti**: 6 fogli da 32 tile. Se uno non entra
   (`LoadCompressedSpriteSheet` restituisce **`TAG_NONE`**, non 0) la voce
   resta senza icona ma con etichetta e funziona. Provato con una ROM che fa
