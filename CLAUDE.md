@@ -217,6 +217,12 @@ In `.claude/rules/`, caricate da sole quando apri i file indicati.
 | `strip_menu.md` | menu di pausa a striscia: quando c'è, tasti, salvataggio, VRAM, Flash |
 | `reds_path.md` | Red's Path: capi, squadre di Red, agganci di lotta, aiutanti, scena e premi nelle palestre |
 
+**Skill del repo** (`.claude/skills/`, si chiamano con `/<nome>`):
+`upstream-sync`, `next-phase` (prossima fase di un piano, e se serve il
+`.srm`), `new-plan` (piano a fasi con modello per fase), `add-quest`,
+`doc-sync` (documentazione in pari con l'ultimo commit), `new-issue`,
+`pr-review` (review di una PR pronta, con i controlli di questo repo).
+
 Fuori dalle regole, da leggere quando serve: `docs/claude/emulator.md`,
 `docs/SOULGOLD_PORT_REPORT.md`. I piani in `docs/plans/` contengono le
 decisioni; **`docs/analysis/` è l'archivio delle ricerche da cui vengono**:
