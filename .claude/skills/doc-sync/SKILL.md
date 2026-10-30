@@ -30,6 +30,7 @@ answer is about that one.
 | new rule + CLAUDE.md §7 | a new area with no rule | rule with `paths:` front matter, row in the §7 table (rules are grouped by area there) |
 | `docs/plans/<plan>.md` | the session did a phase of a plan | "Fase N, com'è stata fatta" + handoff, status line at the top |
 | `docs/SOULGOLD_PORT_REPORT.md` | anything ported from Soulgold (or explicitly not SG) | row added / updated (CLAUDE.md §6: "tienilo in pari a ogni port") |
+| `docs/SUMMARY.md` | a new `docs/**/*.md` file | listed there (CI `docs_validate`; run `python3 .github/docs_validate/inclusive_summary.py`) |
 | `README.md` | a new player-facing feature | its row in the feature tables |
 | `.claude/rules/save.md` | `SAVE_VERSION` or SaveBlock layout changed | the block map in the rule (offset, size, version) updated; the story of the new version and how it was verified goes in `docs/claude/save-history.md` |
 | `CLAUDE.md` | only general lessons valid everywhere | area notes go in the rule, not here (CLAUDE.md, top) |

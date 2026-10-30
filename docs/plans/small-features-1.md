@@ -373,6 +373,7 @@ cambiata. Aggiornate `doc-sync` (la storia di una `SAVE_VERSION` va in
 `save-history.md`, il diario non va nella regola, tabella §7 raggruppata) e
 `next-phase` (passo 5.2). I "§7bis" nei piani vecchi sono storia, non rimandi.
 `docs/claude/emulator.md` ora contiene la ricetta GDB (era nella regola degli OWE).
+**CI `docs_validate`**: ogni `docs/**/*.md` deve stare in `docs/SUMMARY.md`; le tre `*-history.md` nuove ci sono state aggiunte dopo il primo giro rosso (`python3 .github/docs_validate/inclusive_summary.py` in locale).
 
 **Handoff per la fase 4 (Opus 5.5).** Revisione finale: `/code-review` a medium
 su tutto il diff del piano. Il diff della fase 3 è solo documentazione. Punti
