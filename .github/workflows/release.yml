@@ -9,6 +9,10 @@ name: Release
 # - Actions -> Release -> Run workflow: pick the branch, type the version.
 #   The tag is created by the release itself, on the commit that was built.
 # - push a tag v*: the tag name is the version.
+#
+# After publishing, the last step wipes the run history: every run of the
+# other workflows is deleted except the latest of each, and all Release runs
+# are kept. Nothing else cleans up, so this is the only place it happens.
 on:
   workflow_dispatch:
     inputs:
@@ -22,6 +26,8 @@ on:
 
 permissions:
   contents: write
+  # Only to delete old workflow runs in the last step.
+  actions: write
 
 jobs:
   release:
@@ -95,3 +101,27 @@ jobs:
           # then how to apply the patch) is prepended to it.
           gh release create "$TAG" "$PATCH" --target "$GITHUB_SHA" --title "$TAG" \
             --notes-file notes.md --generate-notes
+
+      - name: Prune old workflow runs
+        # Last on purpose: it only runs when the release was published. A
+        # failure here must not turn a published release red.
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh api --paginate "repos/$GITHUB_REPOSITORY/actions/runs?per_page=100" \
+            | jq -s -r '
+                [.[].workflow_runs[]] as $runs
+                # latest run id of every workflow
+                | ($runs | group_by(.workflow_id)
+                         | map(max_by(.created_at).id)) as $latest
+                | $runs[]
+                | select(.path != ".github/workflows/release.yml")
+                | select(.status == "completed")
+                | select(.id as $i | $latest | index($i) | not)
+                | .id' > stale.txt
+          echo "Deleting $(wc -l < stale.txt) runs"
+          while read -r id; do
+            gh api -X DELETE "repos/$GITHUB_REPOSITORY/actions/runs/$id" --silent \
+              || echo "could not delete $id"
+          done < stale.txt
