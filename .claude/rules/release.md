@@ -27,3 +27,9 @@ ridispone quasi tutta la ROM. Misurato sulla build di `668cfc6d`: `.bps` di
 **18,4 MB**, 17,2 zippata, cioè quanto la ROM zippata. La patch esce identica
 byte per byte rilanciando lo script, ed è stata verificata anche con un
 applicatore BPS scritto a parte, non solo con Flips che l'ha creata.
+
+**Pulizia dei run (ultimo step del workflow).** Dopo la pubblicazione, `release.yml`
+cancella tutti i run di Actions tranne: quelli di Release e l'ultimo di ogni altro
+workflow (build, docs, labels). Solo a release fatta, mai nei run normali; è
+`continue-on-error` perché non deve rendere rossa una release già pubblicata. Serve
+`actions: write`. I run in corso non si possono cancellare e vengono saltati.
