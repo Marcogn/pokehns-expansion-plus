@@ -11,6 +11,7 @@
 #include "frontier_pass.h"
 #include "overworld.h"
 #include "menu.h"
+#include "text_window.h"
 #include "text.h"
 #include "event_data.h"
 #include "easy_chat.h"
@@ -976,7 +977,11 @@ static void InitBgsAndWindows(void)
     ChangeBgY(3, 0, BG_COORD_SET);
     InitWindows(sTrainerCardWindowTemplates);
     DeactivateAllTextPrinters();
-    LoadMessageBoxAndBorderGfx();
+    // Not LoadMessageBoxAndBorderGfx: the card prints its text with palette 15
+    // straight onto the light card art, so it keeps the light palette even
+    // with the dark UI on.
+    LoadMessageBoxGfx(0, DLG_WINDOW_BASE_TILE_NUM, BG_PLTT_ID(DLG_WINDOW_PALETTE_NUM));
+    LoadUserWindowBorderGfx(0, STD_WINDOW_BASE_TILE_NUM, BG_PLTT_ID(STD_WINDOW_PALETTE_NUM));
 }
 
 static void SetTrainerCardCb2(void)

@@ -87,13 +87,19 @@ Tre trappole trovate scrivendolo:
 - **Schermate che ereditano la pal 15 del campo.** Il menu acquisti del negozio
   non carica la pal 15 e stampava l'elenco con quella lasciata dal campo, cioè
   il box dei messaggi: col tema scuro diventava testo chiaro su pannello chiaro.
-  Ora ricarica la palette chiara. Altri candidati dello stesso tipo (finestre
-  con `paletteNum = 15` in file che non la caricano): `dexnav.c`,
-  `region_map.c`, `egg_hatch.c`, `daycare.c`, `field_specials.c`; DexNav e
-  sovrapposizioni sul campo sono state viste in emulatore e vanno.
-- Nel summary la entry 8 della pal 6 è un **colore del testo**, non un'ombra
-  (`{COLOR}{08}` per la statistica abbassata e la natura fra parentesi):
-  scurirla l'aveva resa illeggibile.
+  Ora ricarica la palette chiara, e così fanno mappa del Volo
+  (`region_map.c`), mappa della città (`field_region_map.c`) e il Sì/No della
+  schiusa (`egg_hatch.c`), trovati dalla review della PR #50: lì la cornice
+  restava chiara attorno a un interno scuro. La Trainer Card chiamava
+  `LoadMessageBoxAndBorderGfx` e stampava il testo chiaro sulla card chiara:
+  ora carica le due metà senza scurirle. Regola: **una schermata che non
+  diventa scura e usa la pal 15 senza caricarla deve ricaricare quella
+  chiara**. Candidati ancora non visti: `daycare.c`, `field_specials.c`
+  (sovrapposizioni sul campo, quindi scure con cornice scura: coerenti).
+- Nel summary la entry 8 della pal 6 è **sia** un colore del testo
+  (`{COLOR}{08}`: statistica abbassata, natura fra parentesi) **sia** l'ombra
+  del glifo 7 (simbolo ♂). Scurirla rendeva illeggibile il testo, schiarirla
+  cancellava l'ombra del ♂: resta il valore originale, che va per entrambi.
 
 Restano chiari, coerenti come prima: PC dei box (pal 15 sua,
 `text_windows.gbapal`, e cornice ricaricata in più punti), Pokédex, schermata

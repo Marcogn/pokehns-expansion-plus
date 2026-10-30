@@ -2422,6 +2422,9 @@ void CB2_OpenFlyMap(void)
         break;
     case 3:
         LoadUserWindowBorderGfx(0, 0x65, BG_PLTT_ID(13));
+        // Palette 15 is never loaded here and comes from the field, dark with
+        // the dark UI; this screen is not darkened, so it gets the light one.
+        LoadPalette(GetOverworldTextboxPalettePtr(), BG_PLTT_ID(15), PLTT_SIZE_4BPP);
         ClearScheduledBgCopiesToVram();
         gMain.state++;
         break;

@@ -1587,9 +1587,11 @@ static void InitBGs(void)
 //    prompt, 6, 7 and 9 around the page dots.
 //  - Palettes 6 and 7 are the text: 1/2 is the default dark-on-light pair,
 //    which becomes light on dark, and 5/6 the red text, whose light shadow
-//    would glow on a dark panel. Palette 6 entry 8 is a glyph, not a shadow:
-//    the lowered stat and the nature in brackets print with {COLOR}{08}, so
-//    it is brightened instead.
+//    would glow on a dark panel. Palette 6 entry 8 stays as it is: it is the
+//    glyph of the lowered stat and of the nature in brackets ({COLOR}{08}),
+//    and the shadow of the blue glyph 7 (the male symbol), and its original
+//    mid blue works as both on a dark panel, where darkening it made the
+//    glyph unreadable and brightening it lost the male symbol's shadow.
 // ---------------------------------------------------------------------------
 
 struct DarkSummaryEntry
@@ -1639,7 +1641,6 @@ static const struct DarkSummaryEntry sDarkSummaryColors[] =
     { SUMMARY_PAL(6, 2),  RGB(3, 3, 3)      },  // was RGB(26, 26, 25)
     { SUMMARY_PAL(6, 5),  RGB(31, 10, 10)   },  // was RGB(28, 1, 1)
     { SUMMARY_PAL(6, 6),  RGB(10, 2, 2)     },  // was RGB(31, 23, 14)
-    { SUMMARY_PAL(6, 8),  RGB(10, 22, 31)   },  // was RGB(0, 17, 23)
     { SUMMARY_PAL(7, 1),  RGB(28, 28, 28)   },  // was RGB(0, 0, 0)
     { SUMMARY_PAL(7, 2),  RGB(3, 3, 3)      },  // was RGB(26, 26, 25)
     { SUMMARY_PAL(7, 5),  RGB(31, 10, 10)   },  // was RGB(28, 1, 1)

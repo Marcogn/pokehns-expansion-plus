@@ -105,14 +105,6 @@ static void ApplyDarkBattleUiPalettes(void)
     LoadPalette(sDarkBattleCursorPalette, BG_PLTT_ID(BATTLE_COMMAND_PAL_NUM), PLTT_SIZE_4BPP);
 }
 
-// The move description window draws its frame with the standard window palette
-// rather than with the battle ones, so it is darkened at its own call site.
-void LoadDarkBattleStdWindowPalette(void)
-{
-    if (IsDarkUiEnabled())
-        LoadPalette(&sDarkBattleUiBgColor, BG_PLTT_ID(STD_WINDOW_PALETTE_NUM) + USER_WINDOW_FRAME_FILL_PAL_INDEX, PLTT_SIZEOF(1));
-}
-
 static const struct OamData sVsLetter_V_OamData =
 {
     .y = 0,
