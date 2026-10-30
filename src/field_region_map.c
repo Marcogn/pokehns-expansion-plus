@@ -122,8 +122,8 @@ static void MCB2_InitRegionMapRegisters(void)
     InitWindows(sFieldRegionMapWindowTemplates);
     DeactivateAllTextPrinters();
     LoadUserWindowBorderGfx(0, 0x27, BG_PLTT_ID(13));
-    // Palette 15 is never loaded here and comes from the field or the Bag,
-    // dark with the dark UI; this screen is not darkened, so it gets the light one.
+    // Palette 15 is otherwise whatever the previous screen (field, Bag) left,
+    // dark with the dark UI; this screen stays light.
     LoadPalette(GetOverworldTextboxPalettePtr(), BG_PLTT_ID(15), PLTT_SIZE_4BPP);
     ClearScheduledBgCopiesToVram();
     SetMainCallback2(MCB2_FieldUpdateRegionMap);

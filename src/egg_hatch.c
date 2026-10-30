@@ -730,12 +730,13 @@ static void CB2_EggHatch(void)
         if (!IsTextPrinterActiveOnWindow(sEggHatchData->windowId))
         {
             LoadUserWindowBorderGfx(sEggHatchData->windowId, 0x140, BG_PLTT_ID(14));
-            // The Yes/No box is printed with palette 15, inherited from the
-            // field and dark with the dark UI, while this screen's message box
-            // stays light: give the box the light palette it was drawn for.
-            LoadPalette(GetOverworldTextboxPalettePtr(), BG_PLTT_ID(15), PLTT_SIZE_4BPP);
             if (!IsNuzlockeNicknamingActive())
+            {
+                // The Yes/No box prints with palette 15, inherited from the
+                // field (dark with the dark UI); this screen stays light.
+                LoadPalette(GetOverworldTextboxPalettePtr(), BG_PLTT_ID(15), PLTT_SIZE_4BPP);
                 CreateYesNoMenu(&sYesNoWinTemplate, 0x140, 0xE, 0);
+            }
             sEggHatchData->state++;
         }
         break;

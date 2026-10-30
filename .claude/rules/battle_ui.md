@@ -103,7 +103,10 @@ Tre trappole trovate scrivendolo:
 
 Restano chiari, coerenti come prima: PC dei box (pal 15 sua,
 `text_windows.gbapal`, e cornice ricaricata in più punti), Pokédex, schermata
-DexNav, opzioni, menu acquisti.
+DexNav, opzioni, menu acquisti, Trainer Card (anche il suo box messaggi nei
+link), mappa del Volo, mappa della città, schiusa delle uova. Il modo di
+tenerle chiare è l'idioma che il repo usa già (`pokedex.c`, `mail.c`):
+`LoadPalette(GetOverworldTextboxPalettePtr(), BG_PLTT_ID(15), ...)`.
 
 ## Icone dei tipi in lotta
 

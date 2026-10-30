@@ -14,7 +14,8 @@ add the section before releasing. Feature details live in the tables of
   prompt, the bag's own menus), the Summary (all four pages, move details
   included) and the party screen (the whole SwSh screen, the menus of the
   classic one). Each Summary page keeps its own colour, darker. The shop's
-  buy list, the PC boxes, the Pokédex and the DexNav screen stay as they
+  buy list, the PC boxes, the Pokédex, the DexNav screen, the Trainer Card,
+  the Fly map and Town Map and the screen of an egg hatching stay as they
   were. In Soulgold the same option only darkens battle and the bag: the
   rest was built for this fork.
 

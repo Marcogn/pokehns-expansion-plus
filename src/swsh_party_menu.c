@@ -3568,10 +3568,7 @@ static void LoadPartyBoxPalette(struct PartyMenuBox *menuBox, u8 palFlags)
             LOAD_PARTY_BOX_PAL(sPartyBoxCurrSelectionMultiPalIds, sPartyBoxPalOffsets1);
             LOAD_PARTY_BOX_PAL(sPartyBoxCurrSelectionPalIds2, sPartyBoxPalOffsets2);
             // Same dark fill as the plain selected slot, so the same light text.
-            if (IsDarkUiEnabled())
-                LOAD_PARTY_TEXT_PAL(sPartyBoxEmptySlotPalIds3, sPartyBoxPalOffsets3)
-            else
-                LOAD_PARTY_TEXT_PAL(sPartyBoxCurrSelectionMultiPalIds3, sPartyBoxPalOffsets3)
+            LOAD_PARTY_TEXT_PAL((IsDarkUiEnabled() ? sPartyBoxEmptySlotPalIds3 : sPartyBoxCurrSelectionMultiPalIds3), sPartyBoxPalOffsets3);
         }
         else
         {
@@ -3585,10 +3582,7 @@ static void LoadPartyBoxPalette(struct PartyMenuBox *menuBox, u8 palFlags)
         LOAD_PARTY_BOX_PAL(sPartyBoxCurrSelectionPalIds1, sPartyBoxPalOffsets1);
         LOAD_PARTY_BOX_PAL(sPartyBoxCurrSelectionPalIds2, sPartyBoxPalOffsets2);
         // The dark selected slot keeps the unselected slot's light text.
-        if (IsDarkUiEnabled())
-            LOAD_PARTY_TEXT_PAL(sPartyBoxEmptySlotPalIds3, sPartyBoxPalOffsets3)
-        else
-            LOAD_PARTY_TEXT_PAL(sPartyBoxCurrSelectionPalIds3, sPartyBoxPalOffsets3)
+        LOAD_PARTY_TEXT_PAL((IsDarkUiEnabled() ? sPartyBoxEmptySlotPalIds3 : sPartyBoxCurrSelectionPalIds3), sPartyBoxPalOffsets3);
     }
     else
     {
