@@ -14,10 +14,6 @@
 #define BATTLE_WINDOW_DARK_FG_PAL_INDEX 14
 #define BATTLE_WINDOW_DARK_SHADOW_PAL_INDEX 13
 
-// Every one of the 20 window frames in graphics/text_window/ fills its interior
-// with entry 14, and in every one of them that entry is pure white.
-#define USER_WINDOW_FRAME_FILL_PAL_INDEX 14
-
 struct BattleBackground
 {
     const void *tileset;
@@ -39,6 +35,5 @@ void InitLinkBattleVsScreen(u8 taskId);
 void DrawBattleEntryBackground(void);
 bool8 LoadChosenBattleElement(u8 caseId);
 void DrawTerrainTypeBattleBackground(void);
-void LoadDarkBattleStdWindowPalette(void);
 
 #endif // GUARD_BATTLE_BG_H

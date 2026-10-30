@@ -1496,6 +1496,11 @@ static void BuyMenuInitWindows(void)
 
     moneyWindowId = (sMartInfo.martType == MART_TYPE_KURT) ? WIN_BERRIES : WIN_MONEY;
 
+    // The buy menu never loaded palette 15 and printed with whatever the field
+    // left there, the message box palette. With the dark UI that palette is
+    // dark, and the item list is printed straight onto the light shop panel,
+    // so the buy menu gets back the light one it was drawn for.
+    LoadPalette(GetOverworldTextboxPalettePtr(), BG_PLTT_ID(15), PLTT_SIZE_4BPP);
     LoadUserWindowBorderGfx(moneyWindowId, 1, BG_PLTT_ID(13));
     LoadMessageBoxGfx(moneyWindowId, 0xA, BG_PLTT_ID(14));
     PutWindowTilemap(moneyWindowId);

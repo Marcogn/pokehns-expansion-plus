@@ -1775,7 +1775,6 @@ static void MoveSelectionDisplayMoveDescription(enum BattlerId battler)
     u8 pwr_start[] = _("{CLEAR_TO 0x38}");
     u8 acc_start[] = _("{CLEAR_TO 0x6C}");
     LoadMessageBoxAndBorderGfx();
-    LoadDarkBattleStdWindowPalette();
     DrawStdWindowFrame(B_WIN_MOVE_DESCRIPTION, FALSE);
     if (pwr < 2)
         StringCopy(pwr_num, gText_BattleSwitchWhich5);

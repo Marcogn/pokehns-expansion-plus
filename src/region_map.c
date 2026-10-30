@@ -2422,6 +2422,9 @@ void CB2_OpenFlyMap(void)
         break;
     case 3:
         LoadUserWindowBorderGfx(0, 0x65, BG_PLTT_ID(13));
+        // Palette 15 is otherwise whatever the previous screen (field, party
+        // menu, debug menu) left, dark with the dark UI; this screen stays light.
+        LoadPalette(GetOverworldTextboxPalettePtr(), BG_PLTT_ID(15), PLTT_SIZE_4BPP);
         ClearScheduledBgCopiesToVram();
         gMain.state++;
         break;

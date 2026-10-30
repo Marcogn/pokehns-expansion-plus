@@ -7,6 +7,12 @@ paths:
   - "graphics/battle_interface/**"
   - "graphics/types/**"
   - "graphics/text_window/**"
+  - "src/text_window.c"
+  - "src/menu.c"
+  - "src/pokemon_summary_screen.c"
+  - "src/swsh_party_menu.c"
+  - "src/party_menu.c"
+  - "src/shop.c"
 ---
 
 # UI di lotta: palette, tema scuro, icone dei tipi
@@ -52,6 +58,55 @@ sprite ha stato per-sprite che possa restare sbagliato dopo un cambio.
 scavalcano il colore scelto da `BattlePutTextOnWindow`. In Soulgold quelle stringhe
 sono testo puro. Se una finestra resta chiara pur essendo nella lista di
 `IsDarkBattleCommandWindow`, guarda prima la stringa.
+
+## Tema scuro fuori dalla lotta
+
+**Non viene da Soulgold.** In SG 1.2.1 l'opzione copre solo lotta e borsa: lo
+si è verificato compilando SG e provandolo in mGBA, con il tema scuro attivo
+summary, dialoghi, menu di pausa e squadra SwSh restano chiari, e il summary
+differisce di **0 pixel** fra le due impostazioni (sembra scuro perché la sua
+grafica è disegnata così). Se qualcuno dice "in SG è scuro", controlla prima
+quale opzione e quale schermata.
+
+| Cosa | Dove | Note |
+| --- | --- | --- |
+| Box dei messaggi, cornici, Sì/No, scelte, salvataggio, menu debug | `ApplyDarkUi*Palette` in `text_window.c`, chiamate da `LoadMessageBoxAndBorderGfx`, `LoadSignPostWindowFrameGfx`, `LoadMessageBoxAndFrameGfx` (`menu.c`) | testo 1/2/3 e coppie colore 4/5, 6/7, 8/9; box 11/12; cartello 11; cornice entry 14 |
+| Menu della borsa | `LoadBagMenuTextWindows` (`item_menu.c`) | cornice pal 14, box pal 13, testo pal 15 |
+| Menu e messaggi della squadra (entrambe le varianti) | dopo il caricamento di pal 13/14/15 | |
+| Schermata squadra SwSh | `ApplyDarkPartyMenuColors` (`swsh_party_menu.c`) | sfondo = solo pal 0; testo pannello destro pal 1 (12/7); riquadri da `palBuffer` (selezionato pal 6, scelto per Switch pal 10) |
+| Summary | `LoadDarkSummaryPalettes` (`pokemon_summary_screen.c`, solo `IS_HNS`) | pagine pal 0..3 stesso schema (5 pannello, 12 pannello colorato, 13 bordo, 14/15 cornice e fondo), pal 4 barra in alto, pal 6/7 testo, pal 8 PP = `gDarkPPTextPalette` della lotta |
+
+Tre trappole trovate scrivendolo:
+
+- **Una box è la cornice di una palette attorno a una finestra stampata con
+  un'altra.** Scurire tutti i caricamenti della cornice
+  (`LoadUserWindowBorderGfx`) lasciava nella borsa un anello scuro attorno a un
+  menu bianco, perché il suo testo usa `gStandardMenuPalette` su pal 15. Per
+  questo i caricatori semplici restano neutri e lo scuro lo applica chi carica
+  **entrambe** le metà.
+- **Schermate che ereditano la pal 15 del campo.** Il menu acquisti del negozio
+  non carica la pal 15 e stampava l'elenco con quella lasciata dal campo, cioè
+  il box dei messaggi: col tema scuro diventava testo chiaro su pannello chiaro.
+  Ora ricarica la palette chiara, e così fanno mappa del Volo
+  (`region_map.c`), mappa della città (`field_region_map.c`) e il Sì/No della
+  schiusa (`egg_hatch.c`), trovati dalla review della PR #50: lì la cornice
+  restava chiara attorno a un interno scuro. La Trainer Card chiamava
+  `LoadMessageBoxAndBorderGfx` e stampava il testo chiaro sulla card chiara:
+  ora carica le due metà senza scurirle. Regola: **una schermata che non
+  diventa scura e usa la pal 15 senza caricarla deve ricaricare quella
+  chiara**. Candidati ancora non visti: `daycare.c`, `field_specials.c`
+  (sovrapposizioni sul campo, quindi scure con cornice scura: coerenti).
+- Nel summary la entry 8 della pal 6 è **sia** un colore del testo
+  (`{COLOR}{08}`: statistica abbassata, natura fra parentesi) **sia** l'ombra
+  del glifo 7 (simbolo ♂). Scurirla rendeva illeggibile il testo, schiarirla
+  cancellava l'ombra del ♂: resta il valore originale, che va per entrambi.
+
+Restano chiari, coerenti come prima: PC dei box (pal 15 sua,
+`text_windows.gbapal`, e cornice ricaricata in più punti), Pokédex, schermata
+DexNav, opzioni, menu acquisti, Trainer Card (anche il suo box messaggi nei
+link), mappa del Volo, mappa della città, schiusa delle uova. Il modo di
+tenerle chiare è l'idioma che il repo usa già (`pokedex.c`, `mail.c`):
+`LoadPalette(GetOverworldTextboxPalettePtr(), BG_PLTT_ID(15), ...)`.
 
 ## Icone dei tipi in lotta
 

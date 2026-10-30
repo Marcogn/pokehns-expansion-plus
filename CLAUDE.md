@@ -123,6 +123,9 @@ opzioni.
 Mappa completa (quale palette, quale entry, quali stringhe hanno colori
 incorporati) in `.claude/rules/battle_ui.md`. Accessore unico:
 `IsDarkUiEnabled()` (`include/option_menu.h`).
+Copre lotta, borsa, dialoghi e menu, summary e squadra. In SG l'opzione
+copre solo lotta e borsa: il resto non è un port, i valori vengono dalla
+grafica di questo repo.
 
 ---
 

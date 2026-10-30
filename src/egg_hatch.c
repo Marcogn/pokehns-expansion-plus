@@ -731,7 +731,12 @@ static void CB2_EggHatch(void)
         {
             LoadUserWindowBorderGfx(sEggHatchData->windowId, 0x140, BG_PLTT_ID(14));
             if (!IsNuzlockeNicknamingActive())
+            {
+                // The Yes/No box prints with palette 15, inherited from the
+                // field (dark with the dark UI); this screen stays light.
+                LoadPalette(GetOverworldTextboxPalettePtr(), BG_PLTT_ID(15), PLTT_SIZE_4BPP);
                 CreateYesNoMenu(&sYesNoWinTemplate, 0x140, 0xE, 0);
+            }
             sEggHatchData->state++;
         }
         break;

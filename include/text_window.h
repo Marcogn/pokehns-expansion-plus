@@ -3,6 +3,13 @@
 
 #define WINDOW_FRAMES_COUNT 20
 
+// Every one of the 20 window frames in graphics/text_window/ fills its interior
+// with entry 14, and in every one of them that entry is pure white.
+#define USER_WINDOW_FRAME_FILL_PAL_INDEX 14
+
+// Background of every dark UI box, in battle and out of it.
+#define DARK_UI_BG_COLOR RGB(5, 5, 5)
+
 struct TilesPal
 {
     const u8 *tiles;
@@ -26,6 +33,10 @@ void rbox_fill_rectangle(u8 windowId);
 const u16 *GetTextWindowPalette(u8 id);
 const u16 *GetOverworldTextboxPalettePtr(void);
 void LoadSignPostWindowFrameGfx(void);
+void ApplyDarkUiTextPalette(u16 palOffset);
+void ApplyDarkUiMessageBoxPalette(u16 palOffset);
+void ApplyDarkUiSignpostPalette(u16 palOffset);
+void ApplyDarkUiWindowFramePalette(u16 palOffset);
 void LoadDexNavWindowGfx(u8 windowId, u16 destOffset, u8 palOffset);
 
 #endif // GUARD_TEXT_WINDOW_H

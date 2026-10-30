@@ -6,6 +6,19 @@ tag `v2.0.6.PLUS.3`) as the release notes, and refuses to run without one:
 add the section before releasing. Feature details live in the tables of
 [`README.md`](README.md).
 
+## 2.0.6.PLUS.9
+
+### Changed
+- **Dark UI** now covers much more than battle and the bag: the messages
+  and menus outside battle (dialogue, signposts, yes/no, choices, the save
+  prompt, the bag's own menus), the Summary (all four pages, move details
+  included) and the party screen (the whole SwSh screen, the menus of the
+  classic one). Each Summary page keeps its own colour, darker. The shop's
+  buy list, the PC boxes, the Pokédex, the DexNav screen, the Trainer Card,
+  the Fly map and Town Map and the screen of an egg hatching stay as they
+  were. In Soulgold the same option only darkens battle and the bag: the
+  rest was built for this fork.
+
 ## 2.0.6.PLUS.8
 
 ### Added

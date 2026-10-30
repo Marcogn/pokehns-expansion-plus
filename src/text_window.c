@@ -6,6 +6,8 @@
 #include "bg.h"
 #include "graphics.h"
 #include "menu.h"
+#include "option_menu.h"
+#include "constants/rgb.h"
 
 static const u16 sStdTextWindow_Gfx[]  = INCBIN_U16("graphics/text_window/std.4bpp");
 
@@ -94,6 +96,103 @@ const struct TilesPal *GetWindowFrameTilesPal(u8 id)
         return &sWindowFrames[0];
     else
         return &sWindowFrames[id];
+}
+
+// ---------------------------------------------------------------------------
+// Dark UI: dialogue boxes, signposts and menu windows
+//
+// Soulgold has nothing to take here: its dark option only covers battle and
+// the Bag, and its message box stays white either way. The values are derived
+// from HnS's own files instead, with the background shared with the dark
+// battle UI so the two look like one theme.
+//
+//  - Text is printed with entries 1 (background), 2 (glyph) and 3 (shadow);
+//    the coloured placeholders use the glyph/shadow pairs 4/5, 6/7 and 8/9.
+//    On a dark background the glyph has to be the light half of each pair and
+//    the shadow the dark half, so the pairs are re-picked, not swapped.
+//  - hns/message_box.4bpp paints the tile behind the text (tile 9) with entry
+//    12 and its inner bevel with entry 11; 13 and 14 are the outer border,
+//    dark already, and stay as they are.
+//  - signpost.4bpp, drawn with text_pal1, uses entry 1 for its interior, 11
+//    for the inner bevel and 15 for the outline.
+//  - The 20 user frames all fill their interior from entry 14 (see
+//    USER_WINDOW_FRAME_FILL_PAL_INDEX).
+//
+// None of this is applied by the plain loaders above: a box is the frame of
+// one palette around a window printed with another, and the two only go dark
+// together. Darkening every frame load left screens such as the Bag with a
+// dark ring around a white menu, so each caller that loads both halves applies
+// both (see LoadMessageBoxAndBorderGfx in menu.c).
+// ---------------------------------------------------------------------------
+
+struct DarkTextboxEntry
+{
+    u8 index;
+    u16 color;
+};
+
+static const struct DarkTextboxEntry sDarkTextColors[] =
+{
+    { TEXT_COLOR_WHITE,       DARK_UI_BG_COLOR },  // was RGB(31, 31, 31)
+    { TEXT_COLOR_DARK_GRAY,   RGB(28, 28, 28)  },  // was RGB(12, 12, 12)
+    { TEXT_COLOR_LIGHT_GRAY,  RGB(1, 1, 1)     },  // was RGB(26, 26, 25)
+    { TEXT_COLOR_RED,         RGB(31, 12, 12)  },  // was RGB(28, 1, 1)
+    { TEXT_COLOR_LIGHT_RED,   RGB(10, 2, 2)    },  // was RGB(31, 23, 14)
+    { TEXT_COLOR_GREEN,       RGB(14, 29, 10)  },  // was RGB(4, 19, 1)
+    { TEXT_COLOR_LIGHT_GREEN, RGB(2, 9, 1)     },  // was RGB(18, 30, 18)
+    { TEXT_COLOR_BLUE,        RGB(15, 20, 31)  },  // was RGB(6, 10, 25)
+    { TEXT_COLOR_LIGHT_BLUE,  RGB(3, 5, 14)    },  // was RGB(20, 24, 30)
+};
+
+static const struct DarkTextboxEntry sDarkMessageBoxColors[] =
+{
+    { 11, RGB(10, 10, 11)   },  // inner bevel, was RGB(28, 29, 28)
+    { 12, DARK_UI_BG_COLOR  },  // behind the text, was RGB(31, 31, 31)
+};
+
+static const struct DarkTextboxEntry sDarkSignpostColors[] =
+{
+    { 11, RGB(10, 10, 12)   },  // inner bevel, was RGB(25, 25, 27)
+};
+
+static const u16 sDarkUiBgColor = DARK_UI_BG_COLOR;
+
+static void LoadDarkEntries(const struct DarkTextboxEntry *entries, u32 count, u16 palOffset)
+{
+    u32 i;
+
+    for (i = 0; i < count; i++)
+        LoadPalette(&entries[i].color, palOffset + entries[i].index, PLTT_SIZEOF(1));
+}
+
+void ApplyDarkUiTextPalette(u16 palOffset)
+{
+    if (IsDarkUiEnabled())
+        LoadDarkEntries(sDarkTextColors, ARRAY_COUNT(sDarkTextColors), palOffset);
+}
+
+void ApplyDarkUiMessageBoxPalette(u16 palOffset)
+{
+    if (IsDarkUiEnabled())
+    {
+        LoadDarkEntries(sDarkTextColors, ARRAY_COUNT(sDarkTextColors), palOffset);
+        LoadDarkEntries(sDarkMessageBoxColors, ARRAY_COUNT(sDarkMessageBoxColors), palOffset);
+    }
+}
+
+void ApplyDarkUiSignpostPalette(u16 palOffset)
+{
+    if (IsDarkUiEnabled())
+    {
+        LoadDarkEntries(sDarkTextColors, ARRAY_COUNT(sDarkTextColors), palOffset);
+        LoadDarkEntries(sDarkSignpostColors, ARRAY_COUNT(sDarkSignpostColors), palOffset);
+    }
+}
+
+void ApplyDarkUiWindowFramePalette(u16 palOffset)
+{
+    if (IsDarkUiEnabled())
+        LoadPalette(&sDarkUiBgColor, palOffset + USER_WINDOW_FRAME_FILL_PAL_INDEX, PLTT_SIZEOF(1));
 }
 
 void LoadMessageBoxGfx(u8 windowId, u16 destOffset, u8 palOffset)

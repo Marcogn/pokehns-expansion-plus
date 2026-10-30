@@ -61,7 +61,7 @@
 //    palette 1, i.e. the frame's own interior tile, which is already dark.
 // ---------------------------------------------------------------------------
 
-#define DARK_BATTLE_UI_BG_COLOR RGB(5, 5, 5)
+#define DARK_BATTLE_UI_BG_COLOR DARK_UI_BG_COLOR
 
 struct DarkPaletteEntry
 {
@@ -103,14 +103,6 @@ static void ApplyDarkBattleUiPalettes(void)
     LoadPalette(&sDarkBattleUiBgColor, BG_PLTT_ID(1) + USER_WINDOW_FRAME_FILL_PAL_INDEX, PLTT_SIZEOF(1));
     LoadPalette(&sDarkBattleUiBgColor, BG_PLTT_ID(5) + BATTLE_WINDOW_DARK_BG_PAL_INDEX, PLTT_SIZEOF(1));
     LoadPalette(sDarkBattleCursorPalette, BG_PLTT_ID(BATTLE_COMMAND_PAL_NUM), PLTT_SIZE_4BPP);
-}
-
-// The move description window draws its frame with the standard window palette
-// rather than with the battle ones, so it is darkened at its own call site.
-void LoadDarkBattleStdWindowPalette(void)
-{
-    if (IsDarkUiEnabled())
-        LoadPalette(&sDarkBattleUiBgColor, BG_PLTT_ID(STD_WINDOW_PALETTE_NUM) + USER_WINDOW_FRAME_FILL_PAL_INDEX, PLTT_SIZEOF(1));
 }
 
 static const struct OamData sVsLetter_V_OamData =

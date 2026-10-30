@@ -2890,6 +2890,11 @@ static void LoadBagMenuTextWindows(void)
     LoadMessageBoxGfx(0, 10, BG_PLTT_ID(13));
     ListMenuLoadStdPalAt(BG_PLTT_ID(12), 1);
     LoadPalette(&gStandardMenuPalette, BG_PLTT_ID(15), PLTT_SIZE_4BPP);
+    // The context menus and messages are framed by palettes 14 and 13 but
+    // printed with palette 15, so all three go dark together.
+    ApplyDarkUiWindowFramePalette(BG_PLTT_ID(14));
+    ApplyDarkUiMessageBoxPalette(BG_PLTT_ID(13));
+    ApplyDarkUiTextPalette(BG_PLTT_ID(15));
     for (i = 0; i <= WIN_POCKET_NAME; i++)
     {
         FillWindowPixelBuffer(i, PIXEL_FILL(0));

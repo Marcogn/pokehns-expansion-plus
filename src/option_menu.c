@@ -432,7 +432,7 @@ static const u8 *const sDesc_NewBattleUI[] = {
 };
 static const u8 *const sDesc_DarkUi[] = {
     COMPOUND_STRING("Use the normal light interface."),
-    COMPOUND_STRING("Darken the battle and BAG\ninterface."),
+    COMPOUND_STRING("Darken battles, BAG, party,\nsummary, menus and messages."),
 };
 static const u8 *const sDesc_BallPrompt[] = {
     COMPOUND_STRING("Press {R_BUTTON} in battle to use Pokeballs.\nHold {L_BUTTON}/{R_BUTTON} to swap {PKMN}BALLS."),
