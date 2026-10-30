@@ -3093,6 +3093,11 @@ static void LoadPartyMenuWindows(void)
     LoadUserWindowBorderGfx(0, 0x63, BG_PLTT_ID(13));
     LoadPalette(GetOverworldTextboxPalettePtr(), BG_PLTT_ID(14), PLTT_SIZE_4BPP);
     LoadPalette(gStandardMenuPalette, BG_PLTT_ID(15), PLTT_SIZE_4BPP);
+    // Every window printed with palette 14 or 15 sits inside a frame drawn
+    // with palette 13, so the three go dark together.
+    ApplyDarkUiWindowFramePalette(BG_PLTT_ID(13));
+    ApplyDarkUiMessageBoxPalette(BG_PLTT_ID(14));
+    ApplyDarkUiTextPalette(BG_PLTT_ID(15));
     ShowSelectedMonInfo();
 
     if (ShouldShowBattleDetails())

@@ -4074,8 +4074,9 @@ void BattlePutTextOnWindow(const u8 *text, u8 windowId)
 
 // gPPTextPalette's healthy-PP pair is dark text on a light shadow, which
 // vanishes once the move boxes go dark, so the dark theme swaps that pair round
-// and darkens the shadows of the three low-PP warning colours.
-static const u16 sDarkPPTextPalette[] =
+// and darkens the shadows of the three low-PP warning colours. The summary
+// screen loads gPPTextPalette for its PP column too, and shares this one.
+const u16 gDarkPPTextPalette[8] =
 {
     RGB(26, 24,  0), RGB(10,  9,  0),  // [0] lowest
     RGB(31, 16,  0), RGB(12,  6,  0),  // [1]
@@ -4086,7 +4087,7 @@ static const u16 sDarkPPTextPalette[] =
 void SetPpNumbersPaletteInMoveSelection(enum BattlerId battler)
 {
     struct ChooseMoveStruct *chooseMoveStruct = (struct ChooseMoveStruct *)(&gBattleResources->bufferA[battler][4]);
-    const u16 *palPtr = IsDarkUiEnabled() ? sDarkPPTextPalette : gPPTextPalette;
+    const u16 *palPtr = IsDarkUiEnabled() ? gDarkPPTextPalette : gPPTextPalette;
     u8 var;
 
     if (!gBattleStruct->zmove.viewing)

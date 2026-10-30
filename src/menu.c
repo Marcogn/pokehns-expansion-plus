@@ -202,10 +202,14 @@ void AddTextPrinterWithCustomSpeedForMessage(bool8 allowSkippingDelayWithButtonP
     AddTextPrinterParameterized2(0, FONT_NORMAL, gStringVar4, speed, NULL, TEXT_COLOR_DARK_GRAY, TEXT_COLOR_WHITE, TEXT_COLOR_LIGHT_GRAY);
 }
 
+// Dialogue box and menu frame together: every window inside either frame is
+// printed with DLG_WINDOW_PALETTE_NUM, so the dark UI can recolour both.
 void LoadMessageBoxAndBorderGfx(void)
 {
     LoadMessageBoxGfx(0, DLG_WINDOW_BASE_TILE_NUM, BG_PLTT_ID(DLG_WINDOW_PALETTE_NUM));
     LoadUserWindowBorderGfx(0, STD_WINDOW_BASE_TILE_NUM, BG_PLTT_ID(STD_WINDOW_PALETTE_NUM));
+    ApplyDarkUiMessageBoxPalette(BG_PLTT_ID(DLG_WINDOW_PALETTE_NUM));
+    ApplyDarkUiWindowFramePalette(BG_PLTT_ID(STD_WINDOW_PALETTE_NUM));
 }
 
 void LoadSignPostWindowFrameGfx(void)
@@ -213,6 +217,8 @@ void LoadSignPostWindowFrameGfx(void)
     Menu_LoadStdPal();
     LoadSignBoxGfx(0, DLG_WINDOW_BASE_TILE_NUM, BG_PLTT_ID(DLG_WINDOW_PALETTE_NUM));
     LoadUserWindowBorderGfx(0, STD_WINDOW_BASE_TILE_NUM, BG_PLTT_ID(STD_WINDOW_PALETTE_NUM));
+    ApplyDarkUiSignpostPalette(BG_PLTT_ID(DLG_WINDOW_PALETTE_NUM));
+    ApplyDarkUiWindowFramePalette(BG_PLTT_ID(STD_WINDOW_PALETTE_NUM));
 }
 
 static void FillMenuTilemapBufferRect(u32 bg, u16 tileNum, u8 x, u8 y, u8 width, u8 height)
@@ -348,6 +354,7 @@ void SetStandardWindowBorderStyle(u8 windowId, bool8 copyToVram)
 void LoadMessageBoxAndFrameGfx(u8 windowId, bool8 copyToVram)
 {
     LoadMessageBoxGfx(windowId, DLG_WINDOW_BASE_TILE_NUM, BG_PLTT_ID(DLG_WINDOW_PALETTE_NUM));
+    ApplyDarkUiMessageBoxPalette(BG_PLTT_ID(DLG_WINDOW_PALETTE_NUM));
     DrawDialogFrameWithCustomTileAndPalette(windowId, copyToVram, DLG_WINDOW_BASE_TILE_NUM, DLG_WINDOW_PALETTE_NUM);
 }
 

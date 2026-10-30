@@ -4,6 +4,8 @@
 #include "battle_anim.h"
 #include "frontier_util.h"
 #include "battle_message.h"
+#include "option_menu.h"
+#include "text_window.h"
 #include "battle_tent.h"
 #include "battle_factory.h"
 #include "bg.h"
@@ -1563,6 +1565,99 @@ static void InitBGs(void)
     ShowBg(3);
 }
 
+#if IS_HNS
+// ---------------------------------------------------------------------------
+// Dark UI
+//
+// Soulgold's summary looks dark because its artwork is drawn that way, with
+// either setting; the option never touches it, so there is nothing to port.
+// These values come from graphics/summary_screen/hns/tiles, rendered with the
+// four page tilemaps:
+//
+//  - BG palettes 0..3 are the info, contest, skills and battle moves pages and
+//    share one layout: 5 is the white panel behind the text, 12 the tinted
+//    panel (the info page's alternate rows, the stat and move-name columns),
+//    13 the panel border, 14 and 15 the page frame and background. 1 and 6 are
+//    the dark outline and header shadow, 2 the header lettering and 7..11 the
+//    header gradient: those stay, so each page keeps its colour.
+//    The panels go to the dark UI background; the tinted panel, border and
+//    frame keep their hue at 30%, 45% and 55% of the original.
+//  - Palette 0 also paints the portrait background with stripes of 3 and 4.
+//  - Palette 4 is the top bar: 3 under the page title, 8 under the button
+//    prompt, 6, 7 and 9 around the page dots.
+//  - Palettes 6 and 7 are the text: 1/2 is the default dark-on-light pair,
+//    which becomes light on dark, and 5/6 the red text, whose light shadow
+//    would glow on a dark panel. Palette 6 entry 8 is a glyph, not a shadow:
+//    the lowered stat and the nature in brackets print with {COLOR}{08}, so
+//    it is brightened instead.
+// ---------------------------------------------------------------------------
+
+struct DarkSummaryEntry
+{
+    u8 offset;  // palette * 16 + entry
+    u16 color;
+};
+
+#define SUMMARY_PAL(pal, entry) ((pal) * 16 + (entry))
+
+static const struct DarkSummaryEntry sDarkSummaryColors[] =
+{
+    // Info page and the shared background
+    { SUMMARY_PAL(0, 3),  RGB(9, 9, 10)     },  // was RGB(27, 28, 30)
+    { SUMMARY_PAL(0, 4),  RGB(7, 7, 8)      },  // was RGB(26, 26, 23)
+    { SUMMARY_PAL(0, 5),  DARK_UI_BG_COLOR  },  // was RGB(30, 31, 31)
+    { SUMMARY_PAL(0, 12), RGB(9, 8, 6)      },  // was RGB(29, 28, 21)
+    { SUMMARY_PAL(0, 13), RGB(11, 11, 8)    },  // was RGB(25, 24, 18)
+    { SUMMARY_PAL(0, 14), RGB(14, 12, 6)    },  // was RGB(26, 22, 10)
+    { SUMMARY_PAL(0, 15), RGB(12, 10, 4)    },  // was RGB(22, 18, 8)
+    // Contest moves
+    { SUMMARY_PAL(1, 5),  DARK_UI_BG_COLOR  },  // was RGB(31, 30, 25)
+    { SUMMARY_PAL(1, 12), RGB(9, 6, 9)      },  // was RGB(29, 20, 31)
+    { SUMMARY_PAL(1, 13), RGB(10, 9, 9)     },  // was RGB(23, 19, 20)
+    { SUMMARY_PAL(1, 14), RGB(10, 10, 6)    },  // was RGB(18, 18, 10)
+    { SUMMARY_PAL(1, 15), RGB(7, 10, 0)     },  // was RGB(13, 18, 0)
+    // Skills
+    { SUMMARY_PAL(2, 5),  DARK_UI_BG_COLOR  },  // was RGB(30, 31, 29)
+    { SUMMARY_PAL(2, 12), RGB(8, 8, 5)      },  // was RGB(25, 27, 15)
+    { SUMMARY_PAL(2, 13), RGB(9, 9, 8)      },  // was RGB(21, 21, 18)
+    { SUMMARY_PAL(2, 14), RGB(9, 9, 12)     },  // was RGB(17, 16, 22)
+    { SUMMARY_PAL(2, 15), RGB(8, 6, 14)     },  // was RGB(14, 11, 26)
+    // Battle moves
+    { SUMMARY_PAL(3, 5),  DARK_UI_BG_COLOR  },  // was RGB(30, 31, 30)
+    { SUMMARY_PAL(3, 12), RGB(6, 8, 8)      },  // was RGB(21, 27, 27)
+    { SUMMARY_PAL(3, 13), RGB(8, 8, 13)     },  // was RGB(17, 18, 28)
+    { SUMMARY_PAL(3, 14), RGB(7, 5, 16)     },  // was RGB(13, 9, 29)
+    { SUMMARY_PAL(3, 15), RGB(6, 0, 17)     },  // was RGB(10, 0, 31)
+    // Top bar
+    { SUMMARY_PAL(4, 3),  RGB(8, 8, 8)      },  // was RGB(21, 21, 21)
+    { SUMMARY_PAL(4, 6),  RGB(11, 11, 11)   },  // was RGB(24, 24, 24)
+    { SUMMARY_PAL(4, 7),  RGB(9, 9, 9)      },  // was RGB(22, 22, 22)
+    { SUMMARY_PAL(4, 8),  DARK_UI_BG_COLOR  },  // was RGB(30, 30, 31)
+    { SUMMARY_PAL(4, 9),  RGB(6, 6, 7)      },  // was RGB(28, 28, 29)
+    // Text
+    { SUMMARY_PAL(6, 1),  RGB(28, 28, 28)   },  // was RGB(0, 0, 0)
+    { SUMMARY_PAL(6, 2),  RGB(3, 3, 3)      },  // was RGB(26, 26, 25)
+    { SUMMARY_PAL(6, 5),  RGB(31, 10, 10)   },  // was RGB(28, 1, 1)
+    { SUMMARY_PAL(6, 6),  RGB(10, 2, 2)     },  // was RGB(31, 23, 14)
+    { SUMMARY_PAL(6, 8),  RGB(10, 22, 31)   },  // was RGB(0, 17, 23)
+    { SUMMARY_PAL(7, 1),  RGB(28, 28, 28)   },  // was RGB(0, 0, 0)
+    { SUMMARY_PAL(7, 2),  RGB(3, 3, 3)      },  // was RGB(26, 26, 25)
+    { SUMMARY_PAL(7, 5),  RGB(31, 10, 10)   },  // was RGB(28, 1, 1)
+    { SUMMARY_PAL(7, 6),  RGB(10, 2, 2)     },  // was RGB(31, 23, 14)
+};
+
+static void LoadDarkSummaryPalettes(void)
+{
+    u32 i;
+
+    for (i = 0; i < ARRAY_COUNT(sDarkSummaryColors); i++)
+        LoadPalette(&sDarkSummaryColors[i].color, BG_PLTT_ID(0) + sDarkSummaryColors[i].offset, PLTT_SIZEOF(1));
+    // The PP column is palette 8, loaded from the battle PP colours; the battle
+    // dark theme already has a version of them for a dark background.
+    LoadPalette(gDarkPPTextPalette, BG_PLTT_ID(8) + 1, PLTT_SIZEOF(8));
+}
+#endif // IS_HNS
+
 static bool8 DecompressGraphics(void)
 {
     switch (sMonSummaryScreen->switchCounter)
@@ -1598,6 +1693,10 @@ static bool8 DecompressGraphics(void)
     case 6:
         LoadPalette(gSummaryScreen_Pal, BG_PLTT_ID(0), 8 * PLTT_SIZE_4BPP);
         LoadPalette(&gPPTextPalette, BG_PLTT_ID(8) + 1, PLTT_SIZEOF(16 - 1));
+#if IS_HNS
+        if (IsDarkUiEnabled())
+            LoadDarkSummaryPalettes();
+#endif
         sMonSummaryScreen->switchCounter++;
         break;
     case 7:

@@ -61,7 +61,7 @@
 //    palette 1, i.e. the frame's own interior tile, which is already dark.
 // ---------------------------------------------------------------------------
 
-#define DARK_BATTLE_UI_BG_COLOR RGB(5, 5, 5)
+#define DARK_BATTLE_UI_BG_COLOR DARK_UI_BG_COLOR
 
 struct DarkPaletteEntry
 {
