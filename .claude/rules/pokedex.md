@@ -4,7 +4,6 @@ paths:
   - "include/pokedex*.h"
   - "src/reshow_battle_screen.c"
   - "graphics/pokedex/**"
-  - "src/data/pokemon/species_info/**"
 ---
 
 # Pokédex e schermate aperte da altre schermate

@@ -4,7 +4,6 @@ paths:
   - "src/pokemon_summary_screen*.c"
   - "include/config/pokemon.h"
   - "src/data/pokemon/level_up_learnsets/**"
-  - "src/pokemon.c"
 ---
 
 # Ricorda mosse e learnset

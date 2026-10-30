@@ -26,12 +26,13 @@ answer is about that one.
 | Doc | Needed when | Check |
 | --- | --- | --- |
 | `CHANGELOG.md` | anything a player can see or that changes a save | section `## <next version>` exists (the release stops without it), the change is there under `Added`/`Changed`/`Fixed`, written for players, every sentence true in the code |
-| `.claude/rules/<area>.md` | code touched in an area with a rule | find it: `grep -l "<path>" .claude/rules/*.md` against each touched file's `paths:`; traps, measurements and verification found this session are written; nothing stale left ("provvisorio", old offsets, old counts) |
-| new rule + CLAUDE.md §7 | a new area with no rule | rule with `paths:` front matter, row in the §7 table |
+| `.claude/rules/<area>.md` | code touched in an area with a rule | find it: `grep -l "<path>" .claude/rules/*.md` against each touched file's `paths:`; traps and facts found this session are written (the **diary** of how it was verified goes to the plan's section or `docs/claude/*-history.md`, not into the rule); the rule stays under 8 KB and its `paths:` list only files where the traps bite; nothing stale left ("provvisorio", old offsets, old counts) |
+| new rule + CLAUDE.md §7 | a new area with no rule | rule with `paths:` front matter, row in the §7 table (rules are grouped by area there) |
 | `docs/plans/<plan>.md` | the session did a phase of a plan | "Fase N, com'è stata fatta" + handoff, status line at the top |
 | `docs/SOULGOLD_PORT_REPORT.md` | anything ported from Soulgold (or explicitly not SG) | row added / updated (CLAUDE.md §6: "tienilo in pari a ogni port") |
+| `docs/SUMMARY.md` | a new `docs/**/*.md` file | listed there (CI `docs_validate`; run `python3 .github/docs_validate/inclusive_summary.py`) |
 | `README.md` | a new player-facing feature | its row in the feature tables |
-| `.claude/rules/save.md` | `SAVE_VERSION` or SaveBlock layout changed | section for the new version: offsets, sizes, how it was verified |
+| `.claude/rules/save.md` | `SAVE_VERSION` or SaveBlock layout changed | the block map in the rule (offset, size, version) updated; the story of the new version and how it was verified goes in `docs/claude/save-history.md` |
 | `CLAUDE.md` | only general lessons valid everywhere | area notes go in the rule, not here (CLAUDE.md, top) |
 
 Read each doc **against the code** of the last commit: a doc that describes

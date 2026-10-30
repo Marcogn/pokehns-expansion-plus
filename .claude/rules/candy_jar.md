@@ -3,8 +3,6 @@ paths:
   - "src/candy_jar.c"
   - "include/candy_jar.h"
   - "src/item_use.c"
-  - "include/constants/items.h"
-  - "src/data/items.h"
   - "data/maps/VioletCity_PokemonCenter_hns/**"
 ---
 

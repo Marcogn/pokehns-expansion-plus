@@ -553,3 +553,255 @@ Una riga per voce; i dettagli sono nell'analisi.
   - **free_saveblock**: superata dai flag `FREE_*` di
     `include/config/save.h`. Lo spazio oggi non serve, e ogni flag in più
     sposta i campi e rompe i salvataggi vecchi senza migrazione.
+
+
+## Appendice: regola dell'area com'era prima dello sfoltimento, con le verifiche (small-features-1 fase 3, 26/10)
+
+## Quest book: schermata (fase 2 di `docs/plans/quest-log.md`)
+
+`src/quest_book.c` è il port della schermata di PSF `complex_quests`
+(`src/quests.c`). Lo stato lo legge da `quest_log.c`, mai da bit propri.
+
+- **Cosa è cambiato rispetto a PSF**: righe limitate (buffer da 48 byte con
+  `StringAppendN`, PSF scriveva in 32 senza controllo); un'unica allocazione
+  per le righe (PSF la rifaceva a ogni filtro senza liberare); lista
+  ricostruita sul posto, **senza** la dissolvenza a blend fra le liste;
+  nessuna modifica a `ListMenu_ProcessInput` (la lista è circolare, Su
+  dalla prima voce va su "Close", come **tutte** le liste del gioco: lo fa
+  già il `ListMenu` di questo repo, non è la modifica di PSF); la palette 15 si
+  carica da `gStandardMenuPalette` (PSF ereditava quella del campo e ne
+  caricava 0x60 byte da un file da 32).
+- **Comandi**: A su una missione con sottomissioni la apre, B torna (cursore
+  ripristinato), R cambia filtro (tutte / non iniziate / attive / premio /
+  completate), Start ordina A-Z (le bloccate in fondo, per non rivelare i
+  nomi), Select preferita (va in cima, nome verde; il cursore la segue,
+  `RebuildListOn`). "NEW" rosso finché il cursore non è passato sulla
+  missione **al suo livello attuale**: livelli mai vista / attiva (o
+  sbloccata) / premio / completata, 2 bit salvati (`seen` + `seenHigh`,
+  `SAVE_VERSION 13`). È NEW solo un livello **più alto** di quello visto;
+  quando si scende (TcloneR: premio ritirato, torna attiva) `QuestLog_SyncSeen`,
+  all'apertura del libro, abbassa quello salvato senza NEW, così il premio
+  dopo torna NEW. Limite: premio ritirato e il successivo già maturato senza
+  aprire il libro in mezzo restano allo stesso livello, niente NEW.
+- **Testi**: `struct QuestStep` (`desc`, `map`, `sprite`, `spriteType`)
+  indicizzata da `QuestLog_GetStep`; `done` (un `QuestStep` con testo, mappa
+  e immagine della missione completata: lo step su cui resta una completata
+  è spesso lo 0, cioè la prima palestra); `struct QuestSubquestInfo`
+  per le sottomissioni (nome, testo, mappa, immagine, etichetta a destra:
+  compaiono solo a sottomissione fatta, prima c'è `??????`). `{STR_VAR_2}`
+  nei testi vale la mappa dello step; `{STR_VAR_1}` e `{STR_VAR_3}` li riempie
+  `bufferText` della missione, se c'è (TcloneR: cloni fatti e cloni del
+  prossimo premio, `TClonerGetNextRewardClones`). Una sottomissione con
+  `map` NULL non stampa "Location". Una missione senza `steps` si mostra
+  vuota. Nomi di missione: **non oltre ~20 caratteri**, la riga ha a fianco
+  il glifo A e "NEW" e l'etichetta di stato parte a x=200.
+- **Immagini**: `QUEST_SPRITE_OBJECT/ITEM/MON`. Due slot alternati, quello
+  vecchio distrutto dopo aver creato il nuovo; **la stessa immagine non si
+  ricrea**, altrimenti `DestroySpriteAndFreeResources` libera foglio e palette
+  che il nuovo sprite condivide. Gli oggetti si distruggono con quella
+  funzione (con `OW_GFX_COMPRESS` il foglio resterebbe in VRAM, uno in più per
+  ogni missione sfogliata).
+- **Stato in cache**: `RebuildListOn` legge lo stato di ogni missione una
+  volta (`ReadQuestStates` → `sBook->states`); ordinamento, righe,
+  intestazione, etichette e dettaglio leggono la cache, e `QuestLog_IsNew`
+  riceve lo stato invece di ricalcolarlo. Vale perché il libro non cambia
+  lo stato delle missioni mentre è aperto: se un giorno lo farà (premio
+  ritirato dal libro), va riletto dopo.
+- **Entrate**: l'icona Missioni del menu a striscia
+  (`.claude/rules/strip_menu.md`; la lista classica non ha più la voce); `questlog QUEST_LOG_OPEN` da script, da far
+  seguire da `waitstate`.
+- **Missioni di prova**: `-DQUEST_BOOK_TEST_QUESTS=1` non c'è nel Makefile;
+  si cambia il `#define` in `include/constants/quests.h` (a 1 aggiunge due
+  missioni: var con le tre immagini, funzione con 8 sottomissioni a
+  medaglie). **Rimetterlo a 0 prima del commit.**
+- **Grafica (fase 3)**: tile e tilemap sono quelli di PSF; cambiano solo le
+  palette. Indici contati sul `.png` (= `.4bpp`): 1 e 6 = riquadro
+  dell'immagine (**solo lì**), 2 carta, 3 righe tratteggiate, 4/5 cornice
+  oro, 7/8 margine, 9-12 pannello blu. `menu_dark.pal` ridefinisce 1-12.
+  Senza immagine `SetPictureBoxVisible(FALSE)` mette 1 e 6 al colore 10
+  (pannello): il riquadro sparisce senza toccare la tilemap.
+- **Testo scuro**: pal 15 è `sDarkTextPalette`. Il testo chiaro sta sulla
+  entry 10 e **non** sulla 2, perché i glifi A e R sono una pillola bianca
+  con la lettera sulla entry 2: con la 2 chiara la lettera non si legge
+  (provato). Intestazione e lista usano `GetHeaderColors()`.
+- **Verifica fatta (25/10)**: ROM di prova che parte dritta dal libro
+  (`CB2_TestBoot` in `main.c`, poi ripristinato): lista, dettaglio con
+  oggetto/oggetto/Pokémon, sottomissioni con scorrimento e frecce, B con
+  cursore ripristinato, R su tutti e cinque i filtri, Start A-Z, Select;
+  e dal menu di avvio di una nuova partita (voce, apertura, B che torna al
+  menu). `QUEST_LOG_OPEN` da script provato in fase 8 (ROM strumentata:
+  apre, B chiude, lo script riprende dopo `waitstate`); chiede
+  `SCREFF_HARDWARE` come `fadescreen`, perché sfuma lo schermo. Pokémon e
+  oggetto sul riquadro scuro guardati in fase 8.
+- **mGBA**: `xdotool search --class mgba` restituisce **due** finestre; i
+  tasti arrivano solo all'ultima (`tail -1`), con la prima sembra tutto
+  bloccato.
+
+### Missioni reali (fase 4)
+
+- `src/data/quests.h`: quattro missioni a funzione. Per aggiungerne una
+  copia il modello: funzione di progresso, `steps`, `subquestInfo`.
+- **Footer: massimo due righe** di testo (provato: la terza esce dal
+  riquadro), circa 38 caratteri per riga.
+- **Stato `REWARD`**: con `desc` NULL il libro stampa il suo testo fisso
+  "Your reward is waiting. Return to {mappa}!" (Red's Path); con un `desc`
+  stampa quello (TcloneR: il premio lo paga lo scienziato che incontri,
+  non un posto).
+- **Palette condivise**: due immagini oggetto con la stessa palette non si
+  possono creare "nuovo prima, vecchio dopo": il vecchio libera la palette
+  del nuovo (magenta). `ShowPicture` distrugge prima l'oggetto vecchio.
+- Verifica via GDB senza ROM strumentata: offset in SaveBlock1 `flags` 6540,
+  `vars` 6844; `gSaveBlock1Ptr` va letto (ASLR). Il libro legge lo stato
+  quando si apre, quindi chiudilo e riaprilo dopo ogni scrittura.
+- **Tema via GDB**: `IsDarkUiEnabled` legge `gSaveblock3.challengeSettings.darkUi`,
+  bit 2 del byte a `gSaveblock3 + 47` (0x02009253 nella build del 25/10;
+  ricontrolla con `objdump -d --disassemble=IsDarkUiEnabled`). Azzerarlo
+  porta il tema chiaro senza passare dal menu opzioni.
+- **Completate**: mostrano `done` (Johto: Lance, Indigo Plateau; Kanto:
+  Blue, Viridian; TcloneR: scienziato, Pallet; Red's Path: Red).
+- **Kanto** si sblocca con `FLAG_IS_CHAMPION` (Hall of Fame di HnS), non con
+  l'ottava medaglia: a Kanto si arriva con il biglietto della S.S. Aqua, che
+  Elm dà dopo la Lega.
+- **TcloneR**: 12 sottomissioni, una per premio di `sRewards` (`tcloner.c`),
+  fatte se `VAR_TCLONER_REWARDS` le ha superate. **Le due liste vanno tenute
+  allineate a mano.**
+- **Verifica fase 4**: tema chiaro, Red's Path completata e Blue a Viridian
+  guardati (25/10). Flag usati: badge 2176-2191, Red's Path intro 961,
+  allenatori `0x500 + 653..660`, premi 962-969.
+- **Verifica fase 8** (tema scuro, `.sav` dell'utente): TcloneR attiva con
+  conteggio, premio (NEW che torna), ritirato (niente NEW), completata con le
+  12 righe; Johto completata con Kanto ancora bloccata a 8 medaglie, Kanto
+  attiva con `FLAG_IS_CHAMPION` (`0x89F`); Select su una missione fuori
+  schermo. **Partita vera**: volo ad Azalea, dialogo con lo scienziato a
+  (54,10), TcloneR da `??????` ad attiva con NEW. Var: `VAR_TCLONER_STAGE`
+  `0x40C2`, `_COUNT` `0x40E5`, `_REWARDS` `0x40FC`.
+- **GDB**: `gSaveBlock1Ptr` cambia a ogni ritorno al campo (ASLR): rileggilo
+  subito prima di scrivere, o la scrittura va nella copia vecchia e sembra
+  ignorata. `interrupt` è asincrono: aspetta "SIGINT" nell'output prima dei
+  comandi.
+
+
+## Appendice: regola del menu a striscia com'era prima dello sfoltimento, con le verifiche (small-features-1 fase 3, 26/10)
+
+## Menu di pausa a striscia (fase 5 di `docs/plans/quest-log.md`)
+
+`src/strip_start_menu.c` è il port ridotto di `unbound_start_menu.c` di
+`pollythadon` (branch `shattered-emerald`, 4c4df1aa, expansion 1.17.1).
+**Nel suo gioco quel file non è più agganciato** (Start apre un menu Rotom,
+`rotom_start_menu.c`): l'aggancio qui è nostro, non copiato.
+
+- **Quando c'è**: `GetStartMenuContext()` in `start_menu.c` è l'unico posto
+  che decide il contesto (link, Union Room, Safari, Bug-Catching Contest,
+  Battle Pike, Piramide, Multi Partner Room, `DEBUG_OVERWORLD_IN_MENU`,
+  normale): `BuildStartMenuActions` sceglie la lista da lì, e
+  `UseStripStartMenu()` mostra la striscia solo nel contesto normale. Un
+  contesto speciale nuovo va aggiunto **solo** lì. La striscia si decide in
+  due punti: `ShowStartMenu` (Start sul campo) e
+  `FieldCB_ReturnToFieldStartMenu` (ritorno da una schermata).
+- **Ritorni**: nessuno toccato. Le schermate tornano con
+  `CB2_ReturnToFieldWithOpenMenu` → `FieldCB_ReturnToFieldStartMenu` →
+  `StripMenu_ReturnToField` (striscia disegnata a schermo nero, poi
+  `FadeInFromBlack`).
+- **Tasti**: frecce sinistra/destra (circolari), A apre, B chiude, **Start
+  salva**, **L Scheda allenatore** (o Frontier Pass), **R Pokégear** solo con
+  `FLAG_SYS_POKENAV_GET` (senza, R non fa nulla e il suggerimento sparisce),
+  **Select sposta** l'icona sotto il cursore (sotto).
+- **Riordino** (richiesta dell'utente, 25/10): Select solleva l'icona di
+  `STRIP_ICON_LIFT` px e la legenda passa a "Move / Place / Cancel";
+  sinistra/destra la scambiano con la vicina (senza giro: ai bordi si
+  ferma), A o Select la posano e salvano, B rimette l'ordine di partenza
+  (`iconsBeforeMove`). Icone, sprite e gemelli del Flash si permutano
+  insieme (`StripMenu_SwapIcons`), così l'indice i resta quello di
+  `icons[i]`; le posizioni le rifà `StripMenu_PlaceIcons`.
+  **Salvataggio**: `gSaveBlock3Ptr->stripMenuOrder`, 4 byte in coda a
+  SaveBlock3 (offset 92, `SAVE_VERSION 14`): nibble i = id dell'icona + 1.
+  Tutto a zero, o qualunque cosa non sia una permutazione completa, vale
+  l'ordine di default (`GetIconOrder`), quindi un byte rovinato non rompe il
+  menu. Le icone non disponibili tengono il loro posto nell'ordine completo
+  (`StripMenu_PlaceMovedIcon` riscrive solo i posti di quelle visibili).
+  La finestra dei suggerimenti è larga 28 tile (da colonna 2): con Select
+  la riga col Pokégear fa 188 px, e a 24 tile restava 1 px di margine.
+  Verificato in mGBA: ordine salvato (`32 41 65` = DexNav, Squadra, Pokédex,
+  …) e ritrovato dopo salvataggio e riavvio; B che annulla; fermo ai bordi;
+  senza DexNav (`0x962` spento) il Pokédex in testa salva `12 43 65` e il
+  DexNav riacceso torna al primo posto; Grotta Scura con Flash, icona
+  sollevata e spostata visibile fuori dal cerchio.
+  R+Start apre ancora il debug: lo intercetta il campo prima del menu.
+  Il cursore ricorda la voce (`sStripLastIcon`), come la lista classica.
+- **Salvataggio**: la striscia si smonta, poi `StartMenu_SaveFromStrip` fa
+  girare il dialogo classico in un task suo con `sSaveFromStrip`: niente
+  finestra della lista da togliere in `SaveConfirmSaveCallback`, e "No"
+  riapre la striscia (`StripMenu_Reopen`) invece della lista.
+- **Mt. Silver**: la chiusura con B chiama `StartMenu_OnClose`, cioè il reset di
+  `VAR_TEMP_MTSILVER_RESUME_BLIZZARD_SE` che faceva `HideStartMenu`.
+- **VRAM di BG0**: le 36 tile della fascia vanno all'inizio del char block 2
+  (la finestra dei dialoghi parte da baseBlock 1, le finestre della striscia
+  da 48); all'uscita si azzerano solo quelle 36 tile, non tutto il blocco
+  come faceva l'originale. Palette 14 (fascia) e 15 (testo) sono **le
+  palette delle cornici del campo** (`STD_WINDOW_PALETTE_NUM`,
+  `DLG_WINDOW_PALETTE_NUM`) e nessuno le ricarica prima della finestra
+  standard dopo: senza, salvataggio e Sì/No avevano la cornice nei colori
+  della fascia fino al cambio di mappa (visto dall'utente contro la
+  2.0.6.PLUS.4; sfuggito perché le prove confrontavano ROM che avevano già
+  la striscia: una prova d'aspetto va fatta contro una ROM **di prima**).
+  Le rimette `StripMenu_DestroyToField` (`LoadMessageBoxAndBorderGfx`),
+  **solo** su B e sul salvataggio. Non in `StripMenu_Destroy`: prima di
+  aprire una schermata lo schermo è nero, e `LoadPalette` scrive anche il
+  buffer sfumato, quindi le due palette tornavano a colori pieni per i
+  fotogrammi in cui la schermata si monta. Il quest book mostrava così un
+  fotogramma di tile colorate (segnalato dall'utente su Retroid Pocket 5,
+  riprodotto in mGBA con 40 screenshot di fila: luminosità 0,46 dopo il
+  nero, contro 0 con la correzione).
+- **VRAM degli oggetti**: 6 fogli da 32 tile. Se uno non entra
+  (`LoadCompressedSpriteSheet` restituisce **`TAG_NONE`**, non 0) la voce
+  resta senza icona ma con etichetta e funziona. Provato con una ROM che fa
+  fallire due icone.
+- **Flash**: fuori dal cerchio il campo mostra BG0 ma non gli sprite
+  (`WINOUT` in `overworld.c`). In 1.15.2 `copyToObjWin` non esiste: ogni icona
+  ha un gemello `ST_OAM_OBJ_WINDOW` (stesso trucco di `ShowItemIconSprite`)
+  che condivide la matrice affine; all'uscita si ripristinano
+  `DISPCNT_OBJWIN_ON` e `WINOUT`.
+- **Orologio**: 12 ore come la lista classica, giorno da `GetDayOfWeek()`
+  (quello della radio del Pokégear); si ridisegna quando cambia il minuto.
+- **Grafica** (`graphics/strip_start_menu/`, fase 6): fascia e icone di
+  Pokédex, Squadra, Borsa e Opzioni sono di `pollythadon`; `dexnav.png`
+  (radar, 19 px) e `quests.png` (libro, 15x19 con nastro; stessa altezza della Poké Ball, righe 7-25 del foglio) sono disegnati qui, 32x32 per stato, metà
+  alta = non selezionata (grigi 11, 12, 14), metà bassa = selezionata, stessa
+  palette `icons.pal` (contorno bianco = entry 15). Indici contati sui `.png`.
+- **Tema scuro**: `bg_dark.pal`, stessi indici di `bg.pal`; cambiano solo le
+  entry usate dai tile della fascia e dalle finestre: 10 barra (40 → 16,16,20),
+  11 linguetta del nome (56 → 36,36,44), 12/13 fascia rossa (184,40,56 e
+  216,48,64 → 108,24,38 e 140,30,46), 14 bordo (192 → 84,84,96), 15
+  linguetta dell'orologio (216 → 56,56,68). Le entry 1-3 (testo) restano.
+  L'orologio, scuro su chiaro, in scuro usa `sTextColorLight`. Le icone non
+  cambiano palette (contorno bianco leggibile su tutte e due le fasce).
+- **Verificato in mGBA (25/10)** sul `.sav` dell'utente (Percorso 43): le sei
+  voci, L, R, Start (No torna alla striscia, Sì salva e chiude), B e
+  movimento dopo; Safari e Bug-Catching Contest (flag `0x860`/`0x861` via
+  GDB) aprono la lista classica; Grotta Scura senza Flash (icone visibili,
+  entrata e ritorno). **Fase 6 (25/10)**: icone nuove e tema scuro guardati in mGBA in entrambi i
+  temi (DexNav e Missioni selezionate; la striscia chiara è identica a prima).
+- **Verificato in fase 8 (25/10)**, forzando le condizioni via GDB invece di
+  warpare: Pike e Piramide scrivendo `gMapHeader.mapLayoutId` (offset 18;
+  1264 Pike room normal, 1254 Pyramid top), Multi Partner Room e Union Room
+  scrivendo `location` (SaveBlock1 + 8: 30/46 con `VAR_FRONTIER_BATTLE_MODE`
+  2, 56/60): lista classica in tutti e quattro, e dalla Borsa della Piramide
+  si torna alla lista. Tolte le condizioni torna la striscia. Ritorno sulla
+  stessa voce da Pokédex, DexNav, Squadra, Borsa, Missioni, Opzioni, Scheda
+  (L) e Pokégear (R). Senza Pokédex, Pokémon, DexNav e Pokégear (flag `0x890`,
+  `0x891`, `0x892`, `0x962` spenti, `sStripLastIcon` sul Pokédex): tre voci,
+  cursore sulla Borsa, R muto e senza suggerimento.
+- **Non provati**: il **link** (`IsOverworldLinkActive` è
+  `gMain.callback1 == CB1_OverworldLink`, e Start in link passa dallo scambio
+  di tasti col partner: con un emulatore solo non si raggiunge; il ramo è
+  lo stesso di `BuildStartMenuActions`); una partita nuova vera (provata
+  spegnendo i flag, non dall'inizio).
+- **Cosa apre ogni icona**: le stesse funzioni della lista classica,
+  `StartMenu_OpenPokedex/Party/Bag/Pokegear/TrainerCard/Options/DexNav`
+  (`start_menu.c`). Le callback della lista ci aggiungono solo quello che è
+  della lista (attesa della dissolvenza, finestre extra di Safari/Piramide,
+  orologio); la striscia le chiama da `Task_StripMenu_FadeAndRun` a schermo
+  nero. Solo il libro ha una funzione sua (`StripMenu_OpenQuestBook`): la
+  lista classica non lo apre. Provato (25/10): tutte e otto dalla striscia,
+  e Pokédex, Squadra, Borsa, Pokégear, Scheda e Opzioni dalla lista classica
+  (Pike e Union Room forzate).

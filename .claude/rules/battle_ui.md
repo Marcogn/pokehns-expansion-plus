@@ -1,21 +1,21 @@
 ---
 paths:
-  - "src/battle_*.c"
-  - "include/battle_*.h"
+  - "src/battle_interface.c"
+  - "src/battle_bg.c"
+  - "src/battle_gfx_sfx_util.c"
+  - "src/battle_controller_player.c"
+  - "src/battle_message.c"
+  - "include/battle_interface.h"
   - "src/type_icons.c"
   - "include/type_icons.h"
   - "graphics/battle_interface/**"
   - "graphics/types/**"
   - "graphics/text_window/**"
-  - "src/text_window.c"
-  - "src/menu.c"
-  - "src/pokemon_summary_screen.c"
-  - "src/swsh_party_menu.c"
-  - "src/party_menu.c"
-  - "src/shop.c"
 ---
 
-# UI di lotta: palette, tema scuro, icone dei tipi
+# UI di lotta: palette, tema scuro in lotta, icone dei tipi
+
+Tema scuro fuori dalla lotta: `dark_ui.md`. Racconto delle misure: `docs/claude/battle-ui-history.md`.
 
 ## Una entry, due significati (esempi della regola del §2 di CLAUDE.md)
 
@@ -59,123 +59,31 @@ scavalcano il colore scelto da `BattlePutTextOnWindow`. In Soulgold quelle strin
 sono testo puro. Se una finestra resta chiara pur essendo nella lista di
 `IsDarkBattleCommandWindow`, guarda prima la stringa.
 
-## Tema scuro fuori dalla lotta
-
-**Non viene da Soulgold.** In SG 1.2.1 l'opzione copre solo lotta e borsa: lo
-si è verificato compilando SG e provandolo in mGBA, con il tema scuro attivo
-summary, dialoghi, menu di pausa e squadra SwSh restano chiari, e il summary
-differisce di **0 pixel** fra le due impostazioni (sembra scuro perché la sua
-grafica è disegnata così). Se qualcuno dice "in SG è scuro", controlla prima
-quale opzione e quale schermata.
-
-| Cosa | Dove | Note |
-| --- | --- | --- |
-| Box dei messaggi, cornici, Sì/No, scelte, salvataggio, menu debug | `ApplyDarkUi*Palette` in `text_window.c`, chiamate da `LoadMessageBoxAndBorderGfx`, `LoadSignPostWindowFrameGfx`, `LoadMessageBoxAndFrameGfx` (`menu.c`) | testo 1/2/3 e coppie colore 4/5, 6/7, 8/9; box 11/12; cartello 11; cornice entry 14 |
-| Menu della borsa | `LoadBagMenuTextWindows` (`item_menu.c`) | cornice pal 14, box pal 13, testo pal 15 |
-| Menu e messaggi della squadra (entrambe le varianti) | dopo il caricamento di pal 13/14/15 | |
-| Schermata squadra SwSh | `ApplyDarkPartyMenuColors` (`swsh_party_menu.c`) | sfondo = solo pal 0; testo pannello destro pal 1 (12/7); riquadri da `palBuffer` (selezionato pal 6, scelto per Switch pal 10) |
-| Summary | `LoadDarkSummaryPalettes` (`pokemon_summary_screen.c`, solo `IS_HNS`) | pagine pal 0..3 stesso schema (5 pannello, 12 pannello colorato, 13 bordo, 14/15 cornice e fondo), pal 4 barra in alto, pal 6/7 testo, pal 8 PP = `gDarkPPTextPalette` della lotta |
-
-Tre trappole trovate scrivendolo:
-
-- **Una box è la cornice di una palette attorno a una finestra stampata con
-  un'altra.** Scurire tutti i caricamenti della cornice
-  (`LoadUserWindowBorderGfx`) lasciava nella borsa un anello scuro attorno a un
-  menu bianco, perché il suo testo usa `gStandardMenuPalette` su pal 15. Per
-  questo i caricatori semplici restano neutri e lo scuro lo applica chi carica
-  **entrambe** le metà.
-- **Schermate che ereditano la pal 15 del campo.** Il menu acquisti del negozio
-  non carica la pal 15 e stampava l'elenco con quella lasciata dal campo, cioè
-  il box dei messaggi: col tema scuro diventava testo chiaro su pannello chiaro.
-  Ora ricarica la palette chiara, e così fanno mappa del Volo
-  (`region_map.c`), mappa della città (`field_region_map.c`) e il Sì/No della
-  schiusa (`egg_hatch.c`), trovati dalla review della PR #50: lì la cornice
-  restava chiara attorno a un interno scuro. La Trainer Card chiamava
-  `LoadMessageBoxAndBorderGfx` e stampava il testo chiaro sulla card chiara:
-  ora carica le due metà senza scurirle. Regola: **una schermata che non
-  diventa scura e usa la pal 15 senza caricarla deve ricaricare quella
-  chiara**. Candidati ancora non visti: `daycare.c`, `field_specials.c`
-  (sovrapposizioni sul campo, quindi scure con cornice scura: coerenti).
-- Nel summary la entry 8 della pal 6 è **sia** un colore del testo
-  (`{COLOR}{08}`: statistica abbassata, natura fra parentesi) **sia** l'ombra
-  del glifo 7 (simbolo ♂). Scurirla rendeva illeggibile il testo, schiarirla
-  cancellava l'ombra del ♂: resta il valore originale, che va per entrambi.
-
-Restano chiari, coerenti come prima: PC dei box (pal 15 sua,
-`text_windows.gbapal`, e cornice ricaricata in più punti), Pokédex, schermata
-DexNav, opzioni, menu acquisti, Trainer Card (anche il suo box messaggi nei
-link), mappa del Volo, mappa della città, schiusa delle uova. Il modo di
-tenerle chiare è l'idioma che il repo usa già (`pokedex.c`, `mail.c`):
-`LoadPalette(GetOverworldTextboxPalettePtr(), BG_PLTT_ID(15), ...)`.
 
 ## Icone dei tipi in lotta
 
-- **Icone dei tipi in lotta**: `src/type_icons.c` c'è, `B_SHOW_TYPES` era
-  `SHOW_TYPES_NEVER`.
+`src/type_icons.c` c'era, con `B_SHOW_TYPES` su `SHOW_TYPES_NEVER`. Una feature
+sempre spenta ha dati posizionali di default di expansion (`sTypeIconPositions`
+era così). La healthbox ha subpriority **1**, le icone **255**: ciò che si
+sovrappone alla box finisce *dietro* e non si vede.
 
-Corollario sulle coordinate: quando una feature è sempre stata spenta, i suoi
-dati posizionali sono i default di expansion, non valori tarati su questo repo.
-`sTypeIconPositions` era così.
-
-La healthbox è creata con subpriority **1**, le icone dei tipi con **255**:
-tutto ciò che si sovrappone alla box viene disegnato *dietro* e non si vede mai.
-
-**Errore mio da non ripetere.** Dalla segnalazione «compare per un secondo e poi
-sparisce, esce e rientra dalla hpbox» avevo concluso che la posizione di partenza
-(`{20, 26}`, il default di expansion) finisse dentro la box, e avevo spostato le
-icone a **destra** della healthbox. Sbagliato: quel default mette l'icona a
-**sinistra** della box, dove c'è spazio libero, e «esce e rientra dalla hpbox»
-descriveva l'animazione che funzionava. L'unico vero bug era
-`tHideIconTimer` che non si azzerava mai. La frase dell'utente conteneva già la
-risposta: **leggere la segnalazione come una misura, non come un sintomo**.
-
-**Come si misura davvero.** `import` + `convert -sample 240x160!` dà il
-framebuffer 1:1, e `convert ... txt:-` ne stampa i pixel: da lì i bordi si leggono
-senza interpretare. In singola il bordo **sinistro** della box è una linea
-verticale a **x 12** su tutte le righe, quello destro sta a **x 101** sulla riga
-del nome. Restano quindi 12 px liberi a sinistra; lo sprite è largo 8 e la x
-memorizzata è il **centro**, quindi riposo 7 = icona su x 3..10.
-
-**Disposizione attuale:** singola a **sinistra** della box (`{17, 26}`, la slide
-toglie 10), doppia a **destra** come Soulgold (offset +66 dall'origine della box
-su entrambi i lati, identico a SG). La scaletta di 4 px della seconda icona vale
-solo dove le icone stanno a destra, quindi è attiva solo in doppia: in singola i
-12 px non bastano e 4 px in un verso o nell'altro tagliano il bordo schermo o
-nascondono mezzo glifo dietro la box.
-
-**Tre differenze di comportamento (non di coordinate) trovate rispetto a SG:**
-
-- l'arte in `graphics/types/battle_icons*.png` è **identica** a quella di SG ed è
-  **asimmetrica**. `ShouldFlipTypeIcon` di expansion sceglieva il lato giocatore
-  in singola e quello avversario in doppia — non possono essere giusti entrambi:
-  qui le icone avversarie uscivano specchiate in singola e non in doppia. SG
-  specchia sempre sul lato avversario, ma **perché SG disegna sempre a destra
-  della box**. La regola vera non è "lato avversario", è **"da che parte della
-  healthbox sta l'icona"**: qui in singola sta a sinistra, quindi il glifo
-  specchiato guardava via dalla box. Ora `ShouldFlipTypeIcon` specchia solo dove
-  si usa il layout di SG, cioè in doppia (`UseDoubleBattleCoords`); in singola
-  l'arte esce come è disegnata e guarda verso la box. Scelta estetica
-  dell'utente, non un bug di SG. Verificato per misura: il frame di un
-  Misdreavus a schermo coincide con il tile di `battle_icons1.4bpp` reso
-  offline, non con il suo specchio;
-- SG indenta di **4 px** la seconda icona di un doppio tipo sul lato avversario
-  (`SetTypeIconXY`), la scaletta in stile HGSS. Expansion le impila a filo. Qui
-  la scaletta è attiva solo in doppia, per lo spazio (vedi sopra);
-- le direzioni di `GetTypeIconSlideMovement` e `GetTypeIconHideMovement` in
-  singola sono speculari a quelle di SG, ed è corretto così: qui l'icona sta
-  dall'altro lato della box, quindi esce verso sinistra e si ritrae verso destra,
-  rientrando sotto la healthbox. Il segno del riposo è `x - 10`, per questo la
-  entry vale 17 e non 7. Il ramo doppie è identico a SG.
-
-Per farlo funzionare serve anche `tHorizontalPosition` (`data[4]`) in
-`include/type_icons.h`: la slide deve agganciarsi alla x di riposo **del singolo
-sprite**, non alla entry di tabella condivisa, altrimenti l'indent di 4 px viene
-riassorbito. Oggi `src/type_icons.c` differisce da quello di SG solo per la
-tabella delle coordinate e per il `sprite->tHideIconTimer = 0;`.
-
-Trappola di metodo, costata un'ora: avevo "verificato" che la geometria dei
-sotto-sprite fosse identica fra i due repo con
-`diff <(awk "/nome/,/^};/" a.c) <(awk "/nome/,/^};/" b.c)`. Il nome non esisteva
-in **nessuno** dei due file, quindi awk non stampava nulla da entrambe le parti e
-il diff tornava vuoto: l'ho letto come "identici". **Un diff vuoto fra due estratti
-vuoti non è una verifica.** Controlla sempre che l'estratto non sia vuoto.
+- **Leggi la segnalazione come una misura, non come un sintomo**: «esce e rientra
+  dalla hpbox» descriveva l'animazione che funzionava; l'unico bug era
+  `tHideIconTimer` mai azzerato.
+- Misura: `import` + `convert -sample 240x160!` dà il framebuffer 1:1, `txt:-`
+  stampa i pixel. In singola il bordo sinistro della box è a **x 12**, il destro
+  a **x 101**; lo sprite è largo 8 e la x è il **centro** (riposo 7).
+- **Disposizione**: singola a **sinistra** (`{17, 26}`, la slide toglie 10),
+  doppia a **destra** come SG (+66 dall'origine della box). La scaletta di 4 px
+  della seconda icona vale solo in doppia (in singola i 12 px non bastano).
+- L'arte (`graphics/types/battle_icons*.png`) è identica a SG ed è
+  **asimmetrica**. `ShouldFlipTypeIcon` specchia solo in doppia
+  (`UseDoubleBattleCoords`): la regola vera è "da che parte della healthbox sta
+  l'icona". In singola le direzioni di `GetTypeIconSlideMovement` /
+  `GetTypeIconHideMovement` sono speculari a SG, ed è corretto.
+- `tHorizontalPosition` (`data[4]`, `type_icons.h`): la slide si aggancia alla x
+  di riposo del **singolo sprite**, o l'indent di 4 px viene riassorbito.
+  `type_icons.c` differisce da SG solo per la tabella e `tHideIconTimer = 0`.
+- **Un diff vuoto fra due estratti vuoti non è una verifica**: l'`awk` con un nome
+  inesistente stampava nulla da entrambe le parti. Controlla che l'estratto non
+  sia vuoto.
