@@ -7,6 +7,12 @@ paths:
   - "graphics/battle_interface/**"
   - "graphics/types/**"
   - "graphics/text_window/**"
+  - "src/text_window.c"
+  - "src/menu.c"
+  - "src/pokemon_summary_screen.c"
+  - "src/swsh_party_menu.c"
+  - "src/party_menu.c"
+  - "src/shop.c"
 ---
 
 # UI di lotta: palette, tema scuro, icone dei tipi
@@ -52,6 +58,46 @@ sprite ha stato per-sprite che possa restare sbagliato dopo un cambio.
 scavalcano il colore scelto da `BattlePutTextOnWindow`. In Soulgold quelle stringhe
 sono testo puro. Se una finestra resta chiara pur essendo nella lista di
 `IsDarkBattleCommandWindow`, guarda prima la stringa.
+
+## Tema scuro fuori dalla lotta
+
+**Non viene da Soulgold.** In SG 1.2.1 l'opzione copre solo lotta e borsa: lo
+si è verificato compilando SG e provandolo in mGBA, con il tema scuro attivo
+summary, dialoghi, menu di pausa e squadra SwSh restano chiari, e il summary
+differisce di **0 pixel** fra le due impostazioni (sembra scuro perché la sua
+grafica è disegnata così). Se qualcuno dice "in SG è scuro", controlla prima
+quale opzione e quale schermata.
+
+| Cosa | Dove | Note |
+| --- | --- | --- |
+| Box dei messaggi, cornici, Sì/No, scelte, salvataggio, menu debug | `ApplyDarkUi*Palette` in `text_window.c`, chiamate da `LoadMessageBoxAndBorderGfx`, `LoadSignPostWindowFrameGfx`, `LoadMessageBoxAndFrameGfx` (`menu.c`) | testo 1/2/3 e coppie colore 4/5, 6/7, 8/9; box 11/12; cartello 11; cornice entry 14 |
+| Menu della borsa | `LoadBagMenuTextWindows` (`item_menu.c`) | cornice pal 14, box pal 13, testo pal 15 |
+| Menu e messaggi della squadra (entrambe le varianti) | dopo il caricamento di pal 13/14/15 | |
+| Schermata squadra SwSh | `ApplyDarkPartyMenuColors` (`swsh_party_menu.c`) | sfondo = solo pal 0; testo pannello destro pal 1 (12/7); riquadri da `palBuffer` (selezionato pal 6, scelto per Switch pal 10) |
+| Summary | `LoadDarkSummaryPalettes` (`pokemon_summary_screen.c`, solo `IS_HNS`) | pagine pal 0..3 stesso schema (5 pannello, 12 pannello colorato, 13 bordo, 14/15 cornice e fondo), pal 4 barra in alto, pal 6/7 testo, pal 8 PP = `gDarkPPTextPalette` della lotta |
+
+Tre trappole trovate scrivendolo:
+
+- **Una box è la cornice di una palette attorno a una finestra stampata con
+  un'altra.** Scurire tutti i caricamenti della cornice
+  (`LoadUserWindowBorderGfx`) lasciava nella borsa un anello scuro attorno a un
+  menu bianco, perché il suo testo usa `gStandardMenuPalette` su pal 15. Per
+  questo i caricatori semplici restano neutri e lo scuro lo applica chi carica
+  **entrambe** le metà.
+- **Schermate che ereditano la pal 15 del campo.** Il menu acquisti del negozio
+  non carica la pal 15 e stampava l'elenco con quella lasciata dal campo, cioè
+  il box dei messaggi: col tema scuro diventava testo chiaro su pannello chiaro.
+  Ora ricarica la palette chiara. Altri candidati dello stesso tipo (finestre
+  con `paletteNum = 15` in file che non la caricano): `dexnav.c`,
+  `region_map.c`, `egg_hatch.c`, `daycare.c`, `field_specials.c`; DexNav e
+  sovrapposizioni sul campo sono state viste in emulatore e vanno.
+- Nel summary la entry 8 della pal 6 è un **colore del testo**, non un'ombra
+  (`{COLOR}{08}` per la statistica abbassata e la natura fra parentesi):
+  scurirla l'aveva resa illeggibile.
+
+Restano chiari, coerenti come prima: PC dei box (pal 15 sua,
+`text_windows.gbapal`, e cornice ricaricata in più punti), Pokédex, schermata
+DexNav, opzioni, menu acquisti.
 
 ## Icone dei tipi in lotta
 

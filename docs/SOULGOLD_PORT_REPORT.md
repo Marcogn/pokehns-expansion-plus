@@ -31,7 +31,7 @@ Il branch `claude/mega-type-stones` ha 3 commit **non ancora in master**
 | Speed-up lotta | `BATTLE SPEED` 1×–3× | `src/battle_main.c`, `src/battle_controllers.c`, `src/palette.c` | più tick software per frame |
 | Menu squadra SwSh | `PARTY MENU` | `src/swsh_party_menu.c`, `src/party_menu_dispatch.c`, `include/party_menu_variant.h` | due varianti compilate insieme, `.claude/rules/party_menu.md` |
 | Schermata borsa | — | `src/item_menu.c`, `src/item_menu_icons.c`, `graphics/bag/soulgold/` | |
-| Tema scuro | `DARK UI` | `battle_bg.c`, `battle_interface.c`, `battle_gfx_sfx_util.c`, `item_menu.c` | mappa completa in `.claude/rules/battle_ui.md` |
+| Tema scuro | `DARK UI` | `battle_bg.c`, `battle_interface.c`, `battle_gfx_sfx_util.c`, `item_menu.c`; fuori da SG: `text_window.c`, `menu.c`, `pokemon_summary_screen.c`, `swsh_party_menu.c`, `party_menu.c` | mappa completa in `.claude/rules/battle_ui.md`; in SG l'opzione copre solo lotta e borsa (§6) |
 | Healthbox shiny | — | `src/battle_gfx_sfx_util.c` | in tema scuro diventa scura anche lei, diversamente da SG (voluto, §6) |
 | Shiny Genome | — | `swsh_party_menu.c` (`Task_ShinGenome`), Mart di Viridian | |
 | Start menu compatto | — | `src/menu.c`, `src/start_menu.c` | da SG 1.1.4 |
@@ -175,6 +175,12 @@ l'unione dei messaggi di aumento/calo statistiche.
 
 - **Tema scuro e healthbox shiny**: qui diventano scure tutte le box insieme,
   SG tiene chiara quella shiny riscrivendo i pixel di ogni sprite (§5).
+- **Tema scuro fuori dalla lotta**: in SG 1.2.1 l'opzione scura copre solo
+  lotta e borsa (verificato compilando SG e provandolo in mGBA: col tema
+  scuro summary, dialoghi, menu di pausa e squadra SwSh restano chiari; il
+  summary differisce di 0 pixel fra le due impostazioni, sembra scuro perché
+  la sua grafica è disegnata così). Qui il tema scuro copre anche dialoghi,
+  menu, summary e squadra: aggiunta di questo fork, nessun valore viene da SG.
 - **DexNav**: la divergenza va nei due sensi. Hasep ha la riga dei nascosti, il
   Pokéblock della Safari, il movimento in acqua/grotta, che SG non ha; SG ha la
   ricerca che non fallisce, che qui sta dietro `ENHANCED DEXNAV` (§6).

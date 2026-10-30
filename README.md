@@ -81,7 +81,7 @@ is whose.
 | Battle speed-up | `BATTLE SPEED` 1x–3x | Runs several software ticks per frame; animations keep their timing. |
 | SwSh party menu | `PARTY MENU` CLASSIC/SWSH | Both menus are built and selected at runtime. |
 | Soulgold bag screen | — | Replaces the bag graphics and layout. |
-| Dark UI | `DARK UI` LIGHT/DARK | Darkens the bag and the whole battle HUD. |
+| Dark UI | `DARK UI` LIGHT/DARK | Darkens the bag, the whole battle HUD, the Summary, the party screen (both styles' menus, the whole SwSh screen), and the messages and menus outside battle (dialogue, signposts, yes/no, choices, the save prompt). Soulgold's option only covers battle and the bag: the rest is this fork's own. |
 | Shiny healthbox | — | A shiny Pokémon gets a gold battle box, in both themes. |
 | Shiny Genome | — | Turns a Pokémon shiny. Sold at the Viridian City Mart for 1000. |
 | Compact start menu | — | The menu window grows with the number of entries, so nine fit. Since the strip pause menu (below) it is the list of the places that keep it: Safari Zone, Bug-Catching Contest, Battle Pike and Pyramid, Union Room, link and the Multi Partner Room. |

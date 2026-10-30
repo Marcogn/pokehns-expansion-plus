@@ -78,6 +78,7 @@
 #include "task.h"
 #include "text.h"
 #include "text_window.h"
+#include "option_menu.h"
 #include "surfable.h"
 #include "trade.h"
 #include "union_room.h"
@@ -361,6 +362,7 @@ static void SpriteCB_PartyMonPokemon(struct Sprite *);
 static void RunMonAnimTimer(void);
 static void PartyPaletteBufferCopy(u8);
 static void ApplyFaintedPartyBoxFrameColors(void);
+static void ApplyDarkPartyMenuColors(void);
 static void DisplayPartyPokemonDataForMultiBattle(u8);
 static void LoadPartyBoxPalette(struct PartyMenuBox *, u8);
 static void DrawEmptySlot(u8 windowId);
@@ -1253,6 +1255,7 @@ static bool8 DecompressGraphics(void)
         LoadPalette(sPartyMenuBg_Pal_SwSh, BG_PLTT_ID(0), 11 * PLTT_SIZE_4BPP);
         CpuCopy16(gPlttBufferUnfaded, sPartyMenuInternal->palBuffer, 11 * PLTT_SIZE_4BPP);
         ApplyFaintedPartyBoxFrameColors();
+        ApplyDarkPartyMenuColors();
         sPartyMenuInternal->switchCounter++;
         break;
     case 4:
@@ -1353,6 +1356,71 @@ static void ApplyFaintedPartyBoxFrameColors(void)
     sPartyMenuInternal->palBuffer[sPartyBoxCurrSelectionFaintedPalIds2[0]] = RGB(31, 18, 18);
     sPartyMenuInternal->palBuffer[sPartyBoxCurrSelectionFaintedPalIds2[1]] = RGB(31, 12, 12);
     sPartyMenuInternal->palBuffer[sPartyBoxCurrSelectionFaintedPalIds2[2]] = RGB(26, 6, 6);
+}
+
+// ---------------------------------------------------------------------------
+// Dark UI
+//
+// Soulgold leaves this screen light with either setting (checked in mGBA on
+// SG 1.2.1, with its dark option on), so these values are derived from
+// graphics/party_menu/swsh/tiles, rendered with tiles.bin:
+//
+//  - The background is palette 0 only: 1 is the right-hand panel and the
+//    lower half of its two boxes, 2 the Poke Ball emblem, 3 and 7 the strips
+//    under the species name and "Held Item", 4 and 5 the stripes of the left
+//    panel, 6, 8 and 10 its border.
+//  - Palette 1 prints the species, level and held item: 12 is the dark glyph
+//    and 7 its shadow ("Dark text on light panels"), 4 and 1 the light text.
+//  - The slots take their colours from palBuffer (see LoadPartyBoxPalette):
+//    the unselected slot is dark already; the selected one is filled from
+//    palette 6 entries 1, 7 and 8 and printed black on white (ids 51/115).
+//    A slot picked for Switch or Soft-Boiled is filled from palette 10
+//    entries 1, 7 and 8 and printed with palette 6 entries 2/3.
+// ---------------------------------------------------------------------------
+
+struct DarkPartyEntry
+{
+    u8 offset;  // palette * 16 + entry
+    u16 color;
+};
+
+static const struct DarkPartyEntry sDarkPartyBgColors[] =
+{
+    {  0 * 16 + 1,  RGB(6, 6, 7)      },  // was RGB(28, 28, 28)
+    {  0 * 16 + 2,  RGB(9, 9, 10)     },  // was RGB(23, 23, 23)
+    {  0 * 16 + 3,  RGB(12, 12, 13)   },  // was RGB(18, 18, 18)
+    {  0 * 16 + 4,  RGB(4, 7, 10)     },  // was RGB(16, 25, 29)
+    {  0 * 16 + 5,  RGB(3, 6, 9)      },  // was RGB(15, 24, 29)
+    {  0 * 16 + 6,  RGB(3, 8, 12)     },  // was RGB(8, 19, 26)
+    {  0 * 16 + 7,  RGB(10, 10, 11)   },  // was RGB(15, 15, 16)
+    {  0 * 16 + 8,  RGB(2, 7, 10)     },  // was RGB(6, 17, 24)
+    {  0 * 16 + 10, RGB(2, 5, 8)      },  // was RGB(4, 15, 22)
+    {  1 * 16 + 12, RGB(28, 28, 28)   },  // was RGB(0, 0, 0)
+    {  1 * 16 + 7,  RGB(3, 3, 3)      },  // was RGB(20, 19, 16)
+};
+
+static const struct DarkPartyEntry sDarkPartySelectedSlotColors[] =
+{
+    {  6 * 16 + 1,  RGB(7, 12, 18)    },  // fill, was RGB(25, 25, 24)
+    {  6 * 16 + 7,  RGB(7, 12, 18)    },  // was RGB(25, 25, 24)
+    {  6 * 16 + 8,  RGB(7, 12, 18)    },  // was RGB(25, 25, 24)
+    {  6 * 16 + 2,  RGB(28, 28, 28)   },  // picked slot text, was RGB(18, 18, 18)
+    { 10 * 16 + 1,  RGB(11, 16, 22)   },  // picked slot fill, was RGB(29, 29, 29)
+    { 10 * 16 + 7,  RGB(11, 16, 22)   },  // was RGB(29, 29, 29)
+    { 10 * 16 + 8,  RGB(11, 16, 22)   },  // was RGB(29, 29, 29)
+};
+
+static void ApplyDarkPartyMenuColors(void)
+{
+    u32 i;
+
+    if (!IsDarkUiEnabled())
+        return;
+
+    for (i = 0; i < ARRAY_COUNT(sDarkPartyBgColors); i++)
+        LoadPalette(&sDarkPartyBgColors[i].color, BG_PLTT_ID(0) + sDarkPartyBgColors[i].offset, PLTT_SIZEOF(1));
+    for (i = 0; i < ARRAY_COUNT(sDarkPartySelectedSlotColors); i++)
+        sPartyMenuInternal->palBuffer[sDarkPartySelectedSlotColors[i].offset] = sDarkPartySelectedSlotColors[i].color;
 }
 
 static void FreePartyPointers(void)
@@ -3512,7 +3580,11 @@ static void LoadPartyBoxPalette(struct PartyMenuBox *menuBox, u8 palFlags)
     {
         LOAD_PARTY_BOX_PAL(sPartyBoxCurrSelectionPalIds1, sPartyBoxPalOffsets1);
         LOAD_PARTY_BOX_PAL(sPartyBoxCurrSelectionPalIds2, sPartyBoxPalOffsets2);
-        LOAD_PARTY_TEXT_PAL(sPartyBoxCurrSelectionPalIds3, sPartyBoxPalOffsets3);
+        // The dark selected slot keeps the unselected slot's light text.
+        if (IsDarkUiEnabled())
+            LOAD_PARTY_TEXT_PAL(sPartyBoxEmptySlotPalIds3, sPartyBoxPalOffsets3)
+        else
+            LOAD_PARTY_TEXT_PAL(sPartyBoxCurrSelectionPalIds3, sPartyBoxPalOffsets3)
     }
     else
     {
