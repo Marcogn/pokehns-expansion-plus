@@ -1,12 +1,12 @@
 ---
 paths:
-  - "data/scripts/**"
-  - "data/maps/**"
+  - "data/scripts/field_move_scripts_hns.inc"
+  - "data/scripts/obtain_item.inc"
+  - "data/scripts/berry_tree.inc"
+  - "data/scripts/apricorn_tree.inc"
   - "data/event_scripts.s"
   - "asm/macros/event.inc"
   - "src/shop.c"
-  - "src/field_effect.c"
-  - "src/fldeff_*.c"
   - "src/overworld.c"
 ---
 
@@ -79,9 +79,8 @@ salvataggio (`FIRST_TIME` vorrebbe 113 byte, vedi il piano).
   un OWE, la lotta parte con l'avversario azzerato ("wild !", Lv0, sviene
   subito). **Regola**: ogni script che crea un selvatico e poi avvia la
   lotta deve tenere i controlli bloccati fino a `waitstate`/`dowildbattle`.
-- Misura (ROM strumentate, salvataggio dell'utente, Route 43, Testata forzata
-  al 100% e spawn OWE forzato): script vecchio, Testata = Pineco, lotta =
-  specie 0, 89/89 fotogrammi sbloccati; script nuovo, Exeggcute = Exeggcute,
-  0/89; lotta da contatto con un OWE (controllo) 0/89.
+- Misura (due ROM strumentate gemelle): script vecchio 89/89 fotogrammi
+  sbloccati e lotta con specie 0, nuovo 0/89 (dettagli nel piano
+  `small-features-1`, §5.2).
 - Gli "alberelli con i puntini rossi" di Route 43 sono alberi da Testata, non
   alberi di bacche.

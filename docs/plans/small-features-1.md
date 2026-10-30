@@ -1,6 +1,6 @@
 # Piano: descrizione degli oggetti, Frostbite, AI di Red's Path, documentazione per gli agenti
 
-**Stato (26/10): fasi 1 e 2 fatte. Prossima: fase 3.**
+**Stato (30/10): fasi 1, 2 e 3 fatte. Prossima: fase 4.**
 
 ## 1. Cosa si fa
 
@@ -291,6 +291,94 @@ codice. Ricorda che la regola `field.md` ora ha `src/overworld.c` tra i `paths:`
 (la fase 3 li restringe): tienila stretta. Il piano (§5 fase 3) chiede la
 checklist dei titoletti prima/dopo; fai `grep -c '^#\|\*\*'` delle regole
 oggi, prima di spostare niente.
+
+### 5.3 Fase 3, com'è stata fatta (30/10)
+
+Solo documentazione, nessun codice, nessun `.srm`. Fatta **dopo** il merge della
+PR #50 (tema scuro) in `master`: la baseline è quella post-merge, che aveva
+fatto crescere `battle_ui.md` a 11 254 byte e allargato i suoi `paths:` a
+`menu.c`, `party_menu.c`, `shop.c`, `text_window.c` ecc.
+
+**Criterio.** Le regole tengono trappole, invarianti e fatti con file:riga; il
+racconto delle verifiche (quando, quale ROM, quali pixel, sessioni A/B) è stato
+spostato **verbatim** in appendice al piano della feature, oppure in
+`docs/claude/<area>-history.md` per le aree senza piano (`save`, `dexnav`,
+`battle_ui`/tema scuro). Nelle appendici i titoli sono retrocessi di un livello.
+
+| File | Prima (byte) | Dopo | Il diario è andato in |
+| --- | --- | --- | --- |
+| `CLAUDE.md` | 13 448 | **7 420** | (§3-§7 riscritti più stretti; regole nel §7) |
+| `overworld_encounters.md` | 24 593 | 5 515 | `overworld-encounters.md`, appendice |
+| `trainer_catch.md` | 14 324 | 4 966 | `tcloner.md`, appendice |
+| `reds_path.md` | 13 269 | 4 907 | `reds-path.md`, appendice (prove A2 e B) |
+| `save.md` | 12 989 | 4 901 | `docs/claude/save-history.md` |
+| `dexnav.md` | 11 569 | 4 724 | `docs/claude/dexnav-history.md` |
+| `battle_ui.md` | 11 254 | 5 053 | `docs/claude/battle-ui-history.md` |
+| `dark_ui.md` (nuova) | — | 2 937 | stessa storia; la sezione "Tema scuro fuori dalla lotta" è uscita da `battle_ui.md` |
+| `strip_menu.md` | 8 718 | 4 322 | `quest-log.md`, appendice |
+| `level_scaling.md` | 8 445 | 3 414 | `level-scaling.md`, appendice |
+| `quest_book.md` | 8 247 | 4 490 | `quest-log.md`, appendice |
+| `pokedex.md` | 6 317 | 6 278 | — (solo `paths:`) |
+| `field.md` | 4 888 | 4 836 | — (`paths:` e una misura) |
+| `party_menu`, `relearner`, `candy_jar` | 3 787 / 2 522 / 1 527 | 3 766 / 2 502 / 1 472 | — (solo `paths:`) |
+| le altre 6 regole | invariate | invariate | |
+
+Ora la regola più grande è `pokedex.md` con 6,3 KB (limite del piano: 8 KB).
+Totale delle regole: 161 603 → 84 568 byte (CLAUDE.md compreso).
+
+**`paths:` ristretti.** Tolti `src/pokemon.c`, `src/battle_util.c`,
+`src/battle_script_commands.c`, `src/field_control_avatar.c`,
+`src/field_player_avatar.c`, `src/item_use.c`, `include/config/overworld.h`,
+`include/constants/flags.h`, `include/constants/items.h`, `src/data/items.h`,
+`src/data/pokemon/species_info/**`, `src/battle_main.c`, `src/wild_encounter.c`,
+`src/scrcmd.c`, `data/scripts/**` e `data/maps/**` generici, `src/field_effect.c`,
+`src/fldeff_*.c`, i `src/battle_*.c` in blocco e i piani stessi. Aprire
+`field_control_avatar.c` non carica più 35 KB di diari. Costo: una trappola il
+cui file non è più in `paths:` si legge solo aprendo un file dell'area; per
+questo CLAUDE.md §7 dice di leggere la regola a mano.
+
+**Checklist titoletti e trappole.** Prima di spostare niente (post-merge): 74
+titoletti e 396 grassetti nelle regole e in CLAUDE.md (466 voci distinte).
+Verifica: ogni voce, normalizzata sugli spazi, deve comparire in
+`.claude/rules/`, `docs/plans/**`, `docs/claude/*.md` o `CLAUDE.md`. Esito:
+**454 su 466 ritrovate alla lettera**; le 12 mancanti sono tutte righe di
+`CLAUDE.md` riscritte più brevi nello stesso file (sempre caricato, quindi non
+perse; riletto a mano: nessuna lezione tolta). Metodo, rilanciabile con le
+copie prima/dopo in una cartella `before/`:
+
+```python
+# checklist: every heading and every **bold** span of the pre-phase rules must be found in rules+plans+emulator.md
+import re,sys,glob
+S=sys.argv[1]
+corpus=""
+for p in glob.glob(".claude/rules/*.md")+glob.glob("docs/plans/**/*.md",recursive=True)+glob.glob("docs/claude/*.md")+["CLAUDE.md"]:
+    corpus+=open(p).read()+"\n"
+norm=lambda s:re.sub(r"\s+"," ",s)
+corpus=norm(corpus)
+miss=0;tot=0
+for p in glob.glob(S+"/before/*.md"):
+    t=open(p).read()
+    items=set(re.findall(r"^#+ .*$",t,re.M))
+    items|=set(re.findall(r"\*\*[^*\n]{4,}\*\*",t))
+    for it in items:
+        tot+=1
+        if norm(it) not in corpus:
+            miss+=1;print(p.split("/")[-1],"|",it)
+print("total",tot,"missing",miss)
+```
+
+**Rimandi.** `grep` dei percorsi `.claude/rules|docs/claude|docs/plans` citati
+nel repo: nessuno rotto. Le skill citano `CLAUDE.md` §1-§9: la numerazione non è
+cambiata. Aggiornate `doc-sync` (la storia di una `SAVE_VERSION` va in
+`save-history.md`, il diario non va nella regola, tabella §7 raggruppata) e
+`next-phase` (passo 5.2). I "§7bis" nei piani vecchi sono storia, non rimandi.
+`docs/claude/emulator.md` ora contiene la ricetta GDB (era nella regola degli OWE).
+
+**Handoff per la fase 4 (Opus 5.5).** Revisione finale: `/code-review` a medium
+su tutto il diff del piano. Il diff della fase 3 è solo documentazione. Punti
+aperti: il cambio di Pokémon dei capi di Red's Path (§5.1); la metà dei danni
+speciali con Frostbite e un Ice Beam vero (§5.1); Ghicocche e Flash a parte (§5.2).
+Serve il `.srm`. Se una regola nuova sfora gli 8 KB, sfoltirla come qui.
 
 Le fasi 1, 2 e 3 sono indipendenti: l'ordine è dal più economico da
 verificare al meno, ma si possono scambiare.

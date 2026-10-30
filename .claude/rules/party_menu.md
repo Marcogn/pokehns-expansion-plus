@@ -5,7 +5,6 @@ paths:
   - "src/party_menu_dispatch.c"
   - "include/party_menu*.h"
   - "tools/gen_party_menu_variant.py"
-  - "src/item_use.c"
 ---
 
 # Menu squadra (classico e SwSh)

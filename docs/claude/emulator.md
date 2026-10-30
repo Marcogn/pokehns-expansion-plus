@@ -59,10 +59,34 @@ ragionamento girava a vuoto da un'ora. Ricordati di `cp` del file prima.
   checksum a somma di u16 da ricalcolare.
 
 **Più letture della RAM nella stessa sessione**: lo stub di `mgba -g`
-accetta una sola connessione e non fa detach. Serve un `gdb-multiarch`
-sempre aperto dietro una fifo; ricetta e trappole in
-`.claude/rules/overworld_encounters.md` ("GDB su mGBA, come funziona
-davvero").
+accetta una sola connessione e non fa detach (`E07`): un `gdb -batch` per ogni
+lettura non va, la seconda connessione resta appesa. Funziona un solo
+`gdb-multiarch` sempre aperto, alimentato da una fifo (`tail -f fifo |
+gdb-multiarch`), con `continue &` dopo il collegamento e `interrupt` / `dump
+binary memory` / `continue &` per ogni lettura. `pokehns.elf` non ha
+informazioni di debug: gli indirizzi si prendono con `nm`, gli offset dei campi
+compilando un `offsetof` con i flag del Makefile (`-mthumb -mabi=apcs-gnu
+-march=armv4t -iquote include -DPOKEMON_HNS`). `gSaveBlock1Ptr` punta dentro
+`gSaveblock1` con uno spostamento casuale (ASLR): si legge il puntatore, e lo si
+rilegge dopo ogni ritorno al campo.
+
+Trappole di sessione:
+
+- **`gdb` su un file con `sed -i` perde l'output**: `sed -i` crea un file nuovo
+  e `gdb` continua a scrivere su quello cancellato. Leggere da
+  `/proc/<pid di gdb>/fd/1`.
+- **I breakpoint con `commands ... continue &` perdono colpi**: non usarli come
+  prova di "non chiamato", guarda i dati in RAM (o un watchpoint).
+- `interrupt` è asincrono: aspetta "SIGINT" nell'output prima dei comandi.
+- **Decodificare un Pokémon in RAM**: `struct Pokemon` 100 byte, sicuri a +32, 4
+  sottostrutture da 12 byte cifrate con `personality ^ otId`, ordine
+  `sSubstructOffsets[tipo][personality % 24]`; IV nel secondo u32 della
+  sottostruttura 3, `abilityNum` bit 29-30 del terzo.
+- **Misurare in frame, non con l'orologio**: ogni lettura ferma il gioco ~0,7 s;
+  contatore `gMain.vblankCounter1` (`gMain` + 0x20).
+- Mai `pkill -f` con una parola che compare nel comando stesso: uccide la shell.
+- `xdotool search --class mgba` restituisce **due** finestre: i tasti arrivano
+  solo all'ultima (`tail -1`).
 
 ## Nuova partita per i test
 

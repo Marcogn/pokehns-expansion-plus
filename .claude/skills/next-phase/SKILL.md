@@ -81,8 +81,10 @@ claim the gate passed. The save is used as `pokehns.sav` next to the ROM
    live (which rule), what was verified and how, then
    **"Handoff per la fase N+1 (<model>)"** with what the next session must
    know and not rediscover. Update the status line at the top.
-2. Area rule in `.claude/rules/`: traps and measurements found (the plan
-   holds decisions, the rule holds how the code behaves).
+2. Area rule in `.claude/rules/`: only traps, invariants and facts with
+   file:line (the rule stays under 8 KB and loads on every matching file).
+   The diary of the verification (when, which ROM, which pixels) goes in
+   the phase section of step 1 or in `docs/claude/*-history.md`.
 3. `CHANGELOG.md` under the next version if the phase changes something a
    player sees.
 4. Commit `<Area> phase N: <what>` with the "why" and "how verified" in the
