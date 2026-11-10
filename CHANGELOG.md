@@ -14,7 +14,9 @@ add the section before releasing. Feature details live in the tables of
   the save blocks, the bag, the battle state and the functions an app calls,
   written by the linker at every build. The PokeDaisy fork
   ([Marcogn/pokedaisy-hasep-support](https://github.com/Marcogn/pokedaisy-hasep-support))
-  reads it, so every Hasep release works there without a new app version.
+  reads it, so every Hasep release works there without a new app version:
+  party, bag, map, battle, Pokédex and guide, EXPAND (the wide screen), FLY,
+  FLASH and the PC from anywhere.
   Nothing changes in game. `tools/hasep_symbols.py` prints and checks it.
 
 ## 2.0.6.PLUS.9

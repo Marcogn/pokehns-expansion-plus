@@ -22,8 +22,11 @@ coincide con la release in tutta la EWRAM, Hasep no (party +0x58, borsa +0xC...)
   definisce `__hasep_symbols_end`; senza quelle righe `--gc-sections` le butta.
 - **Esportare un simbolo**: `HASEP_EXPORT(sym)` a livello di file. Una
   funzione o tabella `static` si esporta **dal suo file** (così non cambia
-  linkage): oggi `battle_controller_player.c`, `field_move.c`,
-  `fldeff_flash.c`, `pokemon.c`, `region_map.c`. `HASEP_EXPORT_VALUE` per
+  linkage): oggi `battle_controller_player.c`, `event_object_movement.c`,
+  `field_camera.c`, `field_move.c`, `fldeff_flash.c`, `pokemon.c`,
+  `region_map.c`, `script.c`, `sprite.c`. Quelli di EXPAND (camera, ordine
+  degli sprite, controlli bloccati, palette e grafica degli oggetti) servono
+  alla riga nativa `pk_wide` che il fork costruisce dalla tabella. `HASEP_EXPORT_VALUE` per
   espressioni (`gTrainers[DIFFICULTY_NORMAL]`) e costanti.
 - **Le funzioni hanno il bit Thumb** (valore dispari), come i puntatori a
   funzione del gioco e come li vuole PokeDaisy.
@@ -37,4 +40,6 @@ coincide con la release in tutta la EWRAM, Hasep no (party +0x58, borsa +0xC...)
 - **Verifica**: `tools/hasep_symbols.py pokehns.gba --elf pokehns.elf`
   confronta ogni indirizzo con `nm` (esce 1 su un errore). Verificato anche dal
   vivo con `mgba_dump` del fork: party, SaveBlock, borsa e mapsec letti dalla
-  tabella su una nuova partita.
+  tabella su una nuova partita; PC ovunque, Volo (verso Cherrygrove), Flash
+  (Grotta Oscura) ed EXPAND (centro esatto in 59/60 e 203/204 frame) con le
+  chiamate dell'app agli indirizzi della tabella.
