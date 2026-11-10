@@ -21,6 +21,7 @@
 #include "region_map.h"
 #include "script.h"
 #include "wild_encounter.h"
+#include "constants/difficulty.h"
 #include "constants/event_objects.h"
 #include "constants/flags.h"
 #include "constants/items.h"
@@ -138,6 +139,9 @@ HASEP_EXPORT_VALUE(MON_DATA_MOVE1, "MON_DATA_MOVE1", MON_DATA_MOVE1);
 HASEP_EXPORT_VALUE(MON_DATA_IS_EGG, "MON_DATA_IS_EGG", MON_DATA_IS_EGG);
 HASEP_EXPORT_VALUE(MAPSEC_NONE, "MAPSEC_NONE", MAPSEC_NONE);
 HASEP_EXPORT_VALUE(NUM_OBJ_EVENT_GFX, "NUM_OBJ_EVENT_GFX", NUM_OBJ_EVENT_GFX);
+// What tools/hasep_symbols.py checks the gTrainers row against.
+HASEP_EXPORT_VALUE(DIFFICULTY_NORMAL, "DIFFICULTY_NORMAL", DIFFICULTY_NORMAL);
+HASEP_EXPORT_VALUE(TRAINERS_COUNT, "TRAINERS_COUNT", TRAINERS_COUNT);
 
 // The layouts the app reads, as Heart and Soul 2.0.6 has them (measured on
 // both builds). A change here means the app reads garbage: bump
@@ -170,5 +174,8 @@ STATIC_ASSERT(offsetof(struct SaveBlock1, vars) == 0x1ABC, HasepLayoutSaveBlock1
 STATIC_ASSERT(offsetof(struct SaveBlock1, objectEventTemplates) == 0x138C, HasepLayoutSaveBlock1Templates);
 STATIC_ASSERT(sizeof(struct ObjectEvent) == 0x24, HasepLayoutObjectEvent);
 STATIC_ASSERT(sizeof(struct Sprite) == 0x44, HasepLayoutSprite);
+STATIC_ASSERT(sizeof(struct BagPocket) == 8, HasepLayoutBagPocket);
+STATIC_ASSERT(sizeof(struct ItemSlot) == 4, HasepLayoutItemSlot);
+STATIC_ASSERT(offsetof(struct MapHeader, regionMapSectionId) == 0x14, HasepLayoutMapHeaderMapsec);
 STATIC_ASSERT(offsetof(struct SaveBlock2, encryptionKey) == 0xAC, HasepLayoutSaveBlock2Key);
 STATIC_ASSERT(offsetof(struct PartyMenu, slotId) == 0x09, HasepLayoutPartyMenuSlot);

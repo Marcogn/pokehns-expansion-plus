@@ -5,6 +5,15 @@ paths:
   - "tools/hasep_symbols.py"
   - "ld_script_modern.ld"
   - "ld_script_test.ld"
+  - "src/battle_controller_player.c"
+  - "src/event_object_movement.c"
+  - "src/field_camera.c"
+  - "src/field_move.c"
+  - "src/fldeff_flash.c"
+  - "src/pokemon.c"
+  - "src/region_map.c"
+  - "src/script.c"
+  - "src/sprite.c"
 ---
 
 # Tabella dei simboli per le app companion (`HASEPSYM`)
