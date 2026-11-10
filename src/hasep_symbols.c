@@ -152,6 +152,8 @@ HASEP_EXPORT_VALUE(ITEM_REPEL, "ITEM_REPEL", ITEM_REPEL);
 HASEP_EXPORT_VALUE(ITEM_SUPER_REPEL, "ITEM_SUPER_REPEL", ITEM_SUPER_REPEL);
 HASEP_EXPORT_VALUE(ITEM_MAX_REPEL, "ITEM_MAX_REPEL", ITEM_MAX_REPEL);
 HASEP_EXPORT_VALUE(REPEL_LURE_MASK, "REPEL_LURE_MASK", REPEL_LURE_MASK);
+// What the game draws as shiny (MON_DATA_IS_SHINY): Hasep's challenge setting changes the odds, not this.
+HASEP_EXPORT_VALUE(SHINY_ODDS, "SHINY_ODDS", SHINY_ODDS);
 
 // The layouts the app reads, as Heart and Soul 2.0.6 has them (measured on
 // both builds). A change here means the app reads garbage: bump
