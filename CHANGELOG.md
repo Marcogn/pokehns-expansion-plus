@@ -6,6 +6,17 @@ tag `v2.0.6.PLUS.3`) as the release notes, and refuses to run without one:
 add the section before releasing. Feature details live in the tables of
 [`README.md`](README.md).
 
+## 2.0.6.PLUS.10
+
+### Added
+- **Symbol table for companion apps**: the ROM now carries a small table
+  (`HASEPSYM`, right after the ROM headers) with the addresses of the party,
+  the save blocks, the bag, the battle state and the functions an app calls,
+  written by the linker at every build. The PokeDaisy fork
+  ([Marcogn/pokedaisy-hasep-support](https://github.com/Marcogn/pokedaisy-hasep-support))
+  reads it, so every Hasep release works there without a new app version.
+  Nothing changes in game. `tools/hasep_symbols.py` prints and checks it.
+
 ## 2.0.6.PLUS.9
 
 ### Changed

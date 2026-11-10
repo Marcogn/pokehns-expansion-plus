@@ -1,4 +1,5 @@
 #include "global.h"
+#include "hasep_symbols.h"
 #include "main.h"
 #include "text.h"
 #include "menu.h"
@@ -3057,3 +3058,9 @@ void SetFlyDestination(struct RegionMap* regionMap)
     else
         SetWarpDestinationToMapWarp(sMapHealLocations[regionMap->mapSecId][0], sMapHealLocations[regionMap->mapSecId][1], WARP_ID_NONE);
 }
+
+// Read by companion apps through the ROM's symbol table (include/hasep_symbols.h).
+HASEP_EXPORT(GetMapsecType);
+HASEP_EXPORT(sMapHealLocations);
+HASEP_EXPORT(sRegionMapEntries_Johto);
+HASEP_EXPORT(sRegionMapSections_JK);

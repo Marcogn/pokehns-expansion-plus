@@ -77,6 +77,10 @@ SECTIONS {
         src/rom_header.o(.text);
         KEEP(*.o(.text.header_gf));
         KEEP(*.o(.text.header_rhh));
+        /* include/hasep_symbols.h: the header, then every exported symbol */
+        KEEP(*.o(.text.header_hasep));
+        KEEP(*.o(.text.hasep_symbols));
+        __hasep_symbols_end = .;
         KEEP(*.o(.text.consts));
         src/*.o(.text);
     } > ROM =0

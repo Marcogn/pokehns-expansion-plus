@@ -1,4 +1,5 @@
 #include "global.h"
+#include "hasep_symbols.h"
 #include "malloc.h"
 #include "apprentice.h"
 #include "battle.h"
@@ -10305,3 +10306,6 @@ u16 GetPaldeaCatchProgress(void)
 
     return GetCatchProgress(paldeaPkmn, sizeof(paldeaPkmn) / sizeof(*paldeaPkmn));
 }
+
+// Read by companion apps through the ROM's symbol table (include/hasep_symbols.h).
+HASEP_EXPORT(sJohtoToNationalOrder);

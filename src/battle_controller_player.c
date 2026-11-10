@@ -1,4 +1,5 @@
 #include "global.h"
+#include "hasep_symbols.h"
 #include "battle.h"
 #include "battle_partner.h"
 #include "battle_anim.h"
@@ -2511,3 +2512,8 @@ static void MoveSelectionDisplayMoveEffectiveness(u32 foeEffectiveness, enum Bat
 
     BattlePutTextOnWindow(gDisplayedStringBattle, B_WIN_PP);
 }
+
+// Read by companion apps through the ROM's symbol table (include/hasep_symbols.h).
+HASEP_EXPORT(HandleInputChooseAction);
+HASEP_EXPORT(CompleteWhenChoseItem);
+HASEP_EXPORT(WaitForMonSelection);
