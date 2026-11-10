@@ -19,6 +19,25 @@ add the section before releasing. Feature details live in the tables of
   FLASH and the PC from anywhere.
   Nothing changes in game. `tools/hasep_symbols.py` prints and checks it.
 
+### Fixed
+- **Daycare above the level cap** (fix from Soulgold): a Pokémon left at the
+  Daycare while already above the level cap (traded, or deposited before the
+  cap was set) was charged for a nonsensical number of levels, e.g. "grew by
+  241 levels" and 24,200 to pay, and the Daycare showed a level above the
+  cap that it would not have on withdrawal. Shown level, cost and withdrawn
+  level now agree.
+- **X items in the Battle Pyramid bag** (fix from Soulgold): choosing "Use"
+  on an X item in battle closed the menu and did nothing. They now work as
+  in the normal bag (on the active Pokémon in singles, chosen from the party
+  in doubles).
+- **Bug-Catching Contest held item** (fix from Soulgold): an item taken from
+  the lead Pokémon during the contest stayed in the bag and came back on the
+  Pokémon afterwards (duplicated); one given to it during the contest was
+  lost. The lead now keeps whatever it holds when the contest ends.
+
+### Upstream
+- Soulgold evaluated up to `3f4d90aa8`. HnS: no new commits.
+
 ## 2.0.6.PLUS.9
 
 ### Changed

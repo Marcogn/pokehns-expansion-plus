@@ -10,13 +10,13 @@ qui c'è l'elenco, con il rimando al punto giusto.
 
 ---
 
-## 0. Stato della sincronizzazione (20/10/2026)
+## 0. Stato della sincronizzazione (08/11/2026)
 
 | repo | allineato a | note |
 | --- | --- | --- |
-| `pokehns-expansion-plus` ← `PokemonHnS-Development/pokehns-expansion` | `167aa6d` (2.0.6) | 0 commit mancanti anche al 20/10, verificato con `git rev-list --count HEAD..upstream/master` |
-| `Marcogn/soulgold` ← `Eemeliri/soulgold` | `4d4acbe98` (20/10) | merge pulito di 18 commit, `make modern` compila |
-| codice di Soulgold portato in Hasep | Soulgold **1.1.4** (`a374881df`) + i fix elencati al §4 + le tre feature di SG 1.2 (Fast HMs, tema musica di lotta, musica notturna nei Centri, §1), valutato fino a `4d4acbe98` | dopo 1.1.4 in SG è cambiato solo `swsh_party_menu.c` (selezione squadra per le strutture lotta, fix applicato, §4); `dexnav.c`, `candy_jar.c`, `type_icons.c` e gli speed-up no |
+| `pokehns-expansion-plus` ← `PokemonHnS-Development/pokehns-expansion` | `167aa6d` (2.0.6) | 0 commit mancanti anche all'08/11, verificato con `upstream_status.py` (merge base = tip di upstream) |
+| `Marcogn/soulgold` ← `Eemeliri/soulgold` | `3f4d90aa8` (08/11) | merge pulito di 4 commit (gli altri 16 erano già arrivati nel fork), `make modern` compila |
+| codice di Soulgold portato in Hasep | Soulgold **1.1.4** (`a374881df`) + i fix elencati al §4 + le tre feature di SG 1.2 (Fast HMs, tema musica di lotta, musica notturna nei Centri, §1), valutato fino a `3f4d90aa8` | dopo 1.1.4 in SG è cambiato solo `swsh_party_menu.c` (selezione squadra per le strutture lotta, fix applicato, §4); `dexnav.c`, `candy_jar.c`, `type_icons.c` e gli speed-up no |
 
 Il branch `claude/mega-type-stones` ha 3 commit **non ancora in master**
 (megaevoluzioni con le type stone di SG, due tasche nuove nella borsa). Vedi §5.
@@ -122,6 +122,21 @@ per diff:
 | Icona di Mega Staraptor (`f55a6fc89`) | non applicato | megaevoluzioni spente in Hasep (`.claude/rules/megas.md`) |
 | Docs del sito, CSS, export della squadra (`8033e448c`, `c98530c7d`, `1d304cea2`, `3a378f5e7`, `4d4acbe98`), refusi nelle abilità, testi, mappe, squadre, learnset, tratti (`d039d054b`, `08c15c8ea`, `11a7a74f7`, `a984e5913`, `acfbed1df`, `c37387967`, `16db3f5dc`, `c159c5bf6`, `2672ba3e4`) | non applicato | contenuto di SG |
 
+Sync dell'08/11/2026, commit di SG da `8612602bb` a `3f4d90aa8` (SG 1.2.1),
+letti diff per diff:
+
+| cambio in SG | in Hasep | perché |
+| --- | --- | --- |
+| Livelli della pensione oltre il level cap (`7cce33b29`) | **applicato** | stesso codice in Hasep: un Pokémon già sopra il cap faceva `cap - livello` in un `u8`, quindi "è cresciuto di 241 livelli" e un costo di 24.200 (livello 30, cap 15); il livello mostrato non era limitato al cap, quello al ritiro sì. Ora un'unica `GetExperienceAfterDaycareSteps` per livello mostrato, costo e ritiro. Letto dal codice, non riprodotto in gioco |
+| Strumenti X dalla borsa della Piramide (`9a73cde36`) | **applicato** | con `B_X_ITEMS_CROSSUSE` gli strumenti X sono `ITEM_USE_BATTLER`, che `BagAction_UseInBattle` della Piramide non gestiva: la finestra si chiudeva e il task restava nel gestore del menu. La borsa normale (`item_menu.c`) aveva già i due casi. Letto dal codice, non riprodotto in gioco |
+| Strumento del capofila nella Gara Coleottero (`ba55215d2`) | **applicato, adattato** | stesso bug in Hasep: `LoadPlayerParty` rimette il capofila com'era al cancello, quindi uno strumento tolto durante la gara si duplicava e uno dato si perdeva. SG copia strumento e posta nella squadra salvata prima di ricaricarla; Hasep ha un solo strumento (niente `MAX_MON_ITEMS`) e riconosce il capofila da personalità e OT della **copia salvata**, non da due statiche impostate al cancello (che un salvataggio e una ricarica nel parco azzerano). `LoadPlayerParty` passa dallo script a `ExitBugContestMode`. Letto dal codice, non riprodotto in gioco |
+| Rimozione dei dati di gara e Gigantamax dal `BoxPokemon`, secondo strumento tenuto, migrazione dei salvataggi "BX2!" (`a36d4ff2b`) | non applicato | ristruttura il formato dei Pokémon salvati di SG (`pokemon_legacy.c`, `save.c`). In Hasep un cambio così riscrive i salvataggi e non corregge nessun bug; il resto del commit (`ScriptGiveMon` senza `item2`, sfondi riordinati, Feebas senza evoluzione per Bellezza) è conseguenza dello stesso cambio o bilanciamento di SG |
+| Follower di tutte le mega degli starter, animazioni a 3 frame, `overworldShinyData` (`2648bc6c6`) | non applicato | megaevoluzioni spente in Hasep (`.claude/rules/megas.md`); da riconsiderare solo con il branch delle mega |
+| Testi senza maiuscolo (`bb83ae62a`, `d5d5d83ff`) | non applicato | scelta di stile di SG (e "Lilycove" → "Safari Zone" è la sua mappa); nello stesso commit, Loaded Dice nel negozio BP e un tratto di Tapu Fini sono contenuto |
+| Spear Pillar, sfere a Indigo, negozio BP della Piramide e prezzi (`38578592f`, `084a554c3`, `e9dd98b56`) | non applicato | mappe e negozi di SG; Spear Pillar in Hasep non esiste |
+| Mosse uovo di 8ª gen, evoluzioni per scambio tolte, learnset (`8612602bb`, `874e93e03`, `bfc61595e`) | non applicato | contenuto di SG |
+| Versione 1.2.1, documentazione, set della Frontiera nel sito, README (`281f912d9`, `b923b8929`, `5071bdb9f`, `0d12735a7`, `215a8de76`, `e73803309`, `3f4d90aa8`) | non applicato | contenuto di SG |
+
 Trovato e **non** corretto (non è nel diff di SG, presente in entrambi):
 `CheckBattleEntriesAndGetMessage` in `swsh_party_menu.c` confronta specie e
 strumenti di tutte le `maxBattlers` caselle anche quando le ultime sono vuote,
@@ -136,7 +151,9 @@ minimo inferiore al massimo.
 **Bloccato o rimandato per un motivo misurato**
 
 - **Megaevoluzioni**: la ROM passa al 99,46% dei 32 MB (`.claude/rules/megas.md`). Il
-  lavoro sta su `claude/mega-type-stones`, non ancora unito.
+  lavoro sta su `claude/mega-type-stones`, non ancora unito. SG 1.2.1 ha
+  aggiunto i follower in overworld delle mega degli starter (`2648bc6c6`):
+  da valutare insieme a quel branch, non prima.
 - **Pokédex completo dalla pagina della cattura**: in lotta non c'è abbastanza
   memoria (misura in `.claude/rules/pokedex.md`). Anche SG, su quella pagina, esce e basta.
 
