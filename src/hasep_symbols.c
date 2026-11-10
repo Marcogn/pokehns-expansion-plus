@@ -5,6 +5,7 @@
 #include "braille_puzzles.h"
 #include "data.h"
 #include "event_data.h"
+#include "fieldmap.h"
 #include "field_effect.h"
 #include "field_weather.h"
 #include "fldeff.h"
@@ -20,6 +21,7 @@
 #include "region_map.h"
 #include "script.h"
 #include "wild_encounter.h"
+#include "constants/event_objects.h"
 #include "constants/flags.h"
 #include "constants/items.h"
 #include "constants/pokemon.h"
@@ -27,8 +29,9 @@
 #include "constants/vars.h"
 
 // See include/hasep_symbols.h. The statics the app needs are exported from
-// their own files: battle_controller_player.c, field_move.c, fldeff_flash.c,
-// pokemon.c and region_map.c.
+// their own files: battle_controller_player.c, event_object_movement.c,
+// field_camera.c, field_move.c, fldeff_flash.c, pokemon.c, region_map.c,
+// script.c and sprite.c.
 
 extern const struct MapHeader *const *const gMapGroups[];
 typedef u16 (*SpecialFunc)(void);
@@ -73,6 +76,8 @@ HASEP_EXPORT(gMapHeader);
 HASEP_EXPORT(gBagPockets);
 HASEP_EXPORT(gPartyMenu);
 HASEP_EXPORT(gHasepAppScratch);
+
+HASEP_EXPORT(gBackupMapLayout);
 
 // Battle.
 HASEP_EXPORT(gBattleMons);
@@ -132,6 +137,7 @@ HASEP_EXPORT_VALUE(FLAG_SYS_POKEDEX_GET, "FLAG_SYS_POKEDEX_GET", FLAG_SYS_POKEDE
 HASEP_EXPORT_VALUE(MON_DATA_MOVE1, "MON_DATA_MOVE1", MON_DATA_MOVE1);
 HASEP_EXPORT_VALUE(MON_DATA_IS_EGG, "MON_DATA_IS_EGG", MON_DATA_IS_EGG);
 HASEP_EXPORT_VALUE(MAPSEC_NONE, "MAPSEC_NONE", MAPSEC_NONE);
+HASEP_EXPORT_VALUE(NUM_OBJ_EVENT_GFX, "NUM_OBJ_EVENT_GFX", NUM_OBJ_EVENT_GFX);
 
 // The layouts the app reads, as Heart and Soul 2.0.6 has them (measured on
 // both builds). A change here means the app reads garbage: bump
@@ -161,5 +167,8 @@ STATIC_ASSERT(offsetof(struct SaveBlock1, playerParty) == 0x23C, HasepLayoutSave
 STATIC_ASSERT(offsetof(struct SaveBlock1, money) == 0x494, HasepLayoutSaveBlock1Money);
 STATIC_ASSERT(offsetof(struct SaveBlock1, flags) == 0x198C, HasepLayoutSaveBlock1Flags);
 STATIC_ASSERT(offsetof(struct SaveBlock1, vars) == 0x1ABC, HasepLayoutSaveBlock1Vars);
+STATIC_ASSERT(offsetof(struct SaveBlock1, objectEventTemplates) == 0x138C, HasepLayoutSaveBlock1Templates);
+STATIC_ASSERT(sizeof(struct ObjectEvent) == 0x24, HasepLayoutObjectEvent);
+STATIC_ASSERT(sizeof(struct Sprite) == 0x44, HasepLayoutSprite);
 STATIC_ASSERT(offsetof(struct SaveBlock2, encryptionKey) == 0xAC, HasepLayoutSaveBlock2Key);
 STATIC_ASSERT(offsetof(struct PartyMenu, slotId) == 0x09, HasepLayoutPartyMenuSlot);

@@ -1,4 +1,5 @@
 #include "global.h"
+#include "hasep_symbols.h"
 #include "script.h"
 #include "event_data.h"
 #include "field_screen_effect.h"
@@ -724,3 +725,6 @@ void SetTimeBasedEncounters(void)
 	}
     */
 }    
+
+// Read by companion apps through the ROM's symbol table (include/hasep_symbols.h).
+HASEP_EXPORT(sLockFieldControls);

@@ -1,4 +1,5 @@
 #include "global.h"
+#include "hasep_symbols.h"
 #include "malloc.h"
 #include "battle_anim.h"
 #include "battle_pyramid.h"
@@ -12686,3 +12687,9 @@ bool8 MovementType_OverworldWildEncounter_Despawn_Step11(struct ObjectEvent *obj
 }
 
 #undef sDespawnTimer
+
+// Read by companion apps through the ROM's symbol table (include/hasep_symbols.h).
+HASEP_EXPORT(gObjectEventGraphicsInfoPointers);
+HASEP_EXPORT(sObjectEventSpritePalettes);
+HASEP_EXPORT(gInitialMovementTypeFacingDirections);
+HASEP_EXPORT(sElevationToPriority);

@@ -1,4 +1,5 @@
 #include "global.h"
+#include "hasep_symbols.h"
 #include "berry.h"
 #include "bike.h"
 #include "field_camera.h"
@@ -576,3 +577,6 @@ static void CameraPanningCB_PanAhead(void)
     }
     */
 }
+
+// Read by companion apps through the ROM's symbol table (include/hasep_symbols.h).
+HASEP_EXPORT(sFieldCameraOffset);
