@@ -193,6 +193,8 @@ STATIC_ASSERT(offsetof(struct ItemInfo, holdEffectParam) == 0x1D, HasepLayoutIte
 STATIC_ASSERT(offsetof(struct BattleStruct, monToSwitchIntoId) == 0xE5, HasepLayoutMonToSwitchInto);
 STATIC_ASSERT(offsetof(struct PlayerAvatar, objectEventId) == 5, HasepLayoutAvatarObject);
 STATIC_ASSERT(offsetof(struct PlayerAvatar, gender) == 7, HasepLayoutAvatarGender);
+// The forced-shiny bit the app reads: `u16 hpLost:14, shinyModifier:1` right after the checksum, so bit 6 of +0x1F.
+STATIC_ASSERT(offsetof(struct BoxPokemon, checksum) == 0x1C, HasepLayoutBoxMonChecksum);
 STATIC_ASSERT(VAR_LAST_REPEL_LURE_USED == 0, HasepRepelNoLastUsedVar); // the app doesn't restore one
 STATIC_ASSERT(offsetof(struct SaveBlock2, encryptionKey) == 0xAC, HasepLayoutSaveBlock2Key);
 STATIC_ASSERT(offsetof(struct PartyMenu, slotId) == 0x09, HasepLayoutPartyMenuSlot);

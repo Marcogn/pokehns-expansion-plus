@@ -44,6 +44,11 @@ coincide con la release in tutta la EWRAM, Hasep no (party +0x58, borsa +0xC...)
   `hasep_symbols.c` li fissano: se uno salta, alza
   `HASEP_SYMBOLS_LAYOUT_VERSION` e aggiorna il fork. **Un nome esportato è
   un'API**: non rinominarlo senza aggiornare il fork.
+- **Cosa usa il fork, da PLUS.11**: `gEnemyParty` / `gBattlerPartyIndexes` /
+  `gBattleStruct` (squadra avversaria, SHINY ODDS con `SHINY_ODDS` = ciò che il
+  gioco disegna, non le probabilità dell'opzione sfida), `gPlayerAvatar` (bici e
+  surf: in HnS sta 0x30 *prima* di `gObjectEvents`), gli id dei Repellenti e
+  `REPEL_LURE_MASK`. Un'app che non trova un nome si comporta come prima.
 - `gHasepAppScratch[32]` (EWRAM) è la RAM dove l'app scrive argomenti e lo
   script del PC; HnS usava la coda inutilizzata della EWRAM.
 - **Verifica**: `tools/hasep_symbols.py pokehns.gba --elf pokehns.elf`
