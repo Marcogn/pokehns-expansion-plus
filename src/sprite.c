@@ -1,4 +1,5 @@
 #include "global.h"
+#include "hasep_symbols.h"
 #include "sprite.h"
 #include "main.h"
 #include "overworld.h"
@@ -2189,3 +2190,9 @@ u32 CountFreePaletteSlots(void)
 
     return count;
 }
+
+// Read by companion apps through the ROM's symbol table (include/hasep_symbols.h).
+HASEP_EXPORT(sSpriteOrder);
+HASEP_EXPORT(gSprites);
+HASEP_EXPORT(gSpriteCoordOffsetX);
+HASEP_EXPORT(gSpriteCoordOffsetY);

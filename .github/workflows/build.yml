@@ -56,6 +56,11 @@ jobs:
       - name: ROM (HnS)
         run: make hns -j$(nproc) -O
 
+      - name: Symbol table for companion apps
+        # Every address in the HASEPSYM table must be the ELF's own symbol
+        # (.claude/rules/hasep_symbols.md): the PokeDaisy fork reads it.
+        run: python3 tools/hasep_symbols.py pokehns.gba --elf pokehns.elf > /dev/null
+
       - name: ROM size
         run: |
           # The ROM is padded to 32 MiB, so measure the used part: everything

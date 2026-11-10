@@ -1,4 +1,5 @@
 #include "global.h"
+#include "hasep_symbols.h"
 #include "braille_puzzles.h"
 #include "decompress.h"
 #include "event_data.h"
@@ -374,3 +375,6 @@ static void Task_EnterCaveTransition4(u8 taskId)
         SetMainCallback2(gMain.savedCallback);
     }
 }
+
+// Read by companion apps through the ROM's symbol table (include/hasep_symbols.h).
+HASEP_EXPORT(FieldCallback_Flash);

@@ -1,4 +1,5 @@
 #include "global.h"
+#include "hasep_symbols.h"
 #include "event_data.h"
 #include "field_move.h"
 #include "fldeff.h"
@@ -258,3 +259,6 @@ const struct FieldMoveInfo gFieldMoveInfo[FIELD_MOVES_COUNT] =
     },
 #endif
 };
+
+// Read by companion apps through the ROM's symbol table (include/hasep_symbols.h).
+HASEP_EXPORT(IsFieldMoveUnlocked_Fly);

@@ -8,6 +8,17 @@ add the section before releasing. Feature details live in the tables of
 
 ## 2.0.6.PLUS.10
 
+### Added
+- **Symbol table for companion apps**: the ROM now carries a small table
+  (`HASEPSYM`, right after the ROM headers) with the addresses of the party,
+  the save blocks, the bag, the battle state and the functions an app calls,
+  written by the linker at every build. The PokeDaisy fork
+  ([Marcogn/pokedaisy-hasep-support](https://github.com/Marcogn/pokedaisy-hasep-support))
+  reads it, so every Hasep release works there without a new app version:
+  party, bag, map, battle, Pokédex and guide, EXPAND (the wide screen), FLY,
+  FLASH and the PC from anywhere.
+  Nothing changes in game. `tools/hasep_symbols.py` prints and checks it.
+
 ### Fixed
 - **Daycare above the level cap** (fix from Soulgold): a Pokémon left at the
   Daycare while already above the level cap (traded, or deposited before the
