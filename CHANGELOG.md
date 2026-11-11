@@ -6,7 +6,7 @@ tag `v2.0.6.PLUS.3`) as the release notes, and refuses to run without one:
 add the section before releasing. Feature details live in the tables of
 [`README.md`](README.md).
 
-## 2.0.6.PLUS.10
+## 2.0.6.PLUS.11
 
 ### Added
 - **Symbol table for companion apps**: the ROM now carries a small table
@@ -16,8 +16,11 @@ add the section before releasing. Feature details live in the tables of
   ([Marcogn/pokedaisy-hasep-support](https://github.com/Marcogn/pokedaisy-hasep-support))
   reads it, so every Hasep release works there without a new app version:
   party, bag, map, battle, Pokédex and guide, EXPAND (the wide screen), FLY,
-  FLASH and the PC from anywhere.
+  FLASH, the PC from anywhere, bike and surf, the foe's team, SHINY ODDS
+  and the Repels from the bag.
   Nothing changes in game. `tools/hasep_symbols.py` prints and checks it.
+
+## 2.0.6.PLUS.10
 
 ### Fixed
 - **Daycare above the level cap** (fix from Soulgold): a Pokémon left at the

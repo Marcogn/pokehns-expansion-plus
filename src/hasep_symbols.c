@@ -24,6 +24,7 @@
 #include "constants/difficulty.h"
 #include "constants/event_objects.h"
 #include "constants/flags.h"
+#include "constants/item.h"
 #include "constants/items.h"
 #include "constants/pokemon.h"
 #include "constants/region_map_sections.h"
@@ -79,6 +80,7 @@ HASEP_EXPORT(gPartyMenu);
 HASEP_EXPORT(gHasepAppScratch);
 
 HASEP_EXPORT(gBackupMapLayout);
+HASEP_EXPORT(gPlayerAvatar); // bike / surf: HnS keeps it before gObjectEvents, not after
 
 // Battle.
 HASEP_EXPORT(gBattleMons);
@@ -88,6 +90,9 @@ HASEP_EXPORT(gBattleTypeFlags);
 HASEP_EXPORT(gBattlerControllerFuncs);
 HASEP_EXPORT(gActionSelectionCursor);
 HASEP_EXPORT(gMoveSelectionCursor);
+HASEP_EXPORT(gEnemyParty);          // the FOE TEAM and SHINY ODDS
+HASEP_EXPORT(gBattlerPartyIndexes);
+HASEP_EXPORT(gBattleStruct);        // a pointer: monToSwitchIntoId behind it
 HASEP_EXPORT(HandleInputChooseMove);
 HASEP_EXPORT(HandleInputChooseTarget);
 
@@ -142,6 +147,13 @@ HASEP_EXPORT_VALUE(NUM_OBJ_EVENT_GFX, "NUM_OBJ_EVENT_GFX", NUM_OBJ_EVENT_GFX);
 // What tools/hasep_symbols.py checks the gTrainers row against.
 HASEP_EXPORT_VALUE(DIFFICULTY_NORMAL, "DIFFICULTY_NORMAL", DIFFICULTY_NORMAL);
 HASEP_EXPORT_VALUE(TRAINERS_COUNT, "TRAINERS_COUNT", TRAINERS_COUNT);
+// The Repels the app uses from the bag (expansion's ids; a Lure sets REPEL_LURE_MASK in VAR_REPEL_STEP_COUNT).
+HASEP_EXPORT_VALUE(ITEM_REPEL, "ITEM_REPEL", ITEM_REPEL);
+HASEP_EXPORT_VALUE(ITEM_SUPER_REPEL, "ITEM_SUPER_REPEL", ITEM_SUPER_REPEL);
+HASEP_EXPORT_VALUE(ITEM_MAX_REPEL, "ITEM_MAX_REPEL", ITEM_MAX_REPEL);
+HASEP_EXPORT_VALUE(REPEL_LURE_MASK, "REPEL_LURE_MASK", REPEL_LURE_MASK);
+// What the game draws as shiny (MON_DATA_IS_SHINY): Hasep's challenge setting changes the odds, not this.
+HASEP_EXPORT_VALUE(SHINY_ODDS, "SHINY_ODDS", SHINY_ODDS);
 
 // The layouts the app reads, as Heart and Soul 2.0.6 has them (measured on
 // both builds). A change here means the app reads garbage: bump
@@ -177,5 +189,12 @@ STATIC_ASSERT(sizeof(struct Sprite) == 0x44, HasepLayoutSprite);
 STATIC_ASSERT(sizeof(struct BagPocket) == 8, HasepLayoutBagPocket);
 STATIC_ASSERT(sizeof(struct ItemSlot) == 4, HasepLayoutItemSlot);
 STATIC_ASSERT(offsetof(struct MapHeader, regionMapSectionId) == 0x14, HasepLayoutMapHeaderMapsec);
+STATIC_ASSERT(offsetof(struct ItemInfo, holdEffectParam) == 0x1D, HasepLayoutItemHoldEffectParam);
+STATIC_ASSERT(offsetof(struct BattleStruct, monToSwitchIntoId) == 0xE5, HasepLayoutMonToSwitchInto);
+STATIC_ASSERT(offsetof(struct PlayerAvatar, objectEventId) == 5, HasepLayoutAvatarObject);
+STATIC_ASSERT(offsetof(struct PlayerAvatar, gender) == 7, HasepLayoutAvatarGender);
+// The forced-shiny bit the app reads: `u16 hpLost:14, shinyModifier:1` right after the checksum, so bit 6 of +0x1F.
+STATIC_ASSERT(offsetof(struct BoxPokemon, checksum) == 0x1C, HasepLayoutBoxMonChecksum);
+STATIC_ASSERT(VAR_LAST_REPEL_LURE_USED == 0, HasepRepelNoLastUsedVar); // the app doesn't restore one
 STATIC_ASSERT(offsetof(struct SaveBlock2, encryptionKey) == 0xAC, HasepLayoutSaveBlock2Key);
 STATIC_ASSERT(offsetof(struct PartyMenu, slotId) == 0x09, HasepLayoutPartyMenuSlot);
