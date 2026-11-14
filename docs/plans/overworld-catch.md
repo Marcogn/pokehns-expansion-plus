@@ -68,12 +68,15 @@ Seconda parte, risposte dell'utente (14/11, dopo la prima stesura):
 | D9 | **Alfa catturato**: resta alfa per sempre (bit nel Pokémon salvato), **abilità nascosta garantita**, **una mossa speciale**, **segno nel riassunto**, **follower più grande**, missioni nel quest book. |
 | D10 | **Ricorda mosse**: mosse uovo e tutor solo dopo aver pagato (o con eventi), preso da Soulgold. |
 | D11 | Alfa e ricorda mosse **nello stesso piano**, in fasi dopo la cattura. |
+| D12 | **Fino a 2 alfa per mappa**, e più frequenti di 1 su 50: con i tetti abbassati (D3) sarebbero troppo rari. |
+| D13 | **Missione a livelli**: cattura **1 / 5 / 10 / 30** alfa, con premi crescenti. |
 
 Default della seconda parte, cambiabili prima della fase:
 
 | # | Scelta | Default | Fase |
 | --- | --- | --- | --- |
-| P9 | Quanti alfa | 1 su 50 Pokémon generati; **al massimo uno per mappa**; mai shiny e alfa insieme (lo shiny vince); niente alfa in Safari, Gara, Azienda Lotta, acqua (lo sprite da nuoto non scala) | 8 |
+| P9 | Quanti alfa | **1 su 20** Pokémon generati, **al massimo 2 per mappa** (D12); mai shiny e alfa insieme (lo shiny vince); niente alfa in Safari, Gara, Azienda Lotta, acqua (lo sprite da nuoto non scala). Conto: a tetto pieno nasce un Pokémon ogni 480 frame (8 s, D3), cioè 7,5 al minuto: con 1 su 20 un alfa ogni ~2,7 minuti d'erba, con 1 su 50 ogni ~6,7. La fase 8 lo misura in frame e lo ritocca | 8 |
+| P17 | Premi della missione (D13) | 1 alfa: 10 Ultra Ball; 5: Ability Patch; 10: Shiny Charm; 30: Master Ball. Si ritirano da un NPC, come lo scienziato di TcloneR (chi e dove: fase 10) | 10 |
 | P10 | Livello | quello tirato dalla tabella (già scalato) **+ 10**, senza il tetto `B_WILD_SCALING_MAX_ABOVE_TABLE` | 8 |
 | P11 | "Troppo forte" | livello dell'alfa **sopra** `GetLevelScalingCap()` (il tetto delle medaglie anche con LEVEL CAP spento, `src/caps.c`) | 9 |
 | P12 | Comportamento | sempre aggressivo, vista più lunga, non sparisce finché sei sulla mappa (come gli shiny) | 8 |
@@ -168,6 +171,16 @@ Fatti per la seconda parte (alfa e ricorda mosse):
 - **Blocco della cattura in lotta**: `GetBallThrowableState`
   (`src/item_use.c:1265`) ha già un elenco di motivi (Nuzlocke, One Type,
   `FLAG_NO_WILD_CATCHING`): si aggiunge `BALL_THROW_UNABLE_ALPHA`.
+- **Missione a livelli: il modello c'è già**, TcloneR (`src/tcloner.c:26`,
+  `trainer_catch.md`): un contatore in una var (`VAR_TCLONER_COUNT`), un'altra
+  var per i premi ritirati (`VAR_TCLONER_REWARDS`), una tabella `sRewards` di
+  soglie e premi, lo stato `QUEST_STATE_REWARD` del quest book e una
+  sottomissione per premio (**le due liste vanno tenute allineate a mano**,
+  `quest_book.md`). Gli alfa servono due var: `vars.h` ne segna diverse come
+  `VAR_UNUSED_*`, ma `trainer_catch.md` avverte che alcune vecchie "libere"
+  **non sono dimostrabilmente a zero** nei salvataggi: la fase 10 le controlla
+  sul `.srm` dell'utente. Il contatore sale a ogni alfa catturato, in lotta e
+  col lancio (stessa funzione per i due lati, fase 9).
 - `setwildbossbattle` (`src/scrcmd.c:3383`) è una lotta di script con mosse
   scelte, senza aumento di statistiche: non serve agli alfa.
 - **Sprite più grande**: il motore scala già sprite di oggetti con matrici
@@ -236,7 +249,7 @@ costa di più del suo prezzo.
 | 7 | **Ricorda mosse a pagamento** (D10), port da Soulgold: `P_ENABLE_MOVE_RELEARNERS` FALSE, `P_TM_MOVES_RELEARNER` resta TRUE (P16), due flag, due maestri con il loro prezzo (dove: dalle mappe, v. §3), testo nel riassunto quando la voce è chiusa | **Sonnet 5.5** | build verde; nel riassunto le mosse uovo/tutor non compaiono prima e compaiono dopo aver pagato (screenshot); le MT sì in tutti e due i casi; un salvataggio vecchio parte chiuso. **Serve il `.srm`** (Pokémon con mosse uovo vere) |
 | 8 | **Alfa sulla mappa**: bit `alpha` nell'oggetto, tiro P9, livello P10, comportamento P12, **prototipo dello sprite più grande** (se non regge: un'aura o un'icona sopra la testa, e lo si scrive) | **Opus 5.5** | build verde; con il debug che forza l'alfa: compare uno per mappa, ti insegue, non sparisce; sprite guardato su erba, in grotta, accanto ad altri OWE; tile e matrici affini misurate; un salvataggio vecchio carica senza alfa fantasma. `.srm` non necessario |
 | 9 | **Alfa in lotta e catturato**: aumento P13, blocco della cattura in lotta e col lancio (D7, P11, P15), bit nel Pokémon salvato con `MON_DATA_IS_ALPHA`, abilità nascosta e mossa P14 alla nascita | **Opus 5.5** | build verde; un alfa sopra il tetto respinge la Ball in lotta e nell'overworld (Ball non consumata), si batte e si fugge; uno sotto il tetto si cattura e **in squadra, dopo salvataggio e ricarica e passaggio nel PC, è ancora alfa** con abilità e mossa giuste; un Pokémon del salvataggio vecchio legge non-alfa e il checksum regge. **Serve il `.srm`** |
-| 10 | **Alfa visibile**: segno nel riassunto (tutti e due i temi), follower più grande se la fase 8 l'ha reso possibile, 2-3 missioni nel quest book (`/add-quest`) | **Sonnet 5.5** | screenshot del riassunto chiaro e scuro con indici contati sui `.4bpp`; follower guardato; missioni completate con il debug |
+| 10 | **Alfa visibile e missione**: segno nel riassunto (tutti e due i temi), follower più grande se la fase 8 l'ha reso possibile, **missione a livelli 1/5/10/30** sul modello di TcloneR (contatore, premi P17, NPC che li consegna, sottomissioni nel quest book, `/add-quest`) | **Sonnet 5.5** | screenshot del riassunto chiaro e scuro con indici contati sui `.4bpp`; follower guardato; con il contatore portato a 0, 1, 5, 10, 30 via debug: stato e "NEW" giusti nel libro, ogni premio ritirato una sola volta; le due var nuove a zero nel `.srm` dell'utente prima della modifica. **Serve il `.srm`** |
 | 11 | **Revisione finale e documentazione**: `/code-review` medio sul diff delle fasi 7-10, CHANGELOG (con l'avviso del ricorda mosse), regole, report SG (la fase 7 è un port), ROM consegnata | **Opus 5.5** | build e CI verdi, punti aperti chiusi o motivati. **Serve il `.srm`** |
 
 Perché questi modelli: le fasi 1 e 5 sono costanti, dati e testo con un
