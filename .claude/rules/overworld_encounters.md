@@ -21,6 +21,7 @@ appendice in fondo. Qui restano solo trappole e invarianti.
 Port della PR #8434 di expansion (dal diff del merge `10ae7f9`, più le correzioni
 fino a `expansion/1.16.4`; **non** da `master`, che dipende da `mass_outbreak.h`)
 con un tiro pesato per indole (`docs/plans/overworld-encounters/temperaments.json`).
+Cattura con la Ball nell'overworld (in corso): [`docs/plans/overworld-catch.md`](../../docs/plans/overworld-catch.md).
 
 ## Interruttori e numeri
 
