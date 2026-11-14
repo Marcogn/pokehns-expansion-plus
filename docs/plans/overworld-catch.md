@@ -46,13 +46,13 @@ della fase che le realizza.
 | # | Scelta | Default | Fase |
 | --- | --- | --- | --- |
 | P1 | Quale Ball parte | l'ultima lanciata (`gLastThrownBall`) se è in borsa, altrimenti la prima della tasca Ball; in fase 5 **L tenuto + ←/→** la cambia | 3, 5 |
-| P2 | Gittata | 5 caselle in linea retta; si ferma al primo ostacolo o dislivello | 3 |
+| P2 | Gittata | 5 caselle in linea retta; si ferma al primo ostacolo o dislivello (D16: niente consumo) | 3 |
 | P3 | Nuzlocke / One Type / Species Clause | le stesse regole della lotta: dove la cattura sarebbe bloccata la Ball non parte (messaggio); una cattura riuscita segna la zona | 3 |
 | P4 | Leggendari erranti e sciami | il lancio fallisce sempre e parte la lotta (i loro dati vivono fuori dall'oggetto) | 3 |
 | P5 | Zona Safari, Gara Pigliamosche, Azienda Lotta | lancio **spento** nella prima versione | 3 |
 | P6 | Esperienza alla cattura | nessuna (in lotta `B_EXP_CATCH` la dà: qui non c'è chi ha partecipato) | 3 |
 | P7 | BUTTON MODE `L=A` | il lancio non è disponibile (L è già A, `src/main.c:300`); nessuna opzione nuova | 3 |
-| P8 | Squadra piena | va al PC come in lotta; box pieni: la Ball non parte | 3 |
+| P8 | Squadra piena | va al PC come in lotta; box pieni: la Ball rimbalza. In raffica la squadra si può riempire a metà: il controllo è **all'impatto**, non al lancio, e così Nuzlocke e Species Clause (la prima cattura segna la zona, la seconda Ball rimbalza anche se era già in aria) | 3 |
 
 Il ×2 di D2 è una scelta di bilanciamento **nostra**: non è un valore preso da
 Leggende Arceus.
@@ -70,6 +70,8 @@ Seconda parte, risposte dell'utente (14/11, dopo la prima stesura):
 | D11 | Alfa e ricorda mosse **nello stesso piano**, in fasi dopo la cattura. |
 | D12 | **Fino a 2 alfa per mappa**, e più frequenti di 1 su 50: con i tetti abbassati (D3) sarebbero troppo rari. |
 | D13 | **Missione a livelli**: cattura **1 / 5 / 10 / 30** alfa, con premi crescenti. |
+| D15 | **Raffica**: fino a **3 Ball in aria**, intervallo minimo ~½ s fra due lanci, il giocatore resta libero di muoversi. Esito **deciso all'impatto** (Pokémon creato e consegnato subito); le scosse sono solo animazione. Banner **in coda**, uno dopo l'altro; soprannomi chiesti **alla fine** della raffica. Se un Pokémon uscito ti carica e parte la lotta, le catture già decise restano. |
+| D16 | **Consumo**: la Ball si consuma solo se colpisce un Pokémon; a vuoto (5 caselle e cade) o contro NPC/muro/cartello torna in borsa. Verso il follower non parte. |
 | D14 | **Banner di cattura**: il riquadro in alto degli strumenti ottenuti, con l'icona del Pokémon al posto dell'icona dello strumento, "You caught XXX♂!" e sotto "It was added to your party." o "It was sent to the PC.", con una **fanfara breve**. Prototipo approvato in emulatore il 14/11 (§3). |
 
 Default della seconda parte, cambiabili prima della fase:
@@ -147,8 +149,11 @@ Cosa c'è già e si riusa:
 - **Prezzi**: `src/data/items.h`. Le Ball con Ghicocca hanno il prezzo
   commentato (0): non si toccano.
 - Lo spawn si ferma con i controlli bloccati (`UpdateOverworldWildEncounter`,
-  `:440`): durante il lancio, con `LockPlayerFieldControls`, `gEnemyParty[0]`
-  non viene riscritto.
+  `:440`). **Con la raffica (D15) i controlli restano liberi**, quindi questa
+  protezione non c'è più: spawn e cattura usano entrambi `gEnemyParty[0]`.
+  Dall'analisi non si intrecciano, perché ciascuno crea, usa e azzera il
+  Pokémon nello stesso frame; la fase 3 lo **prova** (spawn forzato nello
+  stesso frame di un impatto, ROM strumentata) invece di fidarsi.
 
 **Banner di cattura (prototipo del 14/11, ROM usa-e-getta, non nel git)**:
 
@@ -170,8 +175,10 @@ Cosa c'è già e si riusa:
   lettere, ci sta con margine). Chiusura pulita: finestra e icona tolte,
   palette liberata, mappa intatta.
 - Nel gioco vero il banner va mostrato **dopo** che il Pokémon è stato dato
-  al giocatore (serve sapere se è finito in squadra o al PC, e in che box),
-  con i controlli ancora bloccati.
+  al giocatore (serve sapere se è finito in squadra o al PC, e in che box).
+  Con la raffica (D15) i banner vanno in una coda (al massimo 3) e si
+  mostrano uno alla volta; il prototipo ne gestiva uno solo e bloccava i
+  comandi.
 
 Fatti per la seconda parte (alfa e ricorda mosse):
 
@@ -268,8 +275,8 @@ costa di più del suo prezzo.
 | --- | --- | --- | --- |
 | 1 | **Densità e prezzi** (D3, D4): `OWE_SPAWNS_MAX_LAND/WATER/CAVE/SAFARI`, `OWE_SPAWN_TIME_REPLACEMENT`, prezzi in `items.h`. `OWE_SPAWNS_MAX` resta 6 (dimensiona slot e `localId`) | **Sonnet 5.5** | build verde; in emulatore il conteggio degli OWE su una rotta d'erba non supera 4 in 60 s di gioco (misurato in frame) e 2 in grotta; screenshot di un negozio con i prezzi nuovi. `.srm` non necessario |
 | 2 | **Passo lento e percezione**: A tenuto = passo lento fuori dal DexNav; rumore per andatura (corsa/bici 5, camminata 2, passo lento 0: solo vista); cono di vista con numeri diversi per comportamento; ostacoli che coprono la vista; giocatore nell'erba alta non visto oltre 1 casella; funzione pubblica `IsOWEAwareOfPlayer()` | **Opus 5.5** | build verde; prove in emulatore con posizioni lette via GDB: da dietro a passo lento si arriva adiacenti senza essere notati, camminando si viene notati a 2, correndo a 5, di fronte alla distanza di vista, dietro un ostacolo mai. A premuto davanti a un NPC o un cartello interagisce ancora; ricerca DexNav invariata. `.srm` non necessario |
-| 3 | **Nucleo della cattura**, senza animazione (Ball istantanea, messaggio): tasto L, bersaglio sulla linea (P2), consumo della Ball, Pokémon costruito dalla funzione comune con la lotta, formula condivisa con ×2 se non allertato (D2), tutto ciò che la lotta fa dopo una cattura, blocchi P3-P8, reazione al fallimento; **banner di cattura con fanfara** (D14, P18, P19, dal prototipo del §3) | **Fable 5.2** | build verde; `ComputeCaptureOdds` in lotta dà gli stessi numeri di prima su 3 casi (ROM strumentata). In emulatore: banner guardato per squadra, PC, maschio, femmina, senza sesso e nome lungo; cattura con Master Ball, **guardando il Pokémon in squadra** (specie, livello, shiny, Ball giusti, non Bad Egg), Ball scalata, Pokédex segnato; un lancio fallito allerta il Pokémon; zona Nuzlocke già usata, box pieni e Safari rifiutano il lancio; un OWE in acqua o catturato o escluso con il motivo scritto. **Serve il `.srm` dell'utente** (squadra e borsa vere, impostazioni di sfida) |
-| 4 | **Animazione**: posa di lancio (derivata dai frame che il giocatore ha già, guardando l'immagine), Ball in volo ad arco con lo sprite del suo tipo, risucchio, caduta, 0-3 scosse da `ComputeBallShakeOdds`, cattura o uscita con "!" | **Opus 5.5** | build verde; tile e palette libere misurate nel caso peggiore, nessuno script in attesa se uno sprite non si crea (provato forzando il fallimento); sequenza di screenshot guardati per cattura, fuga dopo 1 e dopo 3 scosse, nelle 4 direzioni, di giorno e in grotta. `.srm` utile, non necessario |
+| 3 | **Nucleo della cattura**, senza animazione (Ball istantanea, messaggio): tasto L, bersaglio sulla linea (P2), consumo solo a bersaglio colpito (D16), **esito all'impatto e coda per la raffica** (D15: fino a 3 lanci pendenti, intervallo minimo, banner e soprannomi in coda), Pokémon costruito dalla funzione comune con la lotta, formula condivisa con ×2 se non allertato (D2), tutto ciò che la lotta fa dopo una cattura, blocchi P3-P8, reazione al fallimento; **banner di cattura con fanfara** (D14, P18, P19, dal prototipo del §3) | **Fable 5.2** | build verde; `ComputeCaptureOdds` in lotta dà gli stessi numeri di prima su 3 casi (ROM strumentata). In emulatore: banner guardato per squadra, PC, maschio, femmina, senza sesso e nome lungo; cattura con Master Ball, **guardando il Pokémon in squadra** (specie, livello, shiny, Ball giusti, non Bad Egg), Ball scalata, Pokédex segnato; **raffica di 3** con 2 presi e 1 fuggito, con 3 presi a squadra da 5 (uno in squadra, due al PC), con la seconda Ball su una zona Nuzlocke appena usata (rimbalza, non consumata); lancio a vuoto e contro un NPC (non consumata); spawn forzato nello stesso frame di un impatto; un lancio fallito allerta il Pokémon; zona Nuzlocke già usata, box pieni e Safari rifiutano il lancio; un OWE in acqua o catturato o escluso con il motivo scritto. **Serve il `.srm` dell'utente** (squadra e borsa vere, impostazioni di sfida) |
+| 4 | **Animazione**: posa di lancio (derivata dai frame che il giocatore ha già, guardando l'immagine), Ball in volo ad arco con lo sprite del suo tipo, risucchio, caduta, 0-3 scosse da `ComputeBallShakeOdds` (decise all'impatto, D15), cattura o uscita con "!"; **fino a 3 Ball animate insieme**, e una lotta che parte mentre altre Ball tremano le chiude prima della transizione | **Fable 5.2** | build verde; tile e palette libere misurate nel caso peggiore **con 3 Ball di tipi diversi in aria** (se non ci stanno, il limite scende e si scrive), nessuno script in attesa se uno sprite non si crea (provato forzando il fallimento); sequenza di screenshot guardati per cattura, fuga dopo 1 e dopo 3 scosse, nelle 4 direzioni, di giorno e in grotta. `.srm` utile, non necessario |
 | 5 | **Rifinitura e documentazione**: scelta della Ball con L tenuto + ←/→ e icona con quantità (P1), suoni, messaggi; `CHANGELOG.md`, `README.md`, regola `.claude/rules/overworld_catch.md` (con `paths:`), indice in CLAUDE.md §7, `docs/SOULGOLD_PORT_REPORT.md` (feature nuova, non un port) | **Sonnet 5.5** | build verde; cambio Ball provato con 1, 2 e 0 tipi in borsa; testi riletti contro il codice; `docs_validate` verde |
 | 6 | **Revisione della prima parte**: `/code-review` medio sul diff delle fasi 1-5, ogni punto aperto provato in emulatore, bilanciamento (quante Ball per una cattura a inizio gioco e a metà), ROM consegnata zippata. Qui si decide anche se togliere il DexNav (D6) | **Opus 5.5** | build e CI verdi, percentuale di ROM annotata, punti aperti chiusi o motivati. **Serve il `.srm` dell'utente** |
 | 7 | **Ricorda mosse a pagamento** (D10), port da Soulgold: `P_ENABLE_MOVE_RELEARNERS` FALSE, `P_TM_MOVES_RELEARNER` resta TRUE (P16), due flag, due maestri con il loro prezzo (dove: dalle mappe, v. §3), testo nel riassunto quando la voce è chiusa | **Sonnet 5.5** | build verde; nel riassunto le mosse uovo/tutor non compaiono prima e compaiono dopo aver pagato (screenshot); le MT sì in tutti e due i casi; un salvataggio vecchio parte chiuso. **Serve il `.srm`** (Pokémon con mosse uovo vere) |
@@ -279,8 +286,10 @@ costa di più del suo prezzo.
 | 11 | **Revisione finale e documentazione**: `/code-review` medio sul diff delle fasi 7-10, CHANGELOG (con l'avviso del ricorda mosse), regole, report SG (la fase 7 è un port), ROM consegnata | **Opus 5.5** | build e CI verdi, punti aperti chiusi o motivati. **Serve il `.srm`** |
 
 Perché questi modelli: le fasi 1 e 5 sono costanti, dati e testo con un
-cancello che prende gli errori. La 2 e la 4 toccano invarianti nascosti (la
-macchina a stati del movimento, la VRAM condivisa con icone ed effetti). La 3
+cancello che prende gli errori. La 2 tocca un invariante nascosto (la macchina
+a stati del movimento). La 4 è passata a Fable con la raffica (D15): tre
+animazioni concorrenti, la VRAM condivisa con icone ed effetti e una lotta che
+può partire nel mezzo. La 3
 apre il codice di lotta, crea un Pokémon fuori dalla lotta e incrocia Nuzlocke
 e salvataggio: è l'unico punto in cui un errore silenzioso arriva nel
 salvataggio dell'utente. Nella seconda parte la 9 tocca il Pokémon salvato, ma
