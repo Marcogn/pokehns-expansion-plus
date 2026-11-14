@@ -1,6 +1,6 @@
 # Piano: cattura nell'overworld (stile Leggende Pokémon: Arceus)
 
-**Stato (14/11): piano scritto, nessuna fase iniziata.** Prossima: fase 1.
+**Stato (14/11): piano scritto e ampliato (alfa, ricorda mosse a pagamento), nessuna fase iniziata.** Prossima: fase 1.
 
 Si appoggia agli OWE già in gioco: leggere prima
 [`.claude/rules/overworld_encounters.md`](../../.claude/rules/overworld_encounters.md)
@@ -20,6 +20,14 @@ e, per i fatti del port, [`overworld-encounters.md`](overworld-encounters.md).
   vedono attraverso gli ostacoli né quando è nell'erba alta.
 - **Meno Pokémon visibili** e ricambio più lento.
 - **Ball speciali meno care.** Niente crafting.
+- **Pokémon alfa** (seconda parte, fasi 8-11): più grandi sulla mappa, sempre
+  aggressivi, più forti all'inizio della lotta come i totem. Se sono troppo
+  forti per le medaglie che hai **non si possono catturare**: si possono
+  battere, ma conviene fuggire. Catturati restano alfa per sempre, con
+  abilità nascosta, una mossa che la specie non ha salendo di livello e un
+  segno nel riassunto.
+- **Ricorda mosse a pagamento** per le mosse uovo e tutor, come in Soulgold
+  (fase 7): così la mossa di un alfa resta speciale.
 
 ## 2. Decisioni prese
 
@@ -48,6 +56,31 @@ della fase che le realizza.
 
 Il ×2 di D2 è una scelta di bilanciamento **nostra**: non è un valore preso da
 Leggende Arceus.
+
+Seconda parte, risposte dell'utente (14/11, dopo la prima stesura):
+
+| # | Decisione |
+| --- | --- |
+| D5 | **Mega fuori** dal gioco per ora: il limite di ROM non è un vincolo per questo piano. |
+| D6 | **DexNav resta**, per ora. Se toglierlo si decide dopo la fase 3. |
+| D7 | **Alfa troppo forte**: non catturabile (né in lotta né con il lancio), ma **si può battere e si può fuggire**. È tarato perché fuggire convenga. |
+| D8 | **Alfa all'inizio della lotta**: aumento delle statistiche come i totem. |
+| D9 | **Alfa catturato**: resta alfa per sempre (bit nel Pokémon salvato), **abilità nascosta garantita**, **una mossa speciale**, **segno nel riassunto**, **follower più grande**, missioni nel quest book. |
+| D10 | **Ricorda mosse**: mosse uovo e tutor solo dopo aver pagato (o con eventi), preso da Soulgold. |
+| D11 | Alfa e ricorda mosse **nello stesso piano**, in fasi dopo la cattura. |
+
+Default della seconda parte, cambiabili prima della fase:
+
+| # | Scelta | Default | Fase |
+| --- | --- | --- | --- |
+| P9 | Quanti alfa | 1 su 50 Pokémon generati; **al massimo uno per mappa**; mai shiny e alfa insieme (lo shiny vince); niente alfa in Safari, Gara, Azienda Lotta, acqua (lo sprite da nuoto non scala) | 8 |
+| P10 | Livello | quello tirato dalla tabella (già scalato) **+ 10**, senza il tetto `B_WILD_SCALING_MAX_ABOVE_TABLE` | 8 |
+| P11 | "Troppo forte" | livello dell'alfa **sopra** `GetLevelScalingCap()` (il tetto delle medaglie anche con LEVEL CAP spento, `src/caps.c`) | 9 |
+| P12 | Comportamento | sempre aggressivo, vista più lunga, non sparisce finché sei sulla mappa (come gli shiny) | 8 |
+| P13 | Aumento in lotta | +1 a Attacco, Difesa, Att. Sp., Dif. Sp., Velocità, col messaggio dei totem | 9 |
+| P14 | Mossa speciale | una mossa uovo della specie a caso, altrimenti una mossa tutor, altrimenti nessuna; sostituisce l'ultima | 9 |
+| P15 | Lancio su un alfa troppo forte | la Ball rimbalza **e non si consuma**, con un messaggio; l'alfa ti nota | 9 |
+| P16 | Ricorda mosse MT | restano **sempre** disponibili (D10 parla solo di uovo e tutor; in SG le MT sono spente) | 7 |
 
 ## 3. Fatti verificati (14/11, commit `d6520855`)
 
@@ -111,6 +144,54 @@ Cosa c'è già e si riusa:
   `:440`): durante il lancio, con `LockPlayerFieldControls`, `gEnemyParty[0]`
   non viene riscritto.
 
+Fatti per la seconda parte (alfa e ricorda mosse):
+
+- **Bit nell'oggetto**: `struct ObjectEvent` ha `padding:2` accanto a `shiny`
+  (`include/global.fieldmap.h:289`): un bit diventa `alpha`. Gli altri campi
+  che gli OWE riusano sono pieni (`sOverworldEncounterLevel` usa il bit 7 per
+  il non-sparire, `src/wild_encounter_ow.c:41-47`). Gli oggetti finiscono in
+  SaveBlock1: la fase 8 controlla che un salvataggio vecchio legga 0 lì.
+- **Bit nel Pokémon salvato**: bit non usati da nessun file, verificato con
+  `grep`: `PokemonSubstruct0` `unused_02:6`, `unused_04:3`, `unused_0A:2`;
+  `PokemonSubstruct1` `unused_04:5`, `unused_06:3`; `BoxPokemon` `unused_13`,
+  `unused_1E` (`include/pokemon.h:130-170, 255-276`). Meglio uno delle
+  sottostrutture: sono cifrate e coperte dal checksum. `CreateMon` azzera
+  tutto, quindi un Pokémon vecchio legge 0 = non alfa. **Da controllare in
+  fase 9**: che expansion non abbia già preso quel bit nelle versioni dopo la
+  1.15.2 (un `/upstream-sync` futuro lo sovrascriverebbe) e che l'app
+  compagna di PokeDaisy non lo legga (`hasep_symbols.md`).
+- **Aumento da totem già nel motore**: `settotemboost`
+  (`asm/macros/event.inc:2252`, `ScriptSetTotemBoost` in
+  `src/battle_main.c:6577`) riempie `gQueuedStatBoosts`; in lotta lo applica
+  `BS_GetTotemBoost` col messaggio. Gli alfa partono da codice, non da script:
+  si scrive in `gQueuedStatBoosts` prima della lotta.
+- **Blocco della cattura in lotta**: `GetBallThrowableState`
+  (`src/item_use.c:1265`) ha già un elenco di motivi (Nuzlocke, One Type,
+  `FLAG_NO_WILD_CATCHING`): si aggiunge `BALL_THROW_UNABLE_ALPHA`.
+- `setwildbossbattle` (`src/scrcmd.c:3383`) è una lotta di script con mosse
+  scelte, senza aumento di statistiche: non serve agli alfa.
+- **Sprite più grande**: il motore scala già sprite di oggetti con matrici
+  affini (`src/event_object_movement.c:1531`, riflessi). Le matrici affini
+  sono 32 e gli OWE in acqua ne usano una (`ST_OAM_AFFINE_ERASE`). Un oggetto
+  scalato oltre i suoi 32×32 viene tagliato se non è in doppia dimensione:
+  **prototipo prima di promettere**, in fase 8.
+- **Ricorda mosse oggi**: `P_ENABLE_MOVE_RELEARNERS` **TRUE**
+  (`include/config/summary_screen.h:13`) apre tutto; `P_FLAG_EGG_MOVES` e
+  `P_FLAG_TUTOR_MOVES` sono **0**. Il codice li legge già
+  (`src/move_relearner.c:1217, 1284`), e anche `data/scripts/move_relearner.inc`.
+  In Soulgold (verificato in passato, `relearner.md`): MT spente, uovo dietro
+  `FLAG_EGG_MOVES_UNLOCKED` (Egg Move Master, Blackthorn City House 3,
+  ¥88.888), tutor dietro `FLAG_TUTOR_MOVES_UNLOCKED` (Tutor Move Master,
+  Olivine City House 4, ¥44.444). **Qui** `BlackthornCity_House3_hns` ha già
+  il Cancella mosse e un ricorda mosse a Squama Cuore
+  (`BlackthornCity_MoveRelearnersHouse_EventScript_MoveRelearner`, riga 107),
+  mentre `OlivineCity_House4` non esiste (ci sono House1-3): dove mettere il
+  maestro dei tutor si decide in fase 7, guardando le mappe. Il sorgente di SG non è
+  in questa sessione: la fase 7 lo aggancia (`add_repo Marcogn/soulgold`).
+- **Polarità del ricorda mosse**: i flag nuovi valgono 0 nei salvataggi
+  vecchi, quindi chi aggiorna **perde** l'accesso libero a mosse uovo e tutor
+  finché non paga. È l'effetto voluto (D10), ma va scritto nel CHANGELOG.
+
 Trappole già note che qui mordono (dalla regola degli OWE):
 
 - VRAM: nel Safari restavano 10 tile su 1024; `OWE_SPRITE_TILE_HEADROOM` ne
@@ -126,14 +207,17 @@ Trappole già note che qui mordono (dalla regola degli OWE):
 
 | | Usato | Limite | Libero |
 | --- | --- | --- | --- |
-| ROM | 31 902 628 B (95,08%) | 32 MB, errore CI al 99,5% | 1 651 804 B. Le mega (`megas.md`, 1 574 944 B) oggi porterebbero la ROM al **99,77%**, già oltre il limite senza questa feature: è un problema delle mega, non di questo piano, ma ogni kB qui lo aggrava |
+| ROM | 31 902 628 B (95,08%) | 32 MB, errore CI al 99,5% | 1 651 804 B. Le mega sono fuori per ora (D5); se tornassero (`megas.md`, 1 574 944 B) la ROM andrebbe al 99,77%, già oltre il limite senza questa feature |
 | SaveBlock3 | 96 B | 116 | 20 B |
 | VRAM sprite | — | 1024 tile | da misurare in fase 4 nel caso peggiore (rotta con 4 OWE + follower) |
 
-Costo previsto: **solo codice** (stima 8-15 kB, da rimisurare a ogni fase),
-**zero byte di salvataggio** (`gLastThrownBall` è già in EWRAM, nessuna
-opzione nuova), nessuna grafica nuova. Se una fase avesse bisogno di un bit
-salvato, si ferma e lo chiede: `soundAndFieldOptions` è pieno (`save.md`).
+Costo previsto della prima parte: **solo codice** (stima 8-15 kB, da
+rimisurare a ogni fase), **zero byte di salvataggio** (`gLastThrownBall` è già
+in EWRAM, nessuna opzione nuova), nessuna grafica nuova.
+Seconda parte: **due flag** nuovi per il ricorda mosse (`save.md`: liberi
+`FLAG_*` e engine flag da `+14`), **un bit** in ogni Pokémon salvato (bit già
+riservato, struct invariata), un bit nell'oggetto; grafica forse un'icona del
+segno alfa per il riassunto. Nessun campo nuovo in SaveBlock3.
 
 ## 5. Fasi
 
@@ -148,23 +232,34 @@ costa di più del suo prezzo.
 | 3 | **Nucleo della cattura**, senza animazione (Ball istantanea, messaggio): tasto L, bersaglio sulla linea (P2), consumo della Ball, Pokémon costruito dalla funzione comune con la lotta, formula condivisa con ×2 se non allertato (D2), tutto ciò che la lotta fa dopo una cattura, blocchi P3-P8, reazione al fallimento | **Fable 5.2** | build verde; `ComputeCaptureOdds` in lotta dà gli stessi numeri di prima su 3 casi (ROM strumentata). In emulatore: cattura con Master Ball, **guardando il Pokémon in squadra** (specie, livello, shiny, Ball giusti, non Bad Egg), Ball scalata, Pokédex segnato; un lancio fallito allerta il Pokémon; zona Nuzlocke già usata, box pieni e Safari rifiutano il lancio; un OWE in acqua o catturato o escluso con il motivo scritto. **Serve il `.srm` dell'utente** (squadra e borsa vere, impostazioni di sfida) |
 | 4 | **Animazione**: posa di lancio (derivata dai frame che il giocatore ha già, guardando l'immagine), Ball in volo ad arco con lo sprite del suo tipo, risucchio, caduta, 0-3 scosse da `ComputeBallShakeOdds`, cattura o uscita con "!" | **Opus 5.5** | build verde; tile e palette libere misurate nel caso peggiore, nessuno script in attesa se uno sprite non si crea (provato forzando il fallimento); sequenza di screenshot guardati per cattura, fuga dopo 1 e dopo 3 scosse, nelle 4 direzioni, di giorno e in grotta. `.srm` utile, non necessario |
 | 5 | **Rifinitura e documentazione**: scelta della Ball con L tenuto + ←/→ e icona con quantità (P1), suoni, messaggi; `CHANGELOG.md`, `README.md`, regola `.claude/rules/overworld_catch.md` (con `paths:`), indice in CLAUDE.md §7, `docs/SOULGOLD_PORT_REPORT.md` (feature nuova, non un port) | **Sonnet 5.5** | build verde; cambio Ball provato con 1, 2 e 0 tipi in borsa; testi riletti contro il codice; `docs_validate` verde |
-| 6 | **Revisione finale**: `/code-review` medio sul diff intero, ogni punto aperto delle fasi provato in emulatore, bilanciamento (quante Ball per una cattura a inizio gioco e a metà), ROM consegnata zippata | **Opus 5.5** | build e CI verdi, percentuale di ROM annotata, punti aperti chiusi o motivati. **Serve il `.srm` dell'utente** |
+| 6 | **Revisione della prima parte**: `/code-review` medio sul diff delle fasi 1-5, ogni punto aperto provato in emulatore, bilanciamento (quante Ball per una cattura a inizio gioco e a metà), ROM consegnata zippata. Qui si decide anche se togliere il DexNav (D6) | **Opus 5.5** | build e CI verdi, percentuale di ROM annotata, punti aperti chiusi o motivati. **Serve il `.srm` dell'utente** |
+| 7 | **Ricorda mosse a pagamento** (D10), port da Soulgold: `P_ENABLE_MOVE_RELEARNERS` FALSE, `P_TM_MOVES_RELEARNER` resta TRUE (P16), due flag, due maestri con il loro prezzo (dove: dalle mappe, v. §3), testo nel riassunto quando la voce è chiusa | **Sonnet 5.5** | build verde; nel riassunto le mosse uovo/tutor non compaiono prima e compaiono dopo aver pagato (screenshot); le MT sì in tutti e due i casi; un salvataggio vecchio parte chiuso. **Serve il `.srm`** (Pokémon con mosse uovo vere) |
+| 8 | **Alfa sulla mappa**: bit `alpha` nell'oggetto, tiro P9, livello P10, comportamento P12, **prototipo dello sprite più grande** (se non regge: un'aura o un'icona sopra la testa, e lo si scrive) | **Opus 5.5** | build verde; con il debug che forza l'alfa: compare uno per mappa, ti insegue, non sparisce; sprite guardato su erba, in grotta, accanto ad altri OWE; tile e matrici affini misurate; un salvataggio vecchio carica senza alfa fantasma. `.srm` non necessario |
+| 9 | **Alfa in lotta e catturato**: aumento P13, blocco della cattura in lotta e col lancio (D7, P11, P15), bit nel Pokémon salvato con `MON_DATA_IS_ALPHA`, abilità nascosta e mossa P14 alla nascita | **Opus 5.5** | build verde; un alfa sopra il tetto respinge la Ball in lotta e nell'overworld (Ball non consumata), si batte e si fugge; uno sotto il tetto si cattura e **in squadra, dopo salvataggio e ricarica e passaggio nel PC, è ancora alfa** con abilità e mossa giuste; un Pokémon del salvataggio vecchio legge non-alfa e il checksum regge. **Serve il `.srm`** |
+| 10 | **Alfa visibile**: segno nel riassunto (tutti e due i temi), follower più grande se la fase 8 l'ha reso possibile, 2-3 missioni nel quest book (`/add-quest`) | **Sonnet 5.5** | screenshot del riassunto chiaro e scuro con indici contati sui `.4bpp`; follower guardato; missioni completate con il debug |
+| 11 | **Revisione finale e documentazione**: `/code-review` medio sul diff delle fasi 7-10, CHANGELOG (con l'avviso del ricorda mosse), regole, report SG (la fase 7 è un port), ROM consegnata | **Opus 5.5** | build e CI verdi, punti aperti chiusi o motivati. **Serve il `.srm`** |
 
 Perché questi modelli: le fasi 1 e 5 sono costanti, dati e testo con un
 cancello che prende gli errori. La 2 e la 4 toccano invarianti nascosti (la
 macchina a stati del movimento, la VRAM condivisa con icone ed effetti). La 3
 apre il codice di lotta, crea un Pokémon fuori dalla lotta e incrocia Nuzlocke
 e salvataggio: è l'unico punto in cui un errore silenzioso arriva nel
-salvataggio dell'utente.
+salvataggio dell'utente. Nella seconda parte la 9 tocca il Pokémon salvato, ma
+con un bit già riservato e un cancello che salva, ricarica e passa dal PC:
+basta Opus. La 7 è un port con sorgente chiaro, la 10 grafica e contenuto.
 
 ## 6. Scartato, e perché
 
 - **Crafting delle Ball**: escluso dall'utente, per ora.
 - **Gattonare**: non esistono frame del giocatore accovacciato; il passo lento
   c'è già.
-- **Strumenti da lancio di Leggende Arceus** (bacche, fango, fumogeni) e
-  **alfa**: fuori da questo piano. Gli alfa restano l'idea successiva
-  (`overworld-encounters.md` §1).
+- **Strumenti da lancio di Leggende Arceus** (bacche, fango, fumogeni): fuori
+  da questo piano.
+- **Statistiche, IV e colori come premio dell'alfa** (utente, 14/11): gli IV
+  si possono già portare al massimo e gli EV togliere, e un colore diverso si
+  confonderebbe con lo shiny.
+- **Alfa grande in lotta e nei menu**: gli sprite di lotta sono 64×64 fissi;
+  solo la mappa può scalare (fase 8).
 - **Mira libera o a parabola regolabile**: il motore si muove a caselle; una
   linea retta nella direzione dello sguardo è leggibile e costa poco.
 - **Lancio nel Safari e alla Gara** (P5): hanno Ball contate e regole proprie
