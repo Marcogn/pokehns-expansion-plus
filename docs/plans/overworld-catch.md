@@ -70,6 +70,7 @@ Seconda parte, risposte dell'utente (14/11, dopo la prima stesura):
 | D11 | Alfa e ricorda mosse **nello stesso piano**, in fasi dopo la cattura. |
 | D12 | **Fino a 2 alfa per mappa**, e più frequenti di 1 su 50: con i tetti abbassati (D3) sarebbero troppo rari. |
 | D13 | **Missione a livelli**: cattura **1 / 5 / 10 / 30** alfa, con premi crescenti. |
+| D14 | **Banner di cattura**: il riquadro in alto degli strumenti ottenuti, con l'icona del Pokémon al posto dell'icona dello strumento, "You caught XXX♂!" e sotto "It was added to your party." o "It was sent to the PC.", con una **fanfara breve**. Prototipo approvato in emulatore il 14/11 (§3). |
 
 Default della seconda parte, cambiabili prima della fase:
 
@@ -83,6 +84,8 @@ Default della seconda parte, cambiabili prima della fase:
 | P13 | Aumento in lotta | +1 a Attacco, Difesa, Att. Sp., Dif. Sp., Velocità, col messaggio dei totem | 9 |
 | P14 | Mossa speciale | una mossa uovo della specie a caso, altrimenti una mossa tutor, altrimenti nessuna; sostituisce l'ultima | 9 |
 | P15 | Lancio su un alfa troppo forte | la Ball rimbalza **e non si consuma**, con un messaggio; l'alfa ti nota | 9 |
+| P18 | Dopo il banner | soprannome chiesto come in lotta (rispetta `skipNicknamePrompt` e il soprannome obbligatorio della Nuzlocke); **niente** pagina del Pokédex | 3 |
+| P19 | Fanfara | `MUS_HG_OBTAIN_EGG` (`FANFARE_HG_OBTAIN_EGG`, 131 frame, ~2 s, "hai ricevuto un Pokémon"); il banner si chiude con A o B solo a fanfara finita | 3 |
 | P16 | Ricorda mosse MT | restano **sempre** disponibili (D10 parla solo di uovo e tutor; in SG le MT sono spente) | 7 |
 
 ## 3. Fatti verificati (14/11, commit `d6520855`)
@@ -146,6 +149,29 @@ Cosa c'è già e si riusa:
 - Lo spawn si ferma con i controlli bloccati (`UpdateOverworldWildEncounter`,
   `:440`): durante il lancio, con `LockPlayerFieldControls`, `gEnemyParty[0]`
   non viene riscritto.
+
+**Banner di cattura (prototipo del 14/11, ROM usa-e-getta, non nel git)**:
+
+- Riquadro e icona riusano quelli della descrizione dell'oggetto ottenuto
+  (`ScriptShowItemDescription`, `src/overworld.c:3901`; `field.md`):
+  finestra (1,1) 28×3 tile, base 8, palette 15, cornice
+  `DrawStdFrameWithCustomTileAndPalette(.., 0x214, 14)`. Il Pokémon è
+  l'**icona della squadra** (`LoadMonIconPalette` + `CreateMonIcon` con
+  `SpriteCB_MonIcon`, animata) centrata a (26, 20) e `oam.priority` 0: lo
+  sprite di lotta 64×64 non entra in un riquadro alto 3 tile. Testo in
+  `FONT_SMALL` da x = 40 (a 28, come gli strumenti, l'icona copre le prime
+  lettere), riga 2 a y = 12.
+- **Il font piccolo non ha i simboli di sesso**: "♂" esce come un "8". Il
+  simbolo va stampato a parte in `FONT_NORMAL`, blu
+  (`TEXT_COLOR_BLUE`/`LIGHT_BLUE`) o rosso (`RED`/`LIGHT_RED`), alla x
+  misurata con `GetStringWidth`; esce 1-2 pixel più basso del testo, da
+  allineare. Senza sesso (Magnemite) niente simbolo.
+- Provati: Pikachu ♂ in squadra, Eevee ♀ al PC, Magnemite, Crabominable (12
+  lettere, ci sta con margine). Chiusura pulita: finestra e icona tolte,
+  palette liberata, mappa intatta.
+- Nel gioco vero il banner va mostrato **dopo** che il Pokémon è stato dato
+  al giocatore (serve sapere se è finito in squadra o al PC, e in che box),
+  con i controlli ancora bloccati.
 
 Fatti per la seconda parte (alfa e ricorda mosse):
 
@@ -242,7 +268,7 @@ costa di più del suo prezzo.
 | --- | --- | --- | --- |
 | 1 | **Densità e prezzi** (D3, D4): `OWE_SPAWNS_MAX_LAND/WATER/CAVE/SAFARI`, `OWE_SPAWN_TIME_REPLACEMENT`, prezzi in `items.h`. `OWE_SPAWNS_MAX` resta 6 (dimensiona slot e `localId`) | **Sonnet 5.5** | build verde; in emulatore il conteggio degli OWE su una rotta d'erba non supera 4 in 60 s di gioco (misurato in frame) e 2 in grotta; screenshot di un negozio con i prezzi nuovi. `.srm` non necessario |
 | 2 | **Passo lento e percezione**: A tenuto = passo lento fuori dal DexNav; rumore per andatura (corsa/bici 5, camminata 2, passo lento 0: solo vista); cono di vista con numeri diversi per comportamento; ostacoli che coprono la vista; giocatore nell'erba alta non visto oltre 1 casella; funzione pubblica `IsOWEAwareOfPlayer()` | **Opus 5.5** | build verde; prove in emulatore con posizioni lette via GDB: da dietro a passo lento si arriva adiacenti senza essere notati, camminando si viene notati a 2, correndo a 5, di fronte alla distanza di vista, dietro un ostacolo mai. A premuto davanti a un NPC o un cartello interagisce ancora; ricerca DexNav invariata. `.srm` non necessario |
-| 3 | **Nucleo della cattura**, senza animazione (Ball istantanea, messaggio): tasto L, bersaglio sulla linea (P2), consumo della Ball, Pokémon costruito dalla funzione comune con la lotta, formula condivisa con ×2 se non allertato (D2), tutto ciò che la lotta fa dopo una cattura, blocchi P3-P8, reazione al fallimento | **Fable 5.2** | build verde; `ComputeCaptureOdds` in lotta dà gli stessi numeri di prima su 3 casi (ROM strumentata). In emulatore: cattura con Master Ball, **guardando il Pokémon in squadra** (specie, livello, shiny, Ball giusti, non Bad Egg), Ball scalata, Pokédex segnato; un lancio fallito allerta il Pokémon; zona Nuzlocke già usata, box pieni e Safari rifiutano il lancio; un OWE in acqua o catturato o escluso con il motivo scritto. **Serve il `.srm` dell'utente** (squadra e borsa vere, impostazioni di sfida) |
+| 3 | **Nucleo della cattura**, senza animazione (Ball istantanea, messaggio): tasto L, bersaglio sulla linea (P2), consumo della Ball, Pokémon costruito dalla funzione comune con la lotta, formula condivisa con ×2 se non allertato (D2), tutto ciò che la lotta fa dopo una cattura, blocchi P3-P8, reazione al fallimento; **banner di cattura con fanfara** (D14, P18, P19, dal prototipo del §3) | **Fable 5.2** | build verde; `ComputeCaptureOdds` in lotta dà gli stessi numeri di prima su 3 casi (ROM strumentata). In emulatore: banner guardato per squadra, PC, maschio, femmina, senza sesso e nome lungo; cattura con Master Ball, **guardando il Pokémon in squadra** (specie, livello, shiny, Ball giusti, non Bad Egg), Ball scalata, Pokédex segnato; un lancio fallito allerta il Pokémon; zona Nuzlocke già usata, box pieni e Safari rifiutano il lancio; un OWE in acqua o catturato o escluso con il motivo scritto. **Serve il `.srm` dell'utente** (squadra e borsa vere, impostazioni di sfida) |
 | 4 | **Animazione**: posa di lancio (derivata dai frame che il giocatore ha già, guardando l'immagine), Ball in volo ad arco con lo sprite del suo tipo, risucchio, caduta, 0-3 scosse da `ComputeBallShakeOdds`, cattura o uscita con "!" | **Opus 5.5** | build verde; tile e palette libere misurate nel caso peggiore, nessuno script in attesa se uno sprite non si crea (provato forzando il fallimento); sequenza di screenshot guardati per cattura, fuga dopo 1 e dopo 3 scosse, nelle 4 direzioni, di giorno e in grotta. `.srm` utile, non necessario |
 | 5 | **Rifinitura e documentazione**: scelta della Ball con L tenuto + ←/→ e icona con quantità (P1), suoni, messaggi; `CHANGELOG.md`, `README.md`, regola `.claude/rules/overworld_catch.md` (con `paths:`), indice in CLAUDE.md §7, `docs/SOULGOLD_PORT_REPORT.md` (feature nuova, non un port) | **Sonnet 5.5** | build verde; cambio Ball provato con 1, 2 e 0 tipi in borsa; testi riletti contro il codice; `docs_validate` verde |
 | 6 | **Revisione della prima parte**: `/code-review` medio sul diff delle fasi 1-5, ogni punto aperto provato in emulatore, bilanciamento (quante Ball per una cattura a inizio gioco e a metà), ROM consegnata zippata. Qui si decide anche se togliere il DexNav (D6) | **Opus 5.5** | build e CI verdi, percentuale di ROM annotata, punti aperti chiusi o motivati. **Serve il `.srm` dell'utente** |
