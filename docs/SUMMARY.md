@@ -26,6 +26,7 @@
     - [Pre-port inventory (HnS 2.0.5)](./INVENTORY_SOULGOLD_VS_HNS_EXPANDED.md)
     - [Plan: Soulgold 1.2 options](./plans/sg-1.2-options.md)
     - [Plan: Overworld wild encounters](./plans/overworld-encounters.md)
+    - [Plan: Overworld catching](./plans/overworld-catch.md)
     - [Plan: Level scaling](./plans/level-scaling.md)
     - [Plan: TcloneR](./plans/tcloner.md)
     - [Plan: Red's Path](./plans/reds-path.md)
