@@ -94,6 +94,10 @@ Default della seconda parte, cambiabili prima della fase:
 
 **Non c'è nulla di già scritto**: nessun lancio di Ball, nessun proiettile
 nell'overworld, nessun `#if IS_HNS` che lo spegne. Non è un port da Soulgold.
+Nemmeno fuori: nessun progetto GBA con sorgente pubblico ha il lancio in
+overworld (ricerca del 15/11 in
+[`docs/analysis/overworld-catch-research.md`](../analysis/overworld-catch-research.md));
+HnS-Legends lo ha ma è solo una patch BPS, da provare e non da riusare.
 
 Cosa c'è già e si riusa:
 

@@ -35,6 +35,7 @@
     - [Plan: new quests](./plans/new_quests.md)
     - [Analysis (archive): Red's Path](./analysis/reds-path-research.md)
     - [Analysis (archive): quest book and start menu](./analysis/quest-book-research.md)
+    - [Analysis (archive): overworld catching](./analysis/overworld-catch-research.md)
 - [Test plan](./TEST_PLAN.md)
 - [Emulator guide (for Claude)](./claude/emulator.md)
 - [Save migrations, history (for Claude)](./claude/save-history.md)
