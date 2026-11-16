@@ -451,6 +451,21 @@ basta Opus. La 7 è un port con sorgente chiaro, la 10 grafica e contenuto.
     spento) caricato sulla stessa ROM legge ancora 1.
 - ROM: 31 903 524 B, 95,08% (+896 B sulla fase 1).
 
+- **Dopo `/code-review` (16/11)**: corretti quattro punti. (1) Il salto da
+  una sporgenza esce prima dell'azzeramento di `creeping`: dopo un passo
+  lento era silenzioso; ora lo spegne. (2) Gli oggetti `invisible` non
+  coprono più la vista. (3) `IsPlayerInOWEViewCone` legge la tabella dei
+  comportamenti una volta sola (gira ogni frame). (4) Condizione dell'erba
+  semplificata (`forward > 1`, equivalente). Lasciati, col motivo: AUTORUN
+  ereditato da una New Game sopra un salvataggio (le opzioni del titolo si
+  ricopiano di proposito: scritto nel CHANGELOG e nella regola); il ripiego
+  `SPECIES_NONE` dell'udito (caso che non capita, un OWE ha sempre una
+  specie); `IsOWEAwareOfPlayer` senza chiamanti (è per la fase 3).
+  Riprovato con la ROM strumentata ricompilata sul codice corretto: erba
+  alta 161/161 (notato solo dalle 3 caselle adiacenti di fronte), terreno
+  normale "osserva" 161/161 col modello. Il salto con `creeping` spento
+  **non** è provato in emulatore (serve una sporgenza con un OWE vicino).
+
 **Handoff per la fase 3 (Fable 5.2)**
 - Serve il `.srm` (cancello della fase 3).
 - `IsOWEAwareOfPlayer(owe)` è il "ha notato" del ×2 di D2. Un OWE "vaga"

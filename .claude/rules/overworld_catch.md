@@ -19,12 +19,15 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   pressing B"). Fino a PLUS.11 una partita nuova partiva **spento** (`= 1`
   in `SetDefaultChallengeSettings`); dal 16/11 parte acceso (`= 0`, scelta
   dell'utente). Quella funzione gira solo a salvataggio vuoto o corrotto:
-  i salvataggi esistenti tengono il loro valore, e chi li ha spenti non ha
-  il passo lento (B corre, P20).
+  i salvataggi esistenti tengono il loro valore, **anche una New Game sopra
+  un salvataggio** (le opzioni del titolo si ricopiano, `oak_speech_hns.c`),
+  e chi li ha spenti non ha il passo lento (B corre, P20).
 - Passo lento = `PlayerWalkSlow` + `gPlayerAvatar.creeping`: B tenuto con
   AUTORUN acceso, oppure B tenuto durante una ricerca DexNav (a terra e in
   Surf) qualunque sia AUTORUN. **A non fa più il creeping.** Va provato
   **prima** del blocco della corsa, che fa sempre `return` con AUTORUN acceso.
+- Il salto da una sporgenza spegne `creeping` (esce prima del reset comune):
+  senza, un salto dopo il passo lento era silenzioso.
 - In Surf le velocità non cambiano (B sceglie l'altra velocità); il Surf
   conta come camminata per l'udito (non alza `PLAYER_AVATAR_FLAG_DASH`).
 - `PLAYER_AVATAR_FLAG_DASH` resta acceso per tutto il passo di corsa: lo
@@ -40,8 +43,8 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
 - **Vista**: cono davanti, metà larghezza 0 a distanza 1, 1 a 2-3, 2 da 4,
   limitata da `(viewWidth-1)/2`, profondità `viewDistance`. Si ferma su una
   casella con collisione (`MapGridGetCollisionAt`) o su un oggetto che non è
-  un OWE né il follower (gli NPC e i Pokémon decorativi coprono), lungo la
-  retta arrotondata lontano da zero. Giocatore in erba alta o lunga
+  un OWE né il follower né `invisible` (NPC e Pokémon decorativi coprono),
+  lungo la retta arrotondata lontano da zero. Giocatore in erba alta o lunga
   (`MetatileBehavior_IsTallGrass/IsLongGrass`): visto solo dalla casella
   subito davanti. Il dislivello resta (`CanOWEReachPlayer`).
 - **Invariante: `viewDistance <= activeDistance`.** Con `returnToIdle =

@@ -864,6 +864,9 @@ static void PlayerNotOnBikeMoving(enum Direction direction, u16 heldKeys)
     {
         if (collision == COLLISION_LEDGE_JUMP)
         {
+            // A jump is not a slow walk: without this, a creeping flag left
+            // from the step before made the jump silent to wild Pokémon.
+            gPlayerAvatar.creeping = FALSE;
             PlayerJumpLedge(direction);
             return;
         }

@@ -34,9 +34,10 @@ add the section before releasing. Feature details live in the tables of
   through trees, walls or people. Standing in tall grass hides you from
   anything but the tile right in front. With `AUTORUN` off nothing changes:
   B still runs and there is no slow walk.
-- **`AUTORUN` is on by default in a new game** (it was off), so the slow
-  walk is there from the start. Existing saves keep the setting they have:
-  turn `AUTORUN` on in the options to get the slow walk.
+- **`AUTORUN` is on by default on a fresh cartridge** (it was off), so the
+  slow walk is there from the start. Existing saves keep the setting they
+  have, and so does a New Game started over one (the title options carry
+  over): turn `AUTORUN` on in the options to get the slow walk.
 - **DexNav creeping is on B**: during a DexNav search holding B is the
   slow, quiet walk (it was A), whatever `AUTORUN` says.
 

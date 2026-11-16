@@ -2144,7 +2144,10 @@ static bool32 IsPlayerInOWEViewCone(struct ObjectEvent *owe, struct ObjectEvent 
         return FALSE;
     }
 
-    if (forward < 1 || forward > (s32)OWE_GetViewDistance(owe))
+    // One lookup: OWE_GetBehaviorInfo scans the table, and this runs every
+    // frame for every waiting OWE.
+    const struct BehaviorOWE *behavior = OWE_GetBehaviorInfo(owe);
+    if (forward < 1 || forward > (s32)behavior->viewDistance)
         return FALSE;
 
     if (forward == 1)
@@ -2153,14 +2156,15 @@ static bool32 IsPlayerInOWEViewCone(struct ObjectEvent *owe, struct ObjectEvent 
         halfWidth = 1;
     else
         halfWidth = 2;
-    if (halfWidth > ((s32)OWE_GetViewWidth(owe) - 1) / 2)
-        halfWidth = ((s32)OWE_GetViewWidth(owe) - 1) / 2;
+    if (halfWidth > ((s32)behavior->viewWidth - 1) / 2)
+        halfWidth = ((s32)behavior->viewWidth - 1) / 2;
 
     if (abs(side) > halfWidth)
         return FALSE;
 
     // Hidden in tall grass: only the tile right in front sees the player.
-    if (forward + abs(side) > 1
+    // forward 1 has halfWidth 0, so this is every tile but the one in front.
+    if (forward > 1
      && (MetatileBehavior_IsTallGrass(player->currentMetatileBehavior)
       || MetatileBehavior_IsLongGrass(player->currentMetatileBehavior)))
         return FALSE;
@@ -2177,8 +2181,12 @@ static bool32 IsOWESightBlockedAt(s32 x, s32 y)
     if (objectEventId >= OBJECT_EVENTS_COUNT || objectEventId == gPlayerAvatar.objectEventId)
         return FALSE;
 
+    // Invisible objects (script triggers, hidden followers) are not there to
+    // the eye.
     struct ObjectEvent *object = &gObjectEvents[objectEventId];
-    if (IsOverworldWildEncounter(object, OWE_ANY) || object->localId == LOCALID_FOLLOWING_POKEMON)
+    if (object->invisible
+     || IsOverworldWildEncounter(object, OWE_ANY)
+     || object->localId == LOCALID_FOLLOWING_POKEMON)
         return FALSE;
 
     return TRUE;
