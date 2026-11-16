@@ -340,7 +340,20 @@ basta Opus. La 7 è un port con sorgente chiaro, la 10 grafica e contenuto.
   negozio** che il cancello chiedeva: queste Ball non si vendono a Johto e
   Kanto e il teletrasporto di debug ai negozi di Hoenn va in errore anche sulla
   ROM originale (`emulator.md`), quindi i prezzi sono letti dalla ROM.
-- ROM: 31 902 612 byte usati (95,08%), 1 651 820 liberi.
+- **Dopo `/code-review` (16/11)**: corretti quattro punti. (1) Sopra il tetto
+  il ricambio uno per uno teneva l'eccesso finché non si cambiava mappa:
+  `TryRemoveOWEAboveCap` toglie il più vecchio non shiny ogni 30 frame.
+  Prova: lo stesso salvataggio con 6 OWE, caricato senza ricaricare la mappa,
+  prima restava a 6 per 641 frame, ora è a 4 dal primo campione per 1514
+  frame (ROM finale). (2) Con OWE dell'altra zona (Pokémon di terra quando si inizia il
+  Surf) il ricambio è a 30 frame invece di 480 (`IsAnyOWEFromOtherArea`,
+  shiny esclusi perché non vengono mai tolti):
+  **non provato in emulatore** (serve una rotta con acqua e il Surf). (3)
+  Commento di `OWE_SPAWNS_MAX` corretto. (4) `STATIC_ASSERT` dei tetti
+  contro `OWE_SPAWNS_MAX`. Lasciati, con il motivo: conteggi ripetuti (non
+  per frame, schema di prima), Luxury senza `I_PRICE` (decisione D4),
+  CHANGELOG sulle Ball non in vendita (punto aperto qui sotto).
+- ROM finale: 95,08% usato.
 
 **Handoff per la fase 2 (Opus 5.5)**
 - Non serve il `.srm`. Per misurare posizioni da GDB: `currentCoords` a
@@ -359,8 +372,8 @@ basta Opus. La 7 è un port con sorgente chiaro, la 10 grafica e contenuto.
   lancio ma non sono selvatici. Il bersaglio va scelto con
   `IsOverworldWildEncounter`, e gli altri vanno trattati come ostacoli o
   ignorati (da decidere lì). Occupano anche slot di oggetti e VRAM.
-- Un salvataggio con più OWE del tetto li tiene finché non si cambia mappa
-  (ricambio uno per uno): innocuo, ma conta se si misura da un `.sav`.
+- Da provare quando capita un Surf: il ricambio veloce con OWE dell'altra
+  zona (punto 2 della revisione qui sopra).
 - Il commento di `include/config/wild_encounter.h:8` cita
   `HasepAreOWEsAllowedHere()`, che non esiste più (gli OWE sono attivi
   ovunque): da togliere alla prima occasione.

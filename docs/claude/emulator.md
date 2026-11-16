@@ -131,8 +131,9 @@ numero da `data/maps/map_groups.json`, es. Violet Gym = 3/5).
   nero e nessun tasto. Si collega `gdb-multiarch` (`target remote :2345`,
   `continue &`) e **poi** si pilotano i menu con `xdotool`.
 - **Un salvataggio fatto su una mappa con OWE li ripristina** (stanno in
-  SaveBlock1): prima di contarli, ricarica la mappa con il teletrasporto di
-  debug, o si misura lo stato salvato e non lo spawn.
+  SaveBlock1): prima di contare gli spawn, ricarica la mappa con il
+  teletrasporto di debug. Quel salvataggio è anche il caso di prova di
+  `TryRemoveOWEAboveCap` (6 OWE salvati con i tetti vecchi).
 - **Un tocco di `xdotool` di 0,15 s gira soltanto il giocatore**: per fare un
   passo servono ≥ 0,35 s di `keydown`.
 - **Il teletrasporto di debug alla Verdanturf Mart (gruppo 37, mappa 3) manda

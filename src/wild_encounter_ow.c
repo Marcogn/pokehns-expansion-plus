@@ -37,6 +37,13 @@
 #include "data/pokemon/wild_encounter_ow_behavior.h"
 #include "data/pokemon/owe_temperaments.h"
 
+// Hasep: a cap above OWE_SPAWNS_MAX would let GetNextOWESpawnSlot return
+// OWE_SPAWNS_MAX with every slot full, a localId outside the OWE range.
+STATIC_ASSERT(OWE_SPAWNS_MAX_LAND <= OWE_SPAWNS_MAX, OWESpawnCapLandFits);
+STATIC_ASSERT(OWE_SPAWNS_MAX_WATER <= OWE_SPAWNS_MAX, OWESpawnCapWaterFits);
+STATIC_ASSERT(OWE_SPAWNS_MAX_CAVE <= OWE_SPAWNS_MAX, OWESpawnCapCaveFits);
+STATIC_ASSERT(OWE_SPAWNS_MAX_SAFARI <= OWE_SPAWNS_MAX, OWESpawnCapSafariFits);
+
 
 #define sOverworldEncounterLevel        trainerRange_berryTreeId
 #define sOverworldEncounterAge          playerCopyableMovement
@@ -177,6 +184,8 @@ static bool32 CheckCanLoadOWE_Palette(u32 speciesId, bool32 isFemale, bool32 isS
 static bool32 CheckCanLoadOWE_Tiles(u32 speciesId, bool32 isFemale, bool32 isShiny, s32 x, s32 y);
 static void SortOWEAges(void);
 static bool32 ShouldDespawnGeneratedForNewOWE(struct ObjectEvent *owe);
+static bool32 TryRemoveOWEAboveCap(void);
+static bool32 IsAnyOWEFromOtherArea(void);
 static void SetNewOWESpawnCountdown(void);
 static void DoOWESpawnAnim(struct ObjectEvent *owe);
 static void DoOWEDespawnAnim(struct ObjectEvent *owe);
@@ -472,6 +481,14 @@ void UpdateOverworldWildEncounter(void)
     struct ObjectEvent* player = &gObjectEvents[gPlayerAvatar.objectEventId];
     // Don't spawn if player is mid step.
     if (player->currentCoords.x != player->previousCoords.x || player->currentCoords.y != player->previousCoords.y)
+        return;
+
+    // Hasep: more OWEs than this area's cap (a save made with the old caps,
+    // or land Pokémon around a player who starts surfing, where the cap is
+    // lower): the one-for-one replacement below would keep the excess for
+    // as long as the player stays on the map, so drop the oldest instead.
+    // Shiny ones are kept, as everywhere else.
+    if (TryRemoveOWEAboveCap())
         return;
 
     // Check for a valid tile.
@@ -1797,6 +1814,46 @@ u32 RemoveOldestGeneratedOWE(void)
     return objectEventId;
 }
 
+static bool32 TryRemoveOWEAboveCap(void)
+{
+    if (GetNumberOfActiveOWEs(OWE_GENERATED) <= GetOWESpawnCap())
+        return FALSE;
+
+    // OWE_INVALID_SPAWN_SLOT (only shiny ones left) must not reach
+    // GetOWEBySpawnSlot: 252 - 0xFF wraps to localId 253, the follower.
+    u32 oldestSlot = GetOldestActiveOWESlot(FALSE);
+    if (oldestSlot == OWE_INVALID_SPAWN_SLOT)
+        return FALSE;
+    struct ObjectEvent *oldest = GetOWEBySpawnSlot(oldestSlot);
+    if (oldest == NULL)
+        return FALSE;
+
+    RemoveObjectEvent(oldest);
+    sOWESpawnCountdown = OWE_SPAWN_TIME_MINIMUM;
+    return TRUE;
+}
+
+// Hasep: TRUE if a generated OWE stands in water while the player is on land,
+// or the other way round. It came from before the player started or stopped
+// surfing, and the area's own Pokémon should replace it soon, not after the
+// full OWE_SPAWN_TIME_REPLACEMENT.
+static bool32 IsAnyOWEFromOtherArea(void)
+{
+    bool32 playerInWater = ShouldSpawnWaterOWE() ? TRUE : FALSE;
+
+    for (u32 i = 0; i < OBJECT_EVENTS_COUNT; i++)
+    {
+        struct ObjectEvent *owe = &gObjectEvents[i];
+        // A shiny one is never replaced: counting it would churn the others
+        // every OWE_SPAWN_TIME_MINIMUM frames for as long as it stays.
+        if (!IsOverworldWildEncounter(owe, OWE_GENERATED) || HasOWENoDespawnFlag(owe))
+            continue;
+        if ((MetatileBehavior_IsSurfableWaterOrUnderwater(owe->currentMetatileBehavior) ? TRUE : FALSE) != playerInWater)
+            return TRUE;
+    }
+    return FALSE;
+}
+
 static bool32 ShouldDespawnGeneratedForNewOWE(struct ObjectEvent *owe)
 {
     if (!IsOverworldWildEncounter(owe, OWE_GENERATED))
@@ -1810,7 +1867,7 @@ static void SetNewOWESpawnCountdown(void)
     u32 numActive = GetNumberOfActiveOWEs(OWE_GENERATED);
 
     if (WE_OWE_SPAWN_REPLACEMENT && numActive >= GetOWESpawnCap())
-        sOWESpawnCountdown = OWE_SPAWN_TIME_REPLACEMENT;
+        sOWESpawnCountdown = IsAnyOWEFromOtherArea() ? OWE_SPAWN_TIME_MINIMUM : OWE_SPAWN_TIME_REPLACEMENT;
     else if (LURE_STEP_COUNT && numActive < GetOWESpawnCap())
         sOWESpawnCountdown = OWE_SPAWN_TIME_LURE;
     else

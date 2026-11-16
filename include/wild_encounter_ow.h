@@ -2,8 +2,8 @@
 #define GUARD_WILD_ENCOUNTER_OW_H
 
 #define OWE_SPAWNS_MAX                  6   // Hasep: 6 (decision D4), was 4. NOT a cap: it sizes the slot arrays and the localIds 247-252, so it stays 6; the caps below are what limits the spawns.
-// Hasep: per-area caps (decision D3). OWE_SPAWNS_MAX stays the hard limit and
-// sizes the slot arrays; these lower it per area. Overworld-catch plan (D3,
+// Hasep: per-area caps (decision D3). Each must stay <= OWE_SPAWNS_MAX, which
+// sizes the slot arrays (STATIC_ASSERTs in wild_encounter_ow.c). Overworld-catch plan (D3,
 // 14/11): land 4, water and caves 2, Safari 3, because the player now throws
 // Balls at these Pokémon and 6 on a route was clutter. Before: 6/3/3, Safari 4.
 #define OWE_SPAWNS_MAX_LAND             4

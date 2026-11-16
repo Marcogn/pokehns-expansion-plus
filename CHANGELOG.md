@@ -15,8 +15,10 @@ add the section before releasing. Feature details live in the tables of
   (was 4), and a full area replaces one of them every 8 seconds instead of
   every 4. Measured on Route 29 over 67 seconds of play: 4 at most (before:
   up to 6, above 4 for most of the run) and in Union Cave 1F: 2 at most.
-  A game saved on a map that already had more of them keeps them until you
-  leave the map.
+  A map that has more of them than its cap (a game saved before this
+  version, or land Pokémon around you when you start surfing) drops the
+  extra ones within a second or two, and Pokémon left from land or water
+  are replaced quickly when you start or stop surfing.
 - **Cheaper special Balls**: Net, Nest, Dive, Dusk, Timer, Repeat and
   Luxury Ball now cost 100 (Luxury was 3000, the others 1000) and Heal Ball
   50 (was 300). Poké, Great, Ultra and Quick Ball are unchanged. These
