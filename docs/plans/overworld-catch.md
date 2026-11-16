@@ -8,13 +8,13 @@ e, per i fatti del port, [`overworld-encounters.md`](overworld-encounters.md).
 
 ## 1. Cosa si fa
 
-- **Lancio della Ball nell'overworld**: con **L** il giocatore lancia una Ball
-  dritta davanti a sé; se sulla linea c'è un Pokémon selvatico visibile (OWE)
+- **Lancio della Ball nell'overworld**: con **R** il giocatore lancia una Ball
+  (o il suo Pokémon, che fa partire la lotta) dritta davanti a sé; se sulla linea c'è un Pokémon selvatico visibile (OWE)
   si tenta la cattura senza entrare in lotta, con un'animazione vera (volo,
   Pokémon risucchiato, scosse, esito).
 - **Toccare o farsi toccare** resta com'è: lotta classica.
-- **Passo lento** (al posto del gattonare): **A tenuto + direzione**, ovunque e
-  non più solo durante una ricerca DexNav.
+- **Passo lento** (al posto del gattonare): **B tenuto + direzione**, ovunque,
+  anche durante la ricerca DexNav (che oggi usa A tenuto).
 - **Percezione migliore**: i Pokémon sentono il giocatore in base a quanto
   rumore fa (corsa, camminata, passo lento), lo vedono in un cono, non lo
   vedono attraverso gli ostacoli né quando è nell'erba alta.
@@ -35,7 +35,9 @@ Risposte dell'utente (14/11):
 
 | # | Decisione |
 | --- | --- |
-| D1 | **Comandi**: nessuna preferenza, quindi la proposta: **L lancia**, **A tenuto + direzione = passo lento**. |
+| D1 | **Comandi** (utente, 16/11; sostituisce la prima proposta "L lancia, A lento"): **R** lancia la Ball o il Pokémon scelto; **L premuto e rilasciato** passa da Ball a Pokémon e viceversa; **L tenuto + ←/→** scorre le Ball o i Pokémon disponibili (il giocatore non si muove mentre L è tenuto); **B tenuto** = passo lento. SELECT resta allo strumento registrato (premuto) e al secondo (tenuto 1 s). R in bici alterna ancora Mach e Acro. La scorciatoia R della ricerca DexNav **sparisce**; il DexNav si apre dal menu Start (icona DexNav, `src/strip_start_menu.c:192`). Mock del 16/11 approvati: modalità Ball e modalità Pokémon con L tenuto. |
+| D17 | **Lancio del Pokémon**: in modalità Pokémon, R manda il Pokémon scelto contro il selvatico davanti e parte la lotta con **quel Pokémon in campo per primo** (solo per quella lotta). Scelta solo fra Pokémon non esausti e non uova. Nessun bonus di sorpresa nella prima versione. Senza bersaglio non succede niente. |
+| D18 | **Pannello** (Ball o Pokémon scelto, quantità o livello, modalità): compare **mentre L è tenuto e per ~2 s** dopo un cambio o un lancio, poi sparisce. |
 | D2 | **Probabilità**: formula normale della lotta a PS pieni, **×2 se il Pokémon non ha notato il giocatore**. Se la cattura fallisce il Pokémon si allerta: fugge o attacca secondo l'indole. |
 | D3 | **Densità**: tetti **4 / 2 / 2** (erba / acqua / grotta), **Safari 3**; ricambio a tetto pieno da 240 a **480 frame**. |
 | D4 | **Prezzi**: Poké/Great/Ultra restano 10/15/30. Net, Nest, Dive, Dusk, Timer, Repeat, Luxury da 1000 a **100**; Heal da 300 a **50**. |
@@ -45,13 +47,15 @@ della fase che le realizza.
 
 | # | Scelta | Default | Fase |
 | --- | --- | --- | --- |
-| P1 | Quale Ball parte | l'ultima lanciata (`gLastThrownBall`) se è in borsa, altrimenti la prima della tasca Ball; in fase 5 **L tenuto + ←/→** la cambia | 3, 5 |
+| P1 | Quale Ball parte | l'ultima lanciata (`gLastThrownBall`) se è in borsa, altrimenti la prima della tasca Ball; **L tenuto + ←/→** la cambia (D1) | 3, 5 |
+| P20 | AUTORUN spento | B tenuto resta la **corsa**, come oggi: senza corsa automatica il passo lento non c'è e la camminata normale si sente a 2 caselle | 2 |
+| P21 | BUTTON MODE `L=A` | L vale A (`src/main.c:300`): niente cambio di modalità né scorrimento; R lancia comunque la Ball o il Pokémon già scelto | 3 |
 | P2 | Gittata | 5 caselle in linea retta; si ferma al primo ostacolo o dislivello (D16: niente consumo) | 3 |
 | P3 | Nuzlocke / One Type / Species Clause | le stesse regole della lotta: dove la cattura sarebbe bloccata la Ball non parte (messaggio); una cattura riuscita segna la zona | 3 |
 | P4 | Leggendari erranti e sciami | il lancio fallisce sempre e parte la lotta (i loro dati vivono fuori dall'oggetto) | 3 |
 | P5 | Zona Safari, Gara Pigliamosche, Azienda Lotta | lancio **spento** nella prima versione | 3 |
 | P6 | Esperienza alla cattura | nessuna (in lotta `B_EXP_CATCH` la dà: qui non c'è chi ha partecipato) | 3 |
-| P7 | BUTTON MODE `L=A` | il lancio non è disponibile (L è già A, `src/main.c:300`); nessuna opzione nuova | 3 |
+| P7 | BUTTON MODE `L=A` | sostituita da P21 (il lancio ora è su R) | — |
 | P8 | Squadra piena | va al PC come in lotta; box pieni: la Ball rimbalza. In raffica la squadra si può riempire a metà: il controllo è **all'impatto**, non al lancio, e così Nuzlocke e Species Clause (la prima cattura segna la zona, la seconda Ball rimbalza anche se era già in aria) | 3 |
 
 Il ×2 di D2 è una scelta di bilanciamento **nostra**: non è un valore preso da
@@ -106,9 +110,16 @@ Cosa c'è già e si riusa:
   tenuto. Attenzione al blocco della corsa (`:947`): con AUTORUN acceso
   (`autoRun == 0`) è vero anche senza B e fa `return`, quindi il passo lento
   va provato **prima**, come già fa il ramo del DexNav.
-- **Tasti liberi**: `FieldGetPlayerInput` (`src/field_control_avatar.c:111`)
-  non legge L; `struct FieldInput` ha bit liberi (`input_field_1_1` ecc.). R è
-  DexNav / cambio bici, SELECT lo strumento registrato.
+- **Tasti oggi**: `FieldGetPlayerInput` (`src/field_control_avatar.c:111`)
+  non legge L; `struct FieldInput` ha bit liberi (`input_field_1_1` ecc.). R
+  (`:259-287`, ramo `#if IS_HNS`) alterna Mach/Acro in bici e altrimenti avvia
+  la ricerca DexNav sulla specie registrata: il secondo uso va tolto (D1).
+  SELECT premuto = `UseRegisteredKeyItemOnField(FALSE)`, tenuto 60 frame =
+  `(TRUE)`, il secondo strumento registrato (`registeredItemHold`, SaveBlock3;
+  `src/item_menu.c:2451`). **B tenuto** oggi, con AUTORUN acceso (default,
+  `autoRun == 0`), fa camminare invece di correre; con AUTORUN spento fa
+  correre (`src/field_player_avatar.c:947-968`). Il passo lento del DexNav è
+  su A tenuto (`:933-945`) e va spostato su B (D1).
 - **Percezione attuale**: `CanAwareOWESeePlayer` (`src/wild_encounter_ow.c:2021`).
   Due regole sole: corsa o bici entro `activeDistance` (5) = notato in ogni
   direzione; altrimenti un rettangolo davanti al Pokémon, 4 caselle × 3
@@ -278,10 +289,10 @@ costa di più del suo prezzo.
 | # | Fase | Modello | Cancello per passare oltre |
 | --- | --- | --- | --- |
 | 1 | **Densità e prezzi** (D3, D4): `OWE_SPAWNS_MAX_LAND/WATER/CAVE/SAFARI`, `OWE_SPAWN_TIME_REPLACEMENT`, prezzi in `items.h`. `OWE_SPAWNS_MAX` resta 6 (dimensiona slot e `localId`) | **Sonnet 5.5** | build verde; in emulatore il conteggio degli OWE su una rotta d'erba non supera 4 in 60 s di gioco (misurato in frame) e 2 in grotta; screenshot di un negozio con i prezzi nuovi. `.srm` non necessario |
-| 2 | **Passo lento e percezione**: A tenuto = passo lento fuori dal DexNav; rumore per andatura (corsa/bici 5, camminata 2, passo lento 0: solo vista); cono di vista con numeri diversi per comportamento; ostacoli che coprono la vista; giocatore nell'erba alta non visto oltre 1 casella; funzione pubblica `IsOWEAwareOfPlayer()` | **Opus 5.5** | build verde; prove in emulatore con posizioni lette via GDB: da dietro a passo lento si arriva adiacenti senza essere notati, camminando si viene notati a 2, correndo a 5, di fronte alla distanza di vista, dietro un ostacolo mai. A premuto davanti a un NPC o un cartello interagisce ancora; ricerca DexNav invariata. `.srm` non necessario |
-| 3 | **Nucleo della cattura**, senza animazione (Ball istantanea, messaggio): tasto L, bersaglio sulla linea (P2), consumo solo a bersaglio colpito (D16), **esito all'impatto e coda per la raffica** (D15: fino a 3 lanci pendenti, intervallo minimo, banner e soprannomi in coda), Pokémon costruito dalla funzione comune con la lotta, formula condivisa con ×2 se non allertato (D2), tutto ciò che la lotta fa dopo una cattura, blocchi P3-P8, reazione al fallimento; **banner di cattura con fanfara** (D14, P18, P19, dal prototipo del §3) | **Fable 5.2** | build verde; `ComputeCaptureOdds` in lotta dà gli stessi numeri di prima su 3 casi (ROM strumentata). In emulatore: banner guardato per squadra, PC, maschio, femmina, senza sesso e nome lungo; cattura con Master Ball, **guardando il Pokémon in squadra** (specie, livello, shiny, Ball giusti, non Bad Egg), Ball scalata, Pokédex segnato; **raffica di 3** con 2 presi e 1 fuggito, con 3 presi a squadra da 5 (uno in squadra, due al PC), con la seconda Ball su una zona Nuzlocke appena usata (rimbalza, non consumata); lancio a vuoto e contro un NPC (non consumata); spawn forzato nello stesso frame di un impatto; un lancio fallito allerta il Pokémon; zona Nuzlocke già usata, box pieni e Safari rifiutano il lancio; un OWE in acqua o catturato o escluso con il motivo scritto. **Serve il `.srm` dell'utente** (squadra e borsa vere, impostazioni di sfida) |
+| 2 | **Passo lento e percezione**: B tenuto = passo lento con AUTORUN acceso, anche nella ricerca DexNav (al posto di A tenuto), P20 con AUTORUN spento; rumore per andatura (corsa/bici 5, camminata 2, passo lento 0: solo vista); cono di vista con numeri diversi per comportamento; ostacoli che coprono la vista; giocatore nell'erba alta non visto oltre 1 casella; funzione pubblica `IsOWEAwareOfPlayer()` | **Opus 5.5** | build verde; prove in emulatore con posizioni lette via GDB: da dietro a passo lento si arriva adiacenti senza essere notati, camminando si viene notati a 2, correndo a 5, di fronte alla distanza di vista, dietro un ostacolo mai. A premuto davanti a un NPC o un cartello interagisce ancora; nella ricerca DexNav il passo lento con B non fa scappare il bersaglio; con AUTORUN spento B fa ancora correre. `.srm` non necessario |
+| 3 | **Nucleo della cattura**, senza animazione (Ball istantanea, messaggio): comandi di D1 (R lancia, L premuto cambia modalità, L tenuto + ←/→ scorre senza muovere il giocatore, scorciatoia DexNav su R tolta, Mach/Acro su R in bici invariato), **lancio del Pokémon** (D17), bersaglio sulla linea (P2), consumo solo a bersaglio colpito (D16), **esito all'impatto e coda per la raffica** (D15: fino a 3 lanci pendenti, intervallo minimo, banner e soprannomi in coda), Pokémon costruito dalla funzione comune con la lotta, formula condivisa con ×2 se non allertato (D2), tutto ciò che la lotta fa dopo una cattura, blocchi P3-P8, reazione al fallimento; **banner di cattura con fanfara** (D14, P18, P19, dal prototipo del §3) | **Fable 5.2** | build verde; `ComputeCaptureOdds` in lotta dà gli stessi numeri di prima su 3 casi (ROM strumentata). In emulatore: ogni tasto di D1 provato a piedi, in bici, con AUTORUN spento e con `L=A`; un Pokémon lanciato scende in campo per primo e la squadra torna nell'ordine di prima; banner guardato per squadra, PC, maschio, femmina, senza sesso e nome lungo; cattura con Master Ball, **guardando il Pokémon in squadra** (specie, livello, shiny, Ball giusti, non Bad Egg), Ball scalata, Pokédex segnato; **raffica di 3** con 2 presi e 1 fuggito, con 3 presi a squadra da 5 (uno in squadra, due al PC), con la seconda Ball su una zona Nuzlocke appena usata (rimbalza, non consumata); lancio a vuoto e contro un NPC (non consumata); spawn forzato nello stesso frame di un impatto; un lancio fallito allerta il Pokémon; zona Nuzlocke già usata, box pieni e Safari rifiutano il lancio; un OWE in acqua o catturato o escluso con il motivo scritto. **Serve il `.srm` dell'utente** (squadra e borsa vere, impostazioni di sfida) |
 | 4 | **Animazione**: posa di lancio (derivata dai frame che il giocatore ha già, guardando l'immagine), Ball in volo ad arco con lo sprite del suo tipo, risucchio, caduta, 0-3 scosse da `ComputeBallShakeOdds` (decise all'impatto, D15), cattura o uscita con "!"; **fino a 3 Ball animate insieme**, e una lotta che parte mentre altre Ball tremano le chiude prima della transizione | **Fable 5.2** | build verde; tile e palette libere misurate nel caso peggiore **con 3 Ball di tipi diversi in aria** (se non ci stanno, il limite scende e si scrive), nessuno script in attesa se uno sprite non si crea (provato forzando il fallimento); sequenza di screenshot guardati per cattura, fuga dopo 1 e dopo 3 scosse, nelle 4 direzioni, di giorno e in grotta. `.srm` utile, non necessario |
-| 5 | **Rifinitura e documentazione**: scelta della Ball con L tenuto + ←/→ e icona con quantità (P1), suoni, messaggi; `CHANGELOG.md`, `README.md`, regola `.claude/rules/overworld_catch.md` (con `paths:`), indice in CLAUDE.md §7, `docs/SOULGOLD_PORT_REPORT.md` (feature nuova, non un port) | **Sonnet 5.5** | build verde; cambio Ball provato con 1, 2 e 0 tipi in borsa; testi riletti contro il codice; `docs_validate` verde |
+| 5 | **Rifinitura e documentazione**: pannello di D18 (Ball o Pokémon, quantità o livello, modalità) dai mock del 16/11, rifatto con font e finestre del gioco, suoni, messaggi; `CHANGELOG.md`, `README.md`, regola `.claude/rules/overworld_catch.md` (con `paths:`), indice in CLAUDE.md §7, `docs/SOULGOLD_PORT_REPORT.md` (feature nuova, non un port) | **Sonnet 5.5** | build verde; pannello guardato con 1, 2 e 0 tipi di Ball in borsa e con 1 e 6 Pokémon, in tutti e due i temi; sparisce dopo ~2 s; testi riletti contro il codice; `docs_validate` verde |
 | 6 | **Revisione della prima parte**: `/code-review` medio sul diff delle fasi 1-5, ogni punto aperto provato in emulatore, bilanciamento (quante Ball per una cattura a inizio gioco e a metà), ROM consegnata zippata. Qui si decide anche se togliere il DexNav (D6) | **Opus 5.5** | build e CI verdi, percentuale di ROM annotata, punti aperti chiusi o motivati. **Serve il `.srm` dell'utente** |
 | 7 | **Ricorda mosse a pagamento** (D10), port da Soulgold: `P_ENABLE_MOVE_RELEARNERS` FALSE, `P_TM_MOVES_RELEARNER` resta TRUE (P16), due flag, due maestri con il loro prezzo (dove: dalle mappe, v. §3), testo nel riassunto quando la voce è chiusa | **Sonnet 5.5** | build verde; nel riassunto le mosse uovo/tutor non compaiono prima e compaiono dopo aver pagato (screenshot); le MT sì in tutti e due i casi; un salvataggio vecchio parte chiuso. **Serve il `.srm`** (Pokémon con mosse uovo vere) |
 | 8 | **Alfa sulla mappa**: bit `alpha` nell'oggetto, tiro P9, livello P10, comportamento P12, **prototipo dello sprite più grande** (se non regge: un'aura o un'icona sopra la testa, e lo si scrive) | **Opus 5.5** | build verde; con il debug che forza l'alfa: compare uno per mappa, ti insegue, non sparisce; sprite guardato su erba, in grotta, accanto ad altri OWE; tile e matrici affini misurate; un salvataggio vecchio carica senza alfa fantasma. `.srm` non necessario |
