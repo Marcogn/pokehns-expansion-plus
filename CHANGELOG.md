@@ -24,6 +24,22 @@ add the section before releasing. Feature details live in the tables of
   50 (was 300). Poké, Great, Ultra and Quick Ball are unchanged. These
   Balls are only sold in the Hoenn and Alola shops of the ROM, not in the
   Johto and Kanto ones: the price shows in the sell value for now.
+- **Sneaking up on wild Pokémon**: the second step of the overworld
+  catching. With `AUTORUN` on, **holding B is now a slow walk** (it was a
+  normal walk), and wild Pokémon on the map cannot hear it. They hear you
+  running or cycling within 5 tiles and walking within 2, in every
+  direction. They see you in a cone in front of them (1 tile wide right in
+  front, 3 at two or three tiles, 5 further on), 4 or 5 tiles deep
+  depending on their temperament (it was a 4×3 box for all), and not
+  through trees, walls or people. Standing in tall grass hides you from
+  anything but the tile right in front. With `AUTORUN` off nothing changes:
+  B still runs and there is no slow walk.
+- **`AUTORUN` is on by default on a fresh cartridge** (it was off), so the
+  slow walk is there from the start. Existing saves keep the setting they
+  have, and so does a New Game started over one (the title options carry
+  over): turn `AUTORUN` on in the options to get the slow walk.
+- **DexNav creeping is on B**: during a DexNav search holding B is the
+  slow, quiet walk (it was A), whatever `AUTORUN` says.
 
 ## 2.0.6.PLUS.11
 

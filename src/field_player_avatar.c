@@ -864,6 +864,9 @@ static void PlayerNotOnBikeMoving(enum Direction direction, u16 heldKeys)
     {
         if (collision == COLLISION_LEDGE_JUMP)
         {
+            // A jump is not a slow walk: without this, a creeping flag left
+            // from the step before made the jump silent to wild Pokémon.
+            gPlayerAvatar.creeping = FALSE;
             PlayerJumpLedge(direction);
             return;
         }
@@ -907,7 +910,9 @@ static void PlayerNotOnBikeMoving(enum Direction direction, u16 heldKeys)
     gPlayerAvatar.creeping = FALSE;
     if (gPlayerAvatar.flags & PLAYER_AVATAR_FLAG_SURFING)
     {
-        if (FlagGet(DN_FLAG_SEARCHING) && (heldKeys & A_BUTTON))
+        // Surf speeds are unchanged (B still picks the other surf speed),
+        // except during a DexNav search, where B held creeps as on land.
+        if (FlagGet(DN_FLAG_SEARCHING) && (heldKeys & B_BUTTON))
         {
             gPlayerAvatar.creeping = TRUE;
             PlayerWalkSlow(direction);
@@ -929,15 +934,18 @@ static void PlayerNotOnBikeMoving(enum Direction direction, u16 heldKeys)
         return;
     }
 
-    // Creeping for the DexNav has to be tested before the running block below,
-    // not in its else-if. That block returns unconditionally, and with AUTORUN
-    // on (autoRun == 0) its guard is true whether or not B is held, so the
-    // else-if was unreachable: holding A did nothing and every DexNav target
-    // fled the moment the player came within CREEPING_PROXIMITY. The surfing
-    // branch above already tests it first; this matches it.
+    // The slow walk has to be tested before the running block below, not in
+    // its else-if: that block returns unconditionally, and with AUTORUN on
+    // (autoRun == 0) its guard is true whether or not B is held.
+    // Overworld catch plan D1: with AUTORUN on, B held is the slow walk
+    // everywhere (it used to be a normal walk). During a DexNav search B held
+    // is the creep whatever AUTORUN says (it used to be A held), since running
+    // there scares the target anyway. With AUTORUN off and no search B is the
+    // run, as before, so there is no slow walk (plan P20). Wild Pokémon on the
+    // map do not hear a slow walk (CanAwareOWESeePlayer).
     if (!(gPlayerAvatar.flags & PLAYER_AVATAR_FLAG_UNDERWATER)
-     && FlagGet(DN_FLAG_SEARCHING)
-     && (heldKeys & A_BUTTON))
+     && (heldKeys & B_BUTTON)
+     && (gSaveBlock3Ptr->challengeSettings.autoRun == 0 || FlagGet(DN_FLAG_SEARCHING)))
     {
         gPlayerAvatar.creeping = TRUE;
         PlayerWalkSlow(direction);
@@ -951,28 +959,12 @@ static void PlayerNotOnBikeMoving(enum Direction direction, u16 heldKeys)
      && !FollowerNPCComingThroughDoor()
      && (I_ORAS_DOWSING_FLAG == 0 || (I_ORAS_DOWSING_FLAG != 0 && !FlagGet(I_ORAS_DOWSING_FLAG))))
     {
-        if (heldKeys & B_BUTTON && gSaveBlock3Ptr->challengeSettings.autoRun == 0)
-        {
-            if (ObjectMovingOnRockStairs(&gObjectEvents[gPlayerAvatar.objectEventId], direction))
-                PlayerWalkSlow(direction);
-            else
-                PlayerWalkNormal(direction);
-        }
+        if (ObjectMovingOnRockStairs(&gObjectEvents[gPlayerAvatar.objectEventId], direction))
+            PlayerRunSlow(direction);
         else
-        {
-            if (ObjectMovingOnRockStairs(&gObjectEvents[gPlayerAvatar.objectEventId], direction))
-                PlayerRunSlow(direction);
-            else
-                PlayerRun(direction);
+            PlayerRun(direction);
 
-            gPlayerAvatar.flags |= PLAYER_AVATAR_FLAG_DASH;
-        }
-        return;
-    }
-    else if (FlagGet(DN_FLAG_SEARCHING) && (heldKeys & A_BUTTON))
-    {
-        gPlayerAvatar.creeping = TRUE;
-        PlayerWalkSlow(direction);
+        gPlayerAvatar.flags |= PLAYER_AVATAR_FLAG_DASH;
     }
     else
     {

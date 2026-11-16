@@ -125,7 +125,7 @@ cui una feature è spenta senza che nessun flag lo dica.
 | `dexnav`, `relearner`, `candy_jar`, `pc_box`, `bag`, `music`, `megas` | una per feature |
 | `party_menu`, `pokedex`, `strip_menu`, `quest_book` | menu e schermate |
 | `field` | script MN `_hns`, negozi, nickname, descrizione oggetto, Testata |
-| `trainer_catch`, `reds_path`, `level_scaling`, `overworld_encounters` | TcloneR; Red's Path; level scaling; OWE |
+| `trainer_catch`, `reds_path`, `level_scaling`, `overworld_encounters`, `overworld_catch` | TcloneR; Red's Path; level scaling; OWE; andature e percezione per la cattura |
 | `hasep_symbols` | tabella `HASEPSYM` per il fork di PokeDaisy |
 
 **Skill** (`/<nome>`): `upstream-sync`, `next-phase`, `new-plan`, `add-quest`,

@@ -120,7 +120,10 @@ void SetDefaultChallengeSettings(void)
 {
     gSaveblock3.challengeSettings.followerEnable = 0;
     gSaveblock3.challengeSettings.followerLargeEnable = 0;
-    gSaveblock3.challengeSettings.autoRun = 1;
+    // 0 = AUTORUN on. On by default (was 1, off) so that holding B is the
+    // slow walk the overworld catching relies on (docs/plans/overworld-catch.md
+    // §5.2). Only empty or corrupt saves reach this: existing games keep theirs.
+    gSaveblock3.challengeSettings.autoRun = 0;
     gSaveblock3.challengeSettings.autorunSurf = 1;
     gSaveblock3.challengeSettings.autorunDive = 1;
     gSaveblock3.challengeSettings.fishing = 0;

@@ -22,6 +22,7 @@ Port della PR #8434 di expansion (dal diff del merge `10ae7f9`, più le correzio
 fino a `expansion/1.16.4`; **non** da `master`, che dipende da `mass_outbreak.h`)
 con un tiro pesato per indole (`docs/plans/overworld-encounters/temperaments.json`).
 Cattura con la Ball nell'overworld (in corso): [`docs/plans/overworld-catch.md`](../../docs/plans/overworld-catch.md).
+Andature, udito e cono di vista (fase 2 di quel piano): `overworld_catch.md`.
 
 ## Interruttori e numeri
 
