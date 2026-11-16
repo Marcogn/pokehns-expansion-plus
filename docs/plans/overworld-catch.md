@@ -328,6 +328,6 @@ basta Opus. La 7 è un port con sorgente chiaro, la 10 grafica e contenuto.
 - **Lancio nel Safari e alla Gara** (P5): hanno Ball contate e regole proprie
   (`gNumSafariBalls`, punteggio della Gara). Si possono aggiungere dopo.
 - **Un'opzione per spegnere la feature**: non c'è posto nel salvataggio senza
-  allargare una struct, e chi non la vuole non preme L.
+  allargare una struct, e chi non la vuole non preme R.
 - **Tetto `OWE_SPAWNS_MAX` a 4**: sposterebbe i `localId` degli OWE; bastano
   i tetti per zona.

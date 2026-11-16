@@ -41,7 +41,7 @@ Redux), ma diversa da quella decisa qui.
 
 - Nessuna fase si accorcia: non c'è codice da portare. Il piano resta.
 - Prima della fase 3, se l'utente vuole, **provare HnS-Legends** per vedere
-  dal vivo un lancio dalla ruota degli strumenti e decidere se il tasto L
-  (D1) resta la scelta giusta.
+  dal vivo un lancio dalla ruota degli strumenti e confrontarlo con lo schema
+  dei comandi deciso (D1: R lancia, L cambia e scorre).
 - La fase 9 può guardare Elite Redux per l'accessor e il segno nel
   riassunto (idea, non codice).
