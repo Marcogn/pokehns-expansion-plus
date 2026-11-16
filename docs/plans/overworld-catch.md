@@ -48,6 +48,8 @@ della fase che le realizza.
 | # | Scelta | Default | Fase |
 | --- | --- | --- | --- |
 | P1 | Quale Ball parte | l'ultima lanciata (`gLastThrownBall`) se è in borsa, altrimenti la prima della tasca Ball; **L tenuto + ←/→** la cambia (D1) | 3, 5 |
+| P22 | Andature e rumore (fase 2) | AUTORUN acceso (default): direzione sola = **corsa**, sentita a 5 caselle in ogni direzione; B tenuto = **lenta** (`PlayerWalkSlow`, il passo del DexNav), non sentita: conta solo la vista; bici = 5. La **camminata normale** (sentita a 2) esiste solo con AUTORUN spento (P20) | 2 |
+| P23 | Forma del cono (fase 2) | oggi è un rettangolo 4×3 uguale per tutti (`CanAwareOWESeePlayer`, `src/wild_encounter_ow.c:2021`). Diventa un cono: larghezza 1 casella a distanza 1, 3 a distanza 2-3, 5 da 4 in poi, fino alla `viewDistance` del comportamento; la vista si ferma contro le caselle che bloccano il passaggio fra il Pokémon e il giocatore | 2 |
 | P20 | AUTORUN spento | B tenuto resta la **corsa**, come oggi: senza corsa automatica il passo lento non c'è e la camminata normale si sente a 2 caselle | 2 |
 | P21 | BUTTON MODE `L=A` | L vale A (`src/main.c:300`): niente cambio di modalità né scorrimento; R lancia comunque la Ball o il Pokémon già scelto | 3 |
 | P2 | Gittata | 5 caselle in linea retta; si ferma al primo ostacolo o dislivello (D16: niente consumo) | 3 |
