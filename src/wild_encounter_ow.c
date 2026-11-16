@@ -2076,79 +2076,22 @@ static bool32 CheckRestrictedOWEMovementMap(struct ObjectEvent *owe, s32 xNew, s
         return AreCoordsInsidePlayerMap(xNew, yNew);
 }
 
-bool32 CanAwareOWESeePlayer(struct ObjectEvent *owe)
-{
-    if (owe->movementType == MOVEMENT_TYPE_WANDER_AROUND_OWE)
-        return FALSE;
+// Hasep, overworld catch plan phase 2 (P22, P23). A Pokémon notices the
+// player in two ways:
+// - hearing, in every direction: running or cycling within its active
+//   distance, a normal walk (AUTORUN off, or no Running Shoes) within
+//   OWE_HEARING_WALK, a slow walk (B held, gPlayerAvatar.creeping) never.
+//   Sound is not stopped by obstacles.
+// - sight, in a cone in front of it: 1 tile wide at distance 1, 3 at 2-3,
+//   5 from 4 on, never wider than viewWidth, up to viewDistance. A tile that
+//   blocks movement, or an object that is not a wild Pokémon or a follower,
+//   between the two stops it, and a player standing in tall grass is only
+//   seen from the next tile.
+#define OWE_HEARING_WALK    2
 
-    if (gPlayerAvatar.runningState == MOVING
-     && TestPlayerAvatarFlags(PLAYER_AVATAR_FLAG_DASH | PLAYER_AVATAR_FLAG_BIKE)
-     && IsPlayerInsideOWEActiveDistance(owe))
-        return TRUE;
-
-    struct ObjectEvent *player = &gObjectEvents[gPlayerAvatar.objectEventId];
-    u32 viewDistance = OWE_GetViewDistance(owe);
-    u32 viewWidth = OWE_GetViewWidth(owe);
-    s32 halfWidth = (viewWidth - 1) / 2;
-    enum Direction direction = owe->facingDirection;
-
-    switch (direction)
-    {
-    case DIR_NORTH:
-        if (!(player->currentCoords.y <= owe->currentCoords.y
-         && owe->currentCoords.y - player->currentCoords.y <= viewDistance
-         && player->currentCoords.x >= owe->currentCoords.x - halfWidth
-         && player->currentCoords.x <= owe->currentCoords.x + halfWidth))
-            return FALSE;
-        break;
-
-    case DIR_SOUTH:
-        if (!(player->currentCoords.y >= owe->currentCoords.y
-         && player->currentCoords.y - owe->currentCoords.y <= viewDistance
-         && player->currentCoords.x >= owe->currentCoords.x - halfWidth
-         && player->currentCoords.x <= owe->currentCoords.x + halfWidth))
-            return FALSE;
-        break;
-
-    case DIR_EAST:
-        if (!(player->currentCoords.x >= owe->currentCoords.x
-         && player->currentCoords.x - owe->currentCoords.x <= viewDistance
-         && player->currentCoords.y >= owe->currentCoords.y - halfWidth
-         && player->currentCoords.y <= owe->currentCoords.y + halfWidth))
-            return FALSE;
-        break;
-
-    case DIR_WEST:
-        if (!(player->currentCoords.x <= owe->currentCoords.x
-         && owe->currentCoords.x - player->currentCoords.x <= viewDistance
-         && player->currentCoords.y >= owe->currentCoords.y - halfWidth
-         && player->currentCoords.y <= owe->currentCoords.y + halfWidth))
-            return FALSE;
-        break;
-
-    default:
-        return FALSE;
-    }
-
-    return CanOWEReachPlayer(owe);
-}
-
-static bool32 CanOWEReachPlayer(struct ObjectEvent *owe)
-{
-    // In future, checks similar to trainer_see.c can be included.
-    struct ObjectEvent *player = &gObjectEvents[gPlayerAvatar.objectEventId];
-    return !IsElevationMismatchAt(owe->currentElevation, player->currentCoords.x, player->currentCoords.y);
-}
-
-bool32 IsPlayerInsideOWEActiveDistance(struct ObjectEvent *owe)
+static bool32 IsPlayerWithinOWEDistance(struct ObjectEvent *owe, u32 distance)
 {
     struct ObjectEvent *player = &gObjectEvents[gPlayerAvatar.objectEventId];
-    u32 distance = OWE_DEFAULT_CHASE_RANGE;
-    u32 speciesId = OW_SPECIES(owe);
-
-    if (speciesId != SPECIES_NONE)
-        distance = OWE_GetViewActiveDistance(owe);
-
     s32 absX = abs(player->currentCoords.x - owe->currentCoords.x);
     s32 absY = abs(player->currentCoords.y - owe->currentCoords.y);
 
@@ -2160,6 +2103,148 @@ bool32 IsPlayerInsideOWEActiveDistance(struct ObjectEvent *owe)
         return FALSE;
 
     return TRUE;
+}
+
+static u32 GetPlayerNoiseDistance(struct ObjectEvent *owe)
+{
+    if (gPlayerAvatar.runningState != MOVING)
+        return 0;
+    if (TestPlayerAvatarFlags(PLAYER_AVATAR_FLAG_DASH | PLAYER_AVATAR_FLAG_BIKE))
+        return OWE_GetViewActiveDistance(owe);
+    if (gPlayerAvatar.creeping)
+        return 0;
+    return OWE_HEARING_WALK;
+}
+
+static bool32 IsPlayerInOWEViewCone(struct ObjectEvent *owe, struct ObjectEvent *player)
+{
+    s32 dx = player->currentCoords.x - owe->currentCoords.x;
+    s32 dy = player->currentCoords.y - owe->currentCoords.y;
+    s32 forward, side, halfWidth;
+
+    switch (owe->facingDirection)
+    {
+    case DIR_NORTH:
+        forward = -dy;
+        side = dx;
+        break;
+    case DIR_SOUTH:
+        forward = dy;
+        side = dx;
+        break;
+    case DIR_EAST:
+        forward = dx;
+        side = dy;
+        break;
+    case DIR_WEST:
+        forward = -dx;
+        side = dy;
+        break;
+    default:
+        return FALSE;
+    }
+
+    if (forward < 1 || forward > (s32)OWE_GetViewDistance(owe))
+        return FALSE;
+
+    if (forward == 1)
+        halfWidth = 0;
+    else if (forward <= 3)
+        halfWidth = 1;
+    else
+        halfWidth = 2;
+    if (halfWidth > ((s32)OWE_GetViewWidth(owe) - 1) / 2)
+        halfWidth = ((s32)OWE_GetViewWidth(owe) - 1) / 2;
+
+    if (abs(side) > halfWidth)
+        return FALSE;
+
+    // Hidden in tall grass: only the tile right in front sees the player.
+    if (forward + abs(side) > 1
+     && (MetatileBehavior_IsTallGrass(player->currentMetatileBehavior)
+      || MetatileBehavior_IsLongGrass(player->currentMetatileBehavior)))
+        return FALSE;
+
+    return TRUE;
+}
+
+static bool32 IsOWESightBlockedAt(s32 x, s32 y)
+{
+    if (MapGridGetCollisionAt(x, y))
+        return TRUE;
+
+    u32 objectEventId = GetObjectEventIdByXY(x, y);
+    if (objectEventId >= OBJECT_EVENTS_COUNT || objectEventId == gPlayerAvatar.objectEventId)
+        return FALSE;
+
+    struct ObjectEvent *object = &gObjectEvents[objectEventId];
+    if (IsOverworldWildEncounter(object, OWE_ANY) || object->localId == LOCALID_FOLLOWING_POKEMON)
+        return FALSE;
+
+    return TRUE;
+}
+
+// Walks the tiles strictly between the Pokémon and the player along the
+// nearest straight line (rounded half away from zero, so symmetric).
+static bool32 IsOWESightBlocked(struct ObjectEvent *owe, struct ObjectEvent *player)
+{
+    s32 dx = player->currentCoords.x - owe->currentCoords.x;
+    s32 dy = player->currentCoords.y - owe->currentCoords.y;
+    s32 steps = max(abs(dx), abs(dy));
+
+    for (s32 i = 1; i < steps; i++)
+    {
+        s32 x = owe->currentCoords.x + (2 * dx * i + (dx < 0 ? -steps : steps)) / (2 * steps);
+        s32 y = owe->currentCoords.y + (2 * dy * i + (dy < 0 ? -steps : steps)) / (2 * steps);
+        if (IsOWESightBlockedAt(x, y))
+            return TRUE;
+    }
+    return FALSE;
+}
+
+bool32 CanAwareOWESeePlayer(struct ObjectEvent *owe)
+{
+    if (owe->movementType == MOVEMENT_TYPE_WANDER_AROUND_OWE)
+        return FALSE;
+
+    u32 noiseDistance = GetPlayerNoiseDistance(owe);
+    if (noiseDistance != 0 && IsPlayerWithinOWEDistance(owe, noiseDistance))
+        return TRUE;
+
+    struct ObjectEvent *player = &gObjectEvents[gPlayerAvatar.objectEventId];
+    if (!IsPlayerInOWEViewCone(owe, player))
+        return FALSE;
+
+    if (IsOWESightBlocked(owe, player))
+        return FALSE;
+
+    return CanOWEReachPlayer(owe);
+}
+
+// Whether this Pokémon has noticed the player and is reacting (chasing,
+// fleeing, watching...). The flag is set when it notices and cleared when it
+// goes back to idle, and it survives a map reload with the object.
+bool32 IsOWEAwareOfPlayer(struct ObjectEvent *owe)
+{
+    return IsOverworldWildEncounter(owe, OWE_ANY) && HasSavedOWEMovementState(owe);
+}
+
+static bool32 CanOWEReachPlayer(struct ObjectEvent *owe)
+{
+    // In future, checks similar to trainer_see.c can be included.
+    struct ObjectEvent *player = &gObjectEvents[gPlayerAvatar.objectEventId];
+    return !IsElevationMismatchAt(owe->currentElevation, player->currentCoords.x, player->currentCoords.y);
+}
+
+bool32 IsPlayerInsideOWEActiveDistance(struct ObjectEvent *owe)
+{
+    u32 distance = OWE_DEFAULT_CHASE_RANGE;
+    u32 speciesId = OW_SPECIES(owe);
+
+    if (speciesId != SPECIES_NONE)
+        distance = OWE_GetViewActiveDistance(owe);
+
+    return IsPlayerWithinOWEDistance(owe, distance);
 }
 
 bool32 IsOWENextToPlayer(struct ObjectEvent *owe)

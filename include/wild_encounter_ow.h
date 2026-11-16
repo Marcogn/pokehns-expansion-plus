@@ -131,6 +131,7 @@ void ClearSavedOWEMovementState(struct ObjectEvent *owe);
 bool32 CheckRestrictedOWEMovement(struct ObjectEvent *owe, enum Direction direction);
 bool32 CanAwareOWESeePlayer(struct ObjectEvent *owe);
 bool32 IsPlayerInsideOWEActiveDistance(struct ObjectEvent *owe);
+bool32 IsOWEAwareOfPlayer(struct ObjectEvent *owe);
 bool32 IsOWENextToPlayer(struct ObjectEvent *owe);
 enum Direction DirectionOfOWEToPlayerFromCollision(struct ObjectEvent *owe);
 u32 GetApproachingOWEDistanceToPlayer(struct ObjectEvent *owe, bool32 *equalDistances);

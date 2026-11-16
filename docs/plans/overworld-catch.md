@@ -1,6 +1,6 @@
 # Piano: cattura nell'overworld (stile Leggende Pokémon: Arceus)
 
-**Stato (16/11): fase 1 fatta (tetti, ricambio, prezzi); prossima: fase 2 (Opus 5.5).**
+**Stato (16/11): fasi 1-2 fatte (tetti e prezzi; passo lento e percezione); prossima: fase 3 (Fable 5.2).**
 
 Si appoggia agli OWE già in gioco: leggere prima
 [`.claude/rules/overworld_encounters.md`](../../.claude/rules/overworld_encounters.md)
@@ -48,7 +48,7 @@ della fase che le realizza.
 | # | Scelta | Default | Fase |
 | --- | --- | --- | --- |
 | P1 | Quale Ball parte | l'ultima lanciata (`gLastThrownBall`) se è in borsa, altrimenti la prima della tasca Ball; **L tenuto + ←/→** la cambia (D1) | 3, 5 |
-| P22 | Andature e rumore (fase 2) | AUTORUN acceso (default): direzione sola = **corsa**, sentita a 5 caselle in ogni direzione; B tenuto = **lenta** (`PlayerWalkSlow`, il passo del DexNav), non sentita: conta solo la vista; bici = 5. La **camminata normale** (sentita a 2) esiste solo con AUTORUN spento (P20) | 2 |
+| P22 | Andature e rumore (fase 2) | AUTORUN acceso (**non** è il default di una partita nuova: v. §5.2): direzione sola = **corsa**, sentita a 5 caselle in ogni direzione; B tenuto = **lenta** (`PlayerWalkSlow`, il passo del DexNav), non sentita: conta solo la vista; bici = 5. La **camminata normale** (sentita a 2) esiste solo con AUTORUN spento (P20) | 2 |
 | P23 | Forma del cono (fase 2) | oggi è un rettangolo 4×3 uguale per tutti (`CanAwareOWESeePlayer`, `src/wild_encounter_ow.c:2021`). Diventa un cono: larghezza 1 casella a distanza 1, 3 a distanza 2-3, 5 da 4 in poi, fino alla `viewDistance` del comportamento; la vista si ferma contro le caselle che bloccano il passaggio fra il Pokémon e il giocatore | 2 |
 | P20 | AUTORUN spento | B tenuto resta la **corsa**, come oggi: senza corsa automatica il passo lento non c'è e la camminata normale si sente a 2 caselle | 2 |
 | P21 | BUTTON MODE `L=A` | L vale A (`src/main.c:300`): niente cambio di modalità né scorrimento; R lancia comunque la Ball o il Pokémon già scelto | 3 |
@@ -118,7 +118,7 @@ Cosa c'è già e si riusa:
   la ricerca DexNav sulla specie registrata: il secondo uso va tolto (D1).
   SELECT premuto = `UseRegisteredKeyItemOnField(FALSE)`, tenuto 60 frame =
   `(TRUE)`, il secondo strumento registrato (`registeredItemHold`, SaveBlock3;
-  `src/item_menu.c:2451`). **B tenuto** oggi, con AUTORUN acceso (default,
+  `src/item_menu.c:2451`). **B tenuto** oggi, con AUTORUN acceso (non è il default: §5.2;
   `autoRun == 0`), fa camminare invece di correre; con AUTORUN spento fa
   correre (`src/field_player_avatar.c:947-968`). Il passo lento del DexNav è
   su A tenuto (`:933-945`) e va spostato su B (D1).
@@ -377,6 +377,93 @@ basta Opus. La 7 è un port con sorgente chiaro, la 10 grafica e contenuto.
 - Il commento di `include/config/wild_encounter.h:8` cita
   `HasepAreOWEsAllowedHere()`, che non esiste più (gli OWE sono attivi
   ovunque): da togliere alla prima occasione.
+
+### 5.2 Fase 2, com'è stata fatta (16/11)
+
+- **Cosa**: passo lento su B, udito per andatura, cono di vista con
+  ostacoli ed erba alta, `IsOWEAwareOfPlayer()`. Fatti e trappole nella
+  regola nuova `.claude/rules/overworld_catch.md` (la regola degli OWE era a
+  7,3 KB); CHANGELOG (2.0.6.PLUS.12), README, `dexnav.md` aggiornati.
+  - `PlayerNotOnBikeMoving`: B tenuto = `PlayerWalkSlow` + `creeping` con
+    AUTORUN acceso; **durante una ricerca DexNav B tenuto è il passo lento
+    sempre**, a terra e in Surf, anche con AUTORUN spento (correre lì fa
+    comunque scappare il bersaglio); A non fa più il creeping. Fuori dalla
+    ricerca, AUTORUN spento: B corre come prima (P20). Velocità del Surf
+    invariate.
+  - `CanAwareOWESeePlayer`: udito (corsa/bici = `activeDistance` 5,
+    camminata `OWE_HEARING_WALK` 2, passo lento mai, attraverso gli ostacoli),
+    poi cono (1/3/5 di larghezza a distanza 1/2-3/4+, limitato da
+    `viewWidth`), linea di vista bloccata da collisioni di mappa e oggetti che
+    non sono OWE né follower, erba alta = visto solo dalla casella davanti.
+  - Numeri per comportamento: insegue, fugge, sparisce 5×5; osserva 4×5;
+    si avvicina 4×3 (curioso, poco guardingo); vaga invariato (non nota mai).
+    Erano tutti 4×3. Vincolo `viewDistance <= activeDistance` scritto nel
+    file dei dati (motivo nella regola).
+- **Fatto nuovo, contro P22**: in una partita nuova **AUTORUN è spento**
+  (`src/new_game.c:123`, `autoRun = 1`; 0 = acceso). Verificato anche in
+  emulatore: partita nuova, B tenuto correva (7 caselle in ~100 frame),
+  senza B camminava (4). Quindi con i default il passo lento non c'è: vedi
+  punti aperti.
+- **Verificato** (ROM strumentata usa-e-getta, non nel git: tetto 1 OWE, il
+  Pokémon resta fermo e non cambia direzione, comportamento forzato, un
+  comando in RAM lo sposta a un offset dal giocatore con una direzione e
+  registra il frame e le posizioni in cui nota; mGBA + GDB sulla Route 29,
+  partita nuova; il ricambio bloccato col bit "non sparire"):
+  - **Vista, giocatore fermo** (niente udito), comportamento "osserva" (4×5):
+    159 posizioni nelle 4 direzioni (offset avanti 0-5, di lato ±3),
+    **159/159 uguali** al modello calcolato sulla griglia delle collisioni
+    letta dalla RAM. Notato a 4 di fronte, non a 5; mai alle spalle; il
+    cono si allarga come previsto; casi coperti da alberi non notati. NPC in
+    mezzo: (4,−1) con l'NPC sulla linea non vede (6 prove, NPC rimasto lì),
+    il simmetrico (4,+1) sì.
+  - **Vista a 5**, comportamento "fugge" (5×5, scritto da GDB nel
+    `movementType`): 189 posizioni, **189/189** col modello, notato a 5 di
+    fronte (anche a ±2 di lato) e mai a 6.
+  - **Erba alta**: giocatore nell'erba, 161 posizioni: notato **solo** dalle
+    3 caselle adiacenti di fronte (la quarta è del follower), 161/161 col
+    modello.
+  - **Udito**, Pokémon girato dall'altra parte, giocatore che si avvicina in
+    linea retta: corsa (DASH acceso) notata **a 5** sia con AUTORUN spento
+    (B) sia acceso (senza B); camminata (AUTORUN spento, senza B) **a 2**;
+    passo lento (AUTORUN acceso, B) arrivato **adiacente senza essere
+    notato**. Passo lento: 3 caselle in ~120 frame, contro 4 della camminata
+    e 7 della corsa in ~100.
+  - **ROM vera** (quella consegnata, identica byte per byte a quella
+    provata): AUTORUN spento, senza B cammina (4 caselle in ~100 frame,
+    niente DASH), con B **corre ancora** (7, DASH); AUTORUN acceso, B = passo
+    lento (3, `creeping` 1), senza B corsa (DASH); con il flag della ricerca
+    DexNav acceso a mano e AUTORUN spento, B = passo lento (2, `creeping` 1)
+    e A una camminata (`creeping` 0). A davanti all'NPC della Route 29 apre
+    il suo dialogo.
+  - **Senza la modifica** (ROM di partenza, stesso salvataggio): AUTORUN
+    acceso, B = camminata normale (4 caselle, `creeping` 0). La percezione
+    di prima (rettangolo 4×3, niente erba né ostacoli) non è stata rifatta
+    in emulatore.
+  - **Non verificato**: una ricerca DexNav **vera** con `ENHANCED DEXNAV`
+    spento (con l'opzione accesa il bersaglio non scappa mai): provato solo
+    che B alza `creeping` col flag della ricerca, che è ciò che la fuga legge
+    (`src/dexnav.c:1293`). Accendere il flag a mano fa partire dopo qualche
+    passo una lotta (Hoothoot): il DexNav gira senza una ricerca vera, è un
+    artefatto della prova. Surf non provato.
+- ROM: 31 903 524 B, 95,08% (+896 B sulla fase 1).
+
+**Handoff per la fase 3 (Fable 5.2)**
+- Serve il `.srm` (cancello della fase 3).
+- `IsOWEAwareOfPlayer(owe)` è il "ha notato" del ×2 di D2. Un OWE "vaga"
+  (`OWE_IGNORE_PLAYER`) non nota mai: con D2 avrà sempre il ×2.
+- **Punto aperto per l'utente (da decidere prima della fase 3)**: AUTORUN è
+  spento nelle partite nuove, quindi chi gioca coi default non ha il passo
+  lento (B corre) e per non farsi sentire può solo camminare (sentito a 2).
+  Proposta: AUTORUN acceso come default delle **partite nuove**
+  (`SetDefaultChallengeSettings` e le opzioni del titolo in
+  `oak_speech_hns.c`); i salvataggi esistenti restano come sono. Alternativa:
+  lasciare così e scriverlo nel README.
+- I muretti/staccionate della Route 29 risultano collisione nella griglia
+  (`MapGridGetCollisionAt`), quindi coprono la vista anche se bassi.
+- Ricetta di prova (ROM strumentata) riusabile per il bersaglio del lancio:
+  §5.2 qui sopra e la regola.
+- Il commento di `include/config/wild_encounter.h:8` su
+  `HasepAreOWEsAllowedHere()` è ancora da togliere.
 
 ## 6. Scartato, e perché
 

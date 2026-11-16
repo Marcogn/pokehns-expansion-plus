@@ -63,10 +63,11 @@ e non era vero (`movementCount` non esiste in SG).
 - **`#if IS_HNS / #else`**: `TryStartDexNavSearch()` era nel ramo `#else` di
   `field_control_avatar.c` (dove HnS usa R per mach/acro bike): mai compilata,
   R non faceva nulla.
-- **Creeping**: `gPlayerAvatar.creeping` si alza solo tenendo **A**; in
-  `PlayerNotOnBikeMoving` il controllo era dopo il blocco corsa, che fa
-  `return` sempre con AUTORUN: ramo irraggiungibile. Ora è **prima**. In SG il
-  campo ha zero lettori.
+- **Creeping**: `gPlayerAvatar.creeping` si alza tenendo **B** (era A fino
+  al piano `overworld-catch`, fase 2): durante una ricerca sempre, fuori con
+  AUTORUN acceso (`overworld_catch.md`). In `PlayerNotOnBikeMoving` il
+  controllo va **prima** del blocco corsa, che fa `return` sempre con
+  AUTORUN. In SG il campo ha zero lettori.
 - **Flash**: `GetFlashLevel()` vale 0 fuori, 7 al buio, **1** dopo Flash (mai
   0). `IsTooDarkToSearch()` (`> 1`) in `InitDexNavSearch` **e** in
   `TryFindHiddenPokemon`. Offset veri (da `offsetof`): `flashLevel` 0x34, `flags`
