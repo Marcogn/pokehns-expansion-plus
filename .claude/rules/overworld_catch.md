@@ -15,11 +15,12 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
 
 ## Andature (`PlayerNotOnBikeMoving`, `src/field_player_avatar.c`)
 
-- **AUTORUN in una partita nuova è SPENTO**: `SetDefaultChallengeSettings`
-  (`src/new_game.c:123`) mette `autoRun = 1`, e **0 = acceso** (`sDesc_Autorun`:
-  la prima voce è "Run without pressing B"). Con AUTORUN spento B tenuto è la
-  corsa e il passo lento non esiste (P20): la furtività per chi gioca coi
-  default è solo "non correre".
+- **`autoRun` 0 = acceso** (`sDesc_Autorun`: la prima voce è "Run without
+  pressing B"). Fino a PLUS.11 una partita nuova partiva **spento** (`= 1`
+  in `SetDefaultChallengeSettings`); dal 16/11 parte acceso (`= 0`, scelta
+  dell'utente). Quella funzione gira solo a salvataggio vuoto o corrotto:
+  i salvataggi esistenti tengono il loro valore, e chi li ha spenti non ha
+  il passo lento (B corre, P20).
 - Passo lento = `PlayerWalkSlow` + `gPlayerAvatar.creeping`: B tenuto con
   AUTORUN acceso, oppure B tenuto durante una ricerca DexNav (a terra e in
   Surf) qualunque sia AUTORUN. **A non fa più il creeping.** Va provato
