@@ -32,9 +32,20 @@ Cattura con la Ball nell'overworld (in corso): [`docs/plans/overworld-catch.md`]
 - Il bit `unusedOverworldMonsBit` (SaveBlock3, byte 56 bit 5) è **ignorato ma
   non libero**: nei salvataggi passati per le build con la voce `WILD POKéMON`
   del PC può valere 1.
-- Tetti 6/3/3 (terra/acqua/grotta; grotta = `MAP_TYPE_UNDERGROUND` o
-  `INDOOR`), Safari 4 (`OWE_SPAWNS_MAX_SAFARI`), 6 caselle per tentativo
-  (`OWE_SPAWN_TILE_TRIES`). A tetto pieno il ricambio è uno per uno.
+- Tetti **4/2/2** (terra/acqua/grotta; grotta = `MAP_TYPE_UNDERGROUND` o
+  `INDOOR`), Safari **3** (`OWE_SPAWNS_MAX_SAFARI`), 6 caselle per tentativo
+  (`OWE_SPAWN_TILE_TRIES`), ricambio a tetto pieno ogni 480 frame
+  (`OWE_SPAWN_TIME_REPLACEMENT`; erano 6/3/3, Safari 4, 240: piano
+  `overworld-catch` fase 1). `OWE_SPAWNS_MAX` resta 6: **non è un tetto**,
+  dimensiona gli array e i `localId` (`STATIC_ASSERT` sui tetti in
+  `wild_encounter_ow.c`). A tetto pieno il ricambio è uno per uno, quindi
+  **sopra il tetto** (salvataggio fatto con i tetti vecchi: gli oggetti stanno
+  in SaveBlock1; Pokémon di terra quando si inizia il Surf) ci pensa
+  `TryRemoveOWEAboveCap`, che toglie il più vecchio non shiny ogni 30 frame.
+  Con OWE dell'altra zona (acqua/terra) il ricambio scende a 30 frame
+  (`IsAnyOWEFromOtherArea`), **shiny esclusi**: non vengono mai tolti, e
+  contarli farebbe girare gli altri ogni 30 frame finché restano. `GetOWEBySpawnSlot(OWE_INVALID_SPAWN_SLOT)`
+  **punta al follower** (252 - 0xFF = 253 in `u8`): controlla lo slot prima.
 - `localId` degli OWE: da `LOCALID_OW_ENCOUNTER_END` (252) in giù, 6 posti =
   247-252, sotto il follower (253). Le mappe HnS arrivano a 64 oggetti.
 - **Misurare in frame, non con l'orologio** (`gMain.vblankCounter1`): ogni
@@ -44,6 +55,18 @@ Cattura con la Ball nell'overworld (in corso): [`docs/plans/overworld-catch.md`]
 
 ## Trappole
 
+- **Il conto alla rovescia dello spawn è `u16`** (`sOWESpawnCountdown`) e il
+  segnale "nessun incontro" è `0xFFFF`: con `u8` e `0xFF` 480 frame non ci
+  stanno (errore `-Woverflow`) e il massimo sarebbe 254.
+- **Le mappe di HnS hanno Pokémon decorativi** (`OBJ_EVENT_GFX_MON_BASE+…`,
+  `trainerType` 0, `localId` bassi: la Grotta dell'Unione 1F ne ha 16). Non
+  sono OWE, non contano nei tetti, ma **occupano slot di oggetti e VRAM** e
+  stanno sul percorso di un lancio: da distinguere con `IsOverworldWildEncounter`.
+- **Contare gli OWE da GDB**: `gObjectEvents`
+  da `nm`, 16 oggetti da 0x24 byte, `active` = bit 0 del byte 0,
+  `trainerType` a +7 (0xFF = OWE), `localId` a +8 (generati = 247-252),
+  `gMain` + 0x20 = `vblankCounter1`. Dettagli e ricetta nell'appendice di
+  `docs/plans/overworld-catch.md` §5.1.
 - **Un `assertf` su una condizione che il gioco può raggiungere è una schermata
   blu** (`make hns` non è RELEASE). VRAM/palette piene o tabella oggetti piena
   sono `if` che saltano lo spawn (`CheckCanLoadOWE`). Con `OW_GFX_COMPRESS`

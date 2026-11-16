@@ -281,7 +281,7 @@ const struct ItemInfo gItemsInfo[] =
     [ITEM_HEAL_BALL] =
     {
         .name = ITEM_NAME("HEAL BALL"),
-        .price = 300,
+        .price = 50, // HnS: special Balls are cheap, the overworld catch throws many (was 300)
         .description = COMPOUND_STRING(
             "A remedial Ball\n"
             "that restores\n"
@@ -298,7 +298,7 @@ const struct ItemInfo gItemsInfo[] =
     [ITEM_NET_BALL] =
     {
         .name = ITEM_NAME("NET BALL"),
-        .price = 1000,
+        .price = 100, // HnS: special Balls are cheap, the overworld catch throws many (was 1000)
         .description = COMPOUND_STRING(
             "A Ball that works\n"
             "well on Water- and\n"
@@ -315,7 +315,7 @@ const struct ItemInfo gItemsInfo[] =
     [ITEM_NEST_BALL] =
     {
         .name = ITEM_NAME("NEST BALL"),
-        .price = 1000,
+        .price = 100, // HnS: special Balls are cheap, the overworld catch throws many (was 1000)
         .description = COMPOUND_STRING(
             "A Ball that works\n"
             "better on weaker\n"
@@ -332,7 +332,7 @@ const struct ItemInfo gItemsInfo[] =
     [ITEM_DIVE_BALL] =
     {
         .name = ITEM_NAME("DIVE BALL"),
-        .price = 1000,
+        .price = 100, // HnS: special Balls are cheap, the overworld catch throws many (was 1000)
         .description = COMPOUND_STRING(
             "A Ball that works\n"
             "better on Pokémon\n"
@@ -349,7 +349,7 @@ const struct ItemInfo gItemsInfo[] =
     [ITEM_DUSK_BALL] =
     {
         .name = ITEM_NAME("DUSK BALL"),
-        .price = 1000,
+        .price = 100, // HnS: special Balls are cheap, the overworld catch throws many (was 1000)
         .description = COMPOUND_STRING(
             "Works well if\n"
             "used in a\n"
@@ -366,7 +366,7 @@ const struct ItemInfo gItemsInfo[] =
     [ITEM_TIMER_BALL] =
     {
         .name = ITEM_NAME("TIMER BALL"),
-        .price = 1000,
+        .price = 100, // HnS: special Balls are cheap, the overworld catch throws many (was 1000)
         .description = COMPOUND_STRING(
             "A Ball that gains\n"
             "power in battles\n"
@@ -400,7 +400,7 @@ const struct ItemInfo gItemsInfo[] =
     [ITEM_REPEAT_BALL] =
     {
         .name = ITEM_NAME("REPEAT BALL"),
-        .price = 1000,
+        .price = 100, // HnS: special Balls are cheap, the overworld catch throws many (was 1000)
         .description = COMPOUND_STRING(
             "A Ball that works\n"
             "better on Pokémon\n"
@@ -417,7 +417,7 @@ const struct ItemInfo gItemsInfo[] =
     [ITEM_LUXURY_BALL] =
     {
         .name = ITEM_NAME("LUXURY BALL"),
-        .price = (I_PRICE >= GEN_8) ? 3000 : 1000,
+        .price = 100, // HnS: was (I_PRICE >= GEN_8) ? 3000 : 1000
         .description = COMPOUND_STRING(
             "A cozy Ball that\n"
             "makes Pokémon\n"

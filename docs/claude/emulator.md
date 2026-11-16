@@ -125,6 +125,25 @@ numero da `data/maps/map_groups.json`, es. Violet Gym = 3/5).
 - Modificare un `.sav` a mano (checksum per settore): `.claude/rules/save.md`,
   sezione `SAVE_VERSION 9`.
 
+## Misurare gli OWE e trappole di sessione (overworld-catch fase 1, 16/11)
+
+- **`mgba -g` non fa partire il gioco finché GDB non si collega**: schermo
+  nero e nessun tasto. Si collega `gdb-multiarch` (`target remote :2345`,
+  `continue &`) e **poi** si pilotano i menu con `xdotool`.
+- **Un salvataggio fatto su una mappa con OWE li ripristina** (stanno in
+  SaveBlock1): prima di contare gli spawn, ricarica la mappa con il
+  teletrasporto di debug. Quel salvataggio è anche il caso di prova di
+  `TryRemoveOWEAboveCap` (6 OWE salvati con i tetti vecchi).
+- **Un tocco di `xdotool` di 0,15 s gira soltanto il giocatore**: per fare un
+  passo servono ≥ 0,35 s di `keydown`.
+- **Il teletrasporto di debug alla Verdanturf Mart (gruppo 37, mappa 3) manda
+  in errore anche la ROM originale** (`Jumped to invalid address 01D001D0`):
+  le mappe di Hoenn non si raggiungono dal debug. Negozi di Johto: Azalea
+  Mart = gruppo 4, mappa 1.
+- `Give X → Give item XYZ` parte da 1 e il numero a schermo è l'id (Nest Ball
+  8, Heal Ball 6, Luxury Ball 14); **un prezzo si verifica meglio leggendo la
+  ROM**: `gItemsInfo` (da `nm`), struct da 0x2C byte, `price` è il primo `u32`.
+
 ## Debug: variabili e stati (sessione small-features-1, 26/10)
 
 - `Flags & Vars → Set Var XYZ…` mostra l'indice **decimale** (0x4000 = 16384):
