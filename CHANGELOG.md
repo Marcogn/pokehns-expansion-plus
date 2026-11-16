@@ -6,6 +6,23 @@ tag `v2.0.6.PLUS.3`) as the release notes, and refuses to run without one:
 add the section before releasing. Feature details live in the tables of
 [`README.md`](README.md).
 
+## 2.0.6.PLUS.12
+
+### Changed
+- **Fewer visible Pokémon**: the first step of the overworld catching
+  (`docs/plans/overworld-catch.md`). Up to **4** wild Pokémon on land
+  (was 6), **2** on water and in caves (was 3) and **3** in the Safari Zone
+  (was 4), and a full area replaces one of them every 8 seconds instead of
+  every 4. Measured on Route 29 over 67 seconds of play: 4 at most (before:
+  up to 6, above 4 for most of the run) and in Union Cave 1F: 2 at most.
+  A game saved on a map that already had more of them keeps them until you
+  leave the map.
+- **Cheaper special Balls**: Net, Nest, Dive, Dusk, Timer, Repeat and
+  Luxury Ball now cost 100 (Luxury was 3000, the others 1000) and Heal Ball
+  50 (was 300). Poké, Great, Ultra and Quick Ball are unchanged. These
+  Balls are only sold in the Hoenn and Alola shops of the ROM, not in the
+  Johto and Kanto ones: the price shows in the sell value for now.
+
 ## 2.0.6.PLUS.11
 
 ### Added

@@ -1,16 +1,18 @@
 #ifndef GUARD_WILD_ENCOUNTER_OW_H
 #define GUARD_WILD_ENCOUNTER_OW_H
 
-#define OWE_SPAWNS_MAX                  6   // Hasep: 6 (decision D4), was 4. Also the land cap, see below.
+#define OWE_SPAWNS_MAX                  6   // Hasep: 6 (decision D4), was 4. NOT a cap: it sizes the slot arrays and the localIds 247-252, so it stays 6; the caps below are what limits the spawns.
 // Hasep: per-area caps (decision D3). OWE_SPAWNS_MAX stays the hard limit and
-// sizes the slot arrays; these lower it while surfing or in caves/indoors.
-#define OWE_SPAWNS_MAX_LAND             OWE_SPAWNS_MAX
-#define OWE_SPAWNS_MAX_WATER            3
-#define OWE_SPAWNS_MAX_CAVE             3
-// Hasep: the user asked for 4 in the Safari Zone (land only; its water and
-// cave keep the caps above). With 6 there, many of them AGGRESSIVE (Tauros,
-// Rhyhorn), a test run had 18 battles in about 8 minutes.
-#define OWE_SPAWNS_MAX_SAFARI           4
+// sizes the slot arrays; these lower it per area. Overworld-catch plan (D3,
+// 14/11): land 4, water and caves 2, Safari 3, because the player now throws
+// Balls at these Pokémon and 6 on a route was clutter. Before: 6/3/3, Safari 4.
+#define OWE_SPAWNS_MAX_LAND             4
+#define OWE_SPAWNS_MAX_WATER            2
+#define OWE_SPAWNS_MAX_CAVE             2
+// Hasep: the Safari Zone is land only; its water and cave keep the caps above.
+// With 6 there, many of them AGGRESSIVE (Tauros, Rhyhorn), a test run had 18
+// battles in about 8 minutes; the user asked for 4, then 3 (catch plan, D3).
+#define OWE_SPAWNS_MAX_SAFARI           3
 // Hasep: random tiles tried per spawn attempt (upstream: 1); see
 // TrySelectTilesForOWE. Game time to fill 6 on Route 31 from a warp, 3 runs:
 // 4 tries 17-31 s, 6 tries 11-29 s, 8 tries 9-13 s (the spawn countdowns

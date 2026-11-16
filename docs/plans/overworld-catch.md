@@ -1,6 +1,6 @@
 # Piano: cattura nell'overworld (stile Leggende Pokémon: Arceus)
 
-**Stato (14/11): piano scritto e ampliato (alfa, ricorda mosse a pagamento), nessuna fase iniziata.** Prossima: fase 1.
+**Stato (16/11): fase 1 fatta (tetti, ricambio, prezzi); prossima: fase 2 (Opus 5.5).**
 
 Si appoggia agli OWE già in gioco: leggere prima
 [`.claude/rules/overworld_encounters.md`](../../.claude/rules/overworld_encounters.md)
@@ -40,7 +40,7 @@ Risposte dell'utente (14/11):
 | D18 | **Pannello** (Ball o Pokémon scelto, quantità o livello, modalità) **in basso a sinistra** (utente, 16/11; nei mock era a destra): compare **mentre L è tenuto e per ~2 s** dopo un cambio o un lancio, poi sparisce; si nasconde quando si apre un messaggio o un menu. Segue il tema scuro senza codice in più se usa la cornice della palette 14 e il testo della 15, come il banner degli strumenti (`dark_ui.md`): da verificare in emulatore, fase 5. |
 | D2 | **Probabilità**: formula normale della lotta a PS pieni, **×2 se il Pokémon non ha notato il giocatore**. Se la cattura fallisce il Pokémon si allerta: fugge o attacca secondo l'indole. |
 | D3 | **Densità**: tetti **4 / 2 / 2** (erba / acqua / grotta), **Safari 3**; ricambio a tetto pieno da 240 a **480 frame**. |
-| D4 | **Prezzi**: Poké/Great/Ultra restano 10/15/30. Net, Nest, Dive, Dusk, Timer, Repeat, Luxury da 1000 a **100**; Heal da 300 a **50**. |
+| D4 | **Prezzi**: Poké/Great/Ultra restano 10/15/30. Net, Nest, Dive, Dusk, Timer, Repeat da 1000 e Luxury da **3000** (non 1000: `I_PRICE >= GEN_8`) a **100**; Heal da 300 a **50**. |
 
 Scelte di progetto prese qui, **con un default**: l'utente può cambiarle prima
 della fase che le realizza.
@@ -312,6 +312,58 @@ e salvataggio: è l'unico punto in cui un errore silenzioso arriva nel
 salvataggio dell'utente. Nella seconda parte la 9 tocca il Pokémon salvato, ma
 con un bit già riservato e un cancello che salva, ricarica e passa dal PC:
 basta Opus. La 7 è un port con sorgente chiaro, la 10 grafica e contenuto.
+
+### 5.1 Fase 1, com'è stata fatta (16/11)
+
+- **Cosa**: tetti 4/2/2 e Safari 3 (`include/wild_encounter_ow.h`), ricambio a
+  tetto pieno 480 frame (`OWE_SPAWN_TIME_REPLACEMENT`), prezzi in
+  `src/data/items.h` (Net, Nest, Dive, Dusk, Timer, Repeat, Luxury 100; Heal
+  50). I 480 frame non entravano nel contatore: `sOWESpawnCountdown` è ora
+  `u16` con segnale `0xFFFF` (`.claude/rules/overworld_encounters.md`).
+  `OWE_SPAWNS_MAX` resta 6. README e `CHANGELOG.md` (2.0.6.PLUS.12) aggiornati.
+- **Verificato** (banco usa-e-getta: mGBA con `-g`, GDB che ogni ~1 s di gioco
+  scarica la tabella oggetti e `vblankCounter1`; teletrasporto di debug per
+  ricaricare la mappa; non nel git):
+  - Route 29, 70 campioni in 4024 frame (~67 s): ROM nuova **4 generati in
+    tutti i campioni**; ROM con i tetti vecchi, stessa misura: da 3 a 6, **più
+    di 4 in 64 campioni su 70**.
+  - Grotta dell'Unione 1F, 70 campioni in 4029 frame: **massimo 2**. In una
+    schermata si vedevano tre Pokémon: due erano decorativi di mappa (vedi
+    handoff), non spawn.
+  - Prezzi letti **dalla ROM** (`gItemsInfo`, `0x087b32bc`, 0x2C byte a voce,
+    `price` primo `u32`): nuova Heal 50, Net/Nest/Dive/Dusk/Timer/Repeat/Luxury
+    100, Poké 10, Great 15, Ultra 30, Premier 20, Quick 50; originale Heal
+    300, le sei 1000, Luxury 3000.
+  - Un salvataggio con 6 OWE, fatto con la ROM vecchia, si carica sulla nuova.
+- **Non verificato**: tetti acqua (2) e Safari (3), che passano dalla stessa
+  `GetOWESpawnCap`; la grotta con i vecchi tetti; **la schermata di un
+  negozio** che il cancello chiedeva: queste Ball non si vendono a Johto e
+  Kanto e il teletrasporto di debug ai negozi di Hoenn va in errore anche sulla
+  ROM originale (`emulator.md`), quindi i prezzi sono letti dalla ROM.
+- ROM: 31 902 612 byte usati (95,08%), 1 651 820 liberi.
+
+**Handoff per la fase 2 (Opus 5.5)**
+- Non serve il `.srm`. Per misurare posizioni da GDB: `currentCoords` a
+  +0x10 (x) e +0x12 (y, `s16`), `previousCoords` a +0x14, `facingDirection`
+  a +0x18 (`struct ObjectEvent`, `include/global.fieldmap.h`); il resto della
+  ricetta (offset, `vblankCounter1`, tasti con `xdotool`) in `emulator.md` e
+  nella regola.
+- **Punto aperto per l'utente**: le Ball speciali **non si vendono in nessun
+  negozio di Johto/Kanto** (solo Rustboro, Verdanturf e Mossdeep a Hoenn e la
+  Casa 2 di Melemele a Alola: mappe che il debug non raggiunge). Il nuovo
+  prezzo oggi si vede solo nel valore di vendita. Decidere dove si vendono
+  (`sMartExtras`, `src/shop.c:999-1008`, come la Quick Ball ad Azalea) è una
+  scelta di contenuto, non di questa fase.
+- **Fase 3**: le mappe di HnS hanno **Pokémon decorativi** (oggetti
+  `OBJ_EVENT_GFX_MON_BASE+…`, `trainerType` 0): sono sul percorso di un
+  lancio ma non sono selvatici. Il bersaglio va scelto con
+  `IsOverworldWildEncounter`, e gli altri vanno trattati come ostacoli o
+  ignorati (da decidere lì). Occupano anche slot di oggetti e VRAM.
+- Un salvataggio con più OWE del tetto li tiene finché non si cambia mappa
+  (ricambio uno per uno): innocuo, ma conta se si misura da un `.sav`.
+- Il commento di `include/config/wild_encounter.h:8` cita
+  `HasepAreOWEsAllowedHere()`, che non esiste più (gli OWE sono attivi
+  ovunque): da togliere alla prima occasione.
 
 ## 6. Scartato, e perché
 
