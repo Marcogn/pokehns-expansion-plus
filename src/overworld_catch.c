@@ -351,7 +351,6 @@ bool32 OverworldCatch_HandleLButton(u16 newKeys, u16 heldKeys)
 // Target
 // ---------------------------------------------------------------------------
 
-bool32 OverworldCatch_IsOWEInBall(const struct ObjectEvent *owe);
 static void FinishThrow(struct PendingThrow *throw);
 
 // The first thing on the line in front of the player, up to THROW_RANGE
@@ -379,20 +378,23 @@ static enum ThrowTarget FindThrowTarget(u32 *objectEventId, u32 *distance)
             return THROW_TARGET_BLOCKED;
 
         // Not GetObjectEventIdByXY: an invisible trigger object may share
-        // the tile with a Pokémon. A Pokémon a Ball has hit is decided
-        // already: it is passed over from the impact on, before the beam
-        // hides it.
+        // the tile with a Pokémon. A Pokémon inside a Ball is invisible from
+        // the beam on, and passed over.
         for (u32 i = 0; i < OBJECT_EVENTS_COUNT; i++)
         {
             struct ObjectEvent *object = &gObjectEvents[i];
 
             if (!object->active || object->invisible || i == gPlayerAvatar.objectEventId
-             || object->currentCoords.x != x || object->currentCoords.y != y
-             || OverworldCatch_IsOWEInBall(object))
+             || object->currentCoords.x != x || object->currentCoords.y != y)
                 continue;
 
             if (!IsOverworldWildEncounter(object, OWE_GENERATED))
                 return (object->localId == OBJ_EVENT_ID_FOLLOWER) ? THROW_TARGET_FOLLOWER : THROW_TARGET_BLOCKED;
+
+            // Between the impact and the beam it is still there to the eye,
+            // but already decided: the Ball hits it and drops, as on a wall.
+            if (OverworldCatch_IsOWEInBall(object))
+                return THROW_TARGET_BLOCKED;
 
             *objectEventId = i;
             found = THROW_TARGET_OWE;
@@ -708,9 +710,9 @@ bool32 OverworldCatch_TryThrow(void)
     // Every Ball in the air may become a catch, and the queue of catches
     // holds THROW_MAX_PENDING: a Ball that has landed is in that queue
     // already or was a miss. A record also stays busy while its Ball is on
-    // the ground (up to about three seconds), so a free one is needed too.
-    if (sCatch.cooldown != 0 || CountThrows(THROW_FREE) == 0
-     || CountThrows(THROW_FLYING) + sCatch.numResults >= THROW_MAX_PENDING)
+    // the ground (up to about three seconds): with none free the loop below
+    // throws nothing and takes no Ball.
+    if (sCatch.cooldown != 0 || CountThrows(THROW_FLYING) + sCatch.numResults >= THROW_MAX_PENDING)
         return FALSE;
 
     if (owe != NULL)
@@ -839,14 +841,25 @@ static void ReleaseOWEFromBall(struct PendingThrow *throw)
     ForceOWEToNoticePlayer(owe);
 }
 
-// The Pokémon goes into the Ball for good.
+// The Pokémon goes into the Ball for good. Any other Ball still flying at it
+// becomes a miss now: the freed slot can get a new Pokémon of the same
+// species at once (with a Lure the spawn countdown is 0), with the same
+// localId and graphics, which GetThrowTarget would take for this one.
 static void RemoveOWEInBall(struct PendingThrow *throw)
 {
     struct ObjectEvent *owe = throw->holdsOWE ? GetThrowTarget(throw) : NULL;
 
     throw->holdsOWE = FALSE;
-    if (owe != NULL)
-        RemoveCaughtOWE(owe);
+    if (owe == NULL)
+        return;
+    for (u32 i = 0; i < THROW_MAX_PENDING; i++)
+    {
+        struct PendingThrow *other = &sCatch.throws[i];
+
+        if (other != throw && other->state == THROW_FLYING && GetThrowTarget(other) == owe)
+            other->miss = TRUE;
+    }
+    RemoveCaughtOWE(owe);
 }
 
 // Skips the rest of the animation, with its outcome: when a sprite is

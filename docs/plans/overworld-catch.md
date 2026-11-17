@@ -678,7 +678,7 @@ basta Opus. La 7 è un port con sorgente chiaro, la 10 grafica e contenuto.
   grotta buia con Flash. Il "?" del Pokémon liberato durante la transizione
   di una lotta è voluto (scongelato subito; tenerlo congelato rischiava di
   lasciarlo fermo dopo la lotta).
-- ROM: 31 911 748 B, 95,10% (+3 408 B sulla fase 3), dopo la revisione.
+- ROM: 31 911 700 B, 95,10% (+3 360 B sulla fase 3), dopo le due revisioni.
 
 - **Dopo `/pr-review` (17/11, PR #61)**: 7 punti dalla revisione generica,
   verificati sul codice. Corretti 6: (1) **una seconda Ball in volo verso un
@@ -696,6 +696,21 @@ basta Opus. La 7 è un port con sorgente chiaro, la 10 grafica e contenuto.
   (3): due Ball allo stesso Flaaffy, `CreateMonFromOWE` 1 volta,
   `AddBagItem` 1 volta (la seconda resa), nessuna cattura in coda; byte del
   livello del Farfetch'd `0x96` nella Ball e `0x16` dopo l'uscita.
+
+- **Seconda `/pr-review` (17/11, sul commit delle correzioni)**: 9 punti.
+  Corretti: (1) dopo una cattura, una Ball ancora in volo verso lo stesso
+  slot poteva agganciare un Pokémon della stessa specie appena nato lì (con
+  un'Esca il conto alla rovescia dello spawn è 0): diventa un lancio a vuoto
+  alla rimozione; (2) la Ball attraversava un Pokémon già colpito ma ancora
+  visibile (12 frame prima del raggio): ora lo colpisce come un muro e cade;
+  (3) tolta la guardia "record libero" aggiunta prima, che nascondeva il
+  messaggio di blocco (il ciclo sui record basta e non perde Ball);
+  prototipo doppio; CHANGELOG e `overworld_encounters.md` (il flag "non
+  sparire" vale anche per la Ball). Scartati: flag rimasto acceso se
+  `GetThrowTarget` smette di riconoscere un oggetto vivo (non succede: NULL
+  vuol dire sparito o sostituito); suono e posa di un lancio a vuoto senza
+  sprite (stato degenere, il suono conferma il tasto). Provato (2): seconda
+  Ball nella finestra, `CreateMonFromOWE` 1, `AddBagItem` 1, 1 cattura.
 
 **Handoff per la fase 5 (Sonnet 5.5)**
 - Il pannello di D18 può restare a schermo mentre una Ball è fuori (il

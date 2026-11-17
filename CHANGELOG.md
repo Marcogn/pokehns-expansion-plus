@@ -33,7 +33,8 @@ add the section before releasing. Feature details live in the tables of
     comes out.
   - You can keep throwing while Balls are in the air (about one every half
     second); the banners and the nickname prompts come after the volley. A
-    full party sends the Pokémon to the PC.
+    full party sends the Pokémon to the PC. A Ball that arrives at a
+    Pokémon another Ball has already hit drops and comes back.
   - The Nuzlocke, Species Clause and One Type rules refuse the throw with
     the battle's messages, and a catch uses the area's encounter. No
     throwing in the Safari Zone, the Bug-Catching Contest or the Battle
