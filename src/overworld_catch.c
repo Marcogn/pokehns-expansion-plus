@@ -48,10 +48,12 @@
 // Phase 4 hangs sprites on the same records.
 
 #define THROW_RANGE             5   // tiles, straight ahead (P2)
-#define THROW_MAX_PENDING       3   // Balls in the air plus catches waiting for their banner (D15)
+#define THROW_MAX_PENDING       3   // Balls in the air, and catches waiting for their banner (D15)
 #define THROW_COOLDOWN          30  // frames between two throws, about half a second (D15)
-#define THROW_FLIGHT_BASE       8   // flight time: base + per tile, in frames
-#define THROW_FLIGHT_PER_TILE   4
+// Flight time in frames: base + per tile, 16 to 48. Longer than the cooldown
+// at full range, so a second Ball can be in the air when the first lands.
+#define THROW_FLIGHT_BASE       8
+#define THROW_FLIGHT_PER_TILE   8
 // After the impact the record stays for the time the shakes will take in
 // phase 4. Until every record is gone no banner is shown, so a volley is
 // not interrupted by the first catch.
@@ -417,13 +419,13 @@ static bool32 StartBlockedScript(enum ThrowBlock reason)
 // The throw
 // ---------------------------------------------------------------------------
 
-static u32 CountActiveThrows(void)
+static u32 CountThrows(enum ThrowState state)
 {
     u32 count = 0;
 
     for (u32 i = 0; i < THROW_MAX_PENDING; i++)
     {
-        if (sCatch.throws[i].state != THROW_FREE)
+        if (sCatch.throws[i].state == state)
             count++;
     }
     return count;
@@ -483,7 +485,10 @@ bool32 OverworldCatch_TryThrow(void)
     if (IsOWEBattleOnly(owe))
         return StartBattleWithTarget(owe, objectEventId);
 
-    if (sCatch.cooldown != 0 || CountActiveThrows() + sCatch.numResults >= THROW_MAX_PENDING)
+    // Every Ball in the air may become a catch, and the queue of catches
+    // holds THROW_MAX_PENDING. A Ball that has landed is either in that
+    // queue already or was a miss, so only the flying ones count.
+    if (sCatch.cooldown != 0 || CountThrows(THROW_FLYING) + sCatch.numResults >= THROW_MAX_PENDING)
         return FALSE;
 
     enum ThrowBlock block = GetCatchBlock(owe);
@@ -735,7 +740,7 @@ void OverworldCatch_Update(void)
 // script was started.
 bool32 OverworldCatch_TryStartResults(void)
 {
-    if (sCatch.numResults == 0 || CountActiveThrows() != 0)
+    if (sCatch.numResults == 0 || CountThrows(THROW_FREE) != THROW_MAX_PENDING)
         return FALSE;
 
     sCatch.bannerIndex = 0;

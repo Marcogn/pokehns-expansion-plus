@@ -641,7 +641,11 @@ static EWRAM_DATA u8 sOWEForcedNoticeMask = 0;
 
 void ForceOWEToNoticePlayer(struct ObjectEvent *owe)
 {
-    if (IsOverworldWildEncounter(owe, OWE_GENERATED))
+    // Not one that already has: its bit would only be cleared by the next
+    // notice, so it would notice again the moment it calmed down.
+    if (IsOverworldWildEncounter(owe, OWE_GENERATED)
+     && owe->movementType != MOVEMENT_TYPE_WANDER_AROUND_OWE
+     && !HasSavedOWEMovementState(owe))
         sOWEForcedNoticeMask |= 1 << GetSpawnSlotByOWELocalId(owe->localId);
 }
 

@@ -51,8 +51,8 @@ Andature, udito e cono di vista (fase 2 di quel piano): `overworld_catch.md`.
   247-252, sotto il follower (253). Le mappe HnS arrivano a 64 oggetti.
 - **Misurare in frame, non con l'orologio** (`gMain.vblankCounter1`): ogni
   lettura GDB ferma il gioco ~0,7 s.
-- Il menu debug (R + START) fa sparire gli OWE: R avvia il DexNav sulla specie
-  registrata. La ricerca DexNav li despawna anche da `InitDexNavSearch`.
+- La ricerca DexNav despawna gli OWE (`InitDexNavSearch`). R non la avvia
+  più (lancia la Ball, `overworld_catch.md`): R + START del debug non li tocca.
 
 ## Trappole
 

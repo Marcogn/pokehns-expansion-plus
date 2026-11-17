@@ -42,8 +42,9 @@ e non era vero (`movementCount` non esiste in SG).
 - **Consegna**: l'assistente di Elm con le prime cinque Poké Ball
   (`NewBarkTown_Lab_EventScript_TriggerAideGiveBalls`), flag
   `FLAG_RECEIVED_FIRST_BALLS`: alzato una volta, già alzato in ogni salvataggio
-  oltre New Bark (nessuna migrazione), dopo Pokégear e Pokédex. R sul campo non
-  ha un gate: `TryStartDexNavSearch()` esce se `DN_VAR_SPECIES` è vuota.
+  oltre New Bark (nessuna migrazione), dopo Pokégear e Pokédex. **R sul campo
+  non avvia più la ricerca** (overworld-catch fase 3: R lancia la Ball,
+  `overworld_catch.md`); `TryStartDexNavSearch()` resta, senza chiamanti.
 - **Il gate del "mostra tutti" va su `DexNavGetSpecies()`**, non sulle
   schermate: R, A e il pannello info passano tutti di lì (`SPECIES_NONE` per
   una specie non vista). Il dettaglio del pannello è legato a `FLAG_GET_CAUGHT`

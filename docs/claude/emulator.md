@@ -155,3 +155,31 @@ numero da `data/maps/map_groups.json`, es. Violet Gym = 3/5).
 - La nuova partita: le pagine delle opzioni si scorrono con **R**, l'ultima
   chiede conferma; poi la scena della camera resta ferma ma R+Start apre il
   debug lo stesso.
+
+## Lanci, bersagli e ordine nel frame (overworld-catch fase 3, 17/11)
+
+- **Il salvataggio dell'utente ha `EASY CATCH` acceso**: ogni Ball cattura.
+  Per provare un fallimento va spento (`challengeSettings` byte 31, bit
+  0x08; `gSaveblock3 + 16 + 31`). Bit di sfida utili, stesso blocco:
+  Nuzlocke byte 6 bit 0x04, flag delle zone dal byte 12, `skipNicknamePrompt`
+  byte 31 bit 0x10. Si trovano compilando una `const struct` con un solo
+  campo a 1 e guardando `.rodata`.
+- **Spostare un OWE da GDB**: `currentCoords` e `previousCoords` (+0x10,
+  +0x14); la grafica resta dov'era ma la logica usa le coordinate. Specie:
+  `graphicsId` (+4) = `0x4000 | specie` (`0x1000` femmina). Fra due comandi
+  però cammina: per prove a tempo serve una ROM usa-e-getta con
+  `WanderAround_Step4` che torna subito al passo 1.
+- **Due eventi nello stesso giro del ciclo**: breakpoint (senza `commands`)
+  sulle due funzioni e, dal primo colpo, anche sulla funzione chiamata una
+  volta per frame fra le due: se il secondo evento arriva prima di un
+  secondo colpo di quella, è lo stesso giro. `vblankCounter1` da solo non
+  basta: avanza anche dentro un frame lento.
+- **Confrontare una formula prima e dopo un refactor**: nella ROM di prova
+  si tiene la versione vecchia (`git show <commit>:file`, rinominata) accanto
+  alla nuova e si scrivono i due risultati in EWRAM a ogni chiamata.
+- In lotta R lancia `gBallToDisplay`: scriverlo da GDB e premere R evita
+  la borsa. Stato di un battler: `gBattleMons[i]` da 136 byte, `hp` +42,
+  `status1` +80.
+- Un `g.py`/`ram.py` per comando ferma il gioco ogni volta: due pressioni
+  "a 0,5 s" possono distare pochi frame di gioco. Per vincolare l'ordine si
+  allunga un timer in RAM invece di contare sul tempo.
