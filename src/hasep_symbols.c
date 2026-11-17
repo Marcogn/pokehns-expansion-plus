@@ -5,6 +5,8 @@
 #include "braille_puzzles.h"
 #include "data.h"
 #include "event_data.h"
+#include "event_object_movement.h"
+#include "field_camera.h"
 #include "fieldmap.h"
 #include "field_effect.h"
 #include "field_weather.h"
@@ -14,18 +16,25 @@
 #include "main.h"
 #include "move.h"
 #include "overworld.h"
+#include "palette.h"
 #include "party_menu.h"
 #include "pokemon.h"
 #include "pokemon_icon.h"
 #include "pokemon_storage_system.h"
 #include "region_map.h"
 #include "script.h"
+#include "sound.h"
+#include "sprite.h"
 #include "wild_encounter.h"
 #include "constants/difficulty.h"
 #include "constants/event_objects.h"
 #include "constants/flags.h"
 #include "constants/item.h"
 #include "constants/items.h"
+#include "constants/map_groups.h"
+#include "constants/metatile_behaviors.h"
+#include "constants/event_object_movement.h"
+#include "constants/songs.h"
 #include "constants/pokemon.h"
 #include "constants/region_map_sections.h"
 #include "constants/vars.h"
@@ -38,6 +47,10 @@
 extern const struct MapHeader *const *const gMapGroups[];
 typedef u16 (*SpecialFunc)(void);
 extern const SpecialFunc gSpecials[]; // data/specials.inc
+extern const struct SpriteTemplate gFieldEffectObjectTemplate_Bird; // data/field_effects/field_effect_objects.h
+
+// MAP_GROUP_COUNT[]: the number of maps in each group, as mapjson writes it.
+#include "data/map_group_count.h"
 
 struct HasepSymbolsHeader
 {
@@ -134,6 +147,29 @@ HASEP_EXPORT(SetUpPuzzleEffectRegisteel);
 HASEP_EXPORT(gFieldCallback2);
 HASEP_EXPORT(gPostMenuFieldCallback);
 
+// FREE FLIGHT and the scenic FLY (the fork's pk_flight.c, Heart and Soul's FLIGHT_HEART_AND_SOUL record at
+// these addresses). sMapConnectionFlags and sHealLocations are exported from fieldmap.c / heal_location.c.
+HASEP_EXPORT(CB2_Overworld);
+HASEP_EXPORT(gPaletteFade);
+HASEP_EXPORT(CreateSprite);
+HASEP_EXPORT(DestroySprite);
+HASEP_EXPORT(StartSpriteAnim);
+HASEP_EXPORT(SpriteCallbackDummy);
+HASEP_EXPORT(gFieldEffectObjectTemplate_Bird);
+HASEP_EXPORT(LoadPlayerObjectEventPalette);
+HASEP_EXPORT(MapGridGetMetatileBehaviorAt);
+HASEP_EXPORT(MapGridGetCollisionAt);
+HASEP_EXPORT(MapGridGetElevationAt);
+HASEP_EXPORT(GetObjectEventIdByPosition);
+HASEP_EXPORT(PlaySE);
+HASEP_EXPORT(CurrentMapDrawMetatileAt);
+HASEP_EXPORT(DrawWholeMapView);
+HASEP_EXPORT(RemoveFollowingPokemon);
+HASEP_EXPORT(UpdateFollowingPokemon);
+// An address under an UPPER_CASE name (tools/hasep_symbols.py reads those as constants): the u8 count per map group.
+HASEP_EXPORT_VALUE(MAP_GROUP_COUNT, "MAP_GROUP_COUNT", MAP_GROUP_COUNT);
+HASEP_EXPORT_VALUE(MAP_GROUPS_COUNT, "MAP_GROUPS_COUNT", MAP_GROUPS_COUNT);
+
 // Constants the app checks or passes to the functions above.
 HASEP_EXPORT_VALUE(NUM_SPECIES, "NUM_SPECIES", NUM_SPECIES);
 HASEP_EXPORT_VALUE(ITEMS_COUNT, "ITEMS_COUNT", ITEMS_COUNT);
@@ -198,3 +234,12 @@ STATIC_ASSERT(offsetof(struct BoxPokemon, checksum) == 0x1C, HasepLayoutBoxMonCh
 STATIC_ASSERT(VAR_LAST_REPEL_LURE_USED == 0, HasepRepelNoLastUsedVar); // the app doesn't restore one
 STATIC_ASSERT(offsetof(struct SaveBlock2, encryptionKey) == 0xAC, HasepLayoutSaveBlock2Key);
 STATIC_ASSERT(offsetof(struct PartyMenu, slotId) == 0x09, HasepLayoutPartyMenuSlot);
+// FREE FLIGHT: the movements, sounds and ground the app's flight uses, as Heart and Soul 2.0.6 has them.
+STATIC_ASSERT(MOVEMENT_ACTION_WALK_FAST_DOWN == 0x15 && MOVEMENT_ACTION_WALK_FASTER_DOWN == 0x2D, HasepFlightWalk);
+STATIC_ASSERT(MOVEMENT_ACTION_RIDE_WATER_CURRENT_DOWN == 0x29 && MOVEMENT_ACTION_SLIDE_DOWN == 0x31, HasepFlightDiagonal);
+STATIC_ASSERT(SE_M_FLY == 158 && SE_FAILURE == 32, HasepFlightSounds);
+STATIC_ASSERT(MB_NORMAL == 0x00 && MB_TALL_GRASS == 0x02 && MB_LONG_GRASS == 0x03 && MB_DEEP_SAND == 0x06
+           && MB_SHORT_GRASS == 0x07 && MB_CAVE == 0x08 && MB_NO_RUNNING == 0x0A && MB_MOUNTAIN_TOP == 0x0C
+           && MB_PUDDLE == 0x16 && MB_SAND == 0x21 && MB_ASHGRASS == 0x24 && MB_FOOTPRINTS == 0x25
+           && MB_HOT_SPRINGS == 0x28, HasepFlightLanding);
+STATIC_ASSERT(sizeof(struct Sprite) == 0x44 && offsetof(struct ObjectEvent, spriteId) == 0x23, HasepFlightObjectSprite);

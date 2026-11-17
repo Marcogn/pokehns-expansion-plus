@@ -14,6 +14,8 @@ paths:
   - "src/region_map.c"
   - "src/script.c"
   - "src/sprite.c"
+  - "src/fieldmap.c"
+  - "src/heal_location.c"
 ---
 
 # Tabella dei simboli per le app companion (`HASEPSYM`)
@@ -49,6 +51,14 @@ coincide con la release in tutta la EWRAM, Hasep no (party +0x58, borsa +0xC...)
   gioco disegna, non le probabilità dell'opzione sfida), `gPlayerAvatar` (bici e
   surf: in HnS sta 0x30 *prima* di `gObjectEvents`), gli id dei Repellenti e
   `REPEL_LURE_MASK`. Un'app che non trova un nome si comporta come prima.
+- **FREE FLIGHT del fork (PokeDaisy 1.6.0), da PLUS.12**: le funzioni di sprite, griglia della mappa e suoni
+  (`CreateSprite`, `MapGridGetMetatileBehaviorAt`, `PlaySE`, ...), `CB2_Overworld`, `gPaletteFade`, l'uccello di FLY
+  (`gFieldEffectObjectTemplate_Bird`), i follower, `sMapConnectionFlags` (da `fieldmap.c`), `sHealLocations` con
+  `HEAL_LOCATION_SIZE` / `HEAL_LOCATION_COUNT` (da `heal_location.c`: la voce è di 8 byte, non 6) e `MAP_GROUP_COUNT`
+  (un **indirizzo**, l'array di `data/map_group_count.h`, sotto un nome maiuscolo che lo script stampa come costante)
+  con `MAP_GROUPS_COUNT`. Movimenti, suoni e terreni di atterraggio sono quelli di HnS 2.0.6: gli `STATIC_ASSERT`
+  `HasepFlight*` li fissano, se uno salta il volo del fork va aggiornato. Verificato con il `mgba_dump` del fork:
+  decollo da New Bark Town, Percorso 27, atterraggio; il percorso panoramico calcolato dall'app fino a Cherrygrove.
 - `gHasepAppScratch[32]` (EWRAM) è la RAM dove l'app scrive argomenti e lo
   script del PC; HnS usava la coda inutilizzata della EWRAM.
 - **Verifica**: `tools/hasep_symbols.py pokehns.gba --elf pokehns.elf`

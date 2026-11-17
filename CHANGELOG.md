@@ -45,6 +45,13 @@ add the section before releasing. Feature details live in the tables of
     starts with it in front, from where you stand; your party order does
     not change. With `BUTTON MODE` on `L=A` there is no switching: R throws
     what is selected.
+- **Free flight in the PokeDaisy fork**: the companion-app table
+  (`HASEPSYM`) also lists what PokeDaisy 1.6.0's flight needs (the sprite,
+  map grid and sound functions, the map connections, the map groups' sizes
+  and the heal locations). With the fork's 1.6.0.1 you can take off from the
+  MAP tab and fly over the map, fly to a town the scenic way and fly in a
+  balloon, a helicopter, a zeppelin or a plane (`FLY ON`). Nothing changes
+  in game.
 
 ### Changed
 - **R no longer starts a DexNav search** on the registered species: open

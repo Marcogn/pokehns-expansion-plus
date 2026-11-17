@@ -1,11 +1,17 @@
 #include "global.h"
 #include "event_data.h"
+#include "hasep_symbols.h"
 #include "heal_location.h"
 #include "constants/event_objects.h"
 #include "constants/heal_locations.h"
 #include "constants/maps.h"
 
 #include "data/heal_locations.h"
+
+// FREE FLIGHT's landing spots (src/hasep_symbols.c): the table, its entries' size and count.
+HASEP_EXPORT(sHealLocations);
+HASEP_EXPORT_VALUE(HEAL_LOCATION_SIZE, "HEAL_LOCATION_SIZE", sizeof(struct HealLocation));
+HASEP_EXPORT_VALUE(HEAL_LOCATION_COUNT, "HEAL_LOCATION_COUNT", ARRAY_COUNT(sHealLocations));
 
 u32 GetHealLocationIndexByMap(u16 mapGroup, u16 mapNum)
 {
