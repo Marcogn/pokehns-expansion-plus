@@ -20,20 +20,18 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
 ## Andature (`PlayerNotOnBikeMoving`, `src/field_player_avatar.c`)
 
 - **`autoRun` 0 = acceso** (`sDesc_Autorun`: la prima voce è "Run without
-  pressing B"). Fino a PLUS.11 una partita nuova partiva **spento** (`= 1`
-  in `SetDefaultChallengeSettings`); dal 16/11 parte acceso (`= 0`, scelta
-  dell'utente). Quella funzione gira solo a salvataggio vuoto o corrotto:
+  pressing B"). Dal 16/11 una partita nuova parte acceso (`= 0` in
+  `SetDefaultChallengeSettings`, che gira solo a salvataggio vuoto o corrotto):
   i salvataggi esistenti tengono il loro valore, **anche una New Game sopra
-  un salvataggio** (le opzioni del titolo si ricopiano, `oak_speech_hns.c`),
-  e chi li ha spenti non ha il passo lento (B corre, P20).
+  un salvataggio** (`oak_speech_hns.c`), e chi li ha spenti non ha il passo
+  lento (B corre, P20).
 - Passo lento = `PlayerWalkSlow` + `gPlayerAvatar.creeping`: B tenuto con
   AUTORUN acceso, oppure B tenuto durante una ricerca DexNav (a terra e in
   Surf) qualunque sia AUTORUN. **A non fa più il creeping.** Va provato
   **prima** del blocco della corsa, che fa sempre `return` con AUTORUN acceso.
 - Il salto da una sporgenza spegne `creeping` (esce prima del reset comune):
   senza, un salto dopo il passo lento era silenzioso.
-- In Surf le velocità non cambiano (B sceglie l'altra velocità); il Surf
-  conta come camminata per l'udito (non alza `PLAYER_AVATAR_FLAG_DASH`).
+- In Surf le velocità non cambiano; conta come camminata per l'udito.
 - `PLAYER_AVATAR_FLAG_DASH` resta acceso per tutto il passo di corsa: lo
   spegne `npc_clear_strange_bits` solo al confine fra due passi, e la corsa
   lo riaccende nello stesso frame.
@@ -53,8 +51,7 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   subito davanti. Il dislivello resta (`CanOWEReachPlayer`).
 - **Invariante: `viewDistance <= activeDistance`.** Con `returnToIdle =
   PLAYER_OUTSIDE_ACTIVE_RANGE` un Pokémon che ti vede oltre l'`activeDistance`
-  torna a riposo al passo dopo e ti rinota: "!" in loop. L'angolo lontano del
-  cono (5 avanti, 2 di lato) vale 7 = la diagonale di 5.
+  torna a riposo e ti rinota: "!" in loop.
 - **`IsOWEAwareOfPlayer()`** = OWE con `OWE_SAVED_MOVEMENT_STATE_FLAG`
   (bit 7 di `warpArrowSpriteId`): alzato in `Common_Step7` quando nota,
   tolto al ritorno a riposo, sopravvive al ricaricamento della mappa. Il
@@ -120,9 +117,19 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   `SetBattlePartyIds`). Roamer e sciami: R avvia la lotta. Spento in Safari,
   Gara, Pike, Piramide, Trainer Hill.
 
+## Pannello della scelta (D18, `UpdatePanel`)
+
+- Finestra BG0 12x3 a (2,16), base 8, pal 15, cornice pal 14 come il banner
+  (il tema scuro viene da sé, ma **solo dopo che le pal 14/15 sono ricaricate**:
+  cambiare l'opzione a mappa aperta non basta). **`SetStandardWindowBorderStyle`
+  riempie con 1: ridisegnare con `PIXEL_FILL(0)` rende il fondo trasparente.**
+- Su con L tenuto o `panelTimer` (120 frame, riarmato da cambio, scorrimento,
+  lancio); giù se i controlli sono bloccati o con `L=A`. Il rilascio di L
+  senza scorrere **cambia modalità** (D1): non è un bug del pannello.
+- Solo testo (`FONT_SMALL`, niente sprite: non tocca le palette OBJ).
+
 ## Prove
 
-Ricette in §5.2-5.4 del piano e `docs/claude/emulator.md`. APCS: struct
-arrotondate a 4 byte, `PendingThrow` = 32 (modalità a `sCatch+136` bit 0).
-`gSaveblock3 + 0x13` = `autoRun`; `FLAG_SYS_B_DASH` = byte `0x118` bit 0 dei
-flag di SaveBlock1. Un OWE col bit 7 di `+0x1D` non viene ricambiato.
+Ricette in §5.2-5.5 del piano e `docs/claude/emulator.md`. `PendingThrow` =
+32 B. `gSaveblock3 + 0x13` = `autoRun`; `FLAG_SYS_B_DASH` = byte `0x118` bit 0
+di SaveBlock1. Un OWE col bit 7 di `+0x1D` non viene ricambiato.
