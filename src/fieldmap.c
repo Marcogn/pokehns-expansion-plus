@@ -19,6 +19,7 @@
 #include "constants/metatile_behaviors.h"
 #include "constants/metatile_behaviors_frlg.h"
 #include "wild_encounter.h"
+#include "hasep_symbols.h"
 
 struct ConnectionFlags
 {
@@ -32,6 +33,7 @@ EWRAM_DATA u16 ALIGNED(4) sBackupMapData[MAX_MAP_DATA_SIZE] = {0};
 EWRAM_DATA struct MapHeader gMapHeader = {0};
 EWRAM_DATA struct Camera gCamera = {0};
 EWRAM_DATA static struct ConnectionFlags sMapConnectionFlags = {0};
+HASEP_EXPORT(sMapConnectionFlags); // FREE FLIGHT (src/hasep_symbols.c)
 
 COMMON_DATA struct BackupMapLayout gBackupMapLayout = {0};
 
