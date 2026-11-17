@@ -706,7 +706,16 @@ void OverworldCatch_Update(void)
     // While a script runs nothing lands: the script may be the battle with
     // the very Pokémon a Ball is flying at.
     if (ArePlayerFieldControlsLocked())
+    {
+        // OverworldCatch_HandleLButton does not run meanwhile. An L held now
+        // is taken as already used, so letting it go later is not a tap
+        // that switches between Ball and Pokémon.
+        if (JOY_HELD(L_BUTTON))
+            sCatch.lHeld = sCatch.lScrolled = TRUE;
+        else
+            sCatch.lHeld = FALSE;
         return;
+    }
 
     for (u32 i = 0; i < THROW_MAX_PENDING; i++)
     {
@@ -738,6 +747,11 @@ void OverworldCatch_Update(void)
 
 // Called when the player could start a script. Returns TRUE if the results
 // script was started.
+bool32 OverworldCatch_IsBallInFlight(void)
+{
+    return CountThrows(THROW_FLYING) != 0;
+}
+
 bool32 OverworldCatch_TryStartResults(void)
 {
     if (sCatch.numResults == 0 || CountThrows(THROW_FREE) != THROW_MAX_PENDING)
@@ -753,6 +767,8 @@ bool32 OverworldCatch_TryStartResults(void)
 #define BANNER_ICON_Y   20
 #define BANNER_TEXT_X   40
 
+static bool32 IsSpritePaletteInUse(u32 paletteNum);
+
 static void Task_CatchBanner(u8 taskId)
 {
     // The banner closes with A or B, and only once the fanfare is over (P19).
@@ -761,18 +777,31 @@ static void Task_CatchBanner(u8 taskId)
 
     if (sCatch.bannerIconSpriteId != MAX_SPRITES)
     {
-        // Only the one icon palette this banner loaded, by the tag the
-        // sprite ended up with (a female icon may use another index).
-        FreeSpritePaletteByTag(GetSpritePaletteTagByPaletteNum(gSprites[sCatch.bannerIconSpriteId].oam.paletteNum));
+        u32 paletteNum = gSprites[sCatch.bannerIconSpriteId].oam.paletteNum;
+
         FreeAndDestroyMonIconSprite(&gSprites[sCatch.bannerIconSpriteId]);
+        if (sCatch.bannerIconSpriteId2 != MAX_SPRITES)
+            FreeAndDestroyMonIconSprite(&gSprites[sCatch.bannerIconSpriteId2]);
+        // The six mon icon palettes are shared by tag: free this one only if
+        // no other icon on screen uses it (the DexNav search HUD does).
+        if (!IsSpritePaletteInUse(paletteNum))
+            FreeSpritePaletteByTag(GetSpritePaletteTagByPaletteNum(paletteNum));
     }
-    if (sCatch.bannerIconSpriteId2 != MAX_SPRITES)
-        FreeAndDestroyMonIconSprite(&gSprites[sCatch.bannerIconSpriteId2]);
     ClearStdWindowAndFrameToTransparent(sCatch.bannerWindowId, FALSE);
     CopyWindowToVram(sCatch.bannerWindowId, COPYWIN_FULL);
     RemoveWindow(sCatch.bannerWindowId);
     ScriptContext_Enable();
     DestroyTask(taskId);
+}
+
+static bool32 IsSpritePaletteInUse(u32 paletteNum)
+{
+    for (u32 i = 0; i < MAX_SPRITES; i++)
+    {
+        if (gSprites[i].inUse && gSprites[i].oam.paletteNum == paletteNum)
+            return TRUE;
+    }
+    return FALSE;
 }
 
 static u8 CreateBannerIcon(const struct CatchResult *result, bool32 objWindow)

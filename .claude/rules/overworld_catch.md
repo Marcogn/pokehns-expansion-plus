@@ -66,7 +66,9 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
 
 - **Tasti**: R = `OverworldCatch_TryThrow` (`ProcessPlayerFieldInput`; in bici
   R resta Mach/Acro). R è ricordato 16 frame (`sRPressBuffer`): premuto a metà
-  passo parte a fine passo. L = `OverworldCatch_HandleLButton` da
+  passo parte a fine passo; **mai a controlli bloccati** (un R dato a un
+  messaggio tornerebbe come lancio). Uno stato di L tenuto attraverso un
+  blocco conta come già usato (`OverworldCatch_Update`). L = `OverworldCatch_HandleLButton` da
   `DoCB1_Overworld`, che toglie il D-pad ai tasti finché L è tenuto. Con
   `L=A` main.c **aggiunge** A ma lascia L nei tasti: l'opzione va letta.
 - **Un lancio è un record** (`sCatch.throws`, 3): `FLYING` col timer
@@ -74,7 +76,9 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   fase 4). La Ball esce dalla borsa al lancio e **torna** (`ReturnBall`) se
   il bersaglio non c'è più o la cattura è bloccata all'impatto. Tutto si
   decide in `ResolveImpact`. **I timer sono fermi a controlli bloccati**:
-  uno script può essere la lotta con quel Pokémon.
+  uno script può essere la lotta con quel Pokémon. **Niente menu Start con
+  una Ball in volo** (`OverworldCatch_IsBallInFlight`): la Ball è già fuori
+  dalla borsa e un salvataggio la perderebbe.
 - **Bersaglio**: prima cosa sulla linea entro 5 caselle. Fermano il lancio
   (niente Ball usata) collisione di mappa e ogni oggetto visibile che non è
   un OWE generato: NPC, decorativi, follower, OWE di mappa. L'acqua non ha
@@ -93,7 +97,10 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
 - **Coda delle catture** (`results`, 3): un lancio parte se Ball in volo +
   catture in coda < 3 (i record `SETTLING` non contano: sono già in coda o
   falliti). Banner e soprannomi partono da `OverworldCatch_TryStartResults`
-  quando non resta nessun record; sopravvivono a una lotta.
+  quando non resta nessun record, **dopo** la gestione del passo in
+  `ProcessPlayerFieldInput` (prima, un `return TRUE` saltava contapassi e
+  script della casella); sopravvivono a una lotta. La palette dell'icona
+  si libera solo se nessun altro sprite la usa (6 tag condivisi).
 - **`callnative` + `ScriptContext_Stop()` non ferma i comandi del frame**:
   lo script proseguiva fino a `end` sotto il banner. Dopo il `callnative`
   serve un `waitstate` nello script.

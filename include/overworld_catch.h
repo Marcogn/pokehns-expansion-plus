@@ -42,5 +42,6 @@ void OverworldCatch_Update(void);
 bool32 OverworldCatch_HandleLButton(u16 newKeys, u16 heldKeys);
 bool32 OverworldCatch_TryThrow(void);
 bool32 OverworldCatch_TryStartResults(void);
+bool32 OverworldCatch_IsBallInFlight(void);
 
 #endif // GUARD_OVERWORLD_CATCH_H

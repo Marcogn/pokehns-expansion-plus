@@ -576,6 +576,20 @@ basta Opus. La 7 è un port con sorgente chiaro, la 10 grafica e contenuto.
   non misurato in pixel.
 - ROM: 31 908 340 B, 95,09% (+4 816 B sulla fase 2).
 
+- **Dopo `/pr-review` (17/11, PR #60)**: 9 punti dalla revisione generica,
+  tutti verificati sul codice. Corretti 6: (1) i banner partivano **prima**
+  della gestione del passo e su un frame di passo saltavano contapassi e
+  script della casella; (2) Start con una Ball in volo apriva il menu e un
+  salvataggio la perdeva (ora Start è ignorato finché vola, < 1 s); (3) R
+  premuto durante un messaggio tornava come lancio alla chiusura; (4) L
+  tenuto attraverso un menu cambiava modalità al rilascio; (5) la palette
+  dell'icona del banner era liberata anche se condivisa (icona della ricerca
+  DexNav); (6) due commenti superati. Provati in emulatore (1-4 e il banner).
+  Lasciato: il doppio ciclo sulla squadra (stile). **Da decidere
+  dall'utente**: un lancio **fallito** non consuma l'incontro Nuzlocke della
+  zona (in lotta qualunque esito lo consuma), quindi si può lanciare a più
+  Pokémon finché uno resta. P3 parlava solo della cattura riuscita.
+
 **Handoff per la fase 4 (Fable 5.2)**
 - **Non c'è ancora niente a schermo** per il lancio né per la scelta: solo
   suoni (`SE_BALL_THROW`, `SE_BALL` presa, `SE_BALL_OPEN` uscita,

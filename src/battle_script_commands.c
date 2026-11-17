@@ -10939,9 +10939,7 @@ u32 ComputeCaptureOddsFromParams(const struct CaptureParams *p)
     u32 odds = (p->maxHP * 3 -  p->hp * 2);
     s32 catchRate;
 
-    // HnS lets the player throw any ball in the Safari Zone, so the flattened
-    // safari catch factor only applies to Safari Balls themselves. Every other
-    // ball uses the species' real catch rate, as it did in HnS 1.0.
+    // useSafariFactor: see ComputeCaptureOdds (only a Safari Ball in a Safari battle).
     if (p->useSafariFactor)
         catchRate = p->safariCatchFactor * 1275 / 100;
     else
