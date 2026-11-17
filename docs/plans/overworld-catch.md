@@ -678,7 +678,24 @@ basta Opus. La 7 è un port con sorgente chiaro, la 10 grafica e contenuto.
   grotta buia con Flash. Il "?" del Pokémon liberato durante la transizione
   di una lotta è voluto (scongelato subito; tenerlo congelato rischiava di
   lasciarlo fermo dopo la lotta).
-- ROM: 31 911 460 B, 95,10% (+3 120 B sulla fase 3).
+- ROM: 31 911 748 B, 95,10% (+3 408 B sulla fase 3), dopo la revisione.
+
+- **Dopo `/pr-review` (17/11, PR #61)**: 7 punti dalla revisione generica,
+  verificati sul codice. Corretti 6: (1) **una seconda Ball in volo verso un
+  Pokémon già nella prima lo catturava di nuovo** (l'OWE ora resta fino alla
+  chiusura, nella fase 3 spariva all'impatto): diventa un lancio a vuoto; (2)
+  nei 12 frame fra impatto e raggio lo stesso Pokémon era ancora un bersaglio
+  (anche per il Pokémon lanciato, che avrebbe aperto una lotta con un
+  Pokémon già dato); (3) lo spawn poteva ricambiare il Pokémon nella Ball con
+  uno della stessa specie, preso per lui: flag "non sparire" finché è dentro;
+  (4) `CreateBattleStartTask_Debug` senza l'aggancio; (5) la guardia della
+  coda contava solo le Ball in volo, ora vuole anche un record libero; (6)
+  un lancio a vuoto senza sprite bloccava Start ~1,3 s per niente. Scartato:
+  `GiveCaughtMon` che fallisce dopo un tiro riuscito (non raggiungibile:
+  `GetCatchBlock` all'impatto controlla i box pieni prima). Provati (1) e
+  (3): due Ball allo stesso Flaaffy, `CreateMonFromOWE` 1 volta,
+  `AddBagItem` 1 volta (la seconda resa), nessuna cattura in coda; byte del
+  livello del Farfetch'd `0x96` nella Ball e `0x16` dopo l'uscita.
 
 **Handoff per la fase 5 (Sonnet 5.5)**
 - Il pannello di D18 può restare a schermo mentre una Ball è fuori (il

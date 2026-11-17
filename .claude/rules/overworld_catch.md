@@ -87,11 +87,15 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   prosegue invisibile e dall'impatto `FinishThrow` chiude subito con l'esito.
   `IsBallSpriteValid` (callback + indice + magic) basta per i campi
   ricostruiti (menu, warp): niente aggancio sul reset degli sprite.
-- **Pokémon nella Ball**: congelato e `invisible`, **riasserito a ogni frame**
-  (`KeepOWEInBall`): il `release` di uno script scongela tutti. Lo sprite da
-  nuoto legge `owe->invisible`; `TryTriggerOverworldWildEncounter` lo ignora
-  (`OverworldCatch_IsOWEInBall`); il bersaglio salta gli invisibili.
-- **Lotta che parte** (`CreateBattleStartTask` → `OverworldCatch_OnBattleStart`):
+- **Pokémon nella Ball** (dall'impatto, `holdsOWE`): congelato e, dal raggio,
+  `invisible`, **riasserito a ogni frame** (`KeepOWEInBall`): il `release` di
+  uno script scongela tutti. Ha il flag "non sparire" (`HoldOWEForThrow`,
+  rimesso com'era all'uscita): un ricambio della stessa specie riusa slot e
+  `localId` e passerebbe per lui. Non è bersaglio (`FindThrowTarget`), né
+  contatto (`TryTriggerOverworldWildEncounter`), e **una seconda Ball in volo
+  verso di lui diventa un lancio a vuoto**: senza, il Pokémon veniva dato due
+  volte. Lo sprite da nuoto legge `owe->invisible`.
+- **Lotta che parte** (`CreateBattleStartTask` e `_Debug` → `OverworldCatch_OnBattleStart`):
   le Ball a terra finiscono prima della transizione (chi è dentro esce), quelle
   in volo restano e atterrano dopo, invisibili fino all'impatto.
 - **Posa**: frame della corsa fermo, tenuto da un'azione `DELAY_16` sul
@@ -107,8 +111,8 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   segna la zona** (utente, 17/11, P3).
 - **Fallito**: `ForceOWEToNoticePlayer`, **mai su un OWE già allertato o
   "vaga"** (il bit resterebbe). Il "vaga" non reagisce e tiene il ×2.
-- **Coda** (`results`, 3): un lancio parte se Ball in volo + catture in coda
-  < 3. Banner e soprannomi da `OverworldCatch_TryStartResults` quando tutti i
+- **Coda** (`results`, 3): un lancio parte se c'è un record libero e Ball in
+  volo + catture in coda < 3. Un lancio a vuoto senza sprite finisce subito. Banner e soprannomi da `OverworldCatch_TryStartResults` quando tutti i
   record sono liberi, **dopo** la gestione del passo. Palette dell'icona
   liberata solo se nessuno la usa. Dopo un `callnative` che ferma lo script
   serve `waitstate`.

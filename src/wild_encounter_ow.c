@@ -658,6 +658,25 @@ static void ClearOWEForcedNotice(const struct ObjectEvent *owe)
         sOWEForcedNoticeMask &= ~(1 << GetSpawnSlotByOWELocalId(owe->localId));
 }
 
+// A Pokémon inside a thrown Ball (overworld_catch.c) must not be replaced
+// by a new spawn or dropped above the cap while it shakes: a replacement of
+// the same species reuses the slot and the localId, and would be taken for
+// it. The no-despawn flag (the shinies' one) keeps it; returns whether the
+// Pokémon had the flag already, for ReleaseOWEFromThrowHold.
+bool32 HoldOWEForThrow(struct ObjectEvent *owe)
+{
+    bool32 hadFlag = HasOWENoDespawnFlag(owe) ? TRUE : FALSE;
+
+    owe->sOverworldEncounterLevel |= OWE_NO_DESPAWN_FLAG;
+    return hadFlag;
+}
+
+void ReleaseOWEFromThrowHold(struct ObjectEvent *owe, bool32 hadFlag)
+{
+    if (!hadFlag)
+        owe->sOverworldEncounterLevel &= ~OWE_NO_DESPAWN_FLAG;
+}
+
 // A caught Pokémon leaves the map like one that started a battle: the object
 // goes and the spawn countdown restarts.
 void RemoveCaughtOWE(struct ObjectEvent *owe)

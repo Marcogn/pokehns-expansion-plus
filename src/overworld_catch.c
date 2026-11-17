@@ -124,6 +124,7 @@ struct PendingThrow
     u8 miss:1;          // hit nothing: the Ball goes back to the bag when it is gone (D16)
     u8 caught:1;
     u8 holdsOWE:1;      // the Pokémon is hidden and frozen inside this Ball
+    u8 hadNoDespawn:1;  // its no-despawn flag before the Ball held it
     s16 fromX;          // the Ball's ground position at the throw and at the end of
     s16 fromY;          // the flight, in field sprite coordinates (world-fixed with
     s16 toX;            // coordOffsetEnabled)
@@ -350,6 +351,9 @@ bool32 OverworldCatch_HandleLButton(u16 newKeys, u16 heldKeys)
 // Target
 // ---------------------------------------------------------------------------
 
+bool32 OverworldCatch_IsOWEInBall(const struct ObjectEvent *owe);
+static void FinishThrow(struct PendingThrow *throw);
+
 // The first thing on the line in front of the player, up to THROW_RANGE
 // tiles. A tile that blocks walking stops the Ball, and so does any visible
 // object that is not a generated wild Pokémon: NPCs, signs, the map's
@@ -375,13 +379,16 @@ static enum ThrowTarget FindThrowTarget(u32 *objectEventId, u32 *distance)
             return THROW_TARGET_BLOCKED;
 
         // Not GetObjectEventIdByXY: an invisible trigger object may share
-        // the tile with a Pokémon. A Pokémon inside a Ball is invisible too.
+        // the tile with a Pokémon. A Pokémon a Ball has hit is decided
+        // already: it is passed over from the impact on, before the beam
+        // hides it.
         for (u32 i = 0; i < OBJECT_EVENTS_COUNT; i++)
         {
             struct ObjectEvent *object = &gObjectEvents[i];
 
             if (!object->active || object->invisible || i == gPlayerAvatar.objectEventId
-             || object->currentCoords.x != x || object->currentCoords.y != y)
+             || object->currentCoords.x != x || object->currentCoords.y != y
+             || OverworldCatch_IsOWEInBall(object))
                 continue;
 
             if (!IsOverworldWildEncounter(object, OWE_GENERATED))
@@ -699,9 +706,11 @@ bool32 OverworldCatch_TryThrow(void)
         return StartBattleWithTarget(owe, objectEventId);
 
     // Every Ball in the air may become a catch, and the queue of catches
-    // holds THROW_MAX_PENDING. A Ball that has landed is either in that
-    // queue already or was a miss, so only the flying ones count.
-    if (sCatch.cooldown != 0 || CountThrows(THROW_FLYING) + sCatch.numResults >= THROW_MAX_PENDING)
+    // holds THROW_MAX_PENDING: a Ball that has landed is in that queue
+    // already or was a miss. A record also stays busy while its Ball is on
+    // the ground (up to about three seconds), so a free one is needed too.
+    if (sCatch.cooldown != 0 || CountThrows(THROW_FREE) == 0
+     || CountThrows(THROW_FLYING) + sCatch.numResults >= THROW_MAX_PENDING)
         return FALSE;
 
     if (owe != NULL)
@@ -758,8 +767,11 @@ bool32 OverworldCatch_TryThrow(void)
         throw->x = throw->fromX;
         throw->y = throw->fromY;
         throw->height = BALL_HAND_HEIGHT;
-        CreateBallSprite(throw);
-        DrawBall(throw, 0, 0, TRUE);
+        // A miss with nothing to show is over at once: the Ball is back.
+        if (!CreateBallSprite(throw) && throw->miss)
+            FinishThrow(throw);
+        else
+            DrawBall(throw, 0, 0, TRUE);
 
         sCatch.cooldown = THROW_COOLDOWN;
         StartThrowPose();
@@ -821,6 +833,7 @@ static void ReleaseOWEFromBall(struct PendingThrow *throw)
     throw->holdsOWE = FALSE;
     if (owe == NULL)
         return;
+    ReleaseOWEFromThrowHold(owe, throw->hadNoDespawn);
     owe->invisible = FALSE;
     UnfreezeObjectEvent(owe);
     ForceOWEToNoticePlayer(owe);
@@ -1022,6 +1035,9 @@ static void StartBallFall(struct PendingThrow *throw)
     throw->fallHeight = throw->height;
     throw->state = THROW_FALLING;
     throw->timer = BALL_FALL_FRAMES;
+    // Nothing to show: the Ball is back at once.
+    if (!IsBallSpriteValid(throw))
+        FinishThrow(throw);
 }
 
 static void ResolveImpact(struct PendingThrow *throw, struct ObjectEvent *owe)
@@ -1048,6 +1064,7 @@ static void ResolveImpact(struct PendingThrow *throw, struct ObjectEvent *owe)
 
     // The Pokémon stops where it is, and goes into the Ball on the beam.
     throw->holdsOWE = TRUE;
+    throw->hadNoDespawn = HoldOWEForThrow(owe);
     FreezeObjectEvent(owe);
     GetObjectGroundPos(owe, &throw->x, &throw->y);
     throw->height = BALL_HIT_HEIGHT;
@@ -1091,6 +1108,11 @@ static void UpdateThrow(struct PendingThrow *throw)
     {
         struct ObjectEvent *owe = GetThrowTarget(throw);
         s32 elapsed, total = throw->flightTime;
+
+        // Another Ball got there first (a volley at one Pokémon): this one
+        // has nothing left to hit, or the Pokémon would be given twice.
+        if (owe != NULL && OverworldCatch_IsOWEInBall(owe))
+            owe = NULL;
 
         if (!throw->miss && owe == NULL)
         {

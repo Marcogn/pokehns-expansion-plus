@@ -378,6 +378,9 @@ static void CreateBattleStartTask_Debug(u8 transition, u16 song)
 {
     u8 taskId = CreateTask(Task_BattleStart_Debug, 1);
 
+    // Hasep: as in CreateBattleStartTask.
+    OverworldCatch_OnBattleStart();
+
     gTasks[taskId].tTransition = transition;
     PlayMapChosenOrBattleBGM(song);
 }
