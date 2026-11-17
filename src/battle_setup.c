@@ -3,6 +3,7 @@
 #include "bug_contest.h"
 #include "load_save.h"
 #include "battle_setup.h"
+#include "overworld_catch.h"
 #include "battle_tower.h"
 #include "battle_transition.h"
 #include "main.h"
@@ -337,6 +338,10 @@ static void Task_BattleStart(u8 taskId)
 static void CreateBattleStartTask(enum BattleTransition transition, u16 song)
 {
     u8 taskId = CreateTask(Task_BattleStart, 1);
+
+    // Hasep: thrown Balls on the ground finish before the transition
+    // (overworld catch plan, phase 4).
+    OverworldCatch_OnBattleStart();
 
     gTasks[taskId].tTransition = transition;
     PlayMapChosenOrBattleBGM(song);

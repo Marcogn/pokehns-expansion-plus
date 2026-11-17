@@ -183,3 +183,26 @@ numero da `data/maps/map_groups.json`, es. Violet Gym = 3/5).
 - Un `g.py`/`ram.py` per comando ferma il gioco ogni volta: due pressioni
   "a 0,5 s" possono distare pochi frame di gioco. Per vincolare l'ordine si
   allunga un timer in RAM invece di contare sul tempo.
+
+## Animazioni frame per frame (overworld-catch fase 4, 17/11)
+
+- **Carica l'ELF in GDB** (`file pokehns.elf`) prima di mettere breakpoint:
+  senza, GDB non sa che il codice è Thumb e i breakpoint non scattano mai
+  (il gioco gira libero e lo script aspetta per sempre).
+- **GDB in modo sincrono**: `continue` (non `continue &`) e, per fermarlo,
+  `kill -INT $(pgrep -x gdb-multiarch)` invece del comando `interrupt`.
+  Mescolare comandi asincroni da una fifo dà "Cannot execute this command
+  while the target is running" e comandi persi.
+- **Una foto per frame**: breakpoint su una funzione chiamata una volta a
+  frame (`OverworldCatch_Update`) con `commands` che contano i frame,
+  fanno `eval "shell import ... %03d.png", $f` e premono i tasti con
+  `shell xdotool keydown/keyup` a frame precisi; `continue` dentro i
+  `commands` finché il contatore non arriva. 240 frame in ~20 s.
+- **Leggere lo stato di uno sprite**: `gSprites` (da `nm`), struct da 0x44,
+  `animNum` a +0x2A, `animPaused` = bit 6 di +0x2C. È così che si è visto che
+  la posa veniva sovrascritta a ogni frame, cosa che a occhio non si vedeva.
+- **Prove in campo aperto**: gli OWE aggressivi già allertati caricano il
+  giocatore fra un comando e l'altro e fanno partire una lotta (durante la
+  quale `OverworldCatch_Update` non gira). Conviene un punto con pochi
+  inseguitori (Route 43 del salvataggio dell'utente, di giorno) e ricordarsi
+  in che modalità (Ball/Pokémon) è rimasto L.

@@ -10,6 +10,7 @@
 #include "field_message_box.h"
 #include "field_player_avatar.h"
 #include "fieldmap.h"
+#include "field_effect.h"
 #include "fldeff.h"
 #include "gpu_regs.h"
 #include "item.h"
@@ -40,12 +41,13 @@
 #include "constants/party_menu.h"
 #include "constants/songs.h"
 
-// Hasep: overworld catching, phase 3 of docs/plans/overworld-catch.md (the
-// decision numbers D.. and P.. below are that plan's). R throws the selected
-// Ball, or the selected party Pokémon, straight ahead at a visible wild
-// Pokémon (OWE). This phase has no animation: a throw is a record with a
-// flight timer, and everything is decided when the timer runs out ("impact").
-// Phase 4 hangs sprites on the same records.
+// Hasep: overworld catching, phases 3 and 4 of docs/plans/overworld-catch.md
+// (the decision numbers D.. and P.. below are that plan's). R throws the
+// selected Ball, or the selected party Pokémon, straight ahead at a visible
+// wild Pokémon (OWE). A throw is a record: the outcome is decided when the
+// Ball arrives ("impact", D15) and the Pokémon is given at once; what follows
+// (the Pokémon drawn in, the fall, the shakes, the click or the break-out) is
+// only animation, driven by the record's state and timer.
 
 #define THROW_RANGE             5   // tiles, straight ahead (P2)
 #define THROW_MAX_PENDING       3   // Balls in the air, and catches waiting for their banner (D15)
@@ -54,16 +56,35 @@
 // at full range, so a second Ball can be in the air when the first lands.
 #define THROW_FLIGHT_BASE       8
 #define THROW_FLIGHT_PER_TILE   8
-// After the impact the record stays for the time the shakes will take in
-// phase 4. Until every record is gone no banner is shown, so a volley is
-// not interrupted by the first catch.
-#define THROW_SETTLE_FRAMES     60
+
+// The animation, in frames. Heights are pixels above the ground.
+#define BALL_HAND_HEIGHT        8   // where the Ball leaves the player, half a tile ahead
+#define BALL_HIT_HEIGHT         10  // where it meets the Pokémon, and opens
+#define BALL_ARC_BASE           4   // top of the arc above the straight line: base + per tile
+#define BALL_ARC_PER_TILE       2
+#define BALL_OPEN_FRAMES        16  // frames 1-4 of the Ball sheet, 4 each; the Pokémon goes on frame 4
+#define BALL_CLOSE_FRAMES       8
+#define BALL_FALL_FRAMES        8
+#define BALL_SHAKE_PAUSE        16  // still, before each shake and before the end
+#define BALL_SHAKE_FRAMES       16  // one wobble
+#define BALL_CAUGHT_FRAMES      40  // after the click; it blinks out in the last 16
+#define BALL_BREAKOUT_FRAMES    12
+#define BALL_DROPPED_FRAMES     24  // a Ball that hit nothing lies there, then blinks out
+#define BALL_BLINK_FRAMES       16
+
+#define BALL_SPRITE_MAGIC       0x4F43
 
 enum ThrowState
 {
     THROW_FREE,
     THROW_FLYING,
-    THROW_SETTLING,
+    THROW_OPENING,      // at the Pokémon: the Ball opens and draws it in
+    THROW_CLOSING,
+    THROW_FALLING,      // down to the ground (also a Ball that hit nothing)
+    THROW_SHAKING,
+    THROW_CAUGHT,
+    THROW_BREAKOUT,
+    THROW_DROPPED,      // a Ball that hit nothing, on the ground
 };
 
 enum ThrowBlock
@@ -80,21 +101,36 @@ enum ThrowBlock
 
 enum ThrowTarget
 {
-    THROW_TARGET_NONE,      // nothing on the line
-    THROW_TARGET_BLOCKED,   // a wall, an NPC, the follower: the Ball stays in the bag (D16)
+    THROW_TARGET_NONE,      // nothing on the line: the Ball flies the whole range and falls
+    THROW_TARGET_BLOCKED,   // a wall, an NPC, a sign: the Ball hits it and falls (D16)
+    THROW_TARGET_FOLLOWER,  // the follower is in the way: nothing is thrown (D16)
     THROW_TARGET_OWE,
 };
 
 struct PendingThrow
 {
     u8 state;
-    u8 timer;
+    u8 timer;           // frames left in this state
     u8 objectEventId;
     u8 localId;
     u8 mapNum;
     u8 mapGroup;
     u16 graphicsId;
     u16 ball;
+    u8 flightTime;
+    u8 shakes;          // shakes still to show
+    u8 spriteId;        // MAX_SPRITES: none (the animation goes on without it)
+    u8 fallHeight;
+    u8 miss:1;          // hit nothing: the Ball goes back to the bag when it is gone (D16)
+    u8 caught:1;
+    u8 holdsOWE:1;      // the Pokémon is hidden and frozen inside this Ball
+    s16 fromX;          // the Ball's ground position at the throw and at the end of
+    s16 fromY;          // the flight, in field sprite coordinates (world-fixed with
+    s16 toX;            // coordOffsetEnabled)
+    s16 toY;
+    s16 x;              // where it is now: ground position, and height above it
+    s16 y;
+    s16 height;
 };
 
 // A catch already made, waiting for its banner and its nickname prompt.
@@ -318,8 +354,10 @@ bool32 OverworldCatch_HandleLButton(u16 newKeys, u16 heldKeys)
 // tiles. A tile that blocks walking stops the Ball, and so does any visible
 // object that is not a generated wild Pokémon: NPCs, signs, the map's
 // decorative Pokémon (trainerType 0, not OWEs), map-placed OWEs with a script
-// of their own, and the follower (D16). Water does not stop it: it has no
-// collision bit, so a Pokémon swimming next to the shore can be hit.
+// of their own (D16). The follower is not thrown at at all. Water does not
+// stop it: it has no collision bit, so a Pokémon swimming next to the shore
+// can be hit. *distance is where the Ball ends: the Pokémon's tile, the tile
+// it hits, or the full range.
 static enum ThrowTarget FindThrowTarget(u32 *objectEventId, u32 *distance)
 {
     struct ObjectEvent *player = &gObjectEvents[gPlayerAvatar.objectEventId];
@@ -331,12 +369,13 @@ static enum ThrowTarget FindThrowTarget(u32 *objectEventId, u32 *distance)
     {
         enum ThrowTarget found = THROW_TARGET_NONE;
 
+        *distance = d;
         MoveCoords(direction, &x, &y);
         if (MapGridGetCollisionAt(x, y))
             return THROW_TARGET_BLOCKED;
 
         // Not GetObjectEventIdByXY: an invisible trigger object may share
-        // the tile with a Pokémon.
+        // the tile with a Pokémon. A Pokémon inside a Ball is invisible too.
         for (u32 i = 0; i < OBJECT_EVENTS_COUNT; i++)
         {
             struct ObjectEvent *object = &gObjectEvents[i];
@@ -346,15 +385,15 @@ static enum ThrowTarget FindThrowTarget(u32 *objectEventId, u32 *distance)
                 continue;
 
             if (!IsOverworldWildEncounter(object, OWE_GENERATED))
-                return THROW_TARGET_BLOCKED;
+                return (object->localId == OBJ_EVENT_ID_FOLLOWER) ? THROW_TARGET_FOLLOWER : THROW_TARGET_BLOCKED;
 
             *objectEventId = i;
-            *distance = d;
             found = THROW_TARGET_OWE;
         }
         if (found != THROW_TARGET_NONE)
             return found;
     }
+    *distance = THROW_RANGE;
     return THROW_TARGET_NONE;
 }
 
@@ -447,30 +486,204 @@ static bool32 StartBattleWithTarget(struct ObjectEvent *owe, u32 objectEventId)
     return TRUE;
 }
 
+// ---------------------------------------------------------------------------
+// The Ball's sprite
+// ---------------------------------------------------------------------------
+
+#if OW_FOLLOWERS_POKEBALLS
+extern const struct ObjectEventGraphicsInfo gPokeballGraphics[POKEBALL_COUNT];
+#endif
+
+// The sheet of a follower's Ball (ObjectEventSetPokeballGfx): frame 0 closed,
+// 1-4 opening, with the beam rising on 4. The Poké Ball and any Ball without
+// a sheet of its own use the plain Poké Ball.
+static const struct ObjectEventGraphicsInfo *GetBallGraphicsInfo(u32 ballItem)
+{
+#if OW_FOLLOWERS_POKEBALLS
+    enum PokeBall ballId = ItemIdToBallId(ballItem);
+
+    if (ballId != BALL_POKE && ballId < POKEBALL_COUNT
+     && gPokeballGraphics[ballId].tileTag == TAG_NONE && gPokeballGraphics[ballId].images != NULL)
+        return &gPokeballGraphics[ballId];
+#endif
+    return GetObjectEventGraphicsInfo(OBJ_EVENT_GFX_POKE_BALL);
+}
+
+static const union AnimCmd sAnim_Ball0[] = {ANIMCMD_FRAME(0, 1), ANIMCMD_END};
+static const union AnimCmd sAnim_Ball1[] = {ANIMCMD_FRAME(1, 1), ANIMCMD_END};
+static const union AnimCmd sAnim_Ball2[] = {ANIMCMD_FRAME(2, 1), ANIMCMD_END};
+static const union AnimCmd sAnim_Ball3[] = {ANIMCMD_FRAME(3, 1), ANIMCMD_END};
+static const union AnimCmd sAnim_Ball4[] = {ANIMCMD_FRAME(4, 1), ANIMCMD_END};
+
+// One animation per frame of the sheet: the record picks the frame.
+static const union AnimCmd *const sAnims_ThrownBall[] =
+{
+    sAnim_Ball0, sAnim_Ball1, sAnim_Ball2, sAnim_Ball3, sAnim_Ball4,
+};
+
+#define sThrowIndex data[0]
+#define sMagic      data[1]
+
+// Positions are set by OverworldCatch_Update.
+static void SpriteCB_ThrownBall(struct Sprite *sprite)
+{
+}
+
+static bool32 IsBallSpriteValid(const struct PendingThrow *throw)
+{
+    const struct Sprite *sprite = &gSprites[throw->spriteId];
+
+    return throw->spriteId < MAX_SPRITES
+        && sprite->inUse
+        && sprite->callback == SpriteCB_ThrownBall
+        && sprite->sThrowIndex == throw - sCatch.throws
+        && sprite->sMagic == BALL_SPRITE_MAGIC;
+}
+
+// Never an assert: VRAM and the 16 sprite palettes are full on busy maps
+// (overworld_encounters.md). Without a sprite the record goes on unseen, and
+// a step that needs one finishes the throw at once (FinishThrow): nothing
+// ever waits on a sprite.
+static bool32 CreateBallSprite(struct PendingThrow *throw)
+{
+    const struct ObjectEventGraphicsInfo *info = GetBallGraphicsInfo(throw->ball);
+    struct SpriteTemplate template =
+    {
+        .tileTag = TAG_NONE,
+        .paletteTag = info->paletteTag,
+        .oam = info->oam,
+        .anims = sAnims_ThrownBall,
+        .images = info->images,
+        .affineAnims = gDummySpriteAffineAnimTable,
+        .callback = SpriteCB_ThrownBall,
+    };
+    u32 paletteNum;
+    u8 spriteId;
+    struct Sprite *sprite;
+
+    throw->spriteId = MAX_SPRITES;
+    paletteNum = LoadObjectEventPalette(info->paletteTag);
+    if (paletteNum == 0xFF)
+        return FALSE;
+    spriteId = CreateSprite(&template, throw->x, throw->y, 1);
+    if (spriteId == MAX_SPRITES)
+    {
+        FieldEffectFreePaletteIfUnused(paletteNum);
+        return FALSE;
+    }
+
+    sprite = &gSprites[spriteId];
+    sprite->coordOffsetEnabled = TRUE;
+    sprite->oam.priority = gSprites[gObjectEvents[gPlayerAvatar.objectEventId].spriteId].oam.priority;
+    sprite->sThrowIndex = throw - sCatch.throws;
+    sprite->sMagic = BALL_SPRITE_MAGIC;
+    throw->spriteId = spriteId;
+    return TRUE;
+}
+
+static void DestroyBallSprite(struct PendingThrow *throw)
+{
+    if (IsBallSpriteValid(throw))
+    {
+        u32 paletteNum = gSprites[throw->spriteId].oam.paletteNum;
+
+        DestroySprite(&gSprites[throw->spriteId]);
+        FieldEffectFreePaletteIfUnused(paletteNum);
+    }
+    throw->spriteId = MAX_SPRITES;
+}
+
+static void DrawBall(struct PendingThrow *throw, u32 frame, s32 wobble, bool32 visible)
+{
+    struct Sprite *sprite;
+
+    if (!IsBallSpriteValid(throw))
+        return;
+    sprite = &gSprites[throw->spriteId];
+    sprite->x = throw->x;
+    sprite->y = throw->y;
+    sprite->x2 = wobble;
+    sprite->y2 = -throw->height;
+    sprite->invisible = !visible;
+    StartSpriteAnimIfDifferent(sprite, frame);
+}
+
+#undef sThrowIndex
+#undef sMagic
+
+// Where a Ball (a 16x32 frame, the Ball at its bottom) lies on the ground
+// under an object, from the object's sprite: right while it walks, and the
+// same coordinate space as the Ball's sprite.
+static void GetObjectGroundPos(const struct ObjectEvent *object, s16 *x, s16 *y)
+{
+    const struct Sprite *sprite = &gSprites[object->spriteId];
+
+    *x = sprite->x + sprite->x2;
+    *y = sprite->y + sprite->y2 - sprite->centerToCornerVecY - 16;
+}
+
+// ---------------------------------------------------------------------------
+// The throw
+// ---------------------------------------------------------------------------
+
+// The player holds out an arm: the first frame of the running step, which
+// the sheet already has (no new graphics). On foot only. Standing still, the
+// input code gives the player its facing animation again every frame
+// (PlayerFaceDirection), unless a movement action is running: a 16-frame
+// delay, which leaves the animation alone, holds the pose and keeps the
+// player still for that long (about a quarter of a second). Once it ends the
+// facing animation comes back by itself. The last facing action is done but
+// still held (PlayerStep clears it later in the frame), and a held action
+// counts as busy: it is cleared first, as PlayerStep does.
+static void StartThrowPose(void)
+{
+    struct ObjectEvent *player = &gObjectEvents[gPlayerAvatar.objectEventId];
+    struct Sprite *sprite = &gSprites[player->spriteId];
+
+    if (!TestPlayerAvatarFlags(PLAYER_AVATAR_FLAG_ON_FOOT)
+     || player->graphicsId != GetPlayerAvatarGraphicsIdByStateId(PLAYER_AVATAR_STATE_NORMAL)
+     || gPlayerAvatar.tileTransitionState != T_NOT_MOVING
+     || !ObjectEventClearHeldMovementIfFinished(player)
+     || ObjectEventSetHeldMovement(player, MOVEMENT_ACTION_DELAY_16))
+        return;
+
+    StartSpriteAnim(sprite, GetRunningDirectionAnimNum(player->facingDirection));
+    sprite->animPaused = TRUE;
+}
+
 // R pressed on foot or surfing. Returns TRUE when a script was started (the
 // caller locks the controls); a Ball thrown leaves the player free.
 bool32 OverworldCatch_TryThrow(void)
 {
     u32 objectEventId = OBJECT_EVENTS_COUNT;
     u32 distance = 0;
-    struct ObjectEvent *owe;
+    struct ObjectEvent *player = &gObjectEvents[gPlayerAvatar.objectEventId];
+    struct ObjectEvent *owe = NULL;
+    enum ThrowTarget target;
 
     if (!FlagGet(FLAG_SYS_POKEMON_GET))
         return FALSE;
 
-    // Nothing to hit: nothing happens, and nothing is used up (D16, D17).
-    if (FindThrowTarget(&objectEventId, &distance) != THROW_TARGET_OWE)
+    target = FindThrowTarget(&objectEventId, &distance);
+    if (target == THROW_TARGET_FOLLOWER)
         return FALSE;
-    owe = &gObjectEvents[objectEventId];
+    if (target == THROW_TARGET_OWE)
+        owe = &gObjectEvents[objectEventId];
 
     if (IsThrowDisabledHere())
-        return StartBlockedScript(THROW_BLOCK_AREA);
+    {
+        // Said only when there is something to catch.
+        if (owe != NULL)
+            return StartBlockedScript(THROW_BLOCK_AREA);
+        return FALSE;
+    }
 
     if (sCatch.monMode)
     {
         u32 slot = GetSelectedMonSlot();
 
-        if (slot == PARTY_SIZE)
+        // Nothing to hit: nothing happens (D17).
+        if (owe == NULL || slot == PARTY_SIZE)
             return FALSE;
         gOverworldThrowLeadSlot = slot;
         return StartBattleWithTarget(owe, objectEventId);
@@ -482,7 +695,7 @@ bool32 OverworldCatch_TryThrow(void)
 
     // Roamers and outbreak Pokémon cannot be built outside a battle (P4):
     // the Ball is not thrown and the battle starts.
-    if (IsOWEBattleOnly(owe))
+    if (owe != NULL && IsOWEBattleOnly(owe))
         return StartBattleWithTarget(owe, objectEventId);
 
     // Every Ball in the air may become a catch, and the queue of catches
@@ -491,9 +704,12 @@ bool32 OverworldCatch_TryThrow(void)
     if (sCatch.cooldown != 0 || CountThrows(THROW_FLYING) + sCatch.numResults >= THROW_MAX_PENDING)
         return FALSE;
 
-    enum ThrowBlock block = GetCatchBlock(owe);
-    if (block != THROW_BLOCK_NONE)
-        return StartBlockedScript(block);
+    if (owe != NULL)
+    {
+        enum ThrowBlock block = GetCatchBlock(owe);
+        if (block != THROW_BLOCK_NONE)
+            return StartBlockedScript(block);
+    }
 
     for (u32 i = 0; i < THROW_MAX_PENDING; i++)
     {
@@ -508,14 +724,45 @@ bool32 OverworldCatch_TryThrow(void)
             return FALSE;
         gLastThrownBall = ball;
         throw->state = THROW_FLYING;
-        throw->timer = THROW_FLIGHT_BASE + THROW_FLIGHT_PER_TILE * distance;
+        throw->flightTime = throw->timer = THROW_FLIGHT_BASE + THROW_FLIGHT_PER_TILE * distance;
         throw->objectEventId = objectEventId;
-        throw->localId = owe->localId;
-        throw->mapNum = owe->mapNum;
-        throw->mapGroup = owe->mapGroup;
-        throw->graphicsId = owe->graphicsId;
         throw->ball = ball;
+        throw->miss = (owe == NULL);
+        throw->caught = FALSE;
+        throw->holdsOWE = FALSE;
+        if (owe != NULL)
+        {
+            throw->localId = owe->localId;
+            throw->mapNum = owe->mapNum;
+            throw->mapGroup = owe->mapGroup;
+            throw->graphicsId = owe->graphicsId;
+        }
+
+        GetObjectGroundPos(player, &throw->fromX, &throw->fromY);
+        // From the hand, not from the middle of the player.
+        throw->fromX += (s32)gDirectionToVectors[player->facingDirection].x * 8;
+        throw->fromY += (s32)gDirectionToVectors[player->facingDirection].y * 8;
+        if (owe != NULL)
+        {
+            GetObjectGroundPos(owe, &throw->toX, &throw->toY);
+        }
+        else
+        {
+            // The full range, or the near side of whatever it hits,
+            // counted from the player (the Ball starts half a tile ahead).
+            s32 pixels = 16 * distance - 8 - (target == THROW_TARGET_BLOCKED ? 8 : 0);
+
+            throw->toX = throw->fromX + (s32)gDirectionToVectors[player->facingDirection].x * pixels;
+            throw->toY = throw->fromY + (s32)gDirectionToVectors[player->facingDirection].y * pixels;
+        }
+        throw->x = throw->fromX;
+        throw->y = throw->fromY;
+        throw->height = BALL_HAND_HEIGHT;
+        CreateBallSprite(throw);
+        DrawBall(throw, 0, 0, TRUE);
+
         sCatch.cooldown = THROW_COOLDOWN;
+        StartThrowPose();
         PlaySE(SE_BALL_THROW);
         break;
     }
@@ -525,7 +772,6 @@ bool32 OverworldCatch_TryThrow(void)
 static void ReturnBall(struct PendingThrow *throw)
 {
     AddBagItem(throw->ball, 1);
-    throw->state = THROW_FREE;
 }
 
 // The Pokémon the Ball was thrown at, if it is still that one: it may have
@@ -534,7 +780,8 @@ static struct ObjectEvent *GetThrowTarget(const struct PendingThrow *throw)
 {
     struct ObjectEvent *owe = &gObjectEvents[throw->objectEventId];
 
-    if (throw->objectEventId >= OBJECT_EVENTS_COUNT
+    if (throw->miss
+     || throw->objectEventId >= OBJECT_EVENTS_COUNT
      || !IsOverworldWildEncounter(owe, OWE_GENERATED)
      || owe->localId != throw->localId
      || owe->mapNum != throw->mapNum
@@ -542,6 +789,108 @@ static struct ObjectEvent *GetThrowTarget(const struct PendingThrow *throw)
      || owe->graphicsId != throw->graphicsId)
         return NULL;
     return owe;
+}
+
+// While the Pokémon is in the Ball it does not move, and from the beam on
+// (frame 4 of the opening) it does not show. Asked every frame: a script's
+// release unfreezes every object (UnfreezeObjectEvents), and the swim sprite
+// reads the flag too (SpriteCB_OWESwim).
+static void KeepOWEInBall(struct PendingThrow *throw, bool32 hide)
+{
+    struct ObjectEvent *owe = GetThrowTarget(throw);
+
+    if (owe == NULL)
+    {
+        throw->holdsOWE = FALSE;
+        return;
+    }
+    FreezeObjectEvent(owe);
+    if (hide)
+    {
+        owe->invisible = TRUE;
+        gSprites[owe->spriteId].invisible = TRUE;
+    }
+}
+
+// It breaks out, and now knows the player is there: it flees or attacks as
+// its behaviour says (D2), with its "!" when it notices.
+static void ReleaseOWEFromBall(struct PendingThrow *throw)
+{
+    struct ObjectEvent *owe = throw->holdsOWE ? GetThrowTarget(throw) : NULL;
+
+    throw->holdsOWE = FALSE;
+    if (owe == NULL)
+        return;
+    owe->invisible = FALSE;
+    UnfreezeObjectEvent(owe);
+    ForceOWEToNoticePlayer(owe);
+}
+
+// The Pokémon goes into the Ball for good.
+static void RemoveOWEInBall(struct PendingThrow *throw)
+{
+    struct ObjectEvent *owe = throw->holdsOWE ? GetThrowTarget(throw) : NULL;
+
+    throw->holdsOWE = FALSE;
+    if (owe != NULL)
+        RemoveCaughtOWE(owe);
+}
+
+// Skips the rest of the animation, with its outcome: when a sprite is
+// missing, and when a battle starts.
+static void FinishThrow(struct PendingThrow *throw)
+{
+    switch (throw->state)
+    {
+    case THROW_FREE:
+        return;
+    case THROW_FLYING:
+        // Not landed: nothing decided yet.
+        if (!throw->miss)
+            return;
+        break;
+    default:
+        if (throw->caught)
+            RemoveOWEInBall(throw);
+        else
+            ReleaseOWEFromBall(throw);
+        break;
+    }
+    if (throw->miss)
+        ReturnBall(throw);
+    DestroyBallSprite(throw);
+    throw->state = THROW_FREE;
+}
+
+// A battle is about to start: the Balls on the ground are done with before
+// the transition. A Ball still in the air keeps flying after the battle
+// (unseen until it lands); its target may be the Pokémon of this battle,
+// which makes it a miss.
+void OverworldCatch_OnBattleStart(void)
+{
+    for (u32 i = 0; i < THROW_MAX_PENDING; i++)
+    {
+        struct PendingThrow *throw = &sCatch.throws[i];
+
+        if (throw->state == THROW_FLYING && !throw->miss)
+            DestroyBallSprite(throw);
+        else
+            FinishThrow(throw);
+    }
+}
+
+// A Pokémon inside a Ball cannot be walked into: there is nothing to fight
+// until it breaks out (TryTriggerOverworldWildEncounter).
+bool32 OverworldCatch_IsOWEInBall(const struct ObjectEvent *owe)
+{
+    for (u32 i = 0; i < THROW_MAX_PENDING; i++)
+    {
+        struct PendingThrow *throw = &sCatch.throws[i];
+
+        if (throw->state != THROW_FREE && throw->holdsOWE && GetThrowTarget(throw) == owe)
+            return TRUE;
+    }
+    return FALSE;
 }
 
 // ---------------------------------------------------------------------------
@@ -664,37 +1013,198 @@ static bool32 GiveCaughtMon(struct Pokemon *mon, u32 ball)
     return TRUE;
 }
 
+// The Ball comes down from where it is: a miss, a Pokémon gone from under it,
+// a Ball that bounced off.
+static void StartBallFall(struct PendingThrow *throw)
+{
+    throw->miss = TRUE;
+    throw->holdsOWE = FALSE;
+    throw->fallHeight = throw->height;
+    throw->state = THROW_FALLING;
+    throw->timer = BALL_FALL_FRAMES;
+}
+
 static void ResolveImpact(struct PendingThrow *throw, struct ObjectEvent *owe)
 {
     // The stack, not gEnemyParty: the spawn code builds its Pokémon there
     // and the controls are free while a Ball flies.
     struct Pokemon mon;
     bool32 aware = IsOWEAwareOfPlayer(owe);
+    u32 shakes;
 
     // The Ball bounces off and comes back (P8).
     if (GetCatchBlock(owe) != THROW_BLOCK_NONE)
     {
         PlaySE(SE_BALL_BOUNCE_1);
-        ReturnBall(throw);
+        StartBallFall(throw);
         return;
     }
 
     CreateMonFromOWE(&mon, owe);
-    if (RollShakes(ComputeOverworldCaptureOdds(&mon, owe, throw->ball, aware)) == BALL_3_SHAKES_SUCCESS
-     && GiveCaughtMon(&mon, throw->ball))
+    shakes = RollShakes(ComputeOverworldCaptureOdds(&mon, owe, throw->ball, aware));
+    throw->caught = (shakes == BALL_3_SHAKES_SUCCESS && GiveCaughtMon(&mon, throw->ball));
+    // BALL_3_SHAKES_FAIL breaks out after the third.
+    throw->shakes = min(shakes, BALL_3_SHAKES_FAIL);
+
+    // The Pokémon stops where it is, and goes into the Ball on the beam.
+    throw->holdsOWE = TRUE;
+    FreezeObjectEvent(owe);
+    GetObjectGroundPos(owe, &throw->x, &throw->y);
+    throw->height = BALL_HIT_HEIGHT;
+    throw->state = THROW_OPENING;
+    throw->timer = BALL_OPEN_FRAMES;
+    PlaySE(SE_BALL_TRADE);
+
+    if (!IsBallSpriteValid(throw) && !CreateBallSprite(throw))
+        FinishThrow(throw);
+}
+
+static const s8 sShakeWobble[BALL_SHAKE_FRAMES] = {0, 1, 1, 2, 2, 1, 1, 0, 0, -1, -1, -2, -2, -1, -1, 0};
+
+static void UpdateThrow(struct PendingThrow *throw)
+{
+    u32 frame = 0;
+    s32 wobble = 0;
+    bool32 visible = TRUE;
+
+    // The field was rebuilt (a screen opened from it resets every sprite):
+    // the slot is free or someone else's now. In the air the Ball just goes
+    // unseen until it lands.
+    if (throw->spriteId < MAX_SPRITES && !IsBallSpriteValid(throw))
     {
-        RemoveCaughtOWE(owe);
-        PlaySE(SE_BALL);
+        throw->spriteId = MAX_SPRITES;
+        if (throw->state != THROW_FLYING)
+        {
+            FinishThrow(throw);
+            return;
+        }
     }
-    else
+
+    if (throw->holdsOWE)
+        KeepOWEInBall(throw, throw->state != THROW_OPENING || throw->timer <= BALL_OPEN_FRAMES / 4);
+
+    switch (throw->state)
     {
-        // It breaks out and now knows the player is there: it flees or
-        // attacks as its behaviour says (D2).
-        ForceOWEToNoticePlayer(owe);
-        PlaySE(SE_BALL_OPEN);
+    case THROW_FREE:
+        return;
+    case THROW_FLYING:
+    {
+        struct ObjectEvent *owe = GetThrowTarget(throw);
+        s32 elapsed, total = throw->flightTime;
+
+        if (!throw->miss && owe == NULL)
+        {
+            // It fled, or is gone: nothing to hit (D16).
+            StartBallFall(throw);
+            break;
+        }
+        // Follows the Pokémon if it moves.
+        if (owe != NULL)
+            GetObjectGroundPos(owe, &throw->toX, &throw->toY);
+
+        elapsed = total - --throw->timer;
+        throw->x = throw->fromX + (throw->toX - throw->fromX) * elapsed / total;
+        throw->y = throw->fromY + (throw->toY - throw->fromY) * elapsed / total;
+        // A straight line from the hand to the Pokémon, plus a parabola.
+        throw->height = BALL_HAND_HEIGHT + (BALL_HIT_HEIGHT - BALL_HAND_HEIGHT) * elapsed / total
+                      + 4 * (BALL_ARC_BASE + BALL_ARC_PER_TILE * total / THROW_FLIGHT_PER_TILE) * elapsed * (total - elapsed) / (total * total);
+
+        if (throw->timer == 0)
+        {
+            if (owe == NULL)
+                StartBallFall(throw);
+            else
+                ResolveImpact(throw, owe);
+        }
+        break;
     }
-    throw->state = THROW_SETTLING;
-    throw->timer = THROW_SETTLE_FRAMES;
+    case THROW_OPENING:
+        frame = 1 + (BALL_OPEN_FRAMES - throw->timer) / (BALL_OPEN_FRAMES / 4);
+        if (--throw->timer == 0)
+        {
+            throw->state = THROW_CLOSING;
+            throw->timer = BALL_CLOSE_FRAMES;
+            if (throw->caught)
+                RemoveOWEInBall(throw);
+        }
+        break;
+    case THROW_CLOSING:
+        frame = (throw->timer + 1) / 2;
+        if (--throw->timer == 0)
+        {
+            throw->fallHeight = throw->height;
+            throw->state = THROW_FALLING;
+            throw->timer = BALL_FALL_FRAMES;
+        }
+        break;
+    case THROW_FALLING:
+    {
+        s32 left = --throw->timer;
+
+        // Faster as it falls.
+        throw->height = throw->fallHeight * left * left / (BALL_FALL_FRAMES * BALL_FALL_FRAMES);
+        if (left == 0)
+        {
+            PlaySE(SE_BALL_BOUNCE_1);
+            if (throw->miss)
+            {
+                throw->state = THROW_DROPPED;
+                throw->timer = BALL_DROPPED_FRAMES;
+            }
+            else
+            {
+                throw->state = THROW_SHAKING;
+                throw->timer = BALL_SHAKE_PAUSE;
+            }
+        }
+        break;
+    }
+    case THROW_SHAKING:
+        if (throw->timer > BALL_SHAKE_PAUSE)
+            wobble = sShakeWobble[BALL_SHAKE_PAUSE + BALL_SHAKE_FRAMES - throw->timer];
+        if (--throw->timer == 0)
+        {
+            if (throw->shakes != 0)
+            {
+                throw->shakes--;
+                throw->timer = BALL_SHAKE_FRAMES + BALL_SHAKE_PAUSE;
+                PlaySE(SE_BALL);
+            }
+            else if (throw->caught)
+            {
+                throw->state = THROW_CAUGHT;
+                throw->timer = BALL_CAUGHT_FRAMES;
+                PlaySE(SE_RG_BALL_CLICK);
+            }
+            else
+            {
+                throw->state = THROW_BREAKOUT;
+                throw->timer = BALL_BREAKOUT_FRAMES;
+                ReleaseOWEFromBall(throw);
+                PlaySE(SE_BALL_OPEN);
+            }
+        }
+        break;
+    case THROW_CAUGHT:
+    case THROW_DROPPED:
+        visible = (throw->timer > BALL_BLINK_FRAMES || (throw->timer & 2));
+        if (--throw->timer == 0)
+        {
+            FinishThrow(throw);
+            return;
+        }
+        break;
+    case THROW_BREAKOUT:
+        frame = min(4, 1 + (BALL_BREAKOUT_FRAMES - throw->timer) / 2);
+        if (--throw->timer == 0)
+        {
+            FinishThrow(throw);
+            return;
+        }
+        break;
+    }
+
+    DrawBall(throw, frame, wobble, visible);
 }
 
 // Every frame of the overworld.
@@ -703,7 +1213,7 @@ void OverworldCatch_Update(void)
     if (sCatch.cooldown != 0)
         sCatch.cooldown--;
 
-    // While a script runs nothing lands: the script may be the battle with
+    // While a script runs nothing moves: the script may be the battle with
     // the very Pokémon a Ball is flying at.
     if (ArePlayerFieldControlsLocked())
     {
@@ -718,40 +1228,22 @@ void OverworldCatch_Update(void)
     }
 
     for (u32 i = 0; i < THROW_MAX_PENDING; i++)
-    {
-        struct PendingThrow *throw = &sCatch.throws[i];
-
-        switch (throw->state)
-        {
-        case THROW_FLYING:
-        {
-            struct ObjectEvent *owe = GetThrowTarget(throw);
-
-            if (owe == NULL)
-                ReturnBall(throw); // it hit nothing (D16)
-            else if (--throw->timer == 0)
-                ResolveImpact(throw, owe);
-            break;
-        }
-        case THROW_SETTLING:
-            if (--throw->timer == 0)
-                throw->state = THROW_FREE;
-            break;
-        }
-    }
+        UpdateThrow(&sCatch.throws[i]);
 }
 
 // ---------------------------------------------------------------------------
 // After the volley: banners, then nicknames
 // ---------------------------------------------------------------------------
 
-// Called when the player could start a script. Returns TRUE if the results
-// script was started.
-bool32 OverworldCatch_IsBallInFlight(void)
+// A Ball is out of the bag (in the air or on the ground) until its record is
+// free: no Start menu meanwhile, a save would lose it.
+bool32 OverworldCatch_IsBallOut(void)
 {
-    return CountThrows(THROW_FLYING) != 0;
+    return CountThrows(THROW_FREE) != THROW_MAX_PENDING;
 }
 
+// Called when the player could start a script. Returns TRUE if the results
+// script was started.
 bool32 OverworldCatch_TryStartResults(void)
 {
     if (sCatch.numResults == 0 || CountThrows(THROW_FREE) != THROW_MAX_PENDING)

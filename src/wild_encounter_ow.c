@@ -1,5 +1,6 @@
 #include "global.h"
 #include "wild_encounter_ow.h"
+#include "overworld_catch.h"
 #include "battle_setup.h"
 #include "battle_main.h"
 #include "battle_pike.h"
@@ -393,7 +394,9 @@ static void SpriteCB_OWESwim(struct Sprite *sprite)
         sprite->sSwimVelocity = -sprite->sSwimVelocity;
     sprite->oam.priority = oweSprite->oam.priority;
     sprite->subpriority = oweSprite->subpriority;
-    sprite->invisible = owe->offScreen;
+    // Hasep: also hidden while the Pokémon is inside a thrown Ball
+    // (overworld_catch.c).
+    sprite->invisible = owe->offScreen || owe->invisible;
 }
 
 static void UpdateOWESwimSprites(void)
@@ -1325,6 +1328,10 @@ void TryTriggerOverworldWildEncounter(struct ObjectEvent *obstacle, struct Objec
         return;
 
     struct ObjectEvent *wildMon = playerFollowerIsColliderOWE ? obstacle : collider;
+    // Hasep: a Pokémon inside a thrown Ball is not there to fight until it
+    // breaks out (overworld_catch.c); bumping into the Ball does nothing.
+    if (OverworldCatch_IsOWEInBall(wildMon))
+        return;
     enum CategoryOWE category = GetOWECategory(wildMon);
     if (category < ROAMER_COUNT
      && !IsRoamerAt(category, gSaveBlock1Ptr->location.mapGroup, gSaveBlock1Ptr->location.mapNum))
