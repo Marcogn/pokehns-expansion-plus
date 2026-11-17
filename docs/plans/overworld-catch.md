@@ -1,6 +1,6 @@
 # Piano: cattura nell'overworld (stile Leggende Pokémon: Arceus)
 
-**Stato (16/11): fasi 1-2 fatte (tetti e prezzi; passo lento e percezione); prossima: fase 3 (Fable 5.2).**
+**Stato (17/11): fasi 1-3 fatte (tetti e prezzi; passo lento e percezione; nucleo del lancio senza animazione); prossima: fase 4 (Fable 5.2).**
 
 Si appoggia agli OWE già in gioco: leggere prima
 [`.claude/rules/overworld_encounters.md`](../../.claude/rules/overworld_encounters.md)
@@ -53,7 +53,7 @@ della fase che le realizza.
 | P20 | AUTORUN spento | B tenuto resta la **corsa**, come oggi: senza corsa automatica il passo lento non c'è e la camminata normale si sente a 2 caselle | 2 |
 | P21 | BUTTON MODE `L=A` | L vale A (`src/main.c:300`): niente cambio di modalità né scorrimento; R lancia comunque la Ball o il Pokémon già scelto | 3 |
 | P2 | Gittata | 5 caselle in linea retta; si ferma al primo ostacolo o dislivello (D16: niente consumo) | 3 |
-| P3 | Nuzlocke / One Type / Species Clause | le stesse regole della lotta: dove la cattura sarebbe bloccata la Ball non parte (messaggio); una cattura riuscita segna la zona | 3 |
+| P3 | Nuzlocke / One Type / Species Clause | le stesse regole della lotta: dove la cattura sarebbe bloccata la Ball non parte (messaggio); una cattura riuscita segna la zona. **Un lancio fallito non la segna** (utente, 17/11): col lancio conta solo la prima cattura riuscita, diversamente dalla lotta, dove qualunque esito consuma l'incontro. Scelta voluta, non un buco | 3 |
 | P4 | Leggendari erranti e sciami | il lancio fallisce sempre e parte la lotta (i loro dati vivono fuori dall'oggetto) | 3 |
 | P5 | Zona Safari, Gara Pigliamosche, Azienda Lotta | lancio **spento** nella prima versione | 3 |
 | P6 | Esperienza alla cattura | nessuna (in lotta `B_EXP_CATCH` la dà: qui non c'è chi ha partecipato) | 3 |
@@ -481,6 +481,139 @@ basta Opus. La 7 è un port con sorgente chiaro, la 10 grafica e contenuto.
   §5.2 qui sopra e la regola.
 - Il commento di `include/config/wild_encounter.h:8` su
   `HasepAreOWEsAllowedHere()` è ancora da togliere.
+
+### 5.3 Fase 3, com'è stata fatta (17/11)
+
+- **Cosa**: `src/overworld_catch.c` (nuovo), script in
+  `data/scripts/overworld_catch.inc`. Fatti e trappole nella regola
+  `.claude/rules/overworld_catch.md`, sezione "Lancio"; ricette di prova in
+  `docs/claude/emulator.md`. CHANGELOG (2.0.6.PLUS.12), README, `dexnav.md`.
+  - Tasti di D1: R lancia (ricordato 16 frame, così a metà passo non si
+    perde), L premuto cambia modalità, L tenuto + ←/→ scorre e ferma il
+    giocatore; scorciatoia DexNav su R tolta; in bici R resta Mach/Acro.
+  - Un lancio è un record con un timer di volo (8 + 8 frame a casella) e poi
+    60 frame di "assestamento" al posto delle scosse: la fase 4 ci appende
+    gli sprite. Esito all'impatto, Pokémon consegnato subito, banner e
+    soprannomi in coda dopo l'ultimo record.
+  - Formula di cattura separata dai dati di lotta (`struct CaptureParams`),
+    Pokémon costruito da `CreateMonFromOWE` (comune con la lotta), regole di
+    sfida da `GetCaptureChallengeChecks`, strumento tenuto da
+    `GiveWildMonHeldItem`: quattro refactor di codice esistente.
+  - Dopo la cattura, come in lotta: Ball nel Pokémon, amicizia della Friend
+    Ball, strumento tenuto, OT, squadra o PC, Pokédex (visto e catturato),
+    `GAME_STAT_POKEMON_CAPTURES`, flag Nuzlocke della zona, soprannome. Non
+    fatti di proposito: esperienza (P6), pagina del Pokédex (P18), scelta
+    "squadra o Box" a squadra piena (P8), TV e catena DexNav.
+- **Scelte prese qui** (cambiabili, la 6 rivede il bilanciamento):
+  - **Quick Ball**: il suo ×5 vale solo su un Pokémon che non ti ha notato
+    (qui non ci sono turni: sarebbe stato ×5 sempre). Timer Ball: mai bonus.
+  - **Il tipo "vaga" non reagisce** a una Ball fallita e tiene il ×2.
+  - **Pokémon lanciato**: la lotta parte da dove siete, senza
+    l'avvicinamento dello script normale (su 5 caselle porterebbe a riva un
+    Pokémon che nuota).
+  - **Roamer e sciami** (P4): R avvia la lotta e la Ball **non parte** (il
+    piano diceva "il lancio fallisce sempre": così non si spreca una Ball).
+  - **Acqua**: non ferma il lancio (nessuna casella d'acqua ha il bit di
+    collisione); il "dislivello" di P2 è la collisione dei bordi.
+  - **`EASY CATCH`** vale anche qui, come in lotta.
+- **Verificato** in mGBA + GDB col `.sav` dell'utente (Route 43, squadra da
+  6 al 38, 37 Poké Ball; `EASY CATCH` e NICKNAMES OFF accesi, cambiati in
+  RAM dove serviva). "ROM di prova" = usa-e-getta, identica salvo gli OWE a
+  riposo fermi (non nel git). Bersagli messi sulla linea e specie cambiate
+  scrivendo l'oggetto da GDB.
+  - **Formula in lotta** (ROM strumentata: le funzioni di prima del
+    refactor, da `2dcd0dc6`, girano accanto alle nuove a ogni lancio):
+    **15 casi, 15 uguali**. Mewtwo Lv 23: Poké 1/1, Love 4/4 (ramo dei tipi
+    di HnS), Quick 1/1 dopo il primo turno, Timer 1/1. Skarmory Lv 23: Quick
+    32/32 al primo turno, Dusk 28/28 di notte, Nest 13/13, Level 32/32, Poké
+    8/8, Ultra 16/16, Net 8/8, Fast 8/8; con lo stato scritto in RAM: 5 PS su
+    70 23/23, 5 PS + paralisi 34/34, 20 PS + sonno con Dusk 175/175.
+  - **Master Ball, guardando il Pokémon**: Pikachu ♂ in squadra (slot
+    liberato in RAM): Lv 21, Master Ball, checksum valido, OT e ID del
+    giocatore, "met at Lv 21, Route 43" nel riassunto, non Bad Egg; Pokédex
+    0→1, catture +1, Master Ball −1; soprannome "AA" dalla schermata dei
+    nomi, salvato. Venonat ♀ a squadra piena: al PC.
+  - **Banner**: squadra e PC, ♂ blu, ♀ rosso, senza sesso (Magnemite, niente
+    simbolo), nome da 12 lettere (Crabominable); si chiude con A solo a
+    fanfara finita; chiusura pulita. Tema scuro dell'utente: cornice scura.
+  - **Raffica**: 2 presi + 1 fallito (il terzo, allertato, mi ha caricato:
+    lotta, fuga, poi i due banner in ordine); 3 presi con squadra da 5 (uno
+    in squadra, due al PC, tre banner). **Bug trovato qui**: la coda contava
+    anche i record già atterrati e rifiutava il terzo lancio.
+  - **Nuzlocke, seconda Ball già in volo**: la Ball 1 (volo allungato in
+    RAM) atterra dopo che la 2 ha catturato e segnato la zona: rimborso
+    (breakpoint su `AddBagItem`: Master Ball, 1), Pokémon ancora sulla mappa.
+  - **Rifiuti al lancio**, con messaggio e Ball non usata: zona Nuzlocke
+    usata, Box pieni a squadra piena, flag Safari.
+  - **Non consumata**: linea vuota, NPC, Pokémon decorativo; lotta partita
+    col bersaglio mentre la Ball volava (36→37 dopo la fuga).
+  - **Fallito → allertato**: inseguitore di spalle, giocatore fermo, non
+    allertato per 3 s; dopo la Ball fallita allertato entro 16 frame, si
+    gira e viene. **Bug trovato qui**: il bit di allerta restava acceso su
+    un OWE già allertato o "vaga" (ora non si alza).
+  - **Spawn nello stesso giro dell'impatto** (conto alla rovescia scritto a
+    `timer − 1`, breakpoint d'ordine): 3 prove, ogni volta la specie giusta
+    nel Box e il nuovo OWE nato.
+  - **Tasti**: L premuto alterna la modalità; L + →/← scorre Ball (ordine
+    della tasca, con giro) e Pokémon; L + ↓ per 0,5 s: giocatore fermo; con
+    `L=A` L non alterna e R lancia; AUTORUN spento: R lancia; flag della
+    bici: R alterna Mach/Acro e non lancia.
+  - **Pokémon lanciato**: il secondo della squadra entra per primo da 5
+    caselle; dopo la fuga la squadra è nell'ordine di prima.
+  - **Acqua** (sintetico: metatile dello stagno scritto sotto il bersaglio,
+    Lapras): sprite da nuoto visibile, cattura, oggetto e sprite spariti.
+  - **ROM finale** sul salvataggio intatto: cattura con Poké Ball (EASY
+    CATCH), banner, chiusura; con EASY CATCH spento un lancio fallito e
+    l'allerta. Il resto è sulla ROM di prova.
+- **Non verificato in emulatore**: salita vera in bici (flag scritti in
+  RAM) e un OWE d'acqua vero preso in Surf; roamer e sciami (nessuno nel
+  salvataggio); rifiuti One Type e Species Clause (stessa funzione della
+  zona, altri rami) e Gara/Pike/Piramide/Trainer Hill; soprannome
+  obbligatorio della Nuzlocke; lotta doppia selvatica con Pokémon lanciato;
+  banner in grotta buia (la seconda icona come finestra OBJ è scritta ma non
+  provata); amicizia della Friend Ball e strumento tenuto (i due Pokémon
+  guardati non ne avevano); allineamento del simbolo di sesso guardato a 3×,
+  non misurato in pixel.
+- ROM: 31 908 340 B, 95,09% (+4 816 B sulla fase 2).
+
+- **Dopo `/pr-review` (17/11, PR #60)**: 9 punti dalla revisione generica,
+  tutti verificati sul codice. Corretti 6: (1) i banner partivano **prima**
+  della gestione del passo e su un frame di passo saltavano contapassi e
+  script della casella; (2) Start con una Ball in volo apriva il menu e un
+  salvataggio la perdeva (ora Start è ignorato finché vola, < 1 s); (3) R
+  premuto durante un messaggio tornava come lancio alla chiusura; (4) L
+  tenuto attraverso un menu cambiava modalità al rilascio; (5) la palette
+  dell'icona del banner era liberata anche se condivisa (icona della ricerca
+  DexNav); (6) due commenti superati. Provati in emulatore (1-4 e il banner).
+  Lasciato: il doppio ciclo sulla squadra (stile). **Deciso
+  dall'utente (17/11)**: un lancio **fallito** non consuma l'incontro
+  Nuzlocke della zona (in lotta qualunque esito lo consuma): col lancio conta
+  solo la prima cattura riuscita. Resta così (P3).
+
+**Handoff per la fase 4 (Fable 5.2)**
+- **Non c'è ancora niente a schermo** per il lancio né per la scelta: solo
+  suoni (`SE_BALL_THROW`, `SE_BALL` presa, `SE_BALL_OPEN` uscita,
+  `SE_BALL_BOUNCE_1` rimbalzo, `SE_SWITCH`/`SE_SELECT` per L). Il pannello è
+  della fase 5.
+- Dove agganciare gli sprite: `struct PendingThrow` in `overworld_catch.c`.
+  `OverworldCatch_TryThrow` crea il record, `ResolveImpact` decide (il
+  numero di scosse è il ritorno di `RollShakes`, oggi buttato),
+  `THROW_SETTLE_FRAMES` è la durata finta delle scosse, `ReturnBall` i casi
+  a vuoto. Oggi alla cattura l'OWE è tolto **all'impatto**
+  (`RemoveCaughtOWE`): con l'animazione va nascosto nella Ball e tolto alla
+  fine, e un fallito va fatto riuscire prima dell'allerta.
+- I timer di volo sono `u8` e fermi a controlli bloccati; una lotta che
+  parte lascia i record com'erano (al ritorno: bersaglio sparito = Ball
+  resa). La fase 4 deve chiudere gli sprite prima della transizione.
+- Un lancio senza bersaglio oggi non fa nulla: il "vola 5 caselle e cade"
+  di D16 è animazione, fase 4.
+- La lotta da Pokémon lanciato parte senza avvicinamento: se la fase 4
+  anima l'uscita del Pokémon, lo script è `OverworldCatch_EventScript_Battle`.
+- Per le prove: il salvataggio dell'utente ha `EASY CATCH` acceso;
+  `emulator.md`, sezione del 17/11.
+- **Punti per l'utente** (non bloccano): le scelte elencate sopra (Quick
+  Ball, "vaga", roamer, lotta a distanza); le Ball speciali ancora non in
+  vendita a Johto/Kanto (handoff della fase 1).
 
 ## 6. Scartato, e perché
 

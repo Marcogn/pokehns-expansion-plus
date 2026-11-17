@@ -1,4 +1,5 @@
 #include "global.h"
+#include "overworld_catch.h"
 #include "battle_partner.h"
 #include "overworld.h"
 #include "constants/heal_locations.h"
@@ -1736,6 +1737,14 @@ static void DoCB1_Overworld(u16 newKeys, u16 heldKeys)
 
     UpdatePlayerAvatarTransitionState();
     FieldClearPlayerInput(&inputStruct);
+    // Hasep (overworld catch plan, D1): L switches between Ball and Pokemon
+    // and, held with Left/Right, scrolls them. While it is held the D-pad
+    // belongs to the selection and the player does not move.
+    if (!ArePlayerFieldControlsLocked() && OverworldCatch_HandleLButton(newKeys, heldKeys))
+    {
+        newKeys &= ~DPAD_ANY;
+        heldKeys &= ~DPAD_ANY;
+    }
     FieldGetPlayerInput(&inputStruct, newKeys, heldKeys);
     CancelSignPostMessageBox(&inputStruct);
     if (!ArePlayerFieldControlsLocked())
@@ -1959,6 +1968,7 @@ static void OverworldBasic(void)
         }
     }
     UpdateOverworldWildEncounter();
+    OverworldCatch_Update();
 }
 
 // This CB2 is used when starting

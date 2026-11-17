@@ -26,6 +26,13 @@ extern u8 NuzlockeIsSpeciesClauseActive;
 extern u8 OneTypeChallengeCaptureBlocked;
 
 void SetNuzlockeChecks(void);
+struct CaptureChallengeChecks
+{
+    u8 oneTypeBlocked;  // off-type under the One Type Challenge
+    u8 zoneBlocked;     // Nuzlocke: this area's encounter is used
+    u8 speciesClause;   // Nuzlocke Species Clause: 1 = evolution line caught, 2 = this species caught
+};
+void GetCaptureChallengeChecks(u16 species, bool32 isShiny, bool32 isFateful, struct CaptureChallengeChecks *checks);
 u8 NuzlockeIsCaptureBlockedBySpeciesClause(u16 species);
 
 #endif // GUARD_NUZLOCKE_H

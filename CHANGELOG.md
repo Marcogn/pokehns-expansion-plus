@@ -8,7 +8,38 @@ add the section before releasing. Feature details live in the tables of
 
 ## 2.0.6.PLUS.12
 
+### Added
+- **Throwing Balls at wild Pokémon on the map**: the third step of the
+  overworld catching, still without its animation (the Ball is not drawn
+  yet, you hear it) and without the on-screen selector, which come next.
+  **R** throws the selected Ball straight ahead, up to 5 tiles, at the first
+  visible wild Pokémon on the line. If it holds, the Pokémon is yours
+  without a battle: a banner at the top says so with a short fanfare, then
+  the game offers the nickname. If it does not, the Pokémon notices you and
+  flees or attacks as its temperament says.
+  - The odds are the battle's own at full HP, **doubled if the Pokémon had
+    not noticed you** (see *Sneaking up* below). `EASY CATCH`, the missing
+    badge penalty and every Ball's bonus apply as in battle; the Quick
+    Ball's bonus is for a Pokémon that has not noticed you.
+  - A Ball is only used up when it hits a wild Pokémon. A wall, a person,
+    your follower or nothing at all on the line: it is not thrown.
+  - You can keep throwing while Balls are in the air (about one every half
+    second); the banners and the nickname prompts come after the volley. A
+    full party sends the Pokémon to the PC.
+  - The Nuzlocke, Species Clause and One Type rules refuse the throw with
+    the battle's messages, and a catch uses the area's encounter. No
+    throwing in the Safari Zone, the Bug-Catching Contest or the Battle
+    Frontier. Roamers and outbreak Pokémon start their battle instead.
+  - **L** switches between Ball and Pokémon; **L held with Left/Right**
+    picks which Ball or which party Pokémon (you stand still meanwhile).
+    In Pokémon mode R sends that Pokémon at the wild one and the battle
+    starts with it in front, from where you stand; your party order does
+    not change. With `BUTTON MODE` on `L=A` there is no switching: R throws
+    what is selected.
+
 ### Changed
+- **R no longer starts a DexNav search** on the registered species: open
+  the DexNav from the Start menu. On a bike R still swaps Mach and Acro.
 - **Fewer visible Pokémon**: the first step of the overworld catching
   (`docs/plans/overworld-catch.md`). Up to **4** wild Pokémon on land
   (was 6), **2** on water and in caves (was 3) and **3** in the Safari Zone

@@ -77,7 +77,7 @@ is whose.
 
 | Feature | Option | Notes |
 | --- | --- | --- |
-| Overworld speed-up | `OW SPEED` 1x–4x | Cutscenes always run at 1x. R is reserved for the DexNav. |
+| Overworld speed-up | `OW SPEED` 1x–4x | Cutscenes always run at 1x. R throws a Ball at wild Pokémon on the map. |
 | Battle speed-up | `BATTLE SPEED` 1x–3x | Runs several software ticks per frame; animations keep their timing. |
 | SwSh party menu | `PARTY MENU` CLASSIC/SWSH | Both menus are built and selected at runtime. |
 | Soulgold bag screen | — | Replaces the bag graphics and layout. |
@@ -112,7 +112,7 @@ Switched on or finished, with nothing written for this fork except the wiring:
 
 | Feature | Where it came from | What was done here |
 | --- | --- | --- |
-| DexNav | `src/dexnav.c`, already present with `DEXNAV_ENABLED FALSE` | Turned on, given R on foot, made the creeping reachable, and reconciled with Soulgold: search levels, SELECT to unbind, per-row caught counts, and a pile of Soulgold's robustness fixes. It opens on maps with no wild encounters instead of silently refusing. It also searches in Dark Cave once Flash is used: the stock check treated a Flash-lit cave as too dark. Elm's Aide hands it over with the first five Poké Balls, so it appears in the Start menu only from that scene on — by which point the player already has both the Pokégear and the Pokédex. |
+| DexNav | `src/dexnav.c`, already present with `DEXNAV_ENABLED FALSE` | Turned on, made the creeping reachable (R on foot started a search until 2.0.6.PLUS.11; it throws Balls now and the DexNav opens from the Start menu), and reconciled with Soulgold: search levels, SELECT to unbind, per-row caught counts, and a pile of Soulgold's robustness fixes. It opens on maps with no wild encounters instead of silently refusing. It also searches in Dark Cave once Flash is used: the stock check treated a Flash-lit cave as too dark. Elm's Aide hands it over with the first five Poké Balls, so it appears in the Start menu only from that scene on — by which point the player already has both the Pokégear and the Pokédex. |
 | Move relearner from the summary | `P_ENABLE_MOVE_RELEARNERS`, a pokeemerald-expansion feature | HnS drew the prompt but nothing handled START. Wired up, and kept to the Battle Moves page the way Soulgold does. |
 | Types shown in battle | `src/type_icons.c`, with `B_SHOW_TYPES SHOW_TYPES_NEVER` | Turned on and aligned to Soulgold: the art is Soulgold's and is asymmetric, so the mirroring, the 4px stagger and the slide directions all had to match. |
 | HGSS Pokédex | `src/pokedex_plus_hgss.c`, already present | Used as-is. The party-menu entry point (see *Written from scratch*) is what was added. |

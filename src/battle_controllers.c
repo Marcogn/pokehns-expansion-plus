@@ -1,4 +1,5 @@
 #include "global.h"
+#include "overworld_catch.h"
 #include "battle.h"
 #include "battle_ai_main.h"
 #include "battle_ai_util.h"
@@ -467,6 +468,14 @@ bool32 ShouldUpdateTvData(enum BattlerId battler)
 
 static void SetBattlePartyIds(void)
 {
+    u32 leadSlot = PARTY_SIZE;
+
+    // Wild battles only: the slot is set right before one, but a Trainer
+    // could still step in first.
+    if (!(gBattleTypeFlags & (BATTLE_TYPE_TRAINER | BATTLE_TYPE_LINK | BATTLE_TYPE_RECORDED | BATTLE_TYPE_SAFARI | BATTLE_TYPE_MULTI)))
+        leadSlot = gOverworldThrowLeadSlot;
+    gOverworldThrowLeadSlot = PARTY_SIZE;
+
     if (!(gBattleTypeFlags & BATTLE_TYPE_MULTI))
     {
         for (enum BattlerId i = 0; i < gBattlersCount; i++)
@@ -475,6 +484,14 @@ static void SetBattlePartyIds(void)
             {
                 if (i < 2)
                 {
+                    // Hasep: a Pokémon thrown at a wild one in the overworld
+                    // (overworld_catch.c) leads this battle. Only the index
+                    // changes, the party keeps its order.
+                    if (i == B_BATTLER_0 && leadSlot < PARTY_SIZE && IsValidForBattle(&gPlayerParty[leadSlot]))
+                    {
+                        gBattlerPartyIndexes[i] = leadSlot;
+                        break;
+                    }
                     if (IsValidForBattle(&GetBattlerParty(i)[j]))
                     {
                         gBattlerPartyIndexes[i] = j;

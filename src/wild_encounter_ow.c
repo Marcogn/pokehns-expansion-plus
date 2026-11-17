@@ -139,9 +139,12 @@ static inline bool32 HasSavedOWEMovementState(const struct ObjectEvent *owe)
     return owe->sOverworldEncounterCategory & OWE_SAVED_MOVEMENT_STATE_FLAG;
 }
 
+static void ClearOWEForcedNotice(const struct ObjectEvent *owe);
+
 void SetSavedOWEMovementState(struct ObjectEvent *owe)
 {
     owe->sOverworldEncounterCategory |= OWE_SAVED_MOVEMENT_STATE_FLAG;
+    ClearOWEForcedNotice(owe); // it has noticed now
 }
 
 void ClearSavedOWEMovementState(struct ObjectEvent *owe)
@@ -589,6 +592,77 @@ static enum TypeOWE GetOverworldWildEncounterType(struct ObjectEvent *owe)
     return OWE_MANUAL;
 }
 
+u32 GetOWELevel(const struct ObjectEvent *owe)
+{
+    u32 level = owe->sOverworldEncounterLevel & ~OWE_NO_DESPAWN_FLAG;
+
+    // Not an assertf: a blue screen for a level the object lost would be
+    // worse than a level 1 Pokémon.
+    if (level < MIN_LEVEL || level > MAX_LEVEL)
+        level = MIN_LEVEL;
+    return level;
+}
+
+// Hasep: the Pokémon an OWE stands for. The object only holds species, sex,
+// shininess and level; the rest is rolled here, once, both when the player
+// walks into it (StartWildBattleWithOWE) and when a thrown Ball catches it
+// (overworld_catch.c), so the two can never drift apart.
+// PickWildMonNature and TryApplyPokeblockBonus, as CreateWildMon does for
+// step encounters, so Synchronize and a Safari Pokéblock feeder (nature,
+// perfect IVs, Hidden Ability) still apply.
+void CreateMonFromOWE(struct Pokemon *mon, const struct ObjectEvent *owe)
+{
+    u32 speciesId = OW_SPECIES(owe);
+    bool32 shiny = OW_SHINY(owe) ? TRUE : FALSE;
+    u32 gender = OW_FEMALE(owe) ? MON_FEMALE : MON_MALE;
+    u32 personality = GetMonPersonality(speciesId, gender, PickWildMonNature(speciesId), RANDOM_UNOWN_LETTER);
+
+    CreateMonWithIVs(mon, speciesId, GetOWELevel(owe), personality, OTID_STRUCT_PLAYER_ID, USE_RANDOM_IVS);
+    TryApplyPokeblockBonus(mon, speciesId);
+    GiveMonInitialMoveset(mon);
+    SetMonData(mon, MON_DATA_IS_SHINY, &shiny);
+}
+
+// Roamers and mass outbreaks keep their Pokémon outside the object (the
+// roamer's HP and status, the outbreak's moves): a battle builds them, a
+// thrown Ball cannot.
+bool32 IsOWEBattleOnly(const struct ObjectEvent *owe)
+{
+    enum CategoryOWE category = GetOWECategory(owe);
+
+    return category < ROAMER_COUNT || category == OWE_CATEGORY_MASS_OUTBREAK;
+}
+
+// A Ball that failed: the Pokémon notices the player on its next idle frame
+// (CanAwareOWESeePlayer) and then flees, chases... as its behaviour says.
+// Generated OWEs only (the mask is indexed by spawn slot); the wanderers
+// never notice anything and are left alone.
+static EWRAM_DATA u8 sOWEForcedNoticeMask = 0;
+
+void ForceOWEToNoticePlayer(struct ObjectEvent *owe)
+{
+    // Not one that already has: its bit would only be cleared by the next
+    // notice, so it would notice again the moment it calmed down.
+    if (IsOverworldWildEncounter(owe, OWE_GENERATED)
+     && owe->movementType != MOVEMENT_TYPE_WANDER_AROUND_OWE
+     && !HasSavedOWEMovementState(owe))
+        sOWEForcedNoticeMask |= 1 << GetSpawnSlotByOWELocalId(owe->localId);
+}
+
+static void ClearOWEForcedNotice(const struct ObjectEvent *owe)
+{
+    if (IS_LOCALID_GENERATED_OWE(owe->localId))
+        sOWEForcedNoticeMask &= ~(1 << GetSpawnSlotByOWELocalId(owe->localId));
+}
+
+// A caught Pokémon leaves the map like one that started a battle: the object
+// goes and the spawn countdown restarts.
+void RemoveCaughtOWE(struct ObjectEvent *owe)
+{
+    RemoveObjectEvent(owe);
+    SetNewOWESpawnCountdown();
+}
+
 void StartWildBattleWithOWE(struct ScriptContext *ctx)
 {
     u32 localId = VarGet(ScriptReadHalfword(ctx));
@@ -610,26 +684,10 @@ void StartWildBattleWithOWE(struct ScriptContext *ctx)
         return;
 
     u32 speciesId = OW_SPECIES(owe);
-    bool32 shiny = OW_SHINY(owe) ? TRUE : FALSE;
-    u32 gender = OW_FEMALE(owe) ? MON_FEMALE : MON_MALE;
-    u32 level = owe->sOverworldEncounterLevel & ~OWE_NO_DESPAWN_FLAG;
-    u32 personality;
-
-    assertf(level >= MIN_LEVEL && level <= MAX_LEVEL, "overworld wild encounter does not have valid level.\nlocalId: %d", localId)
-    {
-        level = MIN_LEVEL;
-    }
 
     ZeroEnemyPartyMons();
-    // Hasep: PickWildMonNature and TryApplyPokeblockBonus, as CreateWildMon
-    // does for step encounters, so Synchronize and a Safari Pokéblock feeder
-    // (nature, perfect IVs, Hidden Ability) still apply.
-    personality = GetMonPersonality(speciesId, gender, PickWildMonNature(speciesId), RANDOM_UNOWN_LETTER);
-    CreateMonWithIVs(&gEnemyParty[0], speciesId, level, personality, OTID_STRUCT_PLAYER_ID, USE_RANDOM_IVS);
-    TryApplyPokeblockBonus(&gEnemyParty[0], speciesId);
-    GiveMonInitialMoveset(&gEnemyParty[0]);
-    SetMonData(&gEnemyParty[0], MON_DATA_IS_SHINY, &shiny);
-    
+    CreateMonFromOWE(&gEnemyParty[0], owe);
+
     if (StartWildBattleWithOWE_CheckBattleFrontier(headerId))
         return;
     
@@ -1664,6 +1722,7 @@ void OnOverworldWildEncounterSpawn(struct ObjectEvent *owe)
     if (type == OWE_GENERATED)
         SortOWEAges();
 
+    ClearOWEForcedNotice(owe); // a new Pokémon in a reused slot
     DoOWESpawnAnim(owe);
 }
 
@@ -2214,6 +2273,11 @@ bool32 CanAwareOWESeePlayer(struct ObjectEvent *owe)
 {
     if (owe->movementType == MOVEMENT_TYPE_WANDER_AROUND_OWE)
         return FALSE;
+
+    // Hit by a Ball that did not hold (ForceOWEToNoticePlayer).
+    if (IS_LOCALID_GENERATED_OWE(owe->localId)
+     && (sOWEForcedNoticeMask & (1 << GetSpawnSlotByOWELocalId(owe->localId))))
+        return TRUE;
 
     u32 noiseDistance = GetPlayerNoiseDistance(owe);
     if (noiseDistance != 0 && IsPlayerWithinOWEDistance(owe, noiseDistance))

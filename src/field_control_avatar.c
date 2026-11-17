@@ -1,4 +1,5 @@
 #include "global.h"
+#include "overworld_catch.h"
 #include "battle_setup.h"
 #include "bike.h"
 #include "bug_contest.h"
@@ -108,11 +109,24 @@ void FieldClearPlayerInput(struct FieldInput *input)
     input->dpadDirection = 0;
 }
 
+// A full walking step is 16 frames.
+#define R_PRESS_BUFFER_FRAMES 16
+static EWRAM_DATA u8 sRPressBuffer = 0;
+
 void FieldGetPlayerInput(struct FieldInput *input, u16 newKeys, u16 heldKeys)
 {
     u8 tileTransitionState = gPlayerAvatar.tileTransitionState;
     u8 runningState = gPlayerAvatar.runningState;
     bool8 forcedMove = MetatileBehavior_IsForcedMovementTile(GetPlayerCurMetatileBehavior(runningState));
+
+    // Not while a script or a menu has the controls: a press made to get
+    // through a message would come back as a throw once it closes.
+    if (ArePlayerFieldControlsLocked())
+        sRPressBuffer = 0;
+    else if (newKeys & R_BUTTON)
+        sRPressBuffer = R_PRESS_BUFFER_FRAMES;
+    else if (sRPressBuffer != 0)
+        sRPressBuffer--;
 
     if ((tileTransitionState == T_TILE_CENTER && forcedMove == FALSE) || tileTransitionState == T_NOT_MOVING)
     {
@@ -136,8 +150,14 @@ void FieldGetPlayerInput(struct FieldInput *input, u16 newKeys, u16 heldKeys)
                 input->pressedAButton = TRUE;
             if (newKeys & B_BUTTON)
                 input->pressedBButton = TRUE;
-            if (newKeys & R_BUTTON)
+            // Hasep: R is remembered for a few frames (sRPressBuffer), so a
+            // Ball thrown in the middle of a step leaves at the end of it
+            // instead of being lost.
+            if (sRPressBuffer != 0)
+            {
                 input->pressedRButton = TRUE;
+                sRPressBuffer = 0;
+            }
         }
 
         if (heldKeys & (DPAD_UP | DPAD_DOWN | DPAD_LEFT | DPAD_RIGHT))
@@ -239,7 +259,17 @@ int ProcessPlayerFieldInput(struct FieldInput *input)
     }
     if (input->pressedAButton && TrySetupDiveDownScript() == TRUE)
         return TRUE;
-    if (input->pressedStartButton)
+    // Hasep: the banners and nickname prompts of the Pokemon caught with
+    // thrown Balls, once no Ball is in the air (overworld_catch.c). After the
+    // step handling: returning TRUE on a step frame would skip the step
+    // counters and the coord and step scripts of that tile.
+    if (gPlayerAvatar.tileTransitionState != T_TILE_TRANSITION && OverworldCatch_TryStartResults())
+        return TRUE;
+    // Hasep: no Start menu while a Ball is in the air. The Ball has already
+    // left the bag; a save made now would store the bag without it, and a
+    // reset would lose it for good (the flight lives in EWRAM). A flight is
+    // under a second.
+    if (input->pressedStartButton && !OverworldCatch_IsBallInFlight())
     {
         FlagSet(FLAG_OPENED_START_MENU);
         PlaySE(SE_WIN_OPEN);
@@ -257,10 +287,10 @@ int ProcessPlayerFieldInput(struct FieldInput *input)
         return TRUE;
 
 #if IS_HNS
-    // R does double duty here: on a bike it swaps mach/acro, and everywhere
-    // else it starts a DexNav search. Upstream HnS only had the bike half and
-    // left the DexNav call in the #else branch, so the search was never
-    // compiled into this target at all and R did nothing on foot.
+    // R does double duty here: on a bike it swaps mach/acro, and on foot or
+    // surfing it throws a Ball (overworld catch plan, D1). Until 2.0.6.PLUS.11
+    // the second half started a DexNav search; the DexNav now opens from the
+    // Start menu only.
     if (input->pressedRButton && TestPlayerAvatarFlags(PLAYER_AVATAR_FLAG_MACH_BIKE | PLAYER_AVATAR_FLAG_ACRO_BIKE))
     {
         if (gPlayerAvatar.flags & PLAYER_AVATAR_FLAG_MACH_BIKE)
@@ -277,7 +307,11 @@ int ProcessPlayerFieldInput(struct FieldInput *input)
         }
         PlaySE(SE_BIKE_BELL);
     }
-    else if (input->pressedRButton && TryStartDexNavSearch())
+    // Hasep (overworld catch plan, D1): off the bike R throws the selected
+    // Ball or Pokemon at the wild Pokemon ahead. It used to start a DexNav
+    // search on the registered species; the DexNav is opened from the Start
+    // menu now.
+    else if (input->pressedRButton && OverworldCatch_TryThrow())
     {
         return TRUE;
     }
