@@ -160,9 +160,16 @@ struct OverworldCatch
     u8 bannerWindowId;
     u8 bannerIconSpriteId;
     u8 bannerIconSpriteId2;
+    u8 panelWindowId;   // valid only while panelUp (zeroed EWRAM is window 0)
+    u8 panelUp:1;
+    u8 panelTimer;      // frames the panel stays up after a change or a throw
+    u32 panelKey;       // what the window shows now, to redraw only on a change
 };
 
 static EWRAM_DATA struct OverworldCatch sCatch = {0};
+
+#define PANEL_SHOW_FRAMES   120   // ~2 s (D18)
+
 EWRAM_DATA u8 gOverworldThrowLeadSlot = 0; // 0 is the usual lead, so a zeroed EWRAM changes nothing
 
 extern const u8 OverworldCatch_EventScript_Blocked[];
@@ -246,6 +253,7 @@ static void ScrollBall(s32 delta)
             if (item != current)
                 PlaySE(SE_SELECT);
             gLastThrownBall = item;
+            sCatch.panelTimer = PANEL_SHOW_FRAMES;
             return;
         }
     }
@@ -292,6 +300,7 @@ static void ScrollMon(s32 delta)
             if (slot != current)
                 PlaySE(SE_SELECT);
             sCatch.monSlot = slot;
+            sCatch.panelTimer = PANEL_SHOW_FRAMES;
             return;
         }
     }
@@ -340,6 +349,7 @@ bool32 OverworldCatch_HandleLButton(u16 newKeys, u16 heldKeys)
             if (sCatch.monMode || GetSelectedMonSlot() != PARTY_SIZE)
             {
                 sCatch.monMode ^= 1;
+                sCatch.panelTimer = PANEL_SHOW_FRAMES;
                 PlaySE(SE_SWITCH);
             }
         }
@@ -776,6 +786,7 @@ bool32 OverworldCatch_TryThrow(void)
             DrawBall(throw, 0, 0, TRUE);
 
         sCatch.cooldown = THROW_COOLDOWN;
+        sCatch.panelTimer = PANEL_SHOW_FRAMES;
         StartThrowPose();
         PlaySE(SE_BALL_THROW);
         break;
@@ -1242,11 +1253,131 @@ static void UpdateThrow(struct PendingThrow *throw)
     DrawBall(throw, frame, wobble, visible);
 }
 
+
+// ---------------------------------------------------------------------------
+// Selection panel (D18): bottom left, while L is held and ~2 s after a change
+// or a throw. Same frame and text palettes as the catch banner (and so the
+// same dark theme), no sprites.
+// ---------------------------------------------------------------------------
+
+static const u8 sText_PanelBall[] = _("Ball ×");
+static const u8 sText_PanelLevel[] = _("Lv. ");
+static const u8 sText_PanelNoBalls[] = _("No Balls");
+static const u8 sText_PanelNoMon[] = _("Nobody can fight");
+static const u8 sText_PanelBallLine[] = _("Ball");
+static const u8 sText_PanelMonLine[] = _("Pokémon");
+
+static void HidePanel(void)
+{
+    if (!sCatch.panelUp)
+        return;
+    sCatch.panelUp = FALSE;
+    ClearStdWindowAndFrameToTransparent(sCatch.panelWindowId, FALSE);
+    CopyWindowToVram(sCatch.panelWindowId, COPYWIN_FULL);
+    RemoveWindow(sCatch.panelWindowId);
+}
+
+// Two lines: the name of the Ball or the Pokémon, and "Ball ×12" or "Lv. 30".
+static void DrawPanel(u32 windowId, u32 key)
+{
+    u8 *line1 = gStringVar4;
+    u8 *line2 = gStringVar3;
+
+    // Colour 1 is the box's white: SetStandardWindowBorderStyle fills the
+    // window with it, and a transparent fill would show the map through.
+    FillWindowPixelBuffer(windowId, PIXEL_FILL(1));
+    if (sCatch.monMode)
+    {
+        u32 slot = GetSelectedMonSlot();
+
+        if (slot == PARTY_SIZE)
+        {
+            StringCopy(line1, sText_PanelMonLine);
+            StringCopy(line2, sText_PanelNoMon);
+        }
+        else
+        {
+            GetMonData(&gPlayerParty[slot], MON_DATA_NICKNAME, line1);
+            StringGet_Nickname(line1);
+            StringCopy(line2, sText_PanelLevel);
+            ConvertIntToDecimalStringN(gStringVar1, GetMonData(&gPlayerParty[slot], MON_DATA_LEVEL), STR_CONV_MODE_LEFT_ALIGN, 3);
+            StringAppend(line2, gStringVar1);
+        }
+    }
+    else
+    {
+        u32 ball = GetSelectedBall();
+
+        if (ball == ITEM_NONE)
+        {
+            StringCopy(line1, sText_PanelBallLine);
+            StringCopy(line2, sText_PanelNoBalls);
+        }
+        else
+        {
+            StringCopy(line1, GetItemName(ball));
+            StringCopy(line2, sText_PanelBall);
+            ConvertIntToDecimalStringN(gStringVar1, CountTotalItemQuantityInBag(ball), STR_CONV_MODE_LEFT_ALIGN, 4);
+            StringAppend(line2, gStringVar1);
+        }
+    }
+    AddTextPrinterParameterized(windowId, FONT_SMALL, line1, 2, 0, 0, NULL);
+    AddTextPrinterParameterized(windowId, FONT_SMALL, line2, 2, 12, 0, NULL);
+    CopyWindowToVram(windowId, COPYWIN_FULL);
+    sCatch.panelKey = key;
+}
+
+static void UpdatePanel(void)
+{
+    bool32 show = FlagGet(FLAG_SYS_POKEMON_GET) && (sCatch.lHeld || sCatch.panelTimer != 0);
+
+    // A message, a menu or a script owns the bottom of the screen.
+    if (ArePlayerFieldControlsLocked() || gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_L_EQUALS_A)
+        show = FALSE;
+    if (sCatch.panelTimer != 0 && !sCatch.lHeld)
+        sCatch.panelTimer--;
+
+    if (!show)
+    {
+        HidePanel();
+        return;
+    }
+
+    {
+        // Mode, selection, quantity or level: a change redraws.
+        u32 slot = GetSelectedMonSlot();
+        u32 ball = GetSelectedBall();
+        u32 key = sCatch.monMode ? (1 | slot << 1 | (slot < PARTY_SIZE ? GetMonData(&gPlayerParty[slot], MON_DATA_LEVEL) : 0) << 8)
+                                 : (ball << 1 | CountTotalItemQuantityInBag(ball) << 16);
+
+        if (!sCatch.panelUp)
+        {
+            struct WindowTemplate template;
+
+            SetWindowTemplateFields(&template, 0, 2, 16, 12, 3, 15, 8);
+            sCatch.panelWindowId = AddWindow(&template);
+            if (sCatch.panelWindowId == WINDOW_NONE)
+                return;
+            sCatch.panelUp = TRUE;
+            PutWindowTilemap(sCatch.panelWindowId);
+            SetStandardWindowBorderStyle(sCatch.panelWindowId, FALSE);
+            DrawStdFrameWithCustomTileAndPalette(sCatch.panelWindowId, FALSE, 0x214, 14);
+            DrawPanel(sCatch.panelWindowId, key);
+        }
+        else if (key != sCatch.panelKey)
+        {
+            DrawPanel(sCatch.panelWindowId, key);
+        }
+    }
+}
+
 // Every frame of the overworld.
 void OverworldCatch_Update(void)
 {
     if (sCatch.cooldown != 0)
         sCatch.cooldown--;
+
+    UpdatePanel();
 
     // While a script runs nothing moves: the script may be the battle with
     // the very Pokémon a Ball is flying at.
