@@ -56,6 +56,11 @@ le indoli per famiglia, i tetti per zona e le correzioni di VRAM.
 Dettagli in `.claude/rules/overworld_encounters.md` e
 `docs/plans/overworld-encounters.md`.
 
+Lancio della Ball nell'overworld (R/L, animazione, pannello della scelta,
+passo lento, percezione): **non viene da Soulgold**, è una feature di questo
+fork. Regola `.claude/rules/overworld_catch.md`, piano
+`docs/plans/overworld-catch.md`.
+
 ## 3. Aggiunto qui
 
 Pokédex dal menu squadra, `EASY CATCH`, `NICKNAMES`, `WILD BATTLES`, toggle del

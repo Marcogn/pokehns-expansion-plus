@@ -206,3 +206,18 @@ numero da `data/maps/map_groups.json`, es. Violet Gym = 3/5).
   quale `OverworldCatch_Update` non gira). Conviene un punto con pochi
   inseguitori (Route 43 del salvataggio dell'utente, di giorno) e ricordarsi
   in che modalità (Ball/Pokémon) è rimasto L.
+
+## Partita nuova veloce e ROM con trucchi (overworld-catch fase 5, 17/11)
+
+- Toolchain assente in un container nuovo: `apt-get update` e poi
+  `gcc-arm-none-eabi binutils-arm-none-eabi libnewlib-arm-none-eabi libpng-dev`;
+  senza `update` i pacchetti dell'emulatore non si trovano.
+- L'intro di una partita nuova costa ~4 minuti di `xdotool`: una volta in
+  overworld si salva in gioco (Start → Start nel menu a strisce → Sì) e le build
+  successive ripartono da Continue (il `.sav` accanto alla ROM).
+- **ROM con trucchi**: una `Cheat()` chiamata da `OverworldCatch_Update` che
+  legge una variabile `volatile u8` (indirizzo da `nm`, in IWRAM) scritta da
+  GDB (`interrupt`, `set var *(unsigned char*)0x... = N`, `continue &`) dà
+  flag, Pokémon e Ball, o li toglie. Si compila e si ripristina il sorgente.
+- Il tema scuro scritto in RAM (`gSaveblock3 + 16 + 31`, bit 0x04) non si
+  vede finché le pal 14/15 non si ricaricano: la prima schermata dopo è chiara.

@@ -1,6 +1,6 @@
 # Piano: cattura nell'overworld (stile Leggende Pokémon: Arceus)
 
-**Stato (17/11): fasi 1-4 fatte (tetti e prezzi; passo lento e percezione; nucleo del lancio; animazione); prossima: fase 5 (Sonnet 5.5).**
+**Stato (17/11): fasi 1-5 fatte (tetti e prezzi; passo lento e percezione; nucleo del lancio; animazione; pannello e documentazione); prossima: fase 6 (Opus 5.5).**
 
 Si appoggia agli OWE già in gioco: leggere prima
 [`.claude/rules/overworld_encounters.md`](../../.claude/rules/overworld_encounters.md)
@@ -728,6 +728,61 @@ basta Opus. La 7 è un port con sorgente chiaro, la 10 grafica e contenuto.
 - Punti per la fase 6 (bilanciamento): la Ball insegue un bersaglio che
   fugge (come nella fase 3, dove bastava che esistesse ancora): più
   generoso di Leggende Arceus.
+
+### 5.5 Fase 5, com'è stata fatta (17/11)
+
+- **Modello**: Sonnet 5.5, come assegnato.
+- **Cosa**: `UpdatePanel`/`DrawPanel`/`HidePanel` in `src/overworld_catch.c`
+  (regola `.claude/rules/overworld_catch.md`, "Pannello"); CHANGELOG
+  (PLUS.12), README (riga nuova in "Written from scratch"), report SG
+  (feature di questo fork, non un port). Indice in CLAUDE.md §7: già c'era.
+  - **Scelta di progetto**: i mock del 16/11 **non sono nel repo**, quindi il
+    pannello è stato disegnato qui: finestra di testo 12x3 a (2,16), riga 1 il
+    nome (Ball o soprannome), riga 2 "Ball ×N" o "Lv. N"; "No Balls" e
+    "Nobody can fight" quando non c'è niente da scegliere. **Solo testo, senza
+    icona**: niente sprite, quindi niente palette OBJ né priorità da
+    spartire con le Ball in volo. Se l'utente vuole l'icona della Ball o del
+    Pokémon (come nel banner) è un'aggiunta separata.
+  - Su con L tenuto o per 120 frame dopo cambio, scorrimento o lancio (anche a
+    vuoto); giù con controlli bloccati (script, messaggio, menu Start) e con
+    `L=A`. Il rilascio di L senza scorrere cambia modalità (D1), quindi in
+    prova serve scorrere prima di rilasciare.
+- **Verificato** in mGBA + GDB con una ROM di prova usa-e-getta (un `Cheat()`
+  in `OverworldCatch_Update` pilotato da una variabile scritta da GDB: dà
+  flag, 6 Pokémon e 3 tipi di Ball, poi toglie Ball o Pokémon; non nel git),
+  partita nuova salvata in gioco, Route 29:
+  - Ball con 3 tipi (Poké ×12, Great ×5), con 1 tipo (lo scorrimento non
+    cambia), con 0 (`Ball` / `No Balls`); Pokémon con 6 (Rattata Lv 25,
+    Crabominable Lv 55 da 13 lettere, Pikachu Lv 30), con 1, con tutti a 0 PS
+    (`Pokémon` / `Nobody can fight`).
+  - **Tema scuro**: cornice e fondo scuri, testo chiaro (guardato a 4×). Vale
+    **dopo** il ricaricamento delle pal 14/15: acceso a mappa aperta, il
+    pannello restava chiaro finché non è passato un messaggio/menu.
+  - Sparisce da solo (visibile a 1 s, assente a 3,5 s), si nasconde aprendo
+    il menu Start, ricompare dopo un lancio a vuoto.
+  - **Bug trovato qui**: la prima versione ridisegnava con `PIXEL_FILL(0)`
+    dopo `SetStandardWindowBorderStyle` (che riempie con 1): il fondo era
+    trasparente e il testo aveva uno sfondo bianco a strisce. Ora `PIXEL_FILL(1)`.
+- **Non verificato**: il pannello con una Ball in volo (stessa finestra BG0, nessuno
+  sprite: non dovrebbe interagire); `docs_validate` in CI (in locale lo script
+  non stampa errori); testi riletti contro il codice e non con un giro in grotta
+  buia. Suoni non toccati (l'handoff diceva di rivederli solo su richiesta).
+- ROM: 31 913 684 B, 95,11% (+1 984 B sulla fase 4).
+- **Preesistente, non toccato**: la riga "Overworld speed-up" del README
+  chiude con "R throws a Ball at wild Pokémon on the map", fuori posto (non è
+  una nota dell'`OW SPEED`).
+
+**Handoff per la fase 6 (Opus 5.5)**
+- **Serve il `.srm` dell'utente** (cancello della fase).
+- Il pannello non è stato provato con un salvataggio vero, ma non scrive nel
+  salvataggio e non ha stato fuori da `sCatch`.
+- Per le prove al pannello e al lancio senza passare dai menu: una ROM di prova
+  con `Cheat()` come sopra e un'ora di gioco; la partita nuova si salva in gioco
+  (Start → Salva) per non rifare l'intro a ogni build.
+- Punti già in lista per la 6: bilanciamento (Ball per una cattura a inizio
+  e a metà gioco), la Ball che insegue un bersaglio che fugge, la scelta DexNav
+  (D6), e il testo "Lv. N" del pannello (FONT_SMALL non ha il glifo `{LV}`: non
+  provato, si è usato "Lv. ").
 
 ## 6. Scartato, e perché
 

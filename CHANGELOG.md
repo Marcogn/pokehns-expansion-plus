@@ -9,9 +9,8 @@ add the section before releasing. Feature details live in the tables of
 ## 2.0.6.PLUS.12
 
 ### Added
-- **Throwing Balls at wild Pokémon on the map**: the third and fourth steps
-  of the overworld catching, still without the on-screen selector, which
-  comes next. **R** throws the selected Ball straight ahead, up to 5 tiles,
+- **Throwing Balls at wild Pokémon on the map**: the third to fifth steps
+  of the overworld catching. **R** throws the selected Ball straight ahead, up to 5 tiles,
   at the first visible wild Pokémon on the line. The player holds out an
   arm, the Ball (drawn as the Ball you threw) flies in an arc and follows
   the Pokémon if it moves, opens and draws it in, drops to the ground and
@@ -45,6 +44,11 @@ add the section before releasing. Feature details live in the tables of
     starts with it in front, from where you stand; your party order does
     not change. With `BUTTON MODE` on `L=A` there is no switching: R throws
     what is selected.
+  - **Selection panel**: a small box at the bottom left shows what R will
+    use: the Ball's name and how many you have, or the Pokémon's name and
+    level. It is up while L is held and for about two seconds after a
+    change or a throw, and goes away when a message, a menu or a script
+    takes over. It uses the message box's frame, so it follows the dark UI.
 - **Free flight in the PokeDaisy fork**: the companion-app table
   (`HASEPSYM`) also lists what PokeDaisy 1.6.0's flight needs (the sprite,
   map grid and sound functions, the map connections, the map groups' sizes
