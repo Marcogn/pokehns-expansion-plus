@@ -89,7 +89,9 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   `battle_script_commands.c`; la lotta la riempie dai battler, il lancio da
   specie e squadra. ×2 se `!IsOWEAwareOfPlayer`; Quick Ball solo se non
   allertato (`quickBallSpent`); Timer mai. Regole di sfida:
-  `GetCaptureChallengeChecks` (`nuzlocke.c`), senza globali.
+  `GetCaptureChallengeChecks` (`nuzlocke.c`), senza globali. **Nuzlocke:
+  solo una cattura riuscita segna la zona, un lancio fallito no** (scelta
+  dell'utente, 17/11, P3), anche se in lotta ogni esito la segna.
 - **Fallito**: `ForceOWEToNoticePlayer` alza un bit per slot letto da
   `CanAwareOWESeePlayer`; lo toglie `SetSavedOWEMovementState`. **Mai su un
   OWE già allertato o "vaga"**: il bit resterebbe (visto in emulatore) e lo

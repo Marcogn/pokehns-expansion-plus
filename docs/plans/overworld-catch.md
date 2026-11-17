@@ -53,7 +53,7 @@ della fase che le realizza.
 | P20 | AUTORUN spento | B tenuto resta la **corsa**, come oggi: senza corsa automatica il passo lento non c'è e la camminata normale si sente a 2 caselle | 2 |
 | P21 | BUTTON MODE `L=A` | L vale A (`src/main.c:300`): niente cambio di modalità né scorrimento; R lancia comunque la Ball o il Pokémon già scelto | 3 |
 | P2 | Gittata | 5 caselle in linea retta; si ferma al primo ostacolo o dislivello (D16: niente consumo) | 3 |
-| P3 | Nuzlocke / One Type / Species Clause | le stesse regole della lotta: dove la cattura sarebbe bloccata la Ball non parte (messaggio); una cattura riuscita segna la zona | 3 |
+| P3 | Nuzlocke / One Type / Species Clause | le stesse regole della lotta: dove la cattura sarebbe bloccata la Ball non parte (messaggio); una cattura riuscita segna la zona. **Un lancio fallito non la segna** (utente, 17/11): col lancio conta solo la prima cattura riuscita, diversamente dalla lotta, dove qualunque esito consuma l'incontro. Scelta voluta, non un buco | 3 |
 | P4 | Leggendari erranti e sciami | il lancio fallisce sempre e parte la lotta (i loro dati vivono fuori dall'oggetto) | 3 |
 | P5 | Zona Safari, Gara Pigliamosche, Azienda Lotta | lancio **spento** nella prima versione | 3 |
 | P6 | Esperienza alla cattura | nessuna (in lotta `B_EXP_CATCH` la dà: qui non c'è chi ha partecipato) | 3 |
@@ -585,10 +585,10 @@ basta Opus. La 7 è un port con sorgente chiaro, la 10 grafica e contenuto.
   tenuto attraverso un menu cambiava modalità al rilascio; (5) la palette
   dell'icona del banner era liberata anche se condivisa (icona della ricerca
   DexNav); (6) due commenti superati. Provati in emulatore (1-4 e il banner).
-  Lasciato: il doppio ciclo sulla squadra (stile). **Da decidere
-  dall'utente**: un lancio **fallito** non consuma l'incontro Nuzlocke della
-  zona (in lotta qualunque esito lo consuma), quindi si può lanciare a più
-  Pokémon finché uno resta. P3 parlava solo della cattura riuscita.
+  Lasciato: il doppio ciclo sulla squadra (stile). **Deciso
+  dall'utente (17/11)**: un lancio **fallito** non consuma l'incontro
+  Nuzlocke della zona (in lotta qualunque esito lo consuma): col lancio conta
+  solo la prima cattura riuscita. Resta così (P3).
 
 **Handoff per la fase 4 (Fable 5.2)**
 - **Non c'è ancora niente a schermo** per il lancio né per la scelta: solo
