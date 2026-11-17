@@ -225,6 +225,7 @@ u8 GetAcroPopWheelieMoveDirectionMovementAction(u32);
 u8 GetAcroWheelieMoveDirectionMovementAction(u32);
 u8 GetAcroEndWheelieMoveDirectionMovementAction(u32);
 u8 GetFishingDirectionAnimNum(enum Direction direction);
+u8 GetRunningDirectionAnimNum(enum Direction direction);
 u8 GetAcroWheelieDirectionAnimNum(enum Direction direction);
 u8 GetFishingBiteDirectionAnimNum(enum Direction direction);
 u8 GetFishingNoCatchDirectionAnimNum(enum Direction direction);

@@ -1,6 +1,6 @@
 # Piano: cattura nell'overworld (stile Leggende Pokémon: Arceus)
 
-**Stato (17/11): fasi 1-3 fatte (tetti e prezzi; passo lento e percezione; nucleo del lancio senza animazione); prossima: fase 4 (Fable 5.2).**
+**Stato (17/11): fasi 1-4 fatte (tetti e prezzi; passo lento e percezione; nucleo del lancio; animazione); prossima: fase 5 (Sonnet 5.5).**
 
 Si appoggia agli OWE già in gioco: leggere prima
 [`.claude/rules/overworld_encounters.md`](../../.claude/rules/overworld_encounters.md)
@@ -272,7 +272,7 @@ Trappole già note che qui mordono (dalla regola degli OWE):
 | --- | --- | --- | --- |
 | ROM | 31 902 628 B (95,08%) | 32 MB, errore CI al 99,5% | 1 651 804 B. Le mega sono fuori per ora (D5); se tornassero (`megas.md`, 1 574 944 B) la ROM andrebbe al 99,77%, già oltre il limite senza questa feature |
 | SaveBlock3 | 96 B | 116 | 20 B |
-| VRAM sprite | — | 1024 tile | da misurare in fase 4 nel caso peggiore (rotta con 4 OWE + follower) |
+| VRAM sprite | 622 tile, 10 palette (Route 29 di notte, 4 OWE + follower + 3 Ball di tipi diversi in aria; fase 4) | 1024 tile, 16 palette | 402 tile, 6 palette |
 
 Costo previsto della prima parte: **solo codice** (stima 8-15 kB, da
 rimisurare a ogni fase), **zero byte di salvataggio** (`gLastThrownBall` è già
@@ -614,6 +614,120 @@ basta Opus. La 7 è un port con sorgente chiaro, la 10 grafica e contenuto.
 - **Punti per l'utente** (non bloccano): le scelte elencate sopra (Quick
   Ball, "vaga", roamer, lotta a distanza); le Ball speciali ancora non in
   vendita a Johto/Kanto (handoff della fase 1).
+
+### 5.4 Fase 4, com'è stata fatta (17/11)
+
+- **Modello**: assegnata a Fable 5.2, fatta su Opus 5.5 (cambio deciso
+  dall'utente a sessione iniziata).
+- **Cosa**: tutto in `src/overworld_catch.c` più quattro agganci
+  (`battle_setup.c`, `field_control_avatar.c`, `wild_encounter_ow.c`,
+  `GetRunningDirectionAnimNum` esportata). Stati, trappole e misure nella
+  regola `.claude/rules/overworld_catch.md`, "Lancio"; metodo di prova in
+  `docs/claude/emulator.md`, sezione del 17/11. CHANGELOG (PLUS.12).
+  - Il record della fase 3 ora ha stati di animazione (volo, apertura,
+    chiusura, caduta, scosse, click o uscita; a vuoto: caduta e Ball a
+    terra) e gli sprite sono appesi ai record. Esito e Pokémon consegnato
+    restano all'impatto (D15); `THROW_SETTLE_FRAMES` non c'è più.
+  - Sprite delle Ball dei follower (nessuna grafica nuova); arco con
+    altezza 4 + 2 a casella sopra la retta mano-bersaglio; la Ball insegue
+    il bersaglio che si muove.
+  - Pokémon congelato e nascosto dentro la Ball dal raggio in poi; alla
+    cattura l'oggetto è tolto a fine apertura (non a fine scosse: un
+    oggetto nascosto per 3 s attraversava spawn, despawn e collisioni).
+  - **D16 completato**: a vuoto la Ball vola 5 caselle e cade, contro un
+    muro o un NPC lo colpisce e cade; torna in borsa. Verso il follower non
+    parte. Start bloccato finché una Ball è fuori (prima solo in volo).
+  - Posa: frame della corsa tenuto 16 frame con un'azione `DELAY_16`.
+- **Verificato** in mGBA + GDB, ROM di prova (OWE fermi a comando, OWE messo
+  sulla linea, esito forzato, sprite forzato a fallire; non nel git), col
+  `.sav` dell'utente (Route 43, giorno, PLUS.11) e una partita nuova (Route
+  29 di notte, Union Cave 1F). Foto frame per frame con un breakpoint su
+  `OverworldCatch_Update`.
+  - **Cattura**: verso sud (Girafarig), est (Sentret, inseguito mentre
+    fuggiva), nord (Doduo), in grotta (Geodude ♀ al PC); banner dopo le
+    scosse.
+  - **Fuga dopo 1 scossa** (Flaaffy: esce, "!", carica, lotta Lv 23) e
+    **dopo 3** (Furret, "vaga": esce e resta).
+  - **A vuoto**: contro un albero a 2 caselle (cade a 1,5 e torna) e a
+    piena gittata verso nord; `RemoveBagItem` e `AddBagItem` una volta
+    ciascuno. Ovest: posa e Ball contro l'albero.
+  - **Follower davanti**: nessun record creato.
+  - **3 Ball di tipi diversi in aria** (Poké, Great, Ultra; Route 29, 4 OWE
+    + follower): tile 606 → 622 su 1024, palette libere 8 → 6. Il tetto di 3
+    resta.
+  - **Sprite che non si crea** (forzato): niente a schermo, l'OWE sparisce
+    all'impatto, il record si libera nello stesso frame, banner "sent to
+    the PC". Nessuno script in attesa.
+  - **Lotta durante le scosse**: Ball fallita a 2 caselle, poi Pokémon
+    mandato (L) contro un secondo OWE a 4: la Ball a terra si chiude prima
+    della transizione, il Pokémon dentro riappare; dopo la fuga record
+    liberi e Pokémon visibile.
+  - **Campo ricostruito**: Ball a vuoto lanciata da R + START, poi warp dal
+    menu debug: record liberato, Ball resa.
+  - Posa letta in RAM: `animNum` 0x17 (corsa est) dai frame 4 a 19, poi la
+    faccia torna da sola.
+- **Bug trovati qui e corretti**: (1) l'OWE spariva all'impatto invece che
+  sul raggio (nascosto a ogni frame dal primo); (2) la posa non si vedeva
+  mai: `PlayerFaceDirection` riscrive l'animazione a ogni frame, e
+  `ObjectEventIsMovementOverridden` dà occupata l'azione finita del
+  giocatore fermo (serve `ClearHeldMovementIfFinished` prima); (3) arco
+  troppo alto (28 px a 3 caselle, ora ~20) e Ball che partiva dalla testa.
+- **Non verificato in emulatore**: OWE in acqua (sprite da nuoto nascosto
+  dal flag, scritto non provato), Ball in volo che attraversa una lotta e
+  atterra dopo (ricreata all'impatto: scritto, non provato), notte in
+  grotta buia con Flash. Il "?" del Pokémon liberato durante la transizione
+  di una lotta è voluto (scongelato subito; tenerlo congelato rischiava di
+  lasciarlo fermo dopo la lotta).
+- ROM: 31 911 700 B, 95,10% (+3 360 B sulla fase 3), dopo le due revisioni.
+
+- **Dopo `/pr-review` (17/11, PR #61)**: 7 punti dalla revisione generica,
+  verificati sul codice. Corretti 6: (1) **una seconda Ball in volo verso un
+  Pokémon già nella prima lo catturava di nuovo** (l'OWE ora resta fino alla
+  chiusura, nella fase 3 spariva all'impatto): diventa un lancio a vuoto; (2)
+  nei 12 frame fra impatto e raggio lo stesso Pokémon era ancora un bersaglio
+  (anche per il Pokémon lanciato, che avrebbe aperto una lotta con un
+  Pokémon già dato); (3) lo spawn poteva ricambiare il Pokémon nella Ball con
+  uno della stessa specie, preso per lui: flag "non sparire" finché è dentro;
+  (4) `CreateBattleStartTask_Debug` senza l'aggancio; (5) la guardia della
+  coda contava solo le Ball in volo, ora vuole anche un record libero; (6)
+  un lancio a vuoto senza sprite bloccava Start ~1,3 s per niente. Scartato:
+  `GiveCaughtMon` che fallisce dopo un tiro riuscito (non raggiungibile:
+  `GetCatchBlock` all'impatto controlla i box pieni prima). Provati (1) e
+  (3): due Ball allo stesso Flaaffy, `CreateMonFromOWE` 1 volta,
+  `AddBagItem` 1 volta (la seconda resa), nessuna cattura in coda; byte del
+  livello del Farfetch'd `0x96` nella Ball e `0x16` dopo l'uscita.
+
+- **Seconda `/pr-review` (17/11, sul commit delle correzioni)**: 9 punti.
+  Corretti: (1) dopo una cattura, una Ball ancora in volo verso lo stesso
+  slot poteva agganciare un Pokémon della stessa specie appena nato lì (con
+  un'Esca il conto alla rovescia dello spawn è 0): diventa un lancio a vuoto
+  alla rimozione; (2) la Ball attraversava un Pokémon già colpito ma ancora
+  visibile (12 frame prima del raggio): ora lo colpisce come un muro e cade;
+  (3) tolta la guardia "record libero" aggiunta prima, che nascondeva il
+  messaggio di blocco (il ciclo sui record basta e non perde Ball);
+  prototipo doppio; CHANGELOG e `overworld_encounters.md` (il flag "non
+  sparire" vale anche per la Ball). Scartati: flag rimasto acceso se
+  `GetThrowTarget` smette di riconoscere un oggetto vivo (non succede: NULL
+  vuol dire sparito o sostituito); suono e posa di un lancio a vuoto senza
+  sprite (stato degenere, il suono conferma il tasto). Provato (2): seconda
+  Ball nella finestra, `CreateMonFromOWE` 1, `AddBagItem` 1, 1 cattura.
+
+**Handoff per la fase 5 (Sonnet 5.5)**
+- Il pannello di D18 può restare a schermo mentre una Ball è fuori (il
+  giocatore è libero); le Ball hanno la priorità OAM del giocatore e
+  sottopriorità 1, da tenere presente se il pannello usa sprite.
+- `OverworldCatch_IsBallOut()` è il "c'è un lancio in corso" giusto per il
+  pannello; `sCatch.monMode` per la modalità.
+- R + START del debug ora lancia anche una Ball a vuoto (la combinazione
+  preme R prima di Start): innocuo, la Ball torna; se dà fastidio si
+  esclude R tenuto con Start.
+- Suoni già presenti: `SE_BALL_THROW` lancio, `SE_BALL_TRADE` apertura,
+  `SE_BALL_BOUNCE_1` caduta, `SE_BALL` scossa, `SE_RG_BALL_CLICK` presa,
+  `SE_BALL_OPEN` uscita. La fase 5 li rivede solo se l'utente li vuole
+  diversi.
+- Punti per la fase 6 (bilanciamento): la Ball insegue un bersaglio che
+  fugge (come nella fase 3, dove bastava che esistesse ancora): più
+  generoso di Leggende Arceus.
 
 ## 6. Scartato, e perché
 

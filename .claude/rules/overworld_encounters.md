@@ -45,7 +45,10 @@ Andature, udito e cono di vista (fase 2 di quel piano): `overworld_catch.md`.
   `TryRemoveOWEAboveCap`, che toglie il più vecchio non shiny ogni 30 frame.
   Con OWE dell'altra zona (acqua/terra) il ricambio scende a 30 frame
   (`IsAnyOWEFromOtherArea`), **shiny esclusi**: non vengono mai tolti, e
-  contarli farebbe girare gli altri ogni 30 frame finché restano. `GetOWEBySpawnSlot(OWE_INVALID_SPAWN_SLOT)`
+  contarli farebbe girare gli altri ogni 30 frame finché restano. Lo stesso
+  flag "non sparire" lo prende un Pokémon dentro una Ball lanciata
+  (`HoldOWEForThrow`, `overworld_catch.md`), finché esce: niente ricambio,
+  niente rimozione sopra il tetto, fuori schermo o per il Repellente. `GetOWEBySpawnSlot(OWE_INVALID_SPAWN_SLOT)`
   **punta al follower** (252 - 0xFF = 253 in `u8`): controlla lo slot prima.
 - `localId` degli OWE: da `LOCALID_OW_ENCOUNTER_END` (252) in giù, 6 posti =
   247-252, sotto il follower (253). Le mappe HnS arrivano a 64 oggetti.

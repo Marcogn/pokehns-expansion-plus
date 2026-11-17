@@ -265,11 +265,11 @@ int ProcessPlayerFieldInput(struct FieldInput *input)
     // counters and the coord and step scripts of that tile.
     if (gPlayerAvatar.tileTransitionState != T_TILE_TRANSITION && OverworldCatch_TryStartResults())
         return TRUE;
-    // Hasep: no Start menu while a Ball is in the air. The Ball has already
-    // left the bag; a save made now would store the bag without it, and a
-    // reset would lose it for good (the flight lives in EWRAM). A flight is
-    // under a second.
-    if (input->pressedStartButton && !OverworldCatch_IsBallInFlight())
+    // Hasep: no Start menu while a thrown Ball is out (in the air, or on the
+    // ground shaking). The Ball has already left the bag; a save made now
+    // would store the bag without it, and a reset would lose it for good (the
+    // throw lives in EWRAM). A throw is over in about four seconds.
+    if (input->pressedStartButton && !OverworldCatch_IsBallOut())
     {
         FlagSet(FLAG_OPENED_START_MENU);
         PlaySE(SE_WIN_OPEN);

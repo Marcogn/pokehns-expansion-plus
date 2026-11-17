@@ -137,6 +137,8 @@ u32 GetOWELevel(const struct ObjectEvent *owe);
 void CreateMonFromOWE(struct Pokemon *mon, const struct ObjectEvent *owe);
 bool32 IsOWEBattleOnly(const struct ObjectEvent *owe);
 void ForceOWEToNoticePlayer(struct ObjectEvent *owe);
+bool32 HoldOWEForThrow(struct ObjectEvent *owe);
+void ReleaseOWEFromThrowHold(struct ObjectEvent *owe, bool32 hadFlag);
 void RemoveCaughtOWE(struct ObjectEvent *owe);
 bool32 IsOWENextToPlayer(struct ObjectEvent *owe);
 enum Direction DirectionOfOWEToPlayerFromCollision(struct ObjectEvent *owe);

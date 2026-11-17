@@ -9,23 +9,32 @@ add the section before releasing. Feature details live in the tables of
 ## 2.0.6.PLUS.12
 
 ### Added
-- **Throwing Balls at wild Pokémon on the map**: the third step of the
-  overworld catching, still without its animation (the Ball is not drawn
-  yet, you hear it) and without the on-screen selector, which come next.
-  **R** throws the selected Ball straight ahead, up to 5 tiles, at the first
-  visible wild Pokémon on the line. If it holds, the Pokémon is yours
+- **Throwing Balls at wild Pokémon on the map**: the third and fourth steps
+  of the overworld catching, still without the on-screen selector, which
+  comes next. **R** throws the selected Ball straight ahead, up to 5 tiles,
+  at the first visible wild Pokémon on the line. The player holds out an
+  arm, the Ball (drawn as the Ball you threw) flies in an arc and follows
+  the Pokémon if it moves, opens and draws it in, drops to the ground and
+  shakes up to three times. If it holds, it clicks and the Pokémon is yours
   without a battle: a banner at the top says so with a short fanfare, then
-  the game offers the nickname. If it does not, the Pokémon notices you and
-  flees or attacks as its temperament says.
+  the game offers the nickname. If it does not, the Pokémon breaks out,
+  notices you and flees or attacks as its temperament says.
   - The odds are the battle's own at full HP, **doubled if the Pokémon had
     not noticed you** (see *Sneaking up* below). `EASY CATCH`, the missing
     badge penalty and every Ball's bonus apply as in battle; the Quick
     Ball's bonus is for a Pokémon that has not noticed you.
-  - A Ball is only used up when it hits a wild Pokémon. A wall, a person,
-    your follower or nothing at all on the line: it is not thrown.
+  - A Ball is only used up when it hits a wild Pokémon. With nothing on the
+    line it flies the 5 tiles and drops; against a wall, a tree or a person
+    it hits it and drops; either way it comes back to the bag. With your
+    follower right in front nothing is thrown.
+  - While a Ball is out (about four seconds at most) the Start menu does
+    not open, and a Pokémon inside a Ball cannot be walked into. A battle
+    that starts meanwhile ends the shaking first: a Pokémon still inside
+    comes out.
   - You can keep throwing while Balls are in the air (about one every half
     second); the banners and the nickname prompts come after the volley. A
-    full party sends the Pokémon to the PC.
+    full party sends the Pokémon to the PC. A Ball that arrives at a
+    Pokémon another Ball has already hit drops and comes back.
   - The Nuzlocke, Species Clause and One Type rules refuse the throw with
     the battle's messages, and a catch uses the area's encounter. No
     throwing in the Safari Zone, the Bug-Catching Contest or the Battle

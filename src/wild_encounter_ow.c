@@ -1,5 +1,6 @@
 #include "global.h"
 #include "wild_encounter_ow.h"
+#include "overworld_catch.h"
 #include "battle_setup.h"
 #include "battle_main.h"
 #include "battle_pike.h"
@@ -393,7 +394,9 @@ static void SpriteCB_OWESwim(struct Sprite *sprite)
         sprite->sSwimVelocity = -sprite->sSwimVelocity;
     sprite->oam.priority = oweSprite->oam.priority;
     sprite->subpriority = oweSprite->subpriority;
-    sprite->invisible = owe->offScreen;
+    // Hasep: also hidden while the Pokémon is inside a thrown Ball
+    // (overworld_catch.c).
+    sprite->invisible = owe->offScreen || owe->invisible;
 }
 
 static void UpdateOWESwimSprites(void)
@@ -653,6 +656,25 @@ static void ClearOWEForcedNotice(const struct ObjectEvent *owe)
 {
     if (IS_LOCALID_GENERATED_OWE(owe->localId))
         sOWEForcedNoticeMask &= ~(1 << GetSpawnSlotByOWELocalId(owe->localId));
+}
+
+// A Pokémon inside a thrown Ball (overworld_catch.c) must not be replaced
+// by a new spawn or dropped above the cap while it shakes: a replacement of
+// the same species reuses the slot and the localId, and would be taken for
+// it. The no-despawn flag (the shinies' one) keeps it; returns whether the
+// Pokémon had the flag already, for ReleaseOWEFromThrowHold.
+bool32 HoldOWEForThrow(struct ObjectEvent *owe)
+{
+    bool32 hadFlag = HasOWENoDespawnFlag(owe) ? TRUE : FALSE;
+
+    owe->sOverworldEncounterLevel |= OWE_NO_DESPAWN_FLAG;
+    return hadFlag;
+}
+
+void ReleaseOWEFromThrowHold(struct ObjectEvent *owe, bool32 hadFlag)
+{
+    if (!hadFlag)
+        owe->sOverworldEncounterLevel &= ~OWE_NO_DESPAWN_FLAG;
 }
 
 // A caught Pokémon leaves the map like one that started a battle: the object
@@ -1325,6 +1347,10 @@ void TryTriggerOverworldWildEncounter(struct ObjectEvent *obstacle, struct Objec
         return;
 
     struct ObjectEvent *wildMon = playerFollowerIsColliderOWE ? obstacle : collider;
+    // Hasep: a Pokémon inside a thrown Ball is not there to fight until it
+    // breaks out (overworld_catch.c); bumping into the Ball does nothing.
+    if (OverworldCatch_IsOWEInBall(wildMon))
+        return;
     enum CategoryOWE category = GetOWECategory(wildMon);
     if (category < ROAMER_COUNT
      && !IsRoamerAt(category, gSaveBlock1Ptr->location.mapGroup, gSaveBlock1Ptr->location.mapNum))
