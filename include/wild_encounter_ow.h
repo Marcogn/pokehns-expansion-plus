@@ -132,6 +132,12 @@ bool32 CheckRestrictedOWEMovement(struct ObjectEvent *owe, enum Direction direct
 bool32 CanAwareOWESeePlayer(struct ObjectEvent *owe);
 bool32 IsPlayerInsideOWEActiveDistance(struct ObjectEvent *owe);
 bool32 IsOWEAwareOfPlayer(struct ObjectEvent *owe);
+struct Pokemon;
+u32 GetOWELevel(const struct ObjectEvent *owe);
+void CreateMonFromOWE(struct Pokemon *mon, const struct ObjectEvent *owe);
+bool32 IsOWEBattleOnly(const struct ObjectEvent *owe);
+void ForceOWEToNoticePlayer(struct ObjectEvent *owe);
+void RemoveCaughtOWE(struct ObjectEvent *owe);
 bool32 IsOWENextToPlayer(struct ObjectEvent *owe);
 enum Direction DirectionOfOWEToPlayerFromCollision(struct ObjectEvent *owe);
 u32 GetApproachingOWEDistanceToPlayer(struct ObjectEvent *owe, bool32 *equalDistances);

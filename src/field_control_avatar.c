@@ -1,4 +1,5 @@
 #include "global.h"
+#include "overworld_catch.h"
 #include "battle_setup.h"
 #include "bike.h"
 #include "bug_contest.h"
@@ -108,11 +109,20 @@ void FieldClearPlayerInput(struct FieldInput *input)
     input->dpadDirection = 0;
 }
 
+// A full walking step is 16 frames.
+#define R_PRESS_BUFFER_FRAMES 16
+static EWRAM_DATA u8 sRPressBuffer = 0;
+
 void FieldGetPlayerInput(struct FieldInput *input, u16 newKeys, u16 heldKeys)
 {
     u8 tileTransitionState = gPlayerAvatar.tileTransitionState;
     u8 runningState = gPlayerAvatar.runningState;
     bool8 forcedMove = MetatileBehavior_IsForcedMovementTile(GetPlayerCurMetatileBehavior(runningState));
+
+    if (newKeys & R_BUTTON)
+        sRPressBuffer = R_PRESS_BUFFER_FRAMES;
+    else if (sRPressBuffer != 0)
+        sRPressBuffer--;
 
     if ((tileTransitionState == T_TILE_CENTER && forcedMove == FALSE) || tileTransitionState == T_NOT_MOVING)
     {
@@ -136,8 +146,14 @@ void FieldGetPlayerInput(struct FieldInput *input, u16 newKeys, u16 heldKeys)
                 input->pressedAButton = TRUE;
             if (newKeys & B_BUTTON)
                 input->pressedBButton = TRUE;
-            if (newKeys & R_BUTTON)
+            // Hasep: R is remembered for a few frames (sRPressBuffer), so a
+            // Ball thrown in the middle of a step leaves at the end of it
+            // instead of being lost.
+            if (sRPressBuffer != 0)
+            {
                 input->pressedRButton = TRUE;
+                sRPressBuffer = 0;
+            }
         }
 
         if (heldKeys & (DPAD_UP | DPAD_DOWN | DPAD_LEFT | DPAD_RIGHT))
@@ -195,6 +211,10 @@ int ProcessPlayerFieldInput(struct FieldInput *input)
         return TRUE;
 
     if (input->pressedBButton && TrySetupDiveEmergeScript() == TRUE)
+        return TRUE;
+    // Hasep: the banners and nickname prompts of the Pokemon caught with
+    // thrown Balls, once no Ball is in the air (overworld_catch.c).
+    if (gPlayerAvatar.tileTransitionState != T_TILE_TRANSITION && OverworldCatch_TryStartResults())
         return TRUE;
     if (input->tookStep)
     {
@@ -277,7 +297,11 @@ int ProcessPlayerFieldInput(struct FieldInput *input)
         }
         PlaySE(SE_BIKE_BELL);
     }
-    else if (input->pressedRButton && TryStartDexNavSearch())
+    // Hasep (overworld catch plan, D1): off the bike R throws the selected
+    // Ball or Pokemon at the wild Pokemon ahead. It used to start a DexNav
+    // search on the registered species; the DexNav is opened from the Start
+    // menu now.
+    else if (input->pressedRButton && OverworldCatch_TryThrow())
     {
         return TRUE;
     }

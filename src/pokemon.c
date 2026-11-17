@@ -8519,64 +8519,71 @@ static inline bool32 CanFirstMonBoostHeldItemRarity(void)
     return FALSE;
 }
 
+// Hasep: one wild Pokémon's held item roll, split out of SetWildMonHeldItem
+// so a Pokémon caught with a Ball thrown in the overworld (overworld_catch.c)
+// holds items at the same rates as one met in battle.
+void GiveWildMonHeldItem(struct Pokemon *mon)
+{
+    u16 rnd;
+    u16 species;
+    bool32 itemHeldBoost = CanFirstMonBoostHeldItemRarity();
+    u16 chanceNoItem = itemHeldBoost ? 20 : 45;
+    u16 chanceNotRare = itemHeldBoost ? 80 : 90;
+
+    if (GetMonData(mon, MON_DATA_HELD_ITEM) != ITEM_NONE)
+        return; // prevent overwriting previously set item
+
+    rnd = Random() % 100;
+    species = GetMonData(mon, MON_DATA_SPECIES, 0);
+    if (gMapHeader.mapLayoutId == LAYOUT_ALTERING_CAVE)
+    {
+        s32 alteringCaveId = GetWildMonTableIdInAlteringCave(species);
+        if (alteringCaveId != 0)
+        {
+            // In active Altering Cave, use special item list
+            if (rnd < chanceNotRare)
+                return;
+            SetMonData(mon, MON_DATA_HELD_ITEM, &sAlteringCaveWildMonHeldItems[alteringCaveId].item);
+        }
+        else
+        {
+            // In inactive Altering Cave, use normal items
+            if (rnd < chanceNoItem)
+                return;
+            if (rnd < chanceNotRare)
+                SetMonData(mon, MON_DATA_HELD_ITEM, &gSpeciesInfo[species].itemCommon);
+            else
+                SetMonData(mon, MON_DATA_HELD_ITEM, &gSpeciesInfo[species].itemRare);
+        }
+    }
+    else
+    {
+        if (gSpeciesInfo[species].itemCommon == gSpeciesInfo[species].itemRare && gSpeciesInfo[species].itemCommon != ITEM_NONE)
+        {
+            // Both held items are the same, 100% chance to hold item
+            SetMonData(mon, MON_DATA_HELD_ITEM, &gSpeciesInfo[species].itemCommon);
+        }
+        else
+        {
+            if (rnd < chanceNoItem)
+                return;
+            if (rnd < chanceNotRare)
+                SetMonData(mon, MON_DATA_HELD_ITEM, &gSpeciesInfo[species].itemCommon);
+            else
+                SetMonData(mon, MON_DATA_HELD_ITEM, &gSpeciesInfo[species].itemRare);
+        }
+    }
+}
+
 void SetWildMonHeldItem(void)
 {
     if (!(gBattleTypeFlags & (BATTLE_TYPE_LEGENDARY | BATTLE_TYPE_TRAINER | BATTLE_TYPE_PYRAMID | BATTLE_TYPE_PIKE)))
     {
-        u16 rnd;
-        u16 species;
         u16 count = (WILD_DOUBLE_BATTLE) ? 2 : 1;
         u16 i;
-        bool32 itemHeldBoost = CanFirstMonBoostHeldItemRarity();
-        u16 chanceNoItem = itemHeldBoost ? 20 : 45;
-        u16 chanceNotRare = itemHeldBoost ? 80 : 90;
 
         for (i = 0; i < count; i++)
-        {
-            if (GetMonData(&gEnemyParty[i], MON_DATA_HELD_ITEM) != ITEM_NONE)
-                continue; // prevent overwriting previously set item
-
-            rnd = Random() % 100;
-            species = GetMonData(&gEnemyParty[i], MON_DATA_SPECIES, 0);
-            if (gMapHeader.mapLayoutId == LAYOUT_ALTERING_CAVE)
-            {
-                s32 alteringCaveId = GetWildMonTableIdInAlteringCave(species);
-                if (alteringCaveId != 0)
-                {
-                    // In active Altering Cave, use special item list
-                    if (rnd < chanceNotRare)
-                        continue;
-                    SetMonData(&gEnemyParty[i], MON_DATA_HELD_ITEM, &sAlteringCaveWildMonHeldItems[alteringCaveId].item);
-                }
-                else
-                {
-                    // In inactive Altering Cave, use normal items
-                    if (rnd < chanceNoItem)
-                        continue;
-                    if (rnd < chanceNotRare)
-                        SetMonData(&gEnemyParty[i], MON_DATA_HELD_ITEM, &gSpeciesInfo[species].itemCommon);
-                    else
-                        SetMonData(&gEnemyParty[i], MON_DATA_HELD_ITEM, &gSpeciesInfo[species].itemRare);
-                }
-            }
-            else
-            {
-                if (gSpeciesInfo[species].itemCommon == gSpeciesInfo[species].itemRare && gSpeciesInfo[species].itemCommon != ITEM_NONE)
-                {
-                    // Both held items are the same, 100% chance to hold item
-                    SetMonData(&gEnemyParty[i], MON_DATA_HELD_ITEM, &gSpeciesInfo[species].itemCommon);
-                }
-                else
-                {
-                    if (rnd < chanceNoItem)
-                        continue;
-                    if (rnd < chanceNotRare)
-                        SetMonData(&gEnemyParty[i], MON_DATA_HELD_ITEM, &gSpeciesInfo[species].itemCommon);
-                    else
-                        SetMonData(&gEnemyParty[i], MON_DATA_HELD_ITEM, &gSpeciesInfo[species].itemRare);
-                }
-            }
-        }
+            GiveWildMonHeldItem(&gEnemyParty[i]);
     }
 }
 

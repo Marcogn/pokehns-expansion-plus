@@ -45,6 +45,7 @@
 #include "naming_screen.h"
 #include "battle_setup.h"
 #include "overworld.h"
+#include "overworld_catch.h"
 #include "wild_encounter.h"
 #include "rtc.h"
 #include "party_menu.h"
@@ -10660,20 +10661,26 @@ struct BallData
     s8 flatBonus;
 };
 
-#define CAPTURE_GUARANTEED -1
+// Hasep (overworld catch plan, phase 3): the odds are computed from this
+// plain description of the two Pokémon instead of reading gBattleMons, so a
+// Ball thrown in the overworld goes through the very same formula. In battle
+// ComputeCaptureOdds (below) copies what the old code read, field for field.
+static bool32 CaptureMonHasType(const struct CaptureParams *p, enum Type type)
+{
+    return p->types[0] == type || p->types[1] == type || p->types[2] == type;
+}
 
-static void ComputeBallData(u32 wildMonBattler, u32 playerBattler, struct BallData *ball)
+static void ComputeBallData(const struct CaptureParams *p, struct BallData *ball)
 {
     u32 i;
-    u32 ballId = ItemIdToBallId(gLastUsedItem);
-    struct BattlePokemon *battleMon = &gBattleMons[wildMonBattler];
+    u32 ballId = ItemIdToBallId(p->ballItem);
 
     ball->multiplier = 100;
     ball->divider = 100;
     ball->flatBonus = 0;
     ball->guaranteedCapture = FALSE;
 
-    if (gSpeciesInfo[battleMon->species].isUltraBeast)
+    if (gSpeciesInfo[p->species].isUltraBeast)
     {
         if (ballId == BALL_BEAST)
             ball->multiplier = 500;
@@ -10688,8 +10695,8 @@ static void ComputeBallData(u32 wildMonBattler, u32 playerBattler, struct BallDa
     {
 #if IS_HNS
     case BALL_FRIEND:
-        if (IS_BATTLER_OF_TYPE(wildMonBattler, TYPE_BUG)
-            || IS_BATTLER_OF_TYPE(wildMonBattler, TYPE_GRASS))
+        if (CaptureMonHasType(p, TYPE_BUG)
+            || CaptureMonHasType(p, TYPE_GRASS))
             ball->multiplier = 400;
         break;
 #endif
@@ -10703,25 +10710,25 @@ static void ComputeBallData(u32 wildMonBattler, u32 playerBattler, struct BallDa
         ball->guaranteedCapture = TRUE;
         break;
     case BALL_NET:
-        if (IS_BATTLER_ANY_TYPE(wildMonBattler, TYPE_WATER, TYPE_BUG))
+        if ((CaptureMonHasType(p, TYPE_WATER) || CaptureMonHasType(p, TYPE_BUG)))
             ball->multiplier = B_NET_BALL_MODIFIER >= GEN_7 ? 350 : 300;
         break;
     case BALL_NEST:
         ball->multiplier = 100;
-        if ((B_NEST_BALL_MODIFIER == GEN_5 && battleMon->level < 31)
-            || (B_NEST_BALL_MODIFIER >= GEN_6 && battleMon->level < 30))
+        if ((B_NEST_BALL_MODIFIER == GEN_5 && p->level < 31)
+            || (B_NEST_BALL_MODIFIER >= GEN_6 && p->level < 30))
         {
-            ball->multiplier = (41 - battleMon->level) * 4096 / 10;
+            ball->multiplier = (41 - p->level) * 4096 / 10;
             ball->divider = 4096;
         }
-        else if (battleMon->level < 30)
+        else if (p->level < 30)
         {
-            ball->multiplier = 400 - (battleMon->level * 10);
+            ball->multiplier = 400 - (p->level * 10);
         }
         break;
     case BALL_DIVE:
         if (GetCurrentMapType() == MAP_TYPE_UNDERWATER
-            || (B_DIVE_BALL_MODIFIER >= GEN_4 && (gIsFishingEncounter || gIsSurfingEncounter)))
+            || (B_DIVE_BALL_MODIFIER >= GEN_4 && (p->fishing || p->surfing)))
         {
             ball->multiplier = 350;
         }
@@ -10734,41 +10741,41 @@ static void ComputeBallData(u32 wildMonBattler, u32 playerBattler, struct BallDa
     case BALL_TIMER:
         if (B_TIMER_BALL_MODIFIER >= GEN_5)
         {
-            ball->multiplier = 4096 + gBattleResults.battleTurnCounter * 1229;
+            ball->multiplier = 4096 + p->turnCounter * 1229;
             ball->divider = 4096;
         }
         else
         {
-            ball->multiplier = 100 + gBattleResults.battleTurnCounter * 10;
+            ball->multiplier = 100 + p->turnCounter * 10;
         }
         if (ball->multiplier > (4 * ball->divider))
             ball->multiplier = 4 * ball->divider;
         break;
     case BALL_QUICK:
-        if (gBattleResults.battleTurnCounter == 0)
+        if (p->turnCounter == 0 && !p->quickBallSpent)
             ball->multiplier = (B_QUICK_BALL_MODIFIER >= GEN_5 ? 500 : 400);
         break;
     case BALL_REPEAT:
-        if (GetSetPokedexFlag(SpeciesToNationalPokedexNum(battleMon->species), FLAG_GET_CAUGHT))
+        if (GetSetPokedexFlag(SpeciesToNationalPokedexNum(p->species), FLAG_GET_CAUGHT))
             ball->multiplier = (B_REPEAT_BALL_MODIFIER >= GEN_7 ? 350 : 300);
         break;
     case BALL_LEVEL:
-        if (gBattleMons[playerBattler].level >= 4 * battleMon->level)
+        if (p->playerLevel >= 4 * p->level)
             ball->multiplier = 800;
-        else if (gBattleMons[playerBattler].level > 2 * battleMon->level)
+        else if (p->playerLevel > 2 * p->level)
             ball->multiplier = 400;
-        else if (gBattleMons[playerBattler].level > battleMon->level)
+        else if (p->playerLevel > p->level)
             ball->multiplier = 200;
 #if IS_HNS
         if (ball->multiplier < 400
-            && (IS_BATTLER_OF_TYPE(wildMonBattler, TYPE_NORMAL)
-                || IS_BATTLER_OF_TYPE(wildMonBattler, TYPE_FLYING)
-                || IS_BATTLER_OF_TYPE(wildMonBattler, TYPE_ICE)))
+            && (CaptureMonHasType(p, TYPE_NORMAL)
+                || CaptureMonHasType(p, TYPE_FLYING)
+                || CaptureMonHasType(p, TYPE_ICE)))
             ball->multiplier = 400;
 #endif
         break;
     case BALL_LURE:
-        if (gIsFishingEncounter)
+        if (p->fishing)
         {
             if (B_LURE_BALL_MODIFIER >= GEN_8)
                 ball->multiplier = 400;
@@ -10779,14 +10786,14 @@ static void ComputeBallData(u32 wildMonBattler, u32 playerBattler, struct BallDa
         }
 #if IS_HNS
         if (ball->multiplier < 400
-            && (IS_BATTLER_OF_TYPE(wildMonBattler, TYPE_WATER)
-                || IS_BATTLER_OF_TYPE(wildMonBattler, TYPE_DRAGON)))
+            && (CaptureMonHasType(p, TYPE_WATER)
+                || CaptureMonHasType(p, TYPE_DRAGON)))
             ball->multiplier = 400;
 #endif
         break;
     case BALL_MOON:
     {
-        const struct Evolution *evolutions = GetSpeciesEvolutions(battleMon->species);
+        const struct Evolution *evolutions = GetSpeciesEvolutions(p->species);
         if (evolutions != NULL)
         {
             for (i = 0; evolutions[i].method != EVOLUTIONS_END; i++)
@@ -10798,42 +10805,42 @@ static void ComputeBallData(u32 wildMonBattler, u32 playerBattler, struct BallDa
         }
 #if IS_HNS
         if (ball->multiplier < 400
-            && (IS_BATTLER_OF_TYPE(wildMonBattler, TYPE_DARK)
-                || IS_BATTLER_OF_TYPE(wildMonBattler, TYPE_GHOST)
-                || IS_BATTLER_OF_TYPE(wildMonBattler, TYPE_POISON)))
+            && (CaptureMonHasType(p, TYPE_DARK)
+                || CaptureMonHasType(p, TYPE_GHOST)
+                || CaptureMonHasType(p, TYPE_POISON)))
             ball->multiplier = 400;
 #endif
         break;
     }
     case BALL_LOVE:
-        if (battleMon->species == gBattleMons[playerBattler].species)
+        if (p->species == p->playerSpecies)
         {
-            u8 gender1 = GetMonGender(GetBattlerMon(wildMonBattler));
-            u8 gender2 = GetMonGender(GetBattlerMon(playerBattler));
+            u8 gender1 = p->gender;
+            u8 gender2 = p->playerGender;
 
             if (gender1 != gender2 && gender1 != MON_GENDERLESS && gender2 != MON_GENDERLESS)
                 ball->multiplier = 800;
         }
 #if IS_HNS
         if (ball->multiplier < 400
-            && (IS_BATTLER_OF_TYPE(wildMonBattler, TYPE_FAIRY)
-                || IS_BATTLER_OF_TYPE(wildMonBattler, TYPE_PSYCHIC)))
+            && (CaptureMonHasType(p, TYPE_FAIRY)
+                || CaptureMonHasType(p, TYPE_PSYCHIC)))
             ball->multiplier = 400;
 #endif
         break;
     case BALL_FAST:
-        if (GetSpeciesBaseSpeed(battleMon->species) >= 100)
+        if (GetSpeciesBaseSpeed(p->species) >= 100)
             ball->multiplier = 400;
 #if IS_HNS
         if (ball->multiplier < 400
-            && (IS_BATTLER_OF_TYPE(wildMonBattler, TYPE_ELECTRIC)
-                || IS_BATTLER_OF_TYPE(wildMonBattler, TYPE_FIGHTING)
-                || IS_BATTLER_OF_TYPE(wildMonBattler, TYPE_FIRE)))
+            && (CaptureMonHasType(p, TYPE_ELECTRIC)
+                || CaptureMonHasType(p, TYPE_FIGHTING)
+                || CaptureMonHasType(p, TYPE_FIRE)))
             ball->multiplier = 400;
 #endif
         break;
     case BALL_HEAVY:
-        i = GetSpeciesWeight(battleMon->species);
+        i = GetSpeciesWeight(p->species);
         if (B_HEAVY_BALL_MODIFIER >= GEN_7)
         {
             if (i < 1000)
@@ -10870,9 +10877,9 @@ static void ComputeBallData(u32 wildMonBattler, u32 playerBattler, struct BallDa
                 ball->flatBonus = 40;
         }
 #if IS_HNS
-        if (IS_BATTLER_OF_TYPE(wildMonBattler, TYPE_ROCK)
-            || IS_BATTLER_OF_TYPE(wildMonBattler, TYPE_GROUND)
-            || IS_BATTLER_OF_TYPE(wildMonBattler, TYPE_STEEL))
+        if (CaptureMonHasType(p, TYPE_ROCK)
+            || CaptureMonHasType(p, TYPE_GROUND)
+            || CaptureMonHasType(p, TYPE_STEEL))
         {
             ball->multiplier = 400;
             if (ball->flatBonus < 0)
@@ -10881,7 +10888,7 @@ static void ComputeBallData(u32 wildMonBattler, u32 playerBattler, struct BallDa
 #endif
         break;
     case BALL_DREAM:
-        if (B_DREAM_BALL_MODIFIER >= GEN_8 && (battleMon->status1 & STATUS1_SLEEP || (GetBattlerAbilityIgnoreMoldBreaker(wildMonBattler) == ABILITY_COMATOSE)))
+        if (B_DREAM_BALL_MODIFIER >= GEN_8 && (p->status1 & STATUS1_SLEEP || p->comatose))
             ball->multiplier = 400;
         break;
     case BALL_SAFARI:
@@ -10899,7 +10906,7 @@ static void ComputeBallData(u32 wildMonBattler, u32 playerBattler, struct BallDa
         ball->divider = 4096;
         break;
     case BALL_GS:
-        if (battleMon->species == SPECIES_CELEBI)
+        if (p->species == SPECIES_CELEBI)
             ball->guaranteedCapture = TRUE;
         else
             ball->multiplier = 2550;
@@ -10920,32 +10927,31 @@ static const u8 sBadgeLevel[] = {
     100,
 };
 
-static u32 ComputeCaptureOdds(u32 wildMonBattler, u32 playerBattler)
+u32 ComputeCaptureOddsFromParams(const struct CaptureParams *p)
 {
     struct BallData ball;
-    ComputeBallData(wildMonBattler, playerBattler, &ball);
+    ComputeBallData(p, &ball);
 
     // The EASY CATCH option reuses the Master Ball's own guaranteed path, so it
     // goes through exactly the same code the game already trusts.
     if (ball.guaranteedCapture || IsGuaranteedCatchEnabled())
         return CAPTURE_GUARANTEED;
-    struct BattlePokemon *battleMon = &gBattleMons[wildMonBattler];
-    u32 odds = (battleMon->maxHP * 3 -  battleMon->hp * 2);
+    u32 odds = (p->maxHP * 3 -  p->hp * 2);
     s32 catchRate;
 
     // HnS lets the player throw any ball in the Safari Zone, so the flattened
     // safari catch factor only applies to Safari Balls themselves. Every other
     // ball uses the species' real catch rate, as it did in HnS 1.0.
-    if ((gBattleTypeFlags & BATTLE_TYPE_SAFARI) && (!IS_HNS || gLastUsedItem == ITEM_SAFARI_BALL))
-        catchRate = gBattleStruct->safariCatchFactor * 1275 / 100;
+    if (p->useSafariFactor)
+        catchRate = p->safariCatchFactor * 1275 / 100;
     else
-        catchRate = gSpeciesInfo[battleMon->species].catchRate;
+        catchRate = gSpeciesInfo[p->species].catchRate;
 
     catchRate += ball.flatBonus;
     if (catchRate <= 0)
         catchRate = 1;
 
-    odds = odds * catchRate / (battleMon->maxHP * 3);
+    odds = odds * catchRate / (p->maxHP * 3);
     odds = odds * ball.multiplier / ball.divider;
 
     // sBadgeLevel only covers 8 badges, so the count driving the malus is clamped to it.
@@ -10957,30 +10963,59 @@ static u32 ComputeCaptureOdds(u32 wildMonBattler, u32 playerBattler)
     }
     if (badgeCount > NUM_BADGES_CAPPED)
         badgeCount = NUM_BADGES_CAPPED;
-    if (GetConfig(B_MISSING_BADGE_CATCH_MALUS) == GEN_8 && badgeCount < NUM_BADGES_CAPPED && gBattleMons[playerBattler].level < battleMon->level)
+    if (GetConfig(B_MISSING_BADGE_CATCH_MALUS) == GEN_8 && badgeCount < NUM_BADGES_CAPPED && p->playerLevel < p->level)
         odds = odds * 410 / 4096;
     if (GetConfig(B_MISSING_BADGE_CATCH_MALUS) == GEN_9 && badgeCount < NUM_BADGES_CAPPED)
     {
-        for (u32 i = badgeCount; i < ARRAY_COUNT(sBadgeLevel) && battleMon->level > sBadgeLevel[i]; i++)
+        for (u32 i = badgeCount; i < ARRAY_COUNT(sBadgeLevel) && p->level > sBadgeLevel[i]; i++)
             odds = odds * 4 / 5;
     }
 
-    if (GetConfig(B_LOW_LEVEL_CATCH_BONUS) == GEN_8 && battleMon->level <= 20)
-         odds = odds * (30 - battleMon->level) / 10;
-    else if (GetConfig(B_LOW_LEVEL_CATCH_BONUS) >= GEN_9 && battleMon->level <= 13)
-        odds = odds * (36 - (battleMon->level * 2)) / 10;
+    if (GetConfig(B_LOW_LEVEL_CATCH_BONUS) == GEN_8 && p->level <= 20)
+         odds = odds * (30 - p->level) / 10;
+    else if (GetConfig(B_LOW_LEVEL_CATCH_BONUS) >= GEN_9 && p->level <= 13)
+        odds = odds * (36 - (p->level * 2)) / 10;
 
-    if (battleMon->status1 & STATUS1_INCAPACITATED)
+    if (p->status1 & STATUS1_INCAPACITATED)
     {
         if (GetConfig(B_INCAPACITATED_CATCH_BONUS) >= GEN_5)
             odds = (odds * 25) / 10;
         else
             odds *= 2;
     }
-    if (battleMon->status1 & STATUS1_CAN_MOVE)
+    if (p->status1 & STATUS1_CAN_MOVE)
         odds = odds * 15 / 10;
 
     return odds;
+}
+
+static u32 ComputeCaptureOdds(u32 wildMonBattler, u32 playerBattler)
+{
+    struct CaptureParams params;
+    struct BattlePokemon *battleMon = &gBattleMons[wildMonBattler];
+
+    params.species = battleMon->species;
+    params.level = battleMon->level;
+    params.hp = battleMon->hp;
+    params.maxHP = battleMon->maxHP;
+    params.status1 = battleMon->status1;
+    GetBattlerTypes(wildMonBattler, FALSE, params.types);
+    params.gender = GetMonGender(GetBattlerMon(wildMonBattler));
+    params.comatose = (GetBattlerAbilityIgnoreMoldBreaker(wildMonBattler) == ABILITY_COMATOSE);
+    params.playerSpecies = gBattleMons[playerBattler].species;
+    params.playerLevel = gBattleMons[playerBattler].level;
+    params.playerGender = GetMonGender(GetBattlerMon(playerBattler));
+    params.ballItem = gLastUsedItem;
+    params.turnCounter = gBattleResults.battleTurnCounter;
+    params.quickBallSpent = FALSE;
+    params.fishing = gIsFishingEncounter;
+    params.surfing = gIsSurfingEncounter;
+    // HnS lets the player throw any ball in the Safari Zone, so the flattened
+    // safari catch factor only applies to Safari Balls themselves. Every other
+    // ball uses the species' real catch rate, as it did in HnS 1.0.
+    params.useSafariFactor = (gBattleTypeFlags & BATTLE_TYPE_SAFARI) && (!IS_HNS || gLastUsedItem == ITEM_SAFARI_BALL);
+    params.safariCatchFactor = params.useSafariFactor ? gBattleStruct->safariCatchFactor : 0;
+    return ComputeCaptureOddsFromParams(&params);
 }
 
 static bool32 CriticalCapture(u32 odds)
@@ -11024,7 +11059,7 @@ static bool32 CriticalCapture(u32 odds)
     return FALSE;
 }
 
-static u32 ComputeBallShakeOdds(u32 odds)
+u32 ComputeBallShakeOdds(u32 odds)
 {
     if (odds == 0) // no shakes, and no division by zero below
         return 0;

@@ -442,28 +442,42 @@ u8 NuzlockeIsCaptureBlockedBySpeciesClause(u16 species)
     return FALSE;
 }
 
-void SetNuzlockeChecks(void)
+// Hasep: the rules themselves, without the globals and without gEnemyParty,
+// so a Ball thrown in the overworld (overworld_catch.c) asks the same
+// question the battle does. SetNuzlockeChecks is this plus the globals.
+void GetCaptureChallengeChecks(u16 species, bool32 isShiny, bool32 isFateful, struct CaptureChallengeChecks *checks)
 {
-    OneTypeChallengeCaptureBlocked = !DoesSpeciesPassOneTypeChallenge(
-        GetMonData(&gEnemyParty[0], MON_DATA_SPECIES));
+    checks->oneTypeBlocked = !DoesSpeciesPassOneTypeChallenge(species);
 
     if (IsNuzlockeActive() && !IsNuzlockeCaptureSuspended())
     {
-        NuzlockeIsSpeciesClauseActive = NuzlockeIsCaptureBlockedBySpeciesClause(
-            GetMonData(&gEnemyParty[0], MON_DATA_SPECIES));
+        checks->speciesClause = NuzlockeIsCaptureBlockedBySpeciesClause(species);
 
-        NuzlockeIsCaptureBlocked = NuzlockeFlagGet(NuzlockeGetCurrentRegionMapSectionId());
+        checks->zoneBlocked = NuzlockeFlagGet(NuzlockeGetCurrentRegionMapSectionId());
 
-        if ((IsMonShiny(&gEnemyParty[0]) && gSaveBlock3Ptr->challengeSettings.tx_Nuzlocke_ShinyClause)
-            || (GetMonData(&gEnemyParty[0], MON_DATA_MODERN_FATEFUL_ENCOUNTER, NULL)))
+        if ((isShiny && gSaveBlock3Ptr->challengeSettings.tx_Nuzlocke_ShinyClause)
+            || isFateful)
         {
-            NuzlockeIsCaptureBlocked = FALSE;
-            NuzlockeIsSpeciesClauseActive = FALSE;
+            checks->zoneBlocked = FALSE;
+            checks->speciesClause = FALSE;
         }
     }
     else
     {
-        NuzlockeIsCaptureBlocked = FALSE;
-        NuzlockeIsSpeciesClauseActive = FALSE;
+        checks->zoneBlocked = FALSE;
+        checks->speciesClause = FALSE;
     }
+}
+
+void SetNuzlockeChecks(void)
+{
+    struct CaptureChallengeChecks checks;
+
+    GetCaptureChallengeChecks(GetMonData(&gEnemyParty[0], MON_DATA_SPECIES),
+                              IsMonShiny(&gEnemyParty[0]),
+                              GetMonData(&gEnemyParty[0], MON_DATA_MODERN_FATEFUL_ENCOUNTER, NULL),
+                              &checks);
+    OneTypeChallengeCaptureBlocked = checks.oneTypeBlocked;
+    NuzlockeIsCaptureBlocked = checks.zoneBlocked;
+    NuzlockeIsSpeciesClauseActive = checks.speciesClause;
 }
