@@ -28,7 +28,7 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   Surf) qualunque sia AUTORUN. **A non fa più il creeping.** Va provato
   **prima** del blocco della corsa, che fa sempre `return` con AUTORUN acceso.
 - Il salto da una sporgenza spegne `creeping` (se no il salto era muto).
-- In Surf le velocità non cambiano; conta come camminata per l'udito.
+- In Surf: velocità uguali, udito da camminata.
 - `PLAYER_AVATAR_FLAG_DASH` resta acceso per tutto il passo di corsa
   (`npc_clear_strange_bits` lo spegne solo fra due passi).
 
@@ -66,13 +66,14 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   24, poi la Ball torna. **Esito deciso in `ResolveImpact`** (D15), il resto
   è animazione. Timer fermi a controlli bloccati. **Start bloccato finché un
   record non è libero** (`OverworldCatch_IsBallOut`), in silenzio.
-- **Bersaglio**: prima cosa sulla linea entro 5. Collisione, dislivello
-  (`IsElevationMismatchAt` sull'altezza del giocatore) e oggetti visibili
-  non-OWE fermano la Ball (cade e torna); un oggetto a un'altra altezza
-  (`AreElevationsApart`) è saltato; follower davanti: nessun lancio; niente
-  sulla linea: vola 5 e torna. Acqua: niente collisione. **La Ball non
-  insegue** (utente, 18/11): va dove il Pokémon era al lancio e lo colpisce
-  solo se all'arrivo è a meno di mezza casella (`IsOWEAtLanding`).
+- **Bersaglio**: prima cosa sulla linea entro 5. Collisione, dislivello e
+  oggetti visibili non-OWE fermano la Ball (cade e torna); un oggetto a
+  un'altra altezza è saltato (`AreElevationsApart`). **Acqua (1) = terreno
+  (3)** (`GetThrowLevel`): senza, ogni lancio fra riva e acqua cadeva alla
+  prima casella. Le sporgenze non sono dislivelli. **La Ball non insegue**
+  (utente, 18/11): colpisce se all'arrivo `currentCoords` è la casella del
+  lancio (`targetX/Y`, `IsOWEAtLanding`); i salti sul posto non contano
+  (`GetObjectGroundPos` senza `y2`).
 - **Sprite**: fogli delle Ball dei follower (`gPokeballGraphics`, frame
   0-4), `coordOffsetEnabled`, posizioni dagli sprite (`GetObjectGroundPos`).
   **Mai un assert**: senza sprite il volo prosegue invisibile e `FinishThrow`
@@ -102,7 +103,7 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   segna la zona** (utente, 17/11, P3).
 - **Fallito**: `ForceOWEToNoticePlayer`, **mai su un OWE già allertato o
   "vaga"** (il bit resterebbe). Il bit salta distanza e vista, non l'altezza
-  (`CanOWEReachPlayer`). Il "vaga" non reagisce e tiene il ×2.
+  (`CanOWEReachPlayer`), e si consuma al primo controllo. Il "vaga" tiene il ×2.
 - **Coda** (`results`, 3): un lancio parte se c'è un record libero e Ball in
   volo + catture in coda < 3. Banner e soprannomi da
   `OverworldCatch_TryStartResults` a record tutti liberi, **dopo** il passo.
@@ -131,5 +132,5 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
 ## Prove
 
 Ricette in §5.2-5.5 del piano e `docs/claude/emulator.md`. `PendingThrow` =
-32 B. `gSaveblock3 + 0x13` = `autoRun`; `FLAG_SYS_B_DASH` = byte `0x118` bit 0
+36 B. `gSaveblock3 + 0x13` = `autoRun`; `FLAG_SYS_B_DASH` = byte `0x118` bit 0
 di SaveBlock1. Un OWE col bit 7 di `+0x1D` non viene ricambiato.

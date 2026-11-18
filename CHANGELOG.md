@@ -25,9 +25,10 @@ add the section before releasing. Feature details live in the tables of
     Ball's bonus is for a Pokémon that has not noticed you.
   - A Ball is only used up when it hits a wild Pokémon. With nothing on the
     line it flies the 5 tiles and drops; against a wall, a tree, a person
-    or a change of height (a ledge, the edge of a bridge) it hits it and
-    drops; either way it comes back to the bag. It flies over a Pokémon on
-    another level, such as one swimming under a bridge. With your
+    or the edge of a raised platform it hits it and drops; either way it
+    comes back to the bag. It flies over ledges and over a Pokémon on
+    another level. Water and the shore count as one level: you can throw
+    from the shore at a Pokémon in the water and from Surf at one on land. With your
     follower right in front nothing is thrown.
   - While a Ball is out (about four seconds at most) the Start menu does
     not open, and a Pokémon inside a Ball cannot be walked into. A battle

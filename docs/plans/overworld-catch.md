@@ -839,7 +839,32 @@ basta Opus. La 7 è un port con sorgente chiaro, la 10 grafica e contenuto.
 - **Verificato** in mGBA + GDB col `.sav` dell'utente, due ROM di prova (build
   di prima e corretta, con un `Cheat()` che mette un OWE fermo davanti, ne
   cambia l'altezza o lo fa spostare al lancio; non nel git).
-- ROM consegnata: 31 913 844 B, **95,11%** (+160 B sulla fase 5).
+- ROM consegnata: 31 914 068 B, **95,11%** (+384 B sulla fase 5, dopo la `/pr-review`).
+
+- **`/pr-review` (18/11, PR #65, sul commit `c5b818d2`)**: 9 punti dalla
+  revisione generica. Corretti 6: (1) **i dislivelli fermavano ogni lancio
+  fra riva e acqua** (acqua 1, riva 3 nelle mappe di HnS, p. es. Lake of Rage
+  e Route 43): introdotto in questa fase, ora acqua e terreno sono un livello
+  solo (`GetThrowLevel`), anche per l'oggetto saltato; (2) colpito/mancato
+  per **casella** (`currentCoords` alla caduta = casella del lancio) invece
+  che per pixel: un Pokémon a metà passo al lancio era mancato finendo il
+  passo, uno che salta sul posto (gli OWE che si avvicinano) era mancato; (3)
+  `GetObjectGroundPos` senza `y2`; (4) il bit dell'allerta forzata si consuma
+  al primo controllo (prima aspettava il giocatore e scattava da lontano); (5)
+  CHANGELOG: le sporgenze non fermano la Ball. Opzionale, non fatto: palette
+  dell'icona del banner senza nessuno sprite creato (tabella degli sprite
+  piena: non raggiunto). Scartati con il percorso rifatto: lo slot del Pokémon
+  lanciato azzerato troppo presto (lo script tiene i controlli fino alla
+  lotta) e la finestra DexNav aperta nello stesso frame del pannello (ogni
+  apertura passa da un blocco dei controlli nel CB1).
+  Provato in mGBA col `.sav` dell'utente su Route 43, riva in (10,12): Ball
+  dalla riva a un Pokémon in acqua → presa (Flaaffy); un OWE che parte di
+  lato al lancio → mancato, Ball resa; fermo → preso; in Surf, Pokémon
+  mandato (Quilava, scelto con L) contro uno in acqua → lotta con Quilava in
+  campo; lotta da contatto subito dopo → Vileplume in campo (primo della
+  squadra). Il caso che falliva prima della correzione non è stato rifatto in
+  emulatore: lo mostrano i dati della mappa (riva 3, acqua 1) contro il
+  vecchio `IsElevationMismatchAt(3, casella 1)` = vero.
 
 **Handoff per la fase 7 (Sonnet 5.5)**
 - La fase 7 è un port da Soulgold (ricorda mosse a pagamento): non tocca
@@ -847,7 +872,7 @@ basta Opus. La 7 è un port con sorgente chiaro, la 10 grafica e contenuto.
 - Il salvataggio dell'utente (PLUS.11) è quello della fase 6: Route 43, 6
   medaglie; serve alla 7 per le mosse uovo vere.
 - Ancora non provati in emulatore (da fare se la 8 o la 11 passano di lì):
-  lancio verso un OWE in acqua, Ball in volo durante l'inizio di una lotta,
+  Ball in volo durante l'inizio di una lotta,
   grotta buia con Flash, un cartello letto entro 2 s da un lancio.
 
 ## 6. Scartato, e perché

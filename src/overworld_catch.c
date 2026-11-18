@@ -132,6 +132,8 @@ struct PendingThrow
     s16 x;              // where it is now: ground position, and height above it
     s16 y;
     s16 height;
+    s16 targetX;        // the tile the Pokémon was on, or stepping into, at the throw
+    s16 targetY;
 };
 
 // A catch already made, waiting for its banner and its nickname prompt.
@@ -364,12 +366,26 @@ bool32 OverworldCatch_HandleLButton(u16 newKeys, u16 heldKeys)
 
 static void FinishThrow(struct PendingThrow *throw);
 
+// Water tiles are elevation 1 and the ground around them 3: for a throw the
+// two are one level, or every throw from the shore at a Pokémon in the water
+// (and from Surf at one on land) would stop at the first tile.
+#define ELEVATION_WATER     1
+#define ELEVATION_GROUND    3
+
+static u32 GetThrowLevel(u32 elevation)
+{
+    return (elevation == ELEVATION_WATER) ? ELEVATION_GROUND : elevation;
+}
+
 // Two heights that do not meet: neither is a transition (0) nor the
-// multi-level one (15), as IsElevationMismatchAt reads a tile.
+// multi-level one (15), as IsElevationMismatchAt reads a tile, and they
+// differ beyond water and ground. Under a multi-level bridge the two levels
+// meet, as they do for the engine (CanOWEReachPlayer).
 static bool32 AreElevationsApart(u32 a, u32 b)
 {
     return a != ELEVATION_TRANSITION && b != ELEVATION_TRANSITION
-        && a != ELEVATION_MULTI_LEVEL && b != ELEVATION_MULTI_LEVEL && a != b;
+        && a != ELEVATION_MULTI_LEVEL && b != ELEVATION_MULTI_LEVEL
+        && GetThrowLevel(a) != GetThrowLevel(b);
 }
 
 // The first thing on the line in front of the player, up to THROW_RANGE
@@ -393,9 +409,10 @@ static enum ThrowTarget FindThrowTarget(u32 *objectEventId, u32 *distance)
 
         *distance = d;
         MoveCoords(direction, &x, &y);
-        // A change of height stops the Ball as a wall does (P2): a ledge,
-        // the edge of a bridge or a platform with no collision of its own.
-        if (MapGridGetCollisionAt(x, y) || IsElevationMismatchAt(player->currentElevation, x, y))
+        // A change of level stops the Ball as a wall does (P2): a raised
+        // platform with no collision of its own. A ledge is not one (same
+        // elevation on both sides): the Ball flies over it.
+        if (MapGridGetCollisionAt(x, y) || AreElevationsApart(player->currentElevation, MapGridGetElevationAt(x, y)))
             return THROW_TARGET_BLOCKED;
 
         // Not GetObjectEventIdByXY: an invisible trigger object may share
@@ -652,8 +669,10 @@ static void GetObjectGroundPos(const struct ObjectEvent *object, s16 *x, s16 *y)
 {
     const struct Sprite *sprite = &gSprites[object->spriteId];
 
+    // Without y2: a hop in place (approaching Pokémon jump) lifts the
+    // sprite, not the ground under it.
     *x = sprite->x + sprite->x2;
-    *y = sprite->y + sprite->y2 - sprite->centerToCornerVecY - 16;
+    *y = sprite->y - sprite->centerToCornerVecY - 16;
 }
 
 // ---------------------------------------------------------------------------
@@ -781,6 +800,8 @@ bool32 OverworldCatch_TryThrow(void)
         if (owe != NULL)
         {
             GetObjectGroundPos(owe, &throw->toX, &throw->toY);
+            throw->targetX = owe->currentCoords.x;
+            throw->targetY = owe->currentCoords.y;
         }
         else
         {
@@ -1080,14 +1101,13 @@ static void StartBallFall(struct PendingThrow *throw)
         FinishThrow(throw);
 }
 
-#define THROW_HIT_RADIUS    8   // pixels: half a tile
-
+// By tile, not by pixels: currentCoords is where the Pokémon stands, or the
+// tile it is stepping into. One finishing a step it had begun at the throw
+// is hit, one that has set off elsewhere is missed, and a hop in place
+// (approaching Pokémon jump) changes nothing.
 static bool32 IsOWEAtLanding(const struct PendingThrow *throw, const struct ObjectEvent *owe)
 {
-    s16 x, y;
-
-    GetObjectGroundPos(owe, &x, &y);
-    return abs(x - throw->toX) < THROW_HIT_RADIUS && abs(y - throw->toY) < THROW_HIT_RADIUS;
+    return owe->currentCoords.x == throw->targetX && owe->currentCoords.y == throw->targetY;
 }
 
 static void ResolveImpact(struct PendingThrow *throw, struct ObjectEvent *owe)
@@ -1177,8 +1197,8 @@ static void UpdateThrow(struct PendingThrow *throw)
 
         if (throw->timer == 0)
         {
-            // Hit if it is still there, or has just walked into the spot:
-            // less than half a tile away. A miss comes back (D16).
+            // Hit if it is still on its tile, or has just stepped into it.
+            // A miss comes back (D16).
             if (owe != NULL && IsOWEAtLanding(throw, owe))
                 ResolveImpact(throw, owe);
             else
