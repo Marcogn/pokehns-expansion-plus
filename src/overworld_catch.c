@@ -160,6 +160,7 @@ struct OverworldCatch
     u8 bannerWindowId;
     u8 bannerIconSpriteId;
     u8 bannerIconSpriteId2;
+    u8 bannerIconPaletteNum;
     u8 panelWindowId;   // valid only while panelUp (zeroed EWRAM is window 0)
     u8 panelUp:1;
     u8 panelTimer;      // frames the panel stays up after a change or a throw
@@ -363,6 +364,14 @@ bool32 OverworldCatch_HandleLButton(u16 newKeys, u16 heldKeys)
 
 static void FinishThrow(struct PendingThrow *throw);
 
+// Two heights that do not meet: neither is a transition (0) nor the
+// multi-level one (15), as IsElevationMismatchAt reads a tile.
+static bool32 AreElevationsApart(u32 a, u32 b)
+{
+    return a != ELEVATION_TRANSITION && b != ELEVATION_TRANSITION
+        && a != ELEVATION_MULTI_LEVEL && b != ELEVATION_MULTI_LEVEL && a != b;
+}
+
 // The first thing on the line in front of the player, up to THROW_RANGE
 // tiles. A tile that blocks walking stops the Ball, and so does any visible
 // object that is not a generated wild Pokémon: NPCs, signs, the map's
@@ -384,7 +393,9 @@ static enum ThrowTarget FindThrowTarget(u32 *objectEventId, u32 *distance)
 
         *distance = d;
         MoveCoords(direction, &x, &y);
-        if (MapGridGetCollisionAt(x, y))
+        // A change of height stops the Ball as a wall does (P2): a ledge,
+        // the edge of a bridge or a platform with no collision of its own.
+        if (MapGridGetCollisionAt(x, y) || IsElevationMismatchAt(player->currentElevation, x, y))
             return THROW_TARGET_BLOCKED;
 
         // Not GetObjectEventIdByXY: an invisible trigger object may share
@@ -396,6 +407,10 @@ static enum ThrowTarget FindThrowTarget(u32 *objectEventId, u32 *distance)
 
             if (!object->active || object->invisible || i == gPlayerAvatar.objectEventId
              || object->currentCoords.x != x || object->currentCoords.y != y)
+                continue;
+            // Under or over the line (a Pokémon surfing under a bridge):
+            // out of reach, as for a touch.
+            if (AreElevationsApart(player->currentElevation, object->currentElevation))
                 continue;
 
             if (!IsOverworldWildEncounter(object, OWE_GENERATED))
@@ -1013,7 +1028,8 @@ static bool32 GiveCaughtMon(struct Pokemon *mon, u32 ball)
     u32 givenTo;
 
     SetMonData(mon, MON_DATA_POKEBALL, &ballId);
-    // The Heal Ball has nothing to heal on a Pokémon that was never hit.
+    // FinalizeCapture's Friend Ball half; its Heal Ball half has nothing to
+    // heal on a Pokémon that was never hit.
     if (ballId == BALL_FRIEND)
     {
         u32 friendship = (B_FRIEND_BALL_MODIFIER >= GEN_8 ? 150 : 200);
@@ -1062,6 +1078,16 @@ static void StartBallFall(struct PendingThrow *throw)
     // Nothing to show: the Ball is back at once.
     if (!IsBallSpriteValid(throw))
         FinishThrow(throw);
+}
+
+#define THROW_HIT_RADIUS    8   // pixels: half a tile
+
+static bool32 IsOWEAtLanding(const struct PendingThrow *throw, const struct ObjectEvent *owe)
+{
+    s16 x, y;
+
+    GetObjectGroundPos(owe, &x, &y);
+    return abs(x - throw->toX) < THROW_HIT_RADIUS && abs(y - throw->toY) < THROW_HIT_RADIUS;
 }
 
 static void ResolveImpact(struct PendingThrow *throw, struct ObjectEvent *owe)
@@ -1138,16 +1164,10 @@ static void UpdateThrow(struct PendingThrow *throw)
         if (owe != NULL && OverworldCatch_IsOWEInBall(owe))
             owe = NULL;
 
-        if (!throw->miss && owe == NULL)
-        {
-            // It fled, or is gone: nothing to hit (D16).
-            StartBallFall(throw);
-            break;
-        }
-        // Follows the Pokémon if it moves.
-        if (owe != NULL)
-            GetObjectGroundPos(owe, &throw->toX, &throw->toY);
-
+        // The Ball flies to where the Pokémon stood at the throw and does
+        // not follow it (user, 18/11, phase 6: it used to, more generous
+        // than Legends: Arceus). Gone meanwhile, the Ball goes on and lands
+        // there empty.
         elapsed = total - --throw->timer;
         throw->x = throw->fromX + (throw->toX - throw->fromX) * elapsed / total;
         throw->y = throw->fromY + (throw->toY - throw->fromY) * elapsed / total;
@@ -1157,10 +1177,12 @@ static void UpdateThrow(struct PendingThrow *throw)
 
         if (throw->timer == 0)
         {
-            if (owe == NULL)
-                StartBallFall(throw);
-            else
+            // Hit if it is still there, or has just walked into the spot:
+            // less than half a tile away. A miss comes back (D16).
+            if (owe != NULL && IsOWEAtLanding(throw, owe))
                 ResolveImpact(throw, owe);
+            else
+                StartBallFall(throw);
         }
         break;
     }
@@ -1331,8 +1353,11 @@ static void UpdatePanel(void)
 {
     bool32 show = FlagGet(FLAG_SYS_POKEMON_GET) && (sCatch.lHeld || sCatch.panelTimer != 0);
 
-    // A message, a menu or a script owns the bottom of the screen.
-    if (ArePlayerFieldControlsLocked() || gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_L_EQUALS_A)
+    // A message, a menu or a script owns the bottom of the screen, and a
+    // DexNav search has its own window there (dexnav.c, AddSearchWindow:
+    // BG0 at (1,16), tiles from 8, the same as the panel's).
+    if (ArePlayerFieldControlsLocked() || gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_L_EQUALS_A
+     || FlagGet(DN_FLAG_SEARCHING))
         show = FALSE;
     if (sCatch.panelTimer != 0 && !sCatch.lHeld)
         sCatch.panelTimer--;
@@ -1371,13 +1396,24 @@ static void UpdatePanel(void)
     }
 }
 
-// Every frame of the overworld.
+// Every frame of the overworld, first thing in CB2: before the script and
+// the tasks of the frame run. The panel shares BG0 tiles from 8 with the
+// catch banner, the item description box and the Start menu's windows, and
+// its tilemap rows with the message box. The controls are locked in CB1
+// when any of them is about to open, so hiding here clears the panel before
+// they draw. At the end of the frame (where it was) the hiding came after
+// anything a script drew in the frame of the lock, a sign's message box for
+// one, and would erase it where the two overlap (by reading, not seen).
+void OverworldCatch_UpdatePanel(void)
+{
+    UpdatePanel();
+}
+
+// Every frame of the overworld, after the spawns.
 void OverworldCatch_Update(void)
 {
     if (sCatch.cooldown != 0)
         sCatch.cooldown--;
-
-    UpdatePanel();
 
     // While a script runs nothing moves: the script may be the battle with
     // the very Pokémon a Ball is flying at.
@@ -1392,6 +1428,12 @@ void OverworldCatch_Update(void)
             sCatch.lHeld = FALSE;
         return;
     }
+
+    // A Pokémon sent out is the lead of the battle its script starts, and
+    // that script keeps the controls locked until SetBattlePartyIds has read
+    // the slot. Controls free again with the slot still set mean the battle
+    // never started (the target was gone): it must not lead the next one.
+    gOverworldThrowLeadSlot = PARTY_SIZE;
 
     for (u32 i = 0; i < THROW_MAX_PENDING; i++)
         UpdateThrow(&sCatch.throws[i]);
@@ -1425,8 +1467,6 @@ bool32 OverworldCatch_TryStartResults(void)
 #define BANNER_ICON_Y   20
 #define BANNER_TEXT_X   40
 
-static bool32 IsSpritePaletteInUse(u32 paletteNum);
-
 static void Task_CatchBanner(u8 taskId)
 {
     // The banner closes with A or B, and only once the fanfare is over (P19).
@@ -1434,32 +1474,18 @@ static void Task_CatchBanner(u8 taskId)
         return;
 
     if (sCatch.bannerIconSpriteId != MAX_SPRITES)
-    {
-        u32 paletteNum = gSprites[sCatch.bannerIconSpriteId].oam.paletteNum;
-
         FreeAndDestroyMonIconSprite(&gSprites[sCatch.bannerIconSpriteId]);
-        if (sCatch.bannerIconSpriteId2 != MAX_SPRITES)
-            FreeAndDestroyMonIconSprite(&gSprites[sCatch.bannerIconSpriteId2]);
-        // The six mon icon palettes are shared by tag: free this one only if
-        // no other icon on screen uses it (the DexNav search HUD does).
-        if (!IsSpritePaletteInUse(paletteNum))
-            FreeSpritePaletteByTag(GetSpritePaletteTagByPaletteNum(paletteNum));
-    }
+    if (sCatch.bannerIconSpriteId2 != MAX_SPRITES)
+        FreeAndDestroyMonIconSprite(&gSprites[sCatch.bannerIconSpriteId2]);
+    // The six mon icon palettes are shared by tag: freed only if no other
+    // icon on screen uses it (the DexNav search HUD does).
+    if (sCatch.bannerIconPaletteNum != 0xFF)
+        FieldEffectFreePaletteIfUnused(sCatch.bannerIconPaletteNum);
     ClearStdWindowAndFrameToTransparent(sCatch.bannerWindowId, FALSE);
     CopyWindowToVram(sCatch.bannerWindowId, COPYWIN_FULL);
     RemoveWindow(sCatch.bannerWindowId);
     ScriptContext_Enable();
     DestroyTask(taskId);
-}
-
-static bool32 IsSpritePaletteInUse(u32 paletteNum)
-{
-    for (u32 i = 0; i < MAX_SPRITES; i++)
-    {
-        if (gSprites[i].inUse && gSprites[i].oam.paletteNum == paletteNum)
-            return TRUE;
-    }
-    return FALSE;
 }
 
 static u8 CreateBannerIcon(const struct CatchResult *result, bool32 objWindow)
@@ -1522,6 +1548,14 @@ void OverworldCatch_ShowNextBanner(struct ScriptContext *ctx)
         SetGpuRegBits(REG_OFFSET_WINOUT, WINOUT_WINOBJ_OBJ);
         sCatch.bannerIconSpriteId2 = CreateBannerIcon(result, TRUE);
     }
+    // Remembered from whichever copy exists: with the first one missing the
+    // second used to be left on screen. With neither (no free sprite at all)
+    // the palette stays loaded until the next map load frees them all.
+    sCatch.bannerIconPaletteNum = 0xFF;
+    if (sCatch.bannerIconSpriteId != MAX_SPRITES)
+        sCatch.bannerIconPaletteNum = gSprites[sCatch.bannerIconSpriteId].oam.paletteNum;
+    else if (sCatch.bannerIconSpriteId2 != MAX_SPRITES)
+        sCatch.bannerIconPaletteNum = gSprites[sCatch.bannerIconSpriteId2].oam.paletteNum;
 
     // "You caught XXX♂!". FONT_SMALL has no gender glyphs (the symbol comes
     // out as an "8"), so the symbol is printed on its own in FONT_NORMAL,

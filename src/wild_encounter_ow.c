@@ -2300,10 +2300,12 @@ bool32 CanAwareOWESeePlayer(struct ObjectEvent *owe)
     if (owe->movementType == MOVEMENT_TYPE_WANDER_AROUND_OWE)
         return FALSE;
 
-    // Hit by a Ball that did not hold (ForceOWEToNoticePlayer).
+    // Hit by a Ball that did not hold (ForceOWEToNoticePlayer): no distance
+    // or sight needed, but the height still counts, as below. Until the
+    // player is back on its level the bit waits.
     if (IS_LOCALID_GENERATED_OWE(owe->localId)
      && (sOWEForcedNoticeMask & (1 << GetSpawnSlotByOWELocalId(owe->localId))))
-        return TRUE;
+        return CanOWEReachPlayer(owe);
 
     u32 noiseDistance = GetPlayerNoiseDistance(owe);
     if (noiseDistance != 0 && IsPlayerWithinOWEDistance(owe, noiseDistance))

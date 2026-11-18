@@ -1941,6 +1941,8 @@ u8 UpdateSpritePaletteWithTime(u8 paletteNum)
 
 static void OverworldBasic(void)
 {
+    // Hasep: before anything of this frame draws on BG0 (overworld_catch.c).
+    OverworldCatch_UpdatePanel();
     ScriptContext_RunScript();
     RunTasks();
     AnimateSprites();
