@@ -1,6 +1,6 @@
 # Piano: cattura nell'overworld (stile Leggende Pokémon: Arceus)
 
-**Stato (17/11): fasi 1-5 fatte (tetti e prezzi; passo lento e percezione; nucleo del lancio; animazione; pannello e documentazione); prossima: fase 6 (Opus 5.5).**
+**Stato (18/11): fasi 1-6 fatte (tetti e prezzi; passo lento e percezione; nucleo del lancio; animazione; pannello e documentazione; revisione della prima parte); prossima: fase 7 (Sonnet 5.5).**
 
 Si appoggia agli OWE già in gioco: leggere prima
 [`.claude/rules/overworld_encounters.md`](../../.claude/rules/overworld_encounters.md)
@@ -68,7 +68,7 @@ Seconda parte, risposte dell'utente (14/11, dopo la prima stesura):
 | # | Decisione |
 | --- | --- |
 | D5 | **Mega fuori** dal gioco per ora: il limite di ROM non è un vincolo per questo piano. |
-| D6 | **DexNav resta**, per ora. Se toglierlo si decide dopo la fase 3. |
+| D6 | **DexNav resta** (utente, 18/11, fase 6): cerca una specie, catene, nascosti, abilità e mosse; il lancio non lo sostituisce. |
 | D7 | **Alfa troppo forte**: non catturabile (né in lotta né con il lancio), ma **si può battere e si può fuggire**. È tarato perché fuggire convenga. |
 | D8 | **Alfa all'inizio della lotta**: aumento delle statistiche come i totem. |
 | D9 | **Alfa catturato**: resta alfa per sempre (bit nel Pokémon salvato), **abilità nascosta garantita**, **una mossa speciale**, **segno nel riassunto**, **follower più grande**, missioni nel quest book. |
@@ -783,6 +783,72 @@ basta Opus. La 7 è un port con sorgente chiaro, la 10 grafica e contenuto.
   e a metà gioco), la Ball che insegue un bersaglio che fugge, la scelta DexNav
   (D6), e il testo "Lv. N" del pannello (FONT_SMALL non ha il glifo `{LV}`: non
   provato, si è usato "Lv. ").
+
+### 5.6 Fase 6, com'è stata fatta (18/11)
+
+- **Modello**: Opus 5.5, come assegnato. Salvataggio dell'utente (PLUS.11,
+  Route 43, 6 medaglie, `EASY CATCH` acceso).
+- **`/code-review` medio** sul diff `d6520855..HEAD` (fasi 1-5, senza il
+  commit HASEPSYM): 10 punti, verificati sul codice e dove serviva in
+  emulatore. Corretti 7:
+  1. **Pannello sopra la finestra DexNav** (stessa base 8 e stessa riga):
+     riprodotto sulla build di prima (L tenuto durante una ricerca:
+     "FURRET" sparisce, "Lv. 21" rovinato, poi un buco nella finestra);
+     ora il pannello è spento con `DN_FLAG_SEARCHING`. Provato dopo: finestra
+     intatta.
+  2. **Ordine nel frame**: il pannello si nascondeva a fine CB2, dopo script
+     e task. Il caso segnalato (banner coperto) **non si riproduce** (`lock`
+     aspetta un frame prima del banner: provato sulla build di prima, banner
+     pulito); resta vero per ciò che uno script disegna nel frame del blocco
+     (un cartello: per lettura, non visto). Ora `OverworldCatch_UpdatePanel`
+     gira prima di `ScriptContext_RunScript`.
+  3. **Il lancio ignorava i dislivelli** (contro P2): ora un dislivello ferma
+     la Ball e un Pokémon a un'altra altezza è saltato. Provato con un trucco
+     (altezza di OWE e giocatore scritte): Ball sopra il Pokémon, resa; Ball
+     caduta subito (~0,25 s contro >1,2) con il giocatore "più in alto".
+  4. Il bit di allerta forzata (Ball fallita) saltava anche `CanOWEReachPlayer`.
+  5. Icona del banner: se la prima non si creava, la seconda (grotta buia)
+     restava a schermo; palette ora liberata con `FieldEffectFreePaletteIfUnused`
+     (fa anche `ResetPaletteColorMapType`).
+  6. `gOverworldThrowLeadSlot` azzerato a ogni frame a controlli liberi
+     (difensivo: lo script della lotta tiene i controlli fino alla lotta, il
+     caso non è raggiungibile oggi).
+  7. Commento della Friend Ball che parlava della Heal Ball.
+  Scartati: `TryRemoveOWEAboveCap` "senza animazione" (falso:
+  `RemoveObjectEvent` → `OnOverworldWildEncounterDespawn` la fa, e un
+  Pokémon nella Ball ha il flag "non sparire"); Start ignorato in silenzio
+  con una Ball fuori (voluto, al massimo ~4 s; il salvataggio del menu
+  debug resta, è solo debug).
+- **Decisioni dell'utente (18/11)**: D6, il DexNav resta. **La Ball non
+  insegue più** chi si sposta: va dove il Pokémon era al lancio e lo colpisce
+  se all'arrivo è a meno di mezza casella (`IsOWEAtLanding`). Provato: OWE a
+  3 caselle che parte di lato al lancio → Ball resa, nessuna cattura; OWE
+  fermo a 2 → catturato.
+- **Bilanciamento** (formula vera, PS pieni, probabilità per Ball e lanci
+  medi; ×2 = non notato). A inizio gioco (Lv 3-7, 0-1 medaglie) quasi sempre
+  al primo colpo grazie al bonus dei livelli bassi. A metà (6 medaglie, Lv
+  21-22): Furret 12% / 28% (8,1 / 3,6 lanci), Flaaffy 17% / 34%, Girafarig
+  8% / 17%, Pinsir 6% / 12% con la Poké Ball; Ultra Ball: Furret 28% / 50%,
+  Pinsir 12% / 28%. Le Ball costano 10/15/30: l'utente ha scelto di non
+  ritoccare i numeri.
+- **Punti aperti delle fasi 4-5**: "Lv. N" del pannello letto bene in
+  FONT_SMALL (squadra vera: Vileplume, Quilava, Scizor Lv 38); pannello
+  visibile con una Ball a terra; `docs_validate` verde in locale. **Non
+  provati**: OWE in acqua, Ball in volo che attraversa una lotta, grotta buia
+  con Flash (codice non toccato in questa fase).
+- **Verificato** in mGBA + GDB col `.sav` dell'utente, due ROM di prova (build
+  di prima e corretta, con un `Cheat()` che mette un OWE fermo davanti, ne
+  cambia l'altezza o lo fa spostare al lancio; non nel git).
+- ROM consegnata: 31 913 844 B, **95,11%** (+160 B sulla fase 5).
+
+**Handoff per la fase 7 (Sonnet 5.5)**
+- La fase 7 è un port da Soulgold (ricorda mosse a pagamento): non tocca
+  `overworld_catch.c`. Leggere `relearner.md` e il §3 per i maestri.
+- Il salvataggio dell'utente (PLUS.11) è quello della fase 6: Route 43, 6
+  medaglie; serve alla 7 per le mosse uovo vere.
+- Ancora non provati in emulatore (da fare se la 8 o la 11 passano di lì):
+  lancio verso un OWE in acqua, Ball in volo durante l'inizio di una lotta,
+  grotta buia con Flash, un cartello letto entro 2 s da un lancio.
 
 ## 6. Scartato, e perché
 

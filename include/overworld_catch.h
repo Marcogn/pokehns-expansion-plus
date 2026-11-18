@@ -38,6 +38,7 @@ u32 ComputeBallShakeOdds(u32 odds);
 // thrown Pokémon, read and cleared by SetBattlePartyIds.
 extern u8 gOverworldThrowLeadSlot;
 
+void OverworldCatch_UpdatePanel(void);
 void OverworldCatch_Update(void);
 bool32 OverworldCatch_HandleLButton(u16 newKeys, u16 heldKeys);
 bool32 OverworldCatch_TryThrow(void);

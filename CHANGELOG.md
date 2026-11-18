@@ -12,9 +12,10 @@ add the section before releasing. Feature details live in the tables of
 - **Throwing Balls at wild Pokémon on the map**: the third to fifth steps
   of the overworld catching. **R** throws the selected Ball straight ahead, up to 5 tiles,
   at the first visible wild Pokémon on the line. The player holds out an
-  arm, the Ball (drawn as the Ball you threw) flies in an arc and follows
-  the Pokémon if it moves, opens and draws it in, drops to the ground and
-  shakes up to three times. If it holds, it clicks and the Pokémon is yours
+  arm, the Ball (drawn as the Ball you threw) flies in an arc to where the
+  Pokémon stood, opens and draws it in, drops to the ground and shakes up
+  to three times. It does not follow a Pokémon that moves: one that has
+  walked or run off by the time it lands is missed, and the Ball comes back. If it holds, it clicks and the Pokémon is yours
   without a battle: a banner at the top says so with a short fanfare, then
   the game offers the nickname. If it does not, the Pokémon breaks out,
   notices you and flees or attacks as its temperament says.
@@ -23,8 +24,10 @@ add the section before releasing. Feature details live in the tables of
     badge penalty and every Ball's bonus apply as in battle; the Quick
     Ball's bonus is for a Pokémon that has not noticed you.
   - A Ball is only used up when it hits a wild Pokémon. With nothing on the
-    line it flies the 5 tiles and drops; against a wall, a tree or a person
-    it hits it and drops; either way it comes back to the bag. With your
+    line it flies the 5 tiles and drops; against a wall, a tree, a person
+    or a change of height (a ledge, the edge of a bridge) it hits it and
+    drops; either way it comes back to the bag. It flies over a Pokémon on
+    another level, such as one swimming under a bridge. With your
     follower right in front nothing is thrown.
   - While a Ball is out (about four seconds at most) the Start menu does
     not open, and a Pokémon inside a Ball cannot be walked into. A battle
@@ -48,7 +51,8 @@ add the section before releasing. Feature details live in the tables of
     use: the Ball's name and how many you have, or the Pokémon's name and
     level. It is up while L is held and for about two seconds after a
     change or a throw, and goes away when a message, a menu or a script
-    takes over. It uses the message box's frame, so it follows the dark UI.
+    takes over, and during a DexNav search (whose window is in the same
+    place). It uses the message box's frame, so it follows the dark UI.
 - **Free flight in the PokeDaisy fork**: the companion-app table
   (`HASEPSYM`) also lists what PokeDaisy 1.6.0's flight needs (the sprite,
   map grid and sound functions, the map connections, the map groups' sizes

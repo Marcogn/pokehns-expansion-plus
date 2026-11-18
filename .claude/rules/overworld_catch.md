@@ -19,22 +19,18 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
 
 ## Andature (`PlayerNotOnBikeMoving`, `src/field_player_avatar.c`)
 
-- **`autoRun` 0 = acceso** (`sDesc_Autorun`: la prima voce è "Run without
-  pressing B"). Dal 16/11 una partita nuova parte acceso (`= 0` in
-  `SetDefaultChallengeSettings`, che gira solo a salvataggio vuoto o corrotto):
-  i salvataggi esistenti tengono il loro valore, **anche una New Game sopra
-  un salvataggio** (`oak_speech_hns.c`), e chi li ha spenti non ha il passo
-  lento (B corre, P20).
+- **`autoRun` 0 = acceso** (prima voce di `sDesc_Autorun`). Partita nuova
+  acceso dal 16/11 (`SetDefaultChallengeSettings`, solo a salvataggio vuoto o
+  corrotto): i salvataggi tengono il loro valore, **anche una New Game sopra
+  un salvataggio**; spento = niente passo lento (B corre, P20).
 - Passo lento = `PlayerWalkSlow` + `gPlayerAvatar.creeping`: B tenuto con
   AUTORUN acceso, oppure B tenuto durante una ricerca DexNav (a terra e in
   Surf) qualunque sia AUTORUN. **A non fa più il creeping.** Va provato
   **prima** del blocco della corsa, che fa sempre `return` con AUTORUN acceso.
-- Il salto da una sporgenza spegne `creeping` (esce prima del reset comune):
-  senza, un salto dopo il passo lento era silenzioso.
+- Il salto da una sporgenza spegne `creeping` (se no il salto era muto).
 - In Surf le velocità non cambiano; conta come camminata per l'udito.
-- `PLAYER_AVATAR_FLAG_DASH` resta acceso per tutto il passo di corsa: lo
-  spegne `npc_clear_strange_bits` solo al confine fra due passi, e la corsa
-  lo riaccende nello stesso frame.
+- `PLAYER_AVATAR_FLAG_DASH` resta acceso per tutto il passo di corsa
+  (`npc_clear_strange_bits` lo spegne solo fra due passi).
 
 ## Percezione (`CanAwareOWESeePlayer`, `src/wild_encounter_ow.c`)
 
@@ -43,21 +39,17 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   lento mai. Metrica di `IsPlayerWithinOWEDistance` (quadrato tagliato a
   `|dx|+|dy| <= d*362>>8`). Il suono passa gli ostacoli.
 - **Vista**: cono davanti, metà larghezza 0 a distanza 1, 1 a 2-3, 2 da 4,
-  limitata da `(viewWidth-1)/2`, profondità `viewDistance`. Si ferma su una
-  casella con collisione (`MapGridGetCollisionAt`) o su un oggetto che non è
-  un OWE né il follower né `invisible` (NPC e Pokémon decorativi coprono),
-  lungo la retta arrotondata lontano da zero. Giocatore in erba alta o lunga
-  (`MetatileBehavior_IsTallGrass/IsLongGrass`): visto solo dalla casella
-  subito davanti. Il dislivello resta (`CanOWEReachPlayer`).
+  limitata da `(viewWidth-1)/2`, profondità `viewDistance`. Fermata da
+  collisione o da un oggetto non OWE, non follower, non `invisible` (NPC e
+  Pokémon decorativi coprono). Giocatore in erba alta o lunga: visto solo
+  dalla casella davanti. Il dislivello resta (`CanOWEReachPlayer`).
 - **Invariante: `viewDistance <= activeDistance`.** Con `returnToIdle =
   PLAYER_OUTSIDE_ACTIVE_RANGE` un Pokémon che ti vede oltre l'`activeDistance`
   torna a riposo e ti rinota: "!" in loop.
-- **`IsOWEAwareOfPlayer()`** = OWE con `OWE_SAVED_MOVEMENT_STATE_FLAG`
-  (bit 7 di `warpArrowSpriteId`): alzato in `Common_Step7` quando nota,
-  tolto al ritorno a riposo, sopravvive al ricaricamento della mappa. Il
-  tipo "vaga" (`WANDER_AROUND_OWE`) non nota mai.
-- Il controllo gira solo in `WanderAround_Step3` (attesa fra due passi), ogni
-  frame: un OWE mentre cammina non nota.
+- **`IsOWEAwareOfPlayer()`** = `OWE_SAVED_MOVEMENT_STATE_FLAG` (bit 7 di
+  `warpArrowSpriteId`): alzato in `Common_Step7`, tolto a riposo, sopravvive
+  al ricaricamento. Il "vaga" (`WANDER_AROUND_OWE`) non nota mai.
+- Il controllo gira solo in `WanderAround_Step3` (fra due passi).
 
 ## Lancio (`src/overworld_catch.c`, fasi 3-4)
 
@@ -73,17 +65,19 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   poi `ForceOWEToNoticePlayer`). A vuoto: `FLYING` → `FALLING` → `DROPPED`
   24, poi la Ball torna. **Esito deciso in `ResolveImpact`** (D15), il resto
   è animazione. Timer fermi a controlli bloccati. **Start bloccato finché un
-  record non è libero** (`OverworldCatch_IsBallOut`): la Ball è fuori borsa.
-- **Bersaglio**: prima cosa sulla linea entro 5. Collisione e oggetti
-  visibili non-OWE fermano la Ball (cade e torna); il follower davanti: nessun
-  lancio; niente sulla linea: vola 5 e torna. Acqua: niente collisione. Un
-  bersaglio che si muove è inseguito (fine dell'arco = suo sprite).
-- **Sprite**: fogli delle Ball dei follower (`gPokeballGraphics`, frame 0-4,
-  Poké Ball = `OBJ_EVENT_GFX_POKE_BALL`), `coordOffsetEnabled`, posizioni dagli
-  sprite (`GetObjectGroundPos`). **Mai un assert**: senza sprite il volo
-  prosegue invisibile e dall'impatto `FinishThrow` chiude subito con l'esito.
-  `IsBallSpriteValid` (callback + indice + magic) basta per i campi
-  ricostruiti (menu, warp): niente aggancio sul reset degli sprite.
+  record non è libero** (`OverworldCatch_IsBallOut`), in silenzio.
+- **Bersaglio**: prima cosa sulla linea entro 5. Collisione, dislivello
+  (`IsElevationMismatchAt` sull'altezza del giocatore) e oggetti visibili
+  non-OWE fermano la Ball (cade e torna); un oggetto a un'altra altezza
+  (`AreElevationsApart`) è saltato; follower davanti: nessun lancio; niente
+  sulla linea: vola 5 e torna. Acqua: niente collisione. **La Ball non
+  insegue** (utente, 18/11): va dove il Pokémon era al lancio e lo colpisce
+  solo se all'arrivo è a meno di mezza casella (`IsOWEAtLanding`).
+- **Sprite**: fogli delle Ball dei follower (`gPokeballGraphics`, frame
+  0-4), `coordOffsetEnabled`, posizioni dagli sprite (`GetObjectGroundPos`).
+  **Mai un assert**: senza sprite il volo prosegue invisibile e `FinishThrow`
+  chiude all'impatto. `IsBallSpriteValid` (callback + indice + magic) copre
+  i campi ricostruiti (menu, warp).
 - **Pokémon nella Ball** (dall'impatto, `holdsOWE`): congelato e, dal raggio,
   `invisible`, **riasserito a ogni frame** (`KeepOWEInBall`): il `release` di
   uno script scongela tutti. Ha il flag "non sparire" (`HoldOWEForThrow`,
@@ -107,26 +101,32 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   Sfida: `GetCaptureChallengeChecks`. **Nuzlocke: solo una cattura riuscita
   segna la zona** (utente, 17/11, P3).
 - **Fallito**: `ForceOWEToNoticePlayer`, **mai su un OWE già allertato o
-  "vaga"** (il bit resterebbe). Il "vaga" non reagisce e tiene il ×2.
+  "vaga"** (il bit resterebbe). Il bit salta distanza e vista, non l'altezza
+  (`CanOWEReachPlayer`). Il "vaga" non reagisce e tiene il ×2.
 - **Coda** (`results`, 3): un lancio parte se c'è un record libero e Ball in
-  volo + catture in coda < 3. Un lancio a vuoto senza sprite finisce subito. Banner e soprannomi da `OverworldCatch_TryStartResults` quando tutti i
-  record sono liberi, **dopo** la gestione del passo. Palette dell'icona
-  liberata solo se nessuno la usa. Dopo un `callnative` che ferma lo script
-  serve `waitstate`.
+  volo + catture in coda < 3. Banner e soprannomi da
+  `OverworldCatch_TryStartResults` a record tutti liberi, **dopo** il passo.
+  Palette dell'icona: `FieldEffectFreePaletteIfUnused`. Dopo un `callnative`
+  che ferma lo script serve `waitstate`.
 - **Pokémon lanciato**: `gOverworldThrowLeadSlot` (letto e azzerato da
-  `SetBattlePartyIds`). Roamer e sciami: R avvia la lotta. Spento in Safari,
-  Gara, Pike, Piramide, Trainer Hill.
+  `SetBattlePartyIds`, e a ogni frame a controlli liberi). Roamer e sciami:
+  R avvia la lotta. Spento in Safari, Gara, Pike, Piramide, Trainer Hill.
 
 ## Pannello della scelta (D18, `UpdatePanel`)
 
 - Finestra BG0 12x3 a (2,16), base 8, pal 15, cornice pal 14 come il banner
-  (il tema scuro viene da sé, ma **solo dopo che le pal 14/15 sono ricaricate**:
-  cambiare l'opzione a mappa aperta non basta). **`SetStandardWindowBorderStyle`
-  riempie con 1: ridisegnare con `PIXEL_FILL(0)` rende il fondo trasparente.**
+  (tema scuro da sé, **dopo** che le pal 14/15 sono ricaricate).
+  **`SetStandardWindowBorderStyle` riempie con 1: `PIXEL_FILL(0)` dopo rende
+  il fondo trasparente.**
+- **Tile e posto condivisi**: base 8 come banner, descrizione oggetto, menu
+  Start e **finestra della ricerca DexNav** (stessa base e (1,16)): spento con
+  `DN_FLAG_SEARCHING`, se no la cancellava. Si aggiorna e si nasconde
+  **all'inizio del CB2** (`OverworldCatch_UpdatePanel` in `OverworldBasic`,
+  prima di `ScriptContext_RunScript`): i controlli si bloccano nel CB1, quindi
+  sparisce prima che uno script o un task disegni nello stesso frame.
 - Su con L tenuto o `panelTimer` (120 frame, riarmato da cambio, scorrimento,
-  lancio); giù se i controlli sono bloccati o con `L=A`. Il rilascio di L
-  senza scorrere **cambia modalità** (D1): non è un bug del pannello.
-- Solo testo (`FONT_SMALL`, niente sprite: non tocca le palette OBJ).
+  lancio); giù a controlli bloccati o con `L=A`. Il rilascio di L senza
+  scorrere **cambia modalità** (D1). Solo testo (`FONT_SMALL`, niente sprite).
 
 ## Prove
 
