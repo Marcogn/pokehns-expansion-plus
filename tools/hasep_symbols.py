@@ -21,6 +21,8 @@ ROM_BASE = 0x08000000
 HEADER_SEARCH = 0x1000  # the table sits right after the GF and RHH headers
 # Names the PokeDaisy fork can't work without: a table missing them is broken.
 REQUIRED = ("gPlayerParty", "gPlayerPartyCount", "gSaveBlock1Ptr", "gSaveBlock2Ptr", "gMain", "gSpeciesInfo")
+# UPPER_CASE names that are addresses, not constants: checked against nm like the rest.
+ADDRESSES = ("MAP_GROUP_COUNT",)
 TRAINER_SIZE = 0x34  # sizeof(struct Trainer), asserted in src/hasep_symbols.c
 
 
@@ -73,9 +75,9 @@ def main():
         if name in names:
             note = "DUPLICATE"
         names.add(name)
-        if not note and not name.isupper() and value == 0:
+        if not note and (not name.isupper() or name in ADDRESSES) and value == 0:
             note = "ZERO ADDRESS"
-        if not note and syms is not None and not name.isupper():
+        if not note and syms is not None and (not name.isupper() or name in ADDRESSES):
             base = name.split("[", 1)[0]
             want = syms.get(base, set())
             if base == "gTrainers":  # gTrainers[DIFFICULTY_NORMAL]: that row's start, exactly

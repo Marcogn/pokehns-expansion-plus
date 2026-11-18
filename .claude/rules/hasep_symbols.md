@@ -34,7 +34,7 @@ coincide con la release in tutta la EWRAM, Hasep no (party +0x58, borsa +0xC...)
 - **Esportare un simbolo**: `HASEP_EXPORT(sym)` a livello di file. Una
   funzione o tabella `static` si esporta **dal suo file** (così non cambia
   linkage): oggi `battle_controller_player.c`, `event_object_movement.c`,
-  `field_camera.c`, `field_move.c`, `fldeff_flash.c`, `pokemon.c`,
+  `field_camera.c`, `field_move.c`, `fieldmap.c`, `fldeff_flash.c`, `heal_location.c`, `pokemon.c`,
   `region_map.c`, `script.c`, `sprite.c`. Quelli di EXPAND (camera, ordine
   degli sprite, controlli bloccati, palette e grafica degli oggetti) servono
   alla riga nativa `pk_wide` che il fork costruisce dalla tabella. `HASEP_EXPORT_VALUE` per
@@ -56,8 +56,8 @@ coincide con la release in tutta la EWRAM, Hasep no (party +0x58, borsa +0xC...)
   (`gFieldEffectObjectTemplate_Bird`), i follower, `sMapConnectionFlags` (da `fieldmap.c`), `sHealLocations` con
   `HEAL_LOCATION_SIZE` / `HEAL_LOCATION_COUNT` (da `heal_location.c`: la voce è di 8 byte, non 6) e `MAP_GROUP_COUNT`
   (un **indirizzo**, l'array di `data/map_group_count.h`, sotto un nome maiuscolo che lo script stampa come costante)
-  con `MAP_GROUPS_COUNT`. Movimenti, suoni e terreni di atterraggio sono quelli di HnS 2.0.6: gli `STATIC_ASSERT`
-  `HasepFlight*` li fissano, se uno salta il volo del fork va aggiornato. Verificato con il `mgba_dump` del fork:
+  con `MAP_GROUPS_COUNT` (lo script lo controlla con `nm` come un indirizzo: `ADDRESSES`). Movimenti, suoni e terreni di atterraggio sono quelli di HnS 2.0.6: gli `STATIC_ASSERT`
+  `HasepFlight*` li fissano, con gli offset di ObjectEvent / Sprite / MapHeader / HealLocation che `pk_flight.c` usa, se uno salta il volo del fork va aggiornato. Verificato con il `mgba_dump` del fork:
   decollo da New Bark Town, Percorso 27, atterraggio; il percorso panoramico calcolato dall'app fino a Cherrygrove.
 - `gHasepAppScratch[32]` (EWRAM) è la RAM dove l'app scrive argomenti e lo
   script del PC; HnS usava la coda inutilizzata della EWRAM.

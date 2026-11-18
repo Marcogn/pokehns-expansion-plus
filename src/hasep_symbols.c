@@ -12,6 +12,7 @@
 #include "field_weather.h"
 #include "fldeff.h"
 #include "hasep_symbols.h"
+#include "heal_location.h"
 #include "item.h"
 #include "main.h"
 #include "move.h"
@@ -41,8 +42,8 @@
 
 // See include/hasep_symbols.h. The statics the app needs are exported from
 // their own files: battle_controller_player.c, event_object_movement.c,
-// field_camera.c, field_move.c, fldeff_flash.c, pokemon.c, region_map.c,
-// script.c and sprite.c.
+// field_camera.c, field_move.c, fieldmap.c, fldeff_flash.c, heal_location.c,
+// pokemon.c, region_map.c, script.c and sprite.c.
 
 extern const struct MapHeader *const *const gMapGroups[];
 typedef u16 (*SpecialFunc)(void);
@@ -242,4 +243,18 @@ STATIC_ASSERT(MB_NORMAL == 0x00 && MB_TALL_GRASS == 0x02 && MB_LONG_GRASS == 0x0
            && MB_SHORT_GRASS == 0x07 && MB_CAVE == 0x08 && MB_NO_RUNNING == 0x0A && MB_MOUNTAIN_TOP == 0x0C
            && MB_PUDDLE == 0x16 && MB_SAND == 0x21 && MB_ASHGRASS == 0x24 && MB_FOOTPRINTS == 0x25
            && MB_HOT_SPRINGS == 0x28, HasepFlightLanding);
-STATIC_ASSERT(sizeof(struct Sprite) == 0x44 && offsetof(struct ObjectEvent, spriteId) == 0x23, HasepFlightObjectSprite);
+// The fields the fork's pk_flight.c reads and writes by offset (its FL_OBJ_* / FL_SPR_* defines); the bitfields
+// (elevations, inanimate / invisible, the sprite's flags) can't be pinned by offsetof: struct sizes above cover them.
+STATIC_ASSERT(offsetof(struct ObjectEvent, spriteId) == 0x23, HasepFlightObjectSprite);
+STATIC_ASSERT(offsetof(struct ObjectEvent, localId) == 0x08, HasepFlightObjectLocalId);
+STATIC_ASSERT(offsetof(struct ObjectEvent, currentCoords) == 0x10, HasepFlightObjectCoords);
+STATIC_ASSERT(offsetof(struct ObjectEvent, fieldEffectSpriteId) == 0x1A, HasepFlightObjectEffectSprite);
+STATIC_ASSERT(offsetof(struct ObjectEvent, movementActionId) == 0x1C, HasepFlightObjectAction);
+STATIC_ASSERT(offsetof(struct Sprite, x) == 0x20 && offsetof(struct Sprite, y) == 0x22, HasepFlightSpritePos);
+STATIC_ASSERT(offsetof(struct Sprite, animNum) == 0x2A && offsetof(struct Sprite, data) == 0x2E, HasepFlightSpriteAnimData);
+STATIC_ASSERT(offsetof(struct PlayerAvatar, flags) == 0, HasepFlightAvatarFlags);
+STATIC_ASSERT(offsetof(struct MapHeader, connections) == 0x0C && sizeof(struct MapConnection) == 12, HasepFlightConnections);
+STATIC_ASSERT(offsetof(struct HealLocation, x) == 2 && offsetof(struct HealLocation, y) == 4, HasepFlightHealLocation);
+STATIC_ASSERT(MAPGRID_UNDEFINED == 0x3FF, HasepFlightMapGridUndefined);
+STATIC_ASSERT(MOVEMENT_ACTION_WALK_FAST_UP == 0x16 && MOVEMENT_ACTION_WALK_FAST_LEFT == 0x17
+           && MOVEMENT_ACTION_WALK_FAST_RIGHT == 0x18 && MOVEMENT_ACTION_WALK_FASTER_RIGHT == 0x30, HasepFlightWalkDirections);
