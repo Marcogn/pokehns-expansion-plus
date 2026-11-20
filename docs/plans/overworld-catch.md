@@ -277,29 +277,103 @@ Trappole già note che qui mordono (dalla regola degli OWE):
 - `gEnemyParty[0]` azzerato: guardare il Pokémon catturato in squadra (il
   precedente è il Bad Egg di `trainer_catch.md`).
 
-### Fonti per ARCEUS FORMULAS (20/11; la fase 10 le completa)
+### Fonti per ARCEUS FORMULAS (20/11; screenshot di Bulbapedia mandati dall'utente)
 
-- **Statistiche, verificate**: [Pokébip](https://www.pokebip.com/page/jeux-video/legendes-pokemon-arceus/statistiques-niveau-effort)
-  e [Poképédia](https://www.pokepedia.fr/Calcul_des_statistiques), aperte. PS =
-  ⌊(L/100 + 1) × B⌋ + L + E; altra statistica = ⌊⌊(L/50 + 1) × B / 1,5⌋ × N⌋ +
-  E; E = (√B × m + L) / 2,5 con m = 0, 2, 3, 4, 7, 8, 9, 14, 15, 16, 25 per
-  impegno 0-10. Controllo: base 120, Lv 100, impegno 10 dà 490 e 390 come
-  l'esempio di ts-pokeapi (visto nei risultati di ricerca). **Aperti**: E
-  arrotondato all'intero più vicino (Pokébip) o per difetto (Poképédia);
-  impegno iniziale da IV 0-20 → 0, 21-25 → 1, 26-30 → 2, 31 → 3 (Bulbapedia
-  mette il 20 nel livello 1).
-- **Effetto misurato** (calcolo, IV 15 EV 0 contro impegno 0): base 100 a Lv
-  5 PS 25 → 112, Attacco 15 → 75; a Lv 50 167 → 220; a Lv 100 325 → 340.
-  Per questo D21 porta anche il danno.
-- **Cattura, incompleta**: [Serebii](https://www.serebii.net/legendsarceus/capture.shtml)
-  (aperta) dà colpo alle spalle ×1,75, stati ×1-4 (dorme ×4, mangia ×2,5),
-  Poké/Great/Ultra ×1 / ×1,5 / ×2,25. Bulbapedia (Catch rate, sezione Legends:
-  Arceus) risponde 403 da qui: dai risultati di ricerca, tasso × 0,75, un
-  rango = rango giocatore − rango Pokémon + 1 tra −5 e 0, rango del Pokémon
-  dal livello (+4 se alfa, massimo 10), due controlli e non serve superarli
-  entrambi. **Manca il termine del livello**: testo da chiedere all'utente.
-- **Danno**: nessuna fonte ancora (Bulbapedia, Damage, sezione Legends:
-  Arceus): da chiedere all'utente.
+Bulbapedia risponde 403 da qui: le tre sezioni "Pokémon Legends: Arceus" di
+[Stat](https://bulbapedia.bulbagarden.net/wiki/Stat),
+[Catch rate](https://bulbapedia.bulbagarden.net/wiki/Catch_rate) e
+[Damage](https://bulbapedia.bulbagarden.net/wiki/Damage) sono trascritte qui
+dagli screenshot dell'utente (20/11). Le immagini non sono nel git.
+
+**Statistiche** (Bulbapedia; uguali a [Pokébip](https://www.pokebip.com/page/jeux-video/legendes-pokemon-arceus/statistiques-niveau-effort)
+e [Poképédia](https://www.pokepedia.fr/Calcul_des_statistiques)):
+
+- PS = ⌊(L/100 + 1) × B + L⌋ + ELB
+- altra statistica = ⌊⌊(L/50 + 1) × B / 1,5⌋ × N⌋ + ELB, N = 0,9 / 1 / 1,1
+- ELB = **round**((√B × m + L) / 2,5): all'intero più vicino (chiude il dubbio
+  fra Pokébip e Poképédia). m per impegno 0-10: 0, 2, 3, 4, 7, 8, 9, 14, 15,
+  16, 25 (la tabella di Bulbapedia salta la riga 1; il 2 viene dalle altre due
+  fonti).
+- Gli IV servono solo a dare l'impegno iniziale, fino a 3: 0-20 → 0, 21-25 →
+  1, 26-30 → 2, 31 → 3 (Pokébip; il caso IV 20 resta da confermare sulla
+  pagina Effort level, conta solo per quel valore).
+- Controllo: base 120, Lv 100, impegno 10 → PS 490, altra 390 (anche
+  ts-pokeapi).
+
+**Cattura** (Bulbapedia, Catch rate):
+
+- a = (0,75 × rate + outbreak) + 30 × (rank + (3·PSmax − 2·PS)/(3·PSmax) ×
+  status × ball × behavior × backstrike × berry)
+- outbreak = 10 per un Pokémon di uno sciame (Mass Outbreak), se no 0.
+- rank = rank_giocatore − rank_Pokémon + 1, **fra −5 e 0**; rank_Pokémon =
+  ⌊(livello − 1)/10 + 1⌋, +4 se alfa, al massimo 10. rank_giocatore è il rango
+  del Team Galassia (da noi: dalle medaglie, D21).
+- status 2 con uno stato; backstrike 1,75 se colpito alle spalle; berry 1,3
+  se mangia una Bacca Lampone.
+- Ball (base / potenziata): Poké 0,75 / 0,75; Great 1,5 / 1,5; Ultra 2,25 /
+  2,25; Heavy 1 / 1,25; Leaden 1,75 / 2; Gigaton 2,5 / 2,75; Feather 1 / 1,25;
+  Wing 1,25 / 2; Jet 2 / 2,75 (Heavy/Leaden/Gigaton potenziate se non ti ha
+  visto o in lotta; Feather/Wing/Jet se vola).
+- behavior: base 2, reazione docile 2, timida 1, aggressiva 1, cauto 2,
+  mangia 2,5 (bacca 2,5, torta 4), dorme 4, stordito 3, riposa 2,5, fugge 1.
+- **Scosse**: a si ferma a 255; b = 65535 × (1 − √(1 − a/255)); due
+  controlli contro un numero fra 0 e 65535, ne basta uno. a < 0 = cattura
+  impossibile. **Ne segue P(cattura) = a/255 esatta** (due controlli con
+  p = 1 − √(1 − a/255)).
+- Il primo Pokémon iniziale fallisce sempre al primo tentativo (dettaglio di
+  Arceus, da non portare).
+
+**Danno** (Bulbapedia, Damage; ogni moltiplicazione e divisione arrotonda per
+difetto salvo dove detto):
+
+- Danno = ((100 + A + 15 × Livello) × Potenza / (D + 50)) / 5 × (AtkMod ×
+  DefMod) × random × Tipo × Altri
+- Altri = Meteo × Brutto colpo × STAB × Scottatura/Congelamento × Sonnolenza
+  × Fissato (attacco) × Fissato (difesa) × Concentrato
+- A, D: Attacco o Att. Sp., Difesa o Dif. Sp. effettivi; AtkMod 1,5 / 1 /
+  0,66 se le statistiche offensive sono alzate / neutre / abbassate, DefMod
+  1,5 / 1 / 0,66 se le difensive sono abbassate / neutre / alzate (Arceus non
+  ha i sette stadi: solo su, giù o niente); random intero 85-100 / 100; Tipo
+  0,4 / 0,5 / 1 / 2 / 2,5 (doppia debolezza 2,5, non 4); STAB 1,25; brutto
+  colpo 1,5; Fuoco sotto la pioggia 0,75; scottatura 0,5 sugli attacchi fisici.
+
+**Effetto misurato** (calcolo; IV 15 EV 0 contro impegno 0, natura neutra,
+mossa senza STAB ed efficacia 1, danno massimo, attaccante e difensore della
+stessa specie):
+
+| Base, livello, potenza | Classica: colpi per KO | Statistiche Arceus, danno classico | Arceus intero |
+| --- | --- | --- | --- |
+| 50, Lv 5, 40 | 4 | 12 | 4 |
+| 50, Lv 25, 40 | 6 | 9 | 3 |
+| 50, Lv 50, 80 | 4 | 4 | 2 |
+| 100, Lv 5, 40 | 5 | 23 | 7 |
+| 100, Lv 50, 80 | 5 | 6 | 3 |
+| 100, Lv 100, 80 | 5 | 5 | 4 |
+
+Le statistiche da sole allungano molto le lotte iniziali; con il danno di Arceus
+le lotte iniziali restano simili e quelle di metà gioco si accorciano.
+
+Cattura con la formula di Arceus (PS pieni, comportamento base ×2, rango del
+giocatore = medaglie): Sentret Lv 3 con Poké Ball 81%; con 6 medaglie,
+Furret Lv 21 32% (alle spalle 37%, Ultra 44%), Pinsir Lv 22 19% (Ultra 31%);
+**Pinsir Lv 22 con 0 medaglie: impossibile con la Poké Ball** (a < 0), 7%
+con la Ultra. Con la formula di oggi Furret era 12% / 28% e Pinsir 6% / 12%
+(fase 6).
+
+**Da decidere nelle fasi 10-11** (con un default):
+
+- **Tasso di cattura**: Arceus ha tassi suoi, più alti; il gioco ha quelli
+  classici. Default: quelli del gioco (niente tabella nuova).
+- **rank_giocatore** dalle medaglie: default = medaglie, al massimo 10 (Johto
+  8 + Kanto oltre).
+- **Colpo alle spalle**: default = Pokémon che non ti ha notato e guarda
+  dall'altra parte; il ×2 di D2 sparisce con l'opzione accesa.
+- **Comportamento**: default = base 2, chi ti ha notato e ti carica o fugge 1.
+- **Stadi di statistica**: Arceus non li ha. Default: A e D effettivi con
+  gli stadi del gioco, AtkMod = DefMod = 1; STAB 1,25 e Tipo 2,5 / 0,4 di
+  Arceus.
+- **Le altre Ball del gioco** (Rete, Scuro, Velox...): tengono il loro
+  moltiplicatore, × 0,75 per stare sulla scala di Arceus.
 
 ## 4. Spazio misurato (build pulita di `d6520855`)
 
@@ -334,7 +408,7 @@ costa di più del suo prezzo.
 | 7 | **Ricorda mosse a pagamento** (D10), port da Soulgold: `P_ENABLE_MOVE_RELEARNERS` FALSE, `P_TM_MOVES_RELEARNER` resta TRUE (P16), due flag, due maestri con il loro prezzo (dove: dalle mappe, v. §3), testo nel riassunto quando la voce è chiusa | **Sonnet 5.5** | build verde; nel riassunto le mosse uovo/tutor non compaiono prima e compaiono dopo aver pagato (screenshot); le MT sì in tutti e due i casi; un salvataggio vecchio parte chiuso. **Serve il `.srm`** (Pokémon con mosse uovo vere) |
 | 8 | **Menu e posto per le voci nuove** (D19, D22): schede nuove nei due menu dal documento (al massimo 20 righe ciascuna), voci spostate, OVERWORLD CATCH e ARCEUS FORMULAS presenti ma ancora senza effetto, `SAVE_VERSION` 15 con il passo che azzera i 2 bit, titolo (`oak_speech_hns.c`) e `NewGameInitData`; `save.md` corretta sul bit che non era libero | **Opus 5.5** | build verde; col `.srm` dell'utente: prima e dopo il caricamento `ChallengeSettings` e `SoundAndFieldOptions` uguali byte per byte salvo i 2 bit, che leggono 0; salvato e ricaricato, checksum giusto; ogni scheda guardata nei due temi, nessuna oltre 20 righe; una New Game tiene le scelte fatte al titolo. **Serve il `.srm`** |
 | 9 | **Interruttore OVERWORLD CATCH** (D20): spenta = il gioco di prima del piano salvo i prezzi; accesa = com'è oggi. Cambio a mappa aperta senza Pokémon di troppo (`TryRemoveOWEAboveCap` lavora già al contrario) | **Opus 5.5** | build verde; spenta: R avvia la ricerca DexNav sulla specie registrata, B corre, L non fa nulla, fino a 6 OWE in erba in 60 s (misurato in frame), nessuna Ball lanciata; accesa: le prove della fase 6 (riva, mancato, fermo, Pokémon mandato) danno gli stessi esiti. `.srm` utile |
-| 10 | **ARCEUS FORMULAS: statistiche e cattura** (D21). Prima le fonti: la pagina di Bulbapedia (testo fornito dall'utente) copiata nel §3 con le formule; poi le statistiche in `CalculateMonStats` dietro l'opzione (livelli d'impegno da IV/EV, squadra ricalcolata al cambio e al caricamento con i PS in proporzione, box al ritiro) e la cattura di Arceus in `ComputeOverworldCaptureOdds` (rango dalle medaglie, colpo alle spalle al posto del ×2) | **Opus 5.5** | build verde; 3 Pokémon (Lv 5, 25, 50) calcolati a mano e letti in RAM, opzione accesa e spenta, PS e stato conservati al cambio; probabilità di cattura su 3 casi uguale al calcolo a mano (ROM strumentata); il `.srm` dell'utente carica con l'opzione accesa e spenta. **Serve il `.srm`** |
+| 10 | **ARCEUS FORMULAS: statistiche e cattura** (D21). Formule e default da decidere nel §3 (fonti complete dal 20/11); le statistiche in `CalculateMonStats` dietro l'opzione (livelli d'impegno da IV/EV, squadra ricalcolata al cambio e al caricamento con i PS in proporzione, box al ritiro) e la cattura di Arceus in `ComputeOverworldCaptureOdds` (rango dalle medaglie, colpo alle spalle al posto del ×2) | **Opus 5.5** | build verde; 3 Pokémon (Lv 5, 25, 50) calcolati a mano e letti in RAM, opzione accesa e spenta, PS e stato conservati al cambio; probabilità di cattura su 3 casi uguale al calcolo a mano (ROM strumentata); il `.srm` dell'utente carica con l'opzione accesa e spenta. **Serve il `.srm`** |
 | 11 | **ARCEUS FORMULAS: danno e bilanciamento** (D21): formula del danno di Arceus dietro la stessa opzione (fonte nel §3), con BST EQUALIZER e le sfide su IV/EV provate insieme; misura dei colpi per KO a inizio e metà gioco con l'opzione accesa e spenta; CHANGELOG e regola (`overworld_catch.md` o una nuova `arceus.md`) | **Opus 5.5** | build verde; danno su 3 casi uguale al calcolo a mano (ROM strumentata); tabella dei colpi per KO accesa/spenta annotata, con l'utente a decidere se ritoccare; l'opzione accesa non rompe le lotte con allenatori scalati (`LEVEL SCALING`). `.srm` utile |
 | 12 | **Alfa sulla mappa**: bit `alpha` nell'oggetto, tiro P9, livello P10, comportamento P12, **prototipo dello sprite più grande** (se non regge: un'aura o un'icona sopra la testa, e lo si scrive) | **Opus 5.5** | build verde; con il debug che forza l'alfa: compare uno per mappa, ti insegue, non sparisce; sprite guardato su erba, in grotta, accanto ad altri OWE; tile e matrici affini misurate; un salvataggio vecchio carica senza alfa fantasma. `.srm` non necessario |
 | 13 | **Alfa in lotta e catturato**: aumento P13, blocco della cattura in lotta e col lancio (D7, P11, P15), bit nel Pokémon salvato con `MON_DATA_IS_ALPHA`, abilità nascosta e mossa P14 alla nascita | **Opus 5.5** | build verde; un alfa sopra il tetto respinge la Ball in lotta e nell'overworld (Ball non consumata), si batte e si fugge; uno sotto il tetto si cattura e **in squadra, dopo salvataggio e ricarica e passaggio nel PC, è ancora alfa** con abilità e mossa giuste; un Pokémon del salvataggio vecchio legge non-alfa e il checksum regge. **Serve il `.srm`** |
