@@ -1,4 +1,5 @@
 #include "global.h"
+#include "option_menu.h"
 #include "overworld_catch.h"
 #include "battle.h"
 #include "battle_controllers.h"
@@ -316,8 +317,10 @@ static void ScrollMon(s32 delta)
 // throws whatever is selected.
 bool32 OverworldCatch_HandleLButton(u16 newKeys, u16 heldKeys)
 {
+    // OVERWORLD CATCH off (plan D20): L does nothing on the map, as before.
     if (gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_L_EQUALS_A
-     || !FlagGet(FLAG_SYS_POKEMON_GET))
+     || !FlagGet(FLAG_SYS_POKEMON_GET)
+     || !IsOverworldCatchEnabled())
     {
         sCatch.lHeld = FALSE;
         return FALSE;
@@ -714,7 +717,9 @@ bool32 OverworldCatch_TryThrow(void)
     struct ObjectEvent *owe = NULL;
     enum ThrowTarget target;
 
-    if (!FlagGet(FLAG_SYS_POKEMON_GET))
+    // The caller starts a DexNav search instead while OVERWORLD CATCH is
+    // off; this is the guard for any other caller.
+    if (!FlagGet(FLAG_SYS_POKEMON_GET) || !IsOverworldCatchEnabled())
         return FALSE;
 
     target = FindThrowTarget(&objectEventId, &distance);
@@ -1377,7 +1382,7 @@ static void UpdatePanel(void)
     // DexNav search has its own window there (dexnav.c, AddSearchWindow:
     // BG0 at (1,16), tiles from 8, the same as the panel's).
     if (ArePlayerFieldControlsLocked() || gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_L_EQUALS_A
-     || FlagGet(DN_FLAG_SEARCHING))
+     || FlagGet(DN_FLAG_SEARCHING) || !IsOverworldCatchEnabled())
         show = FALSE;
     if (sCatch.panelTimer != 0 && !sCatch.lHeld)
         sCatch.panelTimer--;

@@ -13,6 +13,12 @@
 // With 6 there, many of them AGGRESSIVE (Tauros, Rhyhorn), a test run had 18
 // battles in about 8 minutes; the user asked for 4, then 3 (catch plan, D3).
 #define OWE_SPAWNS_MAX_SAFARI           3
+// Hasep: the caps before the overworld catch plan, used while OVERWORLD CATCH
+// is off (plan D20: off is the game as it was, prices aside).
+#define OWE_SPAWNS_MAX_LAND_NO_CATCH    6
+#define OWE_SPAWNS_MAX_WATER_NO_CATCH   3
+#define OWE_SPAWNS_MAX_CAVE_NO_CATCH    3
+#define OWE_SPAWNS_MAX_SAFARI_NO_CATCH  4
 // Hasep: random tiles tried per spawn attempt (upstream: 1); see
 // TrySelectTilesForOWE. Game time to fill 6 on Route 31 from a warp, 3 runs:
 // 4 tries 17-31 s, 6 tries 11-29 s, 8 tries 9-13 s (the spawn countdowns

@@ -1,4 +1,5 @@
 #include "global.h"
+#include "option_menu.h"
 #include "overworld_catch.h"
 #include "battle_setup.h"
 #include "bike.h"
@@ -309,9 +310,10 @@ int ProcessPlayerFieldInput(struct FieldInput *input)
     }
     // Hasep (overworld catch plan, D1): off the bike R throws the selected
     // Ball or Pokemon at the wild Pokemon ahead. It used to start a DexNav
-    // search on the registered species; the DexNav is opened from the Start
-    // menu now.
-    else if (input->pressedRButton && OverworldCatch_TryThrow())
+    // search on the registered species, and still does with OVERWORLD CATCH
+    // off (plan D20).
+    else if (input->pressedRButton
+          && (IsOverworldCatchEnabled() ? OverworldCatch_TryThrow() : TryStartDexNavSearch()))
     {
         return TRUE;
     }

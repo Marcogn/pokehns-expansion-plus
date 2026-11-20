@@ -476,7 +476,7 @@ static const u8 *const sDesc_ShinyColor[] = {
 // Index 0 is ON: the field is noOverworldCatch, stored inverted.
 static const u8 *const sDesc_OverworldCatch[] = {
     COMPOUND_STRING("Throw BALLS at wild {PKMN} with {R_BUTTON},\nhold {B_BUTTON} to sneak up on them."),
-    COMPOUND_STRING("No throwing: {R_BUTTON} searches with the\nDEXNAV and {B_BUTTON} runs, as before."),
+    COMPOUND_STRING("No throwing: {R_BUTTON} searches with the\nDEXNAV and there is no sneaking."),
 };
 static const u8 *const sDesc_ArceusFormulas[] = {
     COMPOUND_STRING("Stats, damage and catch rates use\nthe usual formulas."),
