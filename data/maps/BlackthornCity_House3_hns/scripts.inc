@@ -213,3 +213,66 @@ BlackthornCity_MoveRelearnersHouse_Text_CantTeachEgg:
 
 
 
+
+@ Egg Move Master: pay once, then egg moves show up in the summary screen's
+@ relearner (START on the Battle Moves page). FLAG_EGG_MOVES_UNLOCKED is 0 in
+@ every older save, so the move list starts closed (overworld-catch plan, D10).
+BlackthornCity_EggMoveMaster_EventScript_Master::
+	lock
+	faceplayer
+	goto_if_set FLAG_EGG_MOVES_UNLOCKED, BlackthornCity_EggMoveMaster_EventScript_AlreadyPaid
+	showmoneybox 0, 0
+	msgbox BlackthornCity_EggMoveMaster_Text_Offer, MSGBOX_YESNO
+	goto_if_eq VAR_RESULT, NO, BlackthornCity_EggMoveMaster_EventScript_Declined
+	checkmoney 88888
+	goto_if_eq VAR_RESULT, FALSE, BlackthornCity_EggMoveMaster_EventScript_NotEnoughMoney
+	removemoney 88888
+	playse SE_SHOP
+	updatemoneybox
+	setflag FLAG_EGG_MOVES_UNLOCKED
+	msgbox BlackthornCity_EggMoveMaster_Text_Paid, MSGBOX_DEFAULT
+	hidemoneybox
+	release
+	end
+
+BlackthornCity_EggMoveMaster_EventScript_AlreadyPaid::
+	msgbox BlackthornCity_EggMoveMaster_Text_AlreadyPaid, MSGBOX_DEFAULT
+	release
+	end
+
+BlackthornCity_EggMoveMaster_EventScript_Declined::
+	msgbox BlackthornCity_EggMoveMaster_Text_Declined, MSGBOX_DEFAULT
+	hidemoneybox
+	release
+	end
+
+BlackthornCity_EggMoveMaster_EventScript_NotEnoughMoney::
+	msgbox BlackthornCity_EggMoveMaster_Text_NotEnoughMoney, MSGBOX_DEFAULT
+	hidemoneybox
+	release
+	end
+
+BlackthornCity_EggMoveMaster_Text_Offer:
+	.string "I am the EGG MOVE MASTER.\p"
+	.string "For ¥88,888, once and for all, I will\n"
+	.string "teach you how POKéMON recall the\l"
+	.string "moves they inherit through EGGS.\p"
+	.string "Do you want to learn it?$"
+
+BlackthornCity_EggMoveMaster_Text_Paid:
+	.string "Splendid!\p"
+	.string "Open a POKéMON's BATTLE MOVES page\n"
+	.string "and press START to recall its\l"
+	.string "EGG MOVES.$"
+
+BlackthornCity_EggMoveMaster_Text_AlreadyPaid:
+	.string "Your POKéMON can already recall their\n"
+	.string "EGG MOVES. Press START on the\l"
+	.string "BATTLE MOVES page.$"
+
+BlackthornCity_EggMoveMaster_Text_Declined:
+	.string "Come back when you are ready.$"
+
+BlackthornCity_EggMoveMaster_Text_NotEnoughMoney:
+	.string "You do not have enough money.\n"
+	.string "It costs ¥88,888.$"

@@ -47,7 +47,7 @@ Il branch `claude/mega-type-stones` ha 3 commit **non ancora in master**
 ## 2. Accesi e completati qui (non scritti qui, non di Soulgold)
 
 DexNav (`DEXNAV_ENABLED` era FALSE), relearner dal riassunto
-(`P_ENABLE_MOVE_RELEARNERS`, mancava la gestione di START), icone dei tipi
+(`P_ENABLE_MOVE_RELEARNERS`, mancava la gestione di START; dal 20/11 con egg/tutor a pagamento come in SG, vedi `relearner.md`), icone dei tipi
 (`B_SHOW_TYPES` era NEVER), Pokédex HGSS. Dettagli in `.claude/rules/` (`dexnav.md`, `battle_ui.md`, `relearner.md`).
 
 Pokémon selvatici visibili nell'overworld: **non vengono da Soulgold** (SG

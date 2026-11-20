@@ -55,3 +55,65 @@ OlivineCity_Text_DontWantGoodRod:
 OlivineCity_Text_HaveGoodRod:
 	.string "How are things?\n"
 	.string "Did you land the big one?$"
+
+@ Tutor Move Master: same idea as Blackthorn's EGG MOVE MASTER, for tutor moves
+@ (FLAG_TUTOR_MOVES_UNLOCKED is 0 in every older save).
+OlivineCity_TutorMoveMaster_EventScript_Master::
+	lock
+	faceplayer
+	goto_if_set FLAG_TUTOR_MOVES_UNLOCKED, OlivineCity_TutorMoveMaster_EventScript_AlreadyPaid
+	showmoneybox 0, 0
+	msgbox OlivineCity_TutorMoveMaster_Text_Offer, MSGBOX_YESNO
+	goto_if_eq VAR_RESULT, NO, OlivineCity_TutorMoveMaster_EventScript_Declined
+	checkmoney 44444
+	goto_if_eq VAR_RESULT, FALSE, OlivineCity_TutorMoveMaster_EventScript_NotEnoughMoney
+	removemoney 44444
+	playse SE_SHOP
+	updatemoneybox
+	setflag FLAG_TUTOR_MOVES_UNLOCKED
+	msgbox OlivineCity_TutorMoveMaster_Text_Paid, MSGBOX_DEFAULT
+	hidemoneybox
+	release
+	end
+
+OlivineCity_TutorMoveMaster_EventScript_AlreadyPaid::
+	msgbox OlivineCity_TutorMoveMaster_Text_AlreadyPaid, MSGBOX_DEFAULT
+	release
+	end
+
+OlivineCity_TutorMoveMaster_EventScript_Declined::
+	msgbox OlivineCity_TutorMoveMaster_Text_Declined, MSGBOX_DEFAULT
+	hidemoneybox
+	release
+	end
+
+OlivineCity_TutorMoveMaster_EventScript_NotEnoughMoney::
+	msgbox OlivineCity_TutorMoveMaster_Text_NotEnoughMoney, MSGBOX_DEFAULT
+	hidemoneybox
+	release
+	end
+
+OlivineCity_TutorMoveMaster_Text_Offer:
+	.string "I am the TUTOR MOVE MASTER.\p"
+	.string "For ¥44,444, once and for all, I will\n"
+	.string "show you how POKéMON recall the\l"
+	.string "moves that move tutors teach.\p"
+	.string "Do you want to learn it?$"
+
+OlivineCity_TutorMoveMaster_Text_Paid:
+	.string "Very good!\p"
+	.string "Open a POKéMON's BATTLE MOVES page\n"
+	.string "and press START to recall its\l"
+	.string "TUTOR MOVES.$"
+
+OlivineCity_TutorMoveMaster_Text_AlreadyPaid:
+	.string "Your POKéMON can already recall\n"
+	.string "TUTOR MOVES. Press START on the\l"
+	.string "BATTLE MOVES page.$"
+
+OlivineCity_TutorMoveMaster_Text_Declined:
+	.string "Come back when you are ready.$"
+
+OlivineCity_TutorMoveMaster_Text_NotEnoughMoney:
+	.string "You do not have enough money.\n"
+	.string "It costs ¥44,444.$"

@@ -1,6 +1,6 @@
 # Piano: cattura nell'overworld (stile Leggende Pokémon: Arceus)
 
-**Stato (20/11): fasi 1-6 fatte (tetti e prezzi; passo lento e percezione; nucleo del lancio; animazione; pannello e documentazione; revisione della prima parte); prossima: fase 7 (Sonnet 5.5). Il 20/11 sono entrate le fasi 8-11 (menu, OVERWORLD CATCH, ARCEUS FORMULAS) e gli alfa sono passati a 12-14.**
+**Stato (20/11): fasi 1-7 fatte (tetti e prezzi; passo lento e percezione; nucleo del lancio; animazione; pannello e documentazione; revisione della prima parte; ricorda mosse a pagamento); prossima: fase 8 (Opus 5.5). Il 20/11 sono entrate le fasi 8-11 (menu, OVERWORLD CATCH, ARCEUS FORMULAS) e gli alfa sono passati a 12-14.**
 
 Si appoggia agli OWE già in gioco: leggere prima
 [`.claude/rules/overworld_encounters.md`](../../.claude/rules/overworld_encounters.md)
@@ -1025,6 +1025,42 @@ con le statistiche di Arceus vale un'altra cosa.
 - Ancora non provati in emulatore (da fare se la 9 o la 15 passano di lì):
   Ball in volo durante l'inizio di una lotta,
   grotta buia con Flash, un cartello letto entro 2 s da un lancio.
+
+### 5.7 Fase 7, com'è stata fatta (20/11)
+
+- **Modello**: Sonnet 5.5, come assegnato. Salvataggio dell'utente (PLUS.11).
+- **Cosa**: `P_ENABLE_MOVE_RELEARNERS` FALSE, `P_TM_MOVES_RELEARNER` resta TRUE
+  (P16), `P_FLAG_EGG_MOVES`/`P_FLAG_TUTOR_MOVES` agganciati a due flag nuovi
+  (`FLAG_EGG_MOVES_UNLOCKED` 0x304, `FLAG_TUTOR_MOVES_UNLOCKED` 0x305, ex
+  `FLAG_UNUSED_36/37` di `flags_hns.h`). Due NPC nuovi: Egg Move Master in
+  `BlackthornCity_House3_hns` (2,6; ¥88.888) e Tutor Move Master in
+  `OlivineCity_House3_hns` (7,4; ¥44.444). Pagano una volta e alzano il flag;
+  il resto lo fa il riassunto. Dettagli e trappola della guardia
+  `#ifdef POKEMON_HNS` in `relearner.md`.
+- **Maestro dei tutor**: la House4 di Olivine di SG qui non esiste; scelta la
+  House3 (la stanza col pescatore, stessa mappa di Blackthorn). Da confermare
+  con l'utente se preferisce un altro posto.
+- **Sorgente di SG**: `add_repo Marcogn/soulgold` è stato rifiutato dal
+  sistema dei permessi, quindi niente confronto con SG: prezzi e posti dal
+  piano, **testi e sprite dei maestri scritti qui** (Gentleman e Sage).
+- **Verificato** in mGBA col `.sav` dell'utente (Quilava Lv 38, MT in borsa):
+  prima del pagamento il ciclo L/R del tag nella pagina mosse è LEVEL↔TM
+  (uovo e tutor assenti); soldi insufficienti (¥23.638) = messaggio, nessun
+  flag; con i soldi (debug Max Money) il prezzo esatto viene tolto (9.999.999 →
+  9.911.111 e → 9.955.555), il secondo colloquio dice "già pagato", e il ciclo
+  diventa LEVEL→EGG→TM (uovo: Fury Swipes, Quick Attack, Reversal, Thrash,
+  Foresight, Covet) e poi LEVEL→TUTOR→TM. Il `.sav` non è stato modificato
+  (cmp). Un salvataggio vecchio parte chiuso: è la prova stessa (flag a 0).
+- **Non fatto**: "testo nel riassunto quando la voce è chiusa" (tabella): in
+  SG non l'ho potuto vedere e senza fonte non l'ho inventato; il tag mostra
+  solo le voci aperte. Da decidere con l'utente. Non provato: il pagamento del
+  Tutor con un Pokémon che impara davvero una mossa tutor (solo il ciclo).
+- ROM: 31 915 444 B, **95,12%** (+1 376 B sulla fase 6).
+
+**Handoff per la fase 8 (Opus 5.5)**
+- `FLAG_UNUSED_38/39` (0x306/7) restano liberi in `flags_hns.h`; la fase 8 non
+  ne ha bisogno (bit di `ChallengeSettings`, `save.md`).
+- CHANGELOG: voce nuova sotto PLUS.12 "Changed" per il ricorda mosse.
 
 ## 6. Scartato, e perché
 

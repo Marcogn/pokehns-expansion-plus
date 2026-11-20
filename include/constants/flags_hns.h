@@ -847,8 +847,8 @@
 #define FLAG_PEWTER_GYM_NPC_TRADE_COMPLETED          0x301
 #define FLAG_OLIVINE_GYM_NPC_TRADE_COMPLETED         0x302
 #define FLAG_ENABLE_CONDITION                       0x303
-#define FLAG_UNUSED_36                              0x304
-#define FLAG_UNUSED_37                              0x305
+#define FLAG_EGG_MOVES_UNLOCKED                     0x304 // was FLAG_UNUSED_36: Egg Move Master paid
+#define FLAG_TUTOR_MOVES_UNLOCKED                   0x305 // was FLAG_UNUSED_37: Tutor Move Master paid
 #define FLAG_UNUSED_38                              0x306
 #define FLAG_UNUSED_39                              0x307
 #define HNS_UNUSED_COUNT                            40

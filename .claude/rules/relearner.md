@@ -11,12 +11,21 @@ paths:
 - **Ricorda mosse dal riassunto**: è una feature di expansion 1.15.2
   (`P_ENABLE_MOVE_RELEARNERS`), non di Soulgold. Hasep ne aveva però solo metà:
   `ShowRelearnPrompt()` disegnava il prompt e **nessuno gestiva START**.
-  Come lo configura Soulgold, verificato: `P_TM_MOVES_RELEARNER` **FALSE** (MT
-  mai disponibili), mosse uovo dietro `FLAG_EGG_MOVES_UNLOCKED` (Egg Move Master,
-  Blackthorn City House 3, ¥88.888) e tutor dietro `FLAG_TUTOR_MOVES_UNLOCKED`
-  (Tutor Move Master, Olivine City House 4, ¥44.444). È per questo che lì un
-  Pokémon di livello basso non vede mosse fuori scala: qui quei due cancelli non
-  ci sono per scelta.
+  **Egg e tutor a pagamento (fase 7 di `overworld-catch`, 20/11)**:
+  `P_ENABLE_MOVE_RELEARNERS` FALSE, `P_TM_MOVES_RELEARNER` **TRUE** (le MT restano
+  libere, a differenza di SG), `P_FLAG_EGG_MOVES` = `FLAG_EGG_MOVES_UNLOCKED`
+  (0x304, ex `FLAG_UNUSED_36`, `flags_hns.h`) e `P_FLAG_TUTOR_MOVES` =
+  `FLAG_TUTOR_MOVES_UNLOCKED` (0x305). Zero nei salvataggi vecchi = chiusi.
+  `include/config/summary_screen.h` è incluso **prima** di `IS_HNS`: la guardia è
+  `#ifdef POKEMON_HNS`. Maestri: Egg Move Master in `BlackthornCity_House3_hns`
+  (NPC nuovo a (2,6), ¥88.888), Tutor Move Master in `OlivineCity_House3_hns`
+  (NPC nuovo a (7,4), ¥44.444: SG ha una House4 che qui non esiste). Pagano e
+  alzano il flag; la scelta della mossa resta nel riassunto. Il ricorda mosse a
+  Squama Cuore di Blackthorn non c'entra (solo mosse di livello).
+  Prova: pagina mosse, L/R sul tag "LEVEL": prima del pagamento il ciclo è
+  LEVEL↔TM, dopo EGG si aggiunge, dopo TUTOR pure. Il sorgente di SG non era
+  accessibile in quella sessione: posizioni, prezzi e testi dei maestri sono
+  ricavati dal piano e dalle note, non copiati.
   Soulgold apre il relearner **solo dalla pagina Battle Moves** e forza
   `showContestInfo` a FALSE.
   Attenzione prima di gridare al bug sulla categoria LEVEL: `P_LVL_UP_LEARNSETS`
