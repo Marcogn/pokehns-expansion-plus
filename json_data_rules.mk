@@ -15,7 +15,10 @@ include/constants/region_map_sections.h: $(DATA_SRC_SUBDIR)/region_map/region_ma
 # place (clean_heal_locations: truncate, then write). Nothing ordered the two,
 # so under -j jsonproc could read it empty or half written ("unexpected end of
 # input", "parse error at line 290": CI on master, 18-20/11). The order-only
-# prerequisite on a file of that same rule makes jsonproc wait for it.
+# prerequisite on a file of that same rule makes jsonproc wait for it. It is
+# not enough alone: the groups rule lists its targets with `:`, so under -j
+# make may run it more than once. mapjson itself now rewrites the file only
+# when it changes, and through a rename (tools/mapjson/mapjson.cpp).
 HEAL_LOCATIONS_AFTER_MAPJSON := | $(INCLUDECONSTS_OUTDIR)/map_groups.h
 
 AUTO_GEN_TARGETS += $(DATA_SRC_SUBDIR)/heal_locations.h
