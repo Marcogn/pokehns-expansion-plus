@@ -2301,6 +2301,13 @@ static enum MoveRelearnerStates GetNextRelearnerState(enum MoveRelearnerStates s
 
 bool32 CheckRelearnerStateFlag(enum MoveRelearnerStates state)
 {
+    // Egg and tutor moves are paid for (flags set by the two Move Masters),
+    // whatever P_ENABLE_MOVE_RELEARNERS says. Soulgold does the same.
+    if (state == MOVE_RELEARNER_EGG_MOVES)
+        return FlagGet(P_FLAG_EGG_MOVES);
+    if (state == MOVE_RELEARNER_TUTOR_MOVES)
+        return FlagGet(P_FLAG_TUTOR_MOVES);
+
     if (P_ENABLE_MOVE_RELEARNERS)
         return TRUE;
 

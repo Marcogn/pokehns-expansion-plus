@@ -24,8 +24,13 @@
 // Relearner flags - Redundant if P_ENABLE_MOVE_RELEARNERS is TRUE, but still added here incase you don't want all relearners unlocked at the same time.
 // To use the following features in scripting, replace the 0s with the flag ID you're assigning it to.
 // Eg: Replace with FLAG_UNUSED_0x264 so you can use that flag to toggle the feature.
-#define P_FLAG_EGG_MOVES                 0       // If this flag is set, enables egg move relearner.
-#define P_FLAG_TUTOR_MOVES               0       // If this flag is set, enables tutor move relearner.
+#ifdef POKEMON_HNS // this header comes before IS_HNS is defined (see battle.h)
+#define P_FLAG_EGG_MOVES                 FLAG_EGG_MOVES_UNLOCKED   // If this flag is set, enables egg move relearner.
+#define P_FLAG_TUTOR_MOVES               FLAG_TUTOR_MOVES_UNLOCKED // If this flag is set, enables tutor move relearner.
+#else
+#define P_FLAG_EGG_MOVES                 0
+#define P_FLAG_TUTOR_MOVES               0
+#endif
 
 // Move Relearner summary screen
 #define P_SUMMARY_SCREEN_MOVE_RELEARNER  TRUE   // If TRUE, shows an option for Pokémon to relearn moves on the summary screen moves page.

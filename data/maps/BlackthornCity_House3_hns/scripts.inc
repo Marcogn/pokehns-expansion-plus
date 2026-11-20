@@ -213,3 +213,108 @@ BlackthornCity_MoveRelearnersHouse_Text_CantTeachEgg:
 
 
 
+
+@ Egg Move Master, ported from Soulgold (same flow and texts). The fee is
+@ half of Soulgold's (44,444 instead of 88,888), halved again once the player is Johto
+@ Champion (FLAG_IS_CHAMPION). FLAG_EGG_MOVES_UNLOCKED is 0 in old saves, so the
+@ moves start closed (overworld-catch plan, D10).
+BlackthornCity_EggMoveMaster_EventScript_Master::
+	lock
+	faceplayer
+	goto_if_set FLAG_EGG_MOVES_UNLOCKED, BlackthornCity_EggMoveMaster_EventScript_Master_Known
+	call BlackthornCity_EggMoveMaster_EventScript_Master_BufferFee
+	msgbox BlackthornCity_EggMoveMaster_EventScript_Master_Text_Intro
+	showmoneybox 0, 0
+	msgbox BlackthornCity_EggMoveMaster_EventScript_Master_Text_Ask, MSGBOX_YESNO
+	goto_if_eq VAR_RESULT, YES, BlackthornCity_EggMoveMaster_EventScript_Master_TryPay
+	hidemoneybox
+	msgbox BlackthornCity_EggMoveMaster_EventScript_Master_Text_Declined
+	release
+	end
+
+BlackthornCity_EggMoveMaster_EventScript_Master_Known:
+	msgbox BlackthornCity_EggMoveMaster_EventScript_Master_Text_HowTo
+	release
+	end
+
+BlackthornCity_EggMoveMaster_EventScript_Master_BufferFee:
+	bufferstring STR_VAR_1, BlackthornCity_EggMoveMaster_EventScript_Master_Text_Fee
+	goto_if_unset FLAG_IS_CHAMPION, BlackthornCity_EggMoveMaster_EventScript_Master_BufferFeeEnd
+	bufferstring STR_VAR_1, BlackthornCity_EggMoveMaster_EventScript_Master_Text_FeeChampion
+BlackthornCity_EggMoveMaster_EventScript_Master_BufferFeeEnd:
+	return
+
+BlackthornCity_EggMoveMaster_EventScript_Master_TryPay:
+	goto_if_set FLAG_IS_CHAMPION, BlackthornCity_EggMoveMaster_EventScript_Master_TryPayChampion
+	checkmoney 44444
+	goto_if_eq VAR_RESULT, FALSE, BlackthornCity_EggMoveMaster_EventScript_Master_NoMoney
+	removemoney 44444
+	goto BlackthornCity_EggMoveMaster_EventScript_Master_Paid
+
+BlackthornCity_EggMoveMaster_EventScript_Master_TryPayChampion:
+	checkmoney 22222
+	goto_if_eq VAR_RESULT, FALSE, BlackthornCity_EggMoveMaster_EventScript_Master_NoMoney
+	removemoney 22222
+BlackthornCity_EggMoveMaster_EventScript_Master_Paid:
+	updatemoneybox
+	playse SE_SHOP
+	waitse
+	setflag FLAG_EGG_MOVES_UNLOCKED
+	msgbox BlackthornCity_EggMoveMaster_EventScript_Master_Text_Thanks
+	hidemoneybox
+	closemessage
+	fadescreen FADE_TO_BLACK
+	delay 60
+	fadescreen FADE_FROM_BLACK
+	delay 20
+	playfanfare MUS_OBTAIN_ITEM
+	msgbox BlackthornCity_EggMoveMaster_EventScript_Master_Text_Learned
+	waitfanfare
+	msgbox BlackthornCity_EggMoveMaster_EventScript_Master_Text_HowTo
+	release
+	end
+
+BlackthornCity_EggMoveMaster_EventScript_Master_NoMoney:
+	msgbox BlackthornCity_EggMoveMaster_EventScript_Master_Text_NoMoney
+	hidemoneybox
+	release
+	end
+
+BlackthornCity_EggMoveMaster_EventScript_Master_Text_Fee:
+	.string "44,444$"
+
+BlackthornCity_EggMoveMaster_EventScript_Master_Text_FeeChampion:
+	.string "22,222$"
+
+BlackthornCity_EggMoveMaster_EventScript_Master_Text_HowTo:
+	.string "You can teach Egg Moves by\n"
+	.string "pressing Start on the Battle Moves\l"
+	.string "page of the Summary Screen and\l"
+	.string "switching to the Egg Moves page.$"
+
+BlackthornCity_EggMoveMaster_EventScript_Master_Text_Intro:
+	.string "I'm the Egg Move Master.\p"
+	.string "I know all there is to know about Egg\n"
+	.string "Moves.\p"
+	.string "If you wish, I can teach you all that I \n"
+	.string "know for a one-time fee of ¥{STR_VAR_1}.$"
+
+BlackthornCity_EggMoveMaster_EventScript_Master_Text_Ask:
+	.string "What do you say? Do you wish to learn\n"
+	.string "everything about Egg Moves?$"
+
+BlackthornCity_EggMoveMaster_EventScript_Master_Text_NoMoney:
+	.string "It seems you do not have the money\n"
+	.string "to learn. A pity.$"
+
+BlackthornCity_EggMoveMaster_EventScript_Master_Text_Thanks:
+	.string "Thank you for the business!\p"
+	.string "Now let me teach you the grand\n"
+	.string "secrets of the Egg Moves.$"
+
+BlackthornCity_EggMoveMaster_EventScript_Master_Text_Learned:
+	.string "You can now teach Egg Moves to\n"
+	.string "your Pokémon!$"
+
+BlackthornCity_EggMoveMaster_EventScript_Master_Text_Declined:
+	.string "I see.$"

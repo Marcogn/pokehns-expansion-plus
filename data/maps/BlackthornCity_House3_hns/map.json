@@ -41,6 +41,20 @@
       "script": "BlackthornCity_MoveRelearnersHouse_EventScript_MoveRelearner",
       "flag": "0",
       "local_id": "LOCALID_BLACKTHORN_MOVE_RELEARNER"
+    },
+    {
+      "graphics_id": "OBJ_EVENT_GFX_GENTLEMAN_HNS",
+      "x": 2,
+      "y": 6,
+      "elevation": 0,
+      "movement_type": "MOVEMENT_TYPE_FACE_RIGHT",
+      "movement_range_x": 1,
+      "movement_range_y": 1,
+      "trainer_type": "TRAINER_TYPE_NONE",
+      "trainer_sight_or_berry_tree_id": "0",
+      "script": "BlackthornCity_EggMoveMaster_EventScript_Master",
+      "flag": "0",
+      "local_id": "LOCALID_EGG_MOVE_MASTER"
     }
   ],
   "warp_events": [

@@ -63,6 +63,15 @@ add the section before releasing. Feature details live in the tables of
   in game.
 
 ### Changed
+- **Egg moves and tutor moves are no longer free in the move relearner.**
+  They are the one thing that changes for existing saves: until you pay, the
+  summary screen's relearner (START on the Battle Moves page) offers only
+  level-up moves and TMs. The Egg Move Master in Blackthorn City (house with the
+  Move Deleter) opens egg moves for ¥44,444, once; the Tutor Move Master in
+  Olivine City (house with the fishing guru) opens tutor moves for ¥22,222,
+  once. Both fees are halved again once you are Johto Champion (¥22,222 and
+  ¥11,111). TMs stay available as before. Script and texts are Soulgold's; the
+  fees are half of Soulgold's.
 - **R no longer starts a DexNav search** on the registered species: open
   the DexNav from the Start menu. On a bike R still swaps Mach and Acro.
 - **Fewer visible Pokémon**: the first step of the overworld catching
