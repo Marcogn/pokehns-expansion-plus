@@ -88,7 +88,7 @@ che tiene la destinazione di ogni voce; le fasi lo rileggono, non lo copiano):
 | --- | --- |
 | D19 | **Menu riordinati**: Impostazioni in 4 schede (GENERALE, MAPPA, LOTTA, SUONO: la MAIN di oggi ha 20 voci su 20), Sfide in 5 (MODALITÀ con dentro FEATURES, RANDOMIZER, NUZLOCKE, DIFFICOLTÀ, SFIDE). EASY CATCH e LEVEL SCALING vanno in Sfide · DIFFICOLTÀ; CLOCK TYPE e ALT SHINY in Impostazioni · GENERALE; il resto voce per voce nel documento. Spostare una voce non tocca il salvataggio. |
 | D20 | **OVERWORLD CATCH** (Impostazioni · MAPPA, ON/OFF, default ON). Spenta: tetti 6/3/3 e ricambio a 240 frame, niente passo lento né udito e cono (B corre), R avvia la ricerca DexNav, L senza pannello; **i prezzi restano**. Gli alfa (fasi 12-14) esistono solo col lancio acceso. |
-| D21 | **ARCEUS FORMULAS** (Impostazioni · LOTTA, OFF/ON, default OFF): **una voce sola** per le statistiche di Leggende Arceus (ogni Pokémon, ricalcolate al cambio) e la sua formula di cattura **solo nell'overworld** (in lotta resta quella di oggi); viaggiano insieme (utente, 20/11). Con loro la **formula del danno** di Arceus, se no le prime lotte durano 3-4 volte di più. Livelli d'impegno **derivati** da IV ed EV (niente dati nuovi nel Pokémon); le sfide su IV/EV restano e agiscono tramite i livelli. Il 20/11: **un tasso di cattura unico, 135, per tutte le specie** (la differenza la fanno la Ball del tipo, il livello e il comportamento); **leggendari e misteriosi tengono il loro tasso del gioco**; i **roamer restano come oggi** (R avvia la lotta, dove provano a fuggire), **rango del giocatore = 8 medaglie di Johto + Campione di Johto (0-9)**, colpo alle spalle come in Arceus (colpito da dietro). Ball una per una, specie senza tasso di Arceus e stadi delle statistiche: documento [Formule di Arceus: scelte](https://claude.ai/artifact/3AR9iBxCBwF5N6RMHweHot). |
+| D21 | **ARCEUS FORMULAS** (Impostazioni · LOTTA, OFF/ON, default OFF): **una voce sola** per le statistiche di Leggende Arceus (ogni Pokémon, ricalcolate al cambio) e la sua formula di cattura **solo nell'overworld** (in lotta resta quella di oggi); viaggiano insieme (utente, 20/11). Con loro la **formula del danno** di Arceus, se no le prime lotte durano 3-4 volte di più. Livelli d'impegno **derivati** da IV ed EV (niente dati nuovi nel Pokémon); le sfide su IV/EV restano e agiscono tramite i livelli. Il 20/11: **un tasso di cattura unico, 135, per tutte le specie** (la differenza la fanno la Ball del tipo, il livello e il comportamento); **leggendari e misteriosi tengono il loro tasso del gioco**; i **roamer restano come oggi** (R avvia la lotta, dove provano a fuggire), **rango del giocatore = 8 medaglie di Johto + Campione di Johto (0-9)**, colpo alle spalle come in Arceus (colpito da dietro). Ball: Poké/Great/Ultra coi valori di Arceus, le altre col loro effetto × 0,75 (il ×4 per tipo delle Ball di Kurt prende il posto dei tassi per specie); stadi delle statistiche del gioco (§3, documento [Formule di Arceus: scelte](https://claude.ai/artifact/3AR9iBxCBwF5N6RMHweHot), chiuso). |
 | D22 | **Salvataggio**: 2 bit, con il passo `saveVersion < 15` che li azzera. **`unusedTrainerCatchBit` non è libero**: vale 1 nel `.sav` dell'utente (PLUS.11, slot 0 e 1, letto il 20/11) benché il passo 9 lo azzeri; nessun codice di oggi lo scrive. Il secondo bit in coda a SaveBlock3 (20 byte liberi; `autoRun` ha 7 bit a zero nello stesso `.sav`, alternativa). OVERWORLD CATCH salvata invertita (0 = accesa). |
 
 Default della seconda parte, cambiabili prima della fase:
@@ -381,11 +381,14 @@ Kanto e 32 di Johto. **Rifatti specie per specie, non scalati**: Onix 45 → 235
 Scyther 45 → 215, Machop 180 → 245, Heracross 45 → 85, Gyarados 45 → 55,
 Pikachu 190 → 145.
 
-**Ancora da decidere** (tendine nel documento
-[Formule di Arceus: scelte](https://claude.ai/artifact/3AR9iBxCBwF5N6RMHweHot); default tra parentesi): ogni Ball (Poké/Great/Ultra coi valori di
-Arceus, le altre con il loro effetto del gioco × 0,75, Master invariata); stadi delle statistiche (tenere
-gli stadi del gioco, AtkMod = DefMod = 1, con STAB 1,25 e Tipo 2,5 / 0,4 di
-Arceus). Comportamento: base 2, chi ti ha notato e carica o fugge 1.
+**Deciso il 20/11, Ball e stadi** (documento
+[Formule di Arceus: scelte](https://claude.ai/artifact/3AR9iBxCBwF5N6RMHweHot),
+chiuso): Poké / Great / Ultra coi valori di Arceus (0,75 / 1,5 / 2,25); le
+altre col loro effetto del gioco × 0,75, così il ×4 per tipo delle Ball di
+Kurt e della Net vale ×3 sulla scala di Arceus (le Ball per tipo prendono il
+posto dei tassi per specie); Master, Beast, Safari e Sport invariate. **Stadi
+delle statistiche del gioco** (±6): AtkMod = DefMod = 1, con STAB 1,25 e Tipo
+2,5 / 0,4 di Arceus. Comportamento: base 2, chi ti ha notato e carica o fugge 1.
 
 ## 4. Spazio misurato (build pulita di `d6520855`)
 
