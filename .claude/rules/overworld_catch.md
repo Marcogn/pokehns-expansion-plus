@@ -109,7 +109,7 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   la borsa deve averne più di quelle in volo (`CountFlyingBalls`).
 - **Ball a terra = ostacolo** (`OverworldCatch_IsBallOnGroundAt` in
   `GetVanillaCollision`): casella `landX/Y`, da `OPENING` a fine record.
-- **Banner senza script** (20/11): pila di 3 in alto, 180 frame, da
+- **Banner senza script** (20/11): pila di 3 in alto, la nuova in cima, 180 frame, da
   `ShowCatchBanner` (stato `CAUGHT`, o `FinishThrow`). Tile BG0 da 92, 84
   a banner: la finestra DexNav va da 8 a 91, il popup del nome mappa (0x107,
   scorre tutto BG0) li cancella (`ShowMapNamePopup`); in ricerca DexNav solo

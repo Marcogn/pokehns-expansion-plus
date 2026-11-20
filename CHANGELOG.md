@@ -18,8 +18,9 @@ add the section before releasing. Feature details live in the tables of
   walked or run off by the time it lands is missed. If it holds, it clicks
   and the Pokémon is yours without a battle: a banner at the top says so,
   with a short sound, while the game goes on. Catches in a row stack up to
-  three banners, one under the other; each goes by itself after about three
-  seconds, or makes room for a newer one, and they clear when a message or a
+  three banners, the newest on top pushing the others down; the oldest, at
+  the bottom, goes first, by itself after about three seconds or to make
+  room for a newer one, and they clear when a message or a
   menu opens. No nickname is asked (the Name Rater renames), except with the
   Nuzlocke's compulsory nicknames, asked once the volley is over. If the
   Ball does not hold, the Pokémon breaks out, notices you and flees or

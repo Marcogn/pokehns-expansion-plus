@@ -1196,8 +1196,10 @@ con le statistiche di Arceus vale un'altra cosa.
 - Decisioni (utente): **la Ball si consuma solo a cattura riuscita** (non
   più all'impatto: sostituisce D16 per la Ball che colpisce e il Pokémon
   esce; la perdita a lancio fallito arriverà con una missione futura);
-  **banner che non fermano il gioco**, pila di 3 in alto, ~3 s ciascuno, il
-  più vecchio esce se ne arriva un quarto (sostituisce D14 per il blocco);
+  **banner che non fermano il gioco**, pila di 3 in alto, **il nuovo in cima
+  che spinge giù gli altri** (utente, dopo una prima versione col nuovo in
+  fondo), ~3 s ciascuno, il più vecchio (in basso) esce per primo o se ne
+  arriva un quarto (sostituisce D14 per il blocco);
   **niente soprannome** per le catture col lancio salvo la Nuzlocke
   obbligatoria (sostituisce P18); **niente fanfara**, un suono breve
   (`SE_SUCCESS`, sostituisce P19); **una Ball a terra non si attraversa**;
@@ -1217,6 +1219,9 @@ con le statistiche di Arceus vale un'altra cosa.
   secondo (prima 9 e 0, `BANNER_ICON_Y` 20 → 16). Ball a terra: un record
   `DROPPED` scritto da RAM su (50,15) a Cherrygrove tiene il giocatore su
   (49,15) per 230 frame con Destra tenuta; finito il record, passa.
+- Nuovo in cima, riprovato (Route 29 nord, tre lanci): Geodude, Geodude,
+  Rattata presi (×11 → ×8); Rattata compare in cima e spinge giù il Geodude
+  rimasto, che poi sparisce dal basso mentre Rattata resta fermo.
 - **Non provati**: la Nuzlocke col soprannome obbligatorio, il popup del
   nome mappa sopra i banner, banner durante una ricerca DexNav, una Ball
   vera (non scritta da RAM) a vuoto calpestata.

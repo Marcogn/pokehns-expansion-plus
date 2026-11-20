@@ -189,7 +189,7 @@ struct OverworldCatch
     u8 monSlot;
     u8 blockReason;
     struct CatchBanner banners[BANNER_MAX];
-    u8 numBanners;      // banners[0] is the oldest, in the top slot
+    u8 numBanners;      // banners[0] is the oldest, in the bottom slot
     u8 battleStarting:1;
     u8 panelWindowId;   // valid only while panelUp (zeroed EWRAM is window 0)
     u8 panelUp:1;
@@ -1697,8 +1697,9 @@ static void DrawBanner(struct CatchBanner *banner, u32 slot)
     CopyWindowToVram(windowId, COPYWIN_FULL);
 }
 
-// Every banner erased and drawn again in its slot, oldest at the top: after
-// one goes, the ones under it move up.
+// Every banner erased and drawn again in its slot, the newest at the top
+// (user, 20/11): a new one pushes the others down, and the oldest, at the
+// bottom, goes first, so the others stay where they are.
 static void RedrawBanners(void)
 {
     u32 first = GetFirstBannerSlot();
@@ -1706,7 +1707,7 @@ static void RedrawBanners(void)
     for (u32 i = 0; i < sCatch.numBanners; i++)
         EraseBanner(&sCatch.banners[i]);
     for (u32 i = 0; i < sCatch.numBanners; i++)
-        DrawBanner(&sCatch.banners[i], first + i);
+        DrawBanner(&sCatch.banners[i], first + sCatch.numBanners - 1 - i);
 }
 
 static void RemoveOldestBanner(void)
@@ -1731,8 +1732,8 @@ void OverworldCatch_DismissBanners(void)
     DismissCatchBanners();
 }
 
-// A catch: its banner at the bottom of the stack, the oldest dropped if the
-// stack is full. A short sound, no fanfare: the music goes on (user, 20/11).
+// A catch: its banner at the top of the stack, the oldest (at the bottom)
+// dropped if the stack is full. A short sound, no fanfare: the music goes on (user, 20/11).
 static void ShowCatchBanner(struct PendingThrow *throw)
 {
     struct CatchBanner *banner;
