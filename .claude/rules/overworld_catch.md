@@ -17,6 +17,18 @@ Piano, decisioni e diario delle verifiche:
 [`docs/plans/overworld-catch.md`](../../docs/plans/overworld-catch.md) (§5.2
 per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
 
+## Interruttore OVERWORLD CATCH (D20, fase 9)
+
+- Solo `IsOverworldCatchEnabled()`. **Spenta = gioco di prima del piano
+  salvo prezzi e negozi**: tetti `*_NO_CATCH` 6/3/3, Safari 4, ricambio 240;
+  `CanAwareOWESeePlayer_NoCatch` (4x3 per tutti, solo corsa/bici sentite,
+  niente copertura); B con AUTORUN acceso = camminata (il passo lento resta
+  nella ricerca DexNav); R = `TryStartDexNavSearch`; L, pannello e
+  `OverworldCatch_TryThrow` spenti.
+- Si cambia dal menu Start, chiuso con una Ball fuori o banner in coda:
+  nessun lancio vivo al cambio. Riaccesa, `TryRemoveOWEAboveCap` toglie
+  l'eccesso. **A cattura spenta R+START del debug avvia prima il DexNav.**
+
 ## Andature (`PlayerNotOnBikeMoving`, `src/field_player_avatar.c`)
 
 - **`autoRun` 0 = acceso** (prima voce di `sDesc_Autorun`). Partita nuova
@@ -49,7 +61,6 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
 - **`IsOWEAwareOfPlayer()`** = `OWE_SAVED_MOVEMENT_STATE_FLAG` (bit 7 di
   `warpArrowSpriteId`): alzato in `Common_Step7`, tolto a riposo, sopravvive
   al ricaricamento. Il "vaga" (`WANDER_AROUND_OWE`) non nota mai.
-- Il controllo gira solo in `WanderAround_Step3` (fra due passi).
 
 ## Lancio (`src/overworld_catch.c`, fasi 3-4)
 
@@ -58,14 +69,12 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   bloccati**. L = `OverworldCatch_HandleLButton` da `DoCB1_Overworld` (toglie
   il D-pad finché è tenuto); L tenuto attraverso un blocco conta come usato.
   Con `L=A` main.c **aggiunge** A ma lascia L: l'opzione va letta.
-- **Un lancio è un record** (`sCatch.throws`, 3) con stato e timer: `FLYING`
-  (8 + 8 a casella) → `OPENING` 16 (Pokémon nascosto dal frame 4, il raggio)
-  → `CLOSING` 8 (cattura: qui l'OWE è tolto) → `FALLING` 8 → `SHAKING` (16 +
-  32 a scossa, 0-3 da `RollShakes`) → `CAUGHT` 40 / `BREAKOUT` 12 (l'OWE esce,
-  poi `ForceOWEToNoticePlayer`). A vuoto: `FLYING` → `FALLING` → `DROPPED`
-  24, poi la Ball torna. **Esito deciso in `ResolveImpact`** (D15), il resto
-  è animazione. Timer fermi a controlli bloccati. **Start bloccato finché un
-  record non è libero** (`OverworldCatch_IsBallOut`), in silenzio.
+- **Un lancio è un record** (`sCatch.throws`, 3): `FLYING` → `OPENING` →
+  `CLOSING` (cattura: qui l'OWE è tolto) → `FALLING` → `SHAKING` →
+  `CAUGHT`/`BREAKOUT`; a vuoto `FLYING` → `FALLING` → `DROPPED`, poi la Ball
+  torna. **Esito deciso in `ResolveImpact`** (D15), il resto è animazione.
+  Timer fermi a controlli bloccati. **Start bloccato finché un record non è
+  libero** (`OverworldCatch_IsBallOut`), in silenzio.
 - **Bersaglio**: prima cosa sulla linea entro 5; vuota: vola 5 e torna;
   follower davanti: niente lancio. Collisione, dislivello e oggetti visibili
   non-OWE fermano la Ball (cade e torna); un oggetto su un altro livello è
@@ -74,26 +83,20 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   alla prima casella. Sporgenze: non dislivelli. **Niente inseguimento**
   (18/11): colpito se all'arrivo `currentCoords` è la casella del
   lancio (`targetX/Y`); un salto sul posto non conta (niente `y2`).
-- **Sprite**: fogli delle Ball dei follower (`gPokeballGraphics`, frame
-  0-4), `coordOffsetEnabled`, posizioni dagli sprite (`GetObjectGroundPos`).
-  **Mai un assert**: senza sprite il volo prosegue invisibile e `FinishThrow`
-  chiude all'impatto. `IsBallSpriteValid` (callback + indice + magic) copre
-  i campi ricostruiti (menu, warp).
+- **Sprite**: **mai un assert**: senza sprite il volo prosegue invisibile e
+  `FinishThrow` chiude all'impatto. `IsBallSpriteValid` (callback + indice +
+  magic) copre i campi ricostruiti (menu, warp).
 - **Pokémon nella Ball** (dall'impatto, `holdsOWE`): congelato e, dal raggio,
   `invisible`, **riasserito a ogni frame** (`KeepOWEInBall`): il `release` di
   uno script scongela tutti. Ha il flag "non sparire" (`HoldOWEForThrow`,
-  rimesso com'era all'uscita): un ricambio della stessa specie riusa slot e
-  `localId` e passerebbe per lui. Non è bersaglio (`FindThrowTarget`), né
-  contatto (`TryTriggerOverworldWildEncounter`), e **una seconda Ball in volo
-  verso di lui diventa un lancio a vuoto**: senza, il Pokémon veniva dato due
-  volte. Lo sprite da nuoto legge `owe->invisible`.
+  rimesso com'era all'uscita): un ricambio riuserebbe slot e `localId`. Non è
+  bersaglio né contatto; **una seconda Ball verso di lui è un lancio a
+  vuoto** (se no veniva dato due volte).
 - **Lotta che parte** (`CreateBattleStartTask` e `_Debug` →
   `OverworldCatch_OnBattleStart`): le Ball a terra finiscono prima della
   transizione (chi è dentro esce), quelle in volo atterrano dopo, invisibili.
-- **Posa**: frame della corsa fermo, tenuto da un'azione `DELAY_16` sul
-  giocatore (senza, `PlayerFaceDirection` la rifà ogni frame). **Trappola**:
-  `ObjectEventIsMovementOverridden` dà occupato anche un'azione finita e non
-  tolta (il giocatore fermo ne ha sempre una): `ClearHeldMovementIfFinished`
+- **Posa**: tenuta da `DELAY_16`. `ObjectEventIsMovementOverridden` dà
+  occupato anche un'azione finita e non tolta: `ClearHeldMovementIfFinished`
   prima di `ObjectEventSetHeldMovement`.
 - **Il Pokémon nasce sullo stack** (`CreateMonFromOWE`), **mai in
   `gEnemyParty`**: lo spawn lo usa nello stesso frame.
@@ -126,12 +129,11 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   **all'inizio del CB2** (`OverworldCatch_UpdatePanel` in `OverworldBasic`,
   prima di `ScriptContext_RunScript`): i controlli si bloccano nel CB1, quindi
   sparisce prima che uno script o un task disegni nello stesso frame.
-- Su con L tenuto o `panelTimer` (120 frame, riarmato da cambio, scorrimento,
-  lancio); giù a controlli bloccati o con `L=A`. Il rilascio di L senza
-  scorrere **cambia modalità** (D1). Solo testo (`FONT_SMALL`, niente sprite).
+- Su con L tenuto o `panelTimer` (120 frame); giù a controlli bloccati, con
+  `L=A` o a cattura spenta. **Il rilascio di L senza scorrere cambia
+  modalità** (D1): anche in una prova che tiene L solo per guardare.
 
 ## Prove
 
-Ricette in §5.2-5.5 del piano e `docs/claude/emulator.md`. `PendingThrow` =
-36 B. `gSaveblock3 + 0x13` = `autoRun`; `FLAG_SYS_B_DASH` = byte `0x118` bit 0
-di SaveBlock1. Un OWE col bit 7 di `+0x1D` non viene ricambiato.
+Ricette nel piano (§5.2-5.9) e `docs/claude/emulator.md`. `gSaveblock3 +
+0x13` = `autoRun`, `+0x2F` bit 7 = OVERWORLD CATCH spenta.

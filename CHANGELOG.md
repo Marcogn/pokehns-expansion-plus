@@ -75,10 +75,19 @@ add the section before releasing. Feature details live in the tables of
   `LEVEL SCALING` now start OFF like every other challenge, while `CLOCK TYPE`
   and `ALT SHINY` carry over like every other option: from the title screen's
   Options, or from the save already on the cartridge if they were not touched.
-- **Two new options, not active yet**: `OVERWORLD CATCH` (Options · OVERWORLD,
-  ON by default) and `ARCEUS FORMULAS` (Options · BATTLE, OFF by default). They
-  are saved but do nothing in this build; the next steps of the overworld
-  catching wire them up.
+- **`OVERWORLD CATCH`** (Options · OVERWORLD, ON by default) turns the
+  overworld catching on and off, also mid-game. OFF is the game as it was
+  before it: up to 6 visible Pokémon on land, 3 on water and in caves, 4 in
+  the Safari Zone, replaced every 4 seconds; no throwing, no selection panel,
+  L does nothing on the map and R starts a DexNav search on the registered
+  species; holding B with `AUTORUN` on is a normal walk again (still the slow
+  walk during a DexNav search), and wild Pokémon see you in a 4×3 box in
+  front of them, through trees and grass, and only hear you running or
+  cycling. The cheaper Balls and the shops stay as they are. Turning it on
+  with more Pokémon around than the new cap drops the extra ones in a moment.
+- **A new option, not active yet**: `ARCEUS FORMULAS` (Options · BATTLE, OFF
+  by default). It is saved but does nothing in this build; the next steps of
+  the overworld catching wire it up.
 - Save version 15: an existing save loads with every setting as it was and
   `OVERWORLD CATCH` ON. A bit left over from the old TRAINER CATCH option,
   set in some saves, is cleared on the way.
@@ -92,7 +101,8 @@ add the section before releasing. Feature details live in the tables of
   ¥11,111). TMs stay available as before. Script and texts are Soulgold's; the
   fees are half of Soulgold's.
 - **R no longer starts a DexNav search** on the registered species: open
-  the DexNav from the Start menu. On a bike R still swaps Mach and Acro.
+  the DexNav from the Start menu. On a bike R still swaps Mach and Acro. With
+  `OVERWORLD CATCH` off R starts the search as before.
 - **Fewer visible Pokémon**: the first step of the overworld catching
   (`docs/plans/overworld-catch.md`). Up to **4** wild Pokémon on land
   (was 6), **2** on water and in caves (was 3) and **3** in the Safari Zone
@@ -105,9 +115,13 @@ add the section before releasing. Feature details live in the tables of
   are replaced quickly when you start or stop surfing.
 - **Cheaper special Balls**: Net, Nest, Dive, Dusk, Timer, Repeat and
   Luxury Ball now cost 100 (Luxury was 3000, the others 1000) and Heal Ball
-  50 (was 300). Poké, Great, Ultra and Quick Ball are unchanged. These
-  Balls are only sold in the Hoenn and Alola shops of the ROM, not in the
-  Johto and Kanto ones: the price shows in the sell value for now.
+  50 (was 300). Poké, Great, Ultra and Quick Ball are unchanged.
+- **Special Balls in every Poké Mart**, which did not sell any: Heal, Nest
+  and Repeat Ball from the start, Net, Dive, Dusk, Timer and Luxury Ball from
+  the first badge, and Kurt's seven (Love, Lure, Friend, Heavy, Moon, Fast,
+  Level) from the second badge at 500 each (their price was 1000). Kurt still
+  makes them for Apricorns. Cherrygrove's Mart keeps its short list until the
+  story restocks it.
 - **Sneaking up on wild Pokémon**: the second step of the overworld
   catching. With `AUTORUN` on, **holding B is now a slow walk** (it was a
   normal walk), and wild Pokémon on the map cannot hear it. They hear you

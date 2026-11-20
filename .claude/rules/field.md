@@ -26,6 +26,13 @@ paths:
   in una sola città si **appendono** extra a quella lista (`sMartExtras`), non si dà
   una lista fissa alla città. Nessun tetto al numero di oggetti: `MAX_ITEMS_SHOWN 8`
   è solo quante righe si vedono.
+- **Ball speciali nella lista per medaglie** (`overworld-catch` fase 9): Heal,
+  Nest, Repeat da 0, Net/Dive/Dusk/Timer/Luxury da 1, le 7 di Kurt (500) da 2,
+  anche nelle liste `_PC` della sfida. Lista più lunga: 39 (Eight `_PC`);
+  `sBadgeMartItems` è 48, con gli extra di Violet (2) dentro. Il Mart di
+  Cherrygrove usa una lista sua finché la storia non lo rifornisce: per
+  provare la lista per medaglie si va a Violet (gruppo 3, mappa 1; commesso
+  a (2,3), si parla da (4,3) guardando a sinistra).
 - **Nickname**: la domanda dei regali sta nei singoli script di mappa. È dietro la
   macro `asknickname` (`asm/macros/event.inc`) che, con l'opzione spenta, non mostra
   niente e lascia `VAR_RESULT` a NO. I due prompt del *valutatore di nickname* usano

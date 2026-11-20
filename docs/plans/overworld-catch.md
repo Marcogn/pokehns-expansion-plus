@@ -1,6 +1,6 @@
 # Piano: cattura nell'overworld (stile Leggende Pokémon: Arceus)
 
-**Stato (20/11): fasi 1-8 fatte (tetti e prezzi; passo lento e percezione; nucleo del lancio; animazione; pannello e documentazione; revisione della prima parte; ricorda mosse a pagamento; menu riordinati e salvataggio 15); prossima: fase 9 (Opus 5.5). Il 20/11 sono entrate le fasi 8-11 (menu, OVERWORLD CATCH, ARCEUS FORMULAS) e gli alfa sono passati a 12-14.**
+**Stato (20/11): fasi 1-9 fatte (tetti e prezzi; passo lento e percezione; nucleo del lancio; animazione; pannello e documentazione; revisione della prima parte; ricorda mosse a pagamento; menu riordinati e salvataggio 15; interruttore OVERWORLD CATCH e Ball speciali nei Mart); prossima: fase 10 (Opus 5.5). Il 20/11 sono entrate le fasi 8-11 (menu, OVERWORLD CATCH, ARCEUS FORMULAS) e gli alfa sono passati a 12-14.**
 
 Si appoggia agli OWE già in gioco: leggere prima
 [`.claude/rules/overworld_encounters.md`](../../.claude/rules/overworld_encounters.md)
@@ -1145,6 +1145,65 @@ con le statistiche di Arceus vale un'altra cosa.
 - Il menu debug "PC/Bag → Access PC" apre il PC ovunque: è la via rapida per
   le Sfide a metà partita.
 
+### 5.9 Fase 9, com'è stata fatta (20/11)
+
+- **Modello**: Opus 5.5, come assegnato. Senza il `.sav` dell'utente: partita
+  nuova, debug (Pokédex, scarpe, Bulbasaur Lv 21) e scritture in RAM.
+- **Interruttore** (D20; trappole in `overworld_catch.md`): spenta = gioco di
+  prima del piano salvo prezzi e negozi. Tetti 6/3/3 e Safari 4
+  (`OWE_SPAWNS_MAX_*_NO_CATCH`), ricambio 240; percezione di prima rimessa
+  com'era (`CanAwareOWESeePlayer_NoCatch`: rettangolo 4x3, solo corsa e bici
+  sentite); B con AUTORUN acceso torna camminata, ma **nella ricerca DexNav B
+  resta il passo lento** (A, il tasto di prima, con AUTORUN acceso non è mai
+  andato: scelta mia, da confermare); R = ricerca DexNav; L e pannello spenti.
+  Testo della voce corretto: "B runs" valeva solo con AUTORUN spento, ora
+  "there is no sneaking".
+- **Ball nei Mart** (utente, 20/11, nella lista per medaglie di tutti i Mart,
+  anche quelle `_PC`): Heal 50, Nest e Repeat 100 da 0 medaglie; Net, Dive,
+  Dusk, Timer, Luxury 100 da 1; le 7 di Kurt **500** (erano 1000) da 2. In
+  vendita anche a cattura spenta. Dettagli in `field.md`.
+- **Verificato** in mGBA (ROM `ee6eff3a` più il testo della voce):
+  - Spawn misurati in frame: Route 29 accesa 4021 frame **massimo 4**; spenta
+    a mappa aperta 4022 frame **fino a 6**; riaccesa: **4 al primo campione**
+    (684 frame). Route 30, cambiata dal menu Opzioni: spenta fino a 6 in 3069
+    frame, riaccesa 4 dal primo campione.
+  - Andature a Cherrygrove (caselle in ~92 frame con il tasto tenuto): spenta
+    con AUTORUN acceso direzione 7 (corsa), **B 4 (camminata, niente
+    creeping)**; accesa B 2 (creeping); AUTORUN spento: B corre in tutti e due
+    i casi (8 e 7). Spenta, durante una ricerca DexNav: B 2 caselle, creeping.
+  - L tenuto + direzione: spenta il giocatore cammina (3 caselle) e nessun
+    pannello; accesa resta fermo con "HEAL BALL Ball ×11".
+  - R spenta: su Route 30 parte la ricerca DexNav di Hoothoot (registrato in
+    `VAR_DEXNAV_SPECIES`; finestra in basso, OWE tolti, flag di ricerca a 1);
+    su un sentiero senza erba il messaggio del DexNav "couldn't be found".
+  - Accesa, le prove della fase 6 che non chiedono l'acqua: **mancato** (×11
+    → ×10 in volo → ×11), **fermo** (OWE messo a 2 caselle: Hoothoot ♀ preso
+    con la Heal Ball, ×10, banner e soprannome), **Pokémon mandato** (lotta
+    con Spinarak). **Riva** non rifatta: il codice del lancio non è cambiato
+    salvo le guardie in entrata.
+  - **Punto aperto della fase 6 chiuso**: una lotta per contatto partita con
+    una Ball in volo (OWE spostato sul giocatore dal trucco): dopo la fuga la
+    Ball è tornata (×11).
+  - Mart di Violet: 0, 1 e 2 medaglie guardate (Ball nell'ordine giusto,
+    prezzi 50/100/500, extra di Violet in coda); 11 Heal Ball pagate ₽550.
+  - Testi della voce nei due valori guardati: stanno nella finestra.
+- **Non verificato**: la percezione spenta in emulatore (è il codice di prima
+  del piano, confrontato col diff di `d6520855`); le liste `_PC` (stesso
+  codice, lette); il Safari a cattura spenta.
+- ROM: 31 916 836 B, **95,12%** (+496 B sulla fase 8).
+
+**Handoff per la fase 10 (Opus 5.5)**
+- `AreArceusFormulasEnabled()` esiste già (`option_menu.h`), letto da
+  nessuno; il bit è `ExtraOptions.arceusFormulas` (SB3 +96).
+- La cattura di Arceus va in `ComputeOverworldCaptureOdds` solo a cattura
+  accesa (spenta non si lancia nulla: niente da gestire).
+- Banco di prova: `/tmp` non sopravvive al container, la ricetta sì
+  (`emulator.md`, "Un client RAM"). Partita nuova + debug basta per le
+  statistiche; il `.srm` serve al cancello (la tabella lo chiede).
+- Da chiedere all'utente: il passo lento con B nella ricerca DexNav a cattura
+  spenta (tenuto) e il Mart di Cherrygrove, che fino al rifornimento della
+  storia non vende Ball.
+
 ## 6. Scartato, e perché
 
 - **Crafting delle Ball**: escluso dall'utente, per ora.
@@ -1161,7 +1220,5 @@ con le statistiche di Arceus vale un'altra cosa.
   linea retta nella direzione dello sguardo è leggibile e costa poco.
 - **Lancio nel Safari e alla Gara** (P5): hanno Ball contate e regole proprie
   (`gNumSafariBalls`, punteggio della Gara). Si possono aggiungere dopo.
-- **Un'opzione per spegnere la feature**: non c'è posto nel salvataggio senza
-  allargare una struct, e chi non la vuole non preme R.
 - **Tetto `OWE_SPAWNS_MAX` a 4**: sposterebbe i `localId` degli OWE; bastano
   i tetti per zona.
