@@ -10,7 +10,7 @@
 #define P_SUMMARY_SCREEN_IV_EV_VALUES    TRUE   // If TRUE, will show the actual IV value instead of the letter grade.
 
 // Move Relearner settings
-#define P_ENABLE_MOVE_RELEARNERS         FALSE  // If TRUE, it enables move relearners for egg, TM and tutor. (see below for specific configs /flags)
+#define P_ENABLE_MOVE_RELEARNERS         TRUE   // If TRUE, it enables move relearners for egg, TM and tutor. (see below for specific configs /flags)
 #define P_SORT_MOVES                     FALSE   // If TRUE, sorts all moves alphabetically in the relearner's list.
 
 // Level up Relearner

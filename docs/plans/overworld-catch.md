@@ -420,7 +420,7 @@ costa di più del suo prezzo.
 | 4 | **Animazione**: posa di lancio (derivata dai frame che il giocatore ha già, guardando l'immagine), Ball in volo ad arco con lo sprite del suo tipo, risucchio, caduta, 0-3 scosse da `ComputeBallShakeOdds` (decise all'impatto, D15), cattura o uscita con "!"; **fino a 3 Ball animate insieme**, e una lotta che parte mentre altre Ball tremano le chiude prima della transizione | **Fable 5.2** | build verde; tile e palette libere misurate nel caso peggiore **con 3 Ball di tipi diversi in aria** (se non ci stanno, il limite scende e si scrive), nessuno script in attesa se uno sprite non si crea (provato forzando il fallimento); sequenza di screenshot guardati per cattura, fuga dopo 1 e dopo 3 scosse, nelle 4 direzioni, di giorno e in grotta. `.srm` utile, non necessario |
 | 5 | **Rifinitura e documentazione**: pannello di D18 (Ball o Pokémon, quantità o livello, modalità) dai mock del 16/11, rifatto con font e finestre del gioco, suoni, messaggi; `CHANGELOG.md`, `README.md`, regola `.claude/rules/overworld_catch.md` (con `paths:`), indice in CLAUDE.md §7, `docs/SOULGOLD_PORT_REPORT.md` (feature nuova, non un port) | **Sonnet 5.5** | build verde; pannello guardato con 1, 2 e 0 tipi di Ball in borsa e con 1 e 6 Pokémon, in tutti e due i temi; sparisce dopo ~2 s; testi riletti contro il codice; `docs_validate` verde |
 | 6 | **Revisione della prima parte**: `/code-review` medio sul diff delle fasi 1-5, ogni punto aperto provato in emulatore, bilanciamento (quante Ball per una cattura a inizio gioco e a metà), ROM consegnata zippata. Qui si decide anche se togliere il DexNav (D6) | **Opus 5.5** | build e CI verdi, percentuale di ROM annotata, punti aperti chiusi o motivati. **Serve il `.srm` dell'utente** |
-| 7 | **Ricorda mosse a pagamento** (D10), port da Soulgold: `P_ENABLE_MOVE_RELEARNERS` FALSE, `P_TM_MOVES_RELEARNER` resta TRUE (P16), due flag, due maestri con il loro prezzo (dove: dalle mappe, v. §3), testo nel riassunto quando la voce è chiusa | **Sonnet 5.5** | build verde; nel riassunto le mosse uovo/tutor non compaiono prima e compaiono dopo aver pagato (screenshot); le MT sì in tutti e due i casi; un salvataggio vecchio parte chiuso. **Serve il `.srm`** (Pokémon con mosse uovo vere) |
+| 7 | **Ricorda mosse a pagamento** (D10), port da Soulgold: `P_ENABLE_MOVE_RELEARNERS` resta TRUE come in SG (con FALSE il tag "TM START" usciva dallo schermo), egg/tutor chiusi dai due flag in codice, `P_TM_MOVES_RELEARNER` TRUE (P16), due flag, due maestri con il loro prezzo (dove: dalle mappe, v. §3), testo nel riassunto quando la voce è chiusa | **Sonnet 5.5** | build verde; nel riassunto le mosse uovo/tutor non compaiono prima e compaiono dopo aver pagato (screenshot); le MT sì in tutti e due i casi; un salvataggio vecchio parte chiuso. **Serve il `.srm`** (Pokémon con mosse uovo vere) |
 | 8 | **Menu e posto per le voci nuove** (D19, D22): schede nuove nei due menu dal documento (al massimo 20 righe ciascuna), voci spostate, OVERWORLD CATCH e ARCEUS FORMULAS presenti ma ancora senza effetto, `SAVE_VERSION` 15 con il passo che azzera i 2 bit, titolo (`oak_speech_hns.c`) e `NewGameInitData`; `save.md` corretta sul bit che non era libero | **Opus 5.5** | build verde; col `.srm` dell'utente: prima e dopo il caricamento `ChallengeSettings` e `SoundAndFieldOptions` uguali byte per byte salvo i 2 bit, che leggono 0; salvato e ricaricato, checksum giusto; ogni scheda guardata nei due temi, nessuna oltre 20 righe; una New Game tiene le scelte fatte al titolo. **Serve il `.srm`** |
 | 9 | **Interruttore OVERWORLD CATCH** (D20): spenta = il gioco di prima del piano salvo i prezzi; accesa = com'è oggi. **Ball speciali in vendita presto e a poco** (utente, 20/11): oggi Net, Dusk, Nest, Dive, Timer, Repeat, Luxury e Heal non sono in nessun negozio di Johto o Kanto e le 7 di Kurt si hanno solo da lui per bacche; vanno nei negozi da 0-1 medaglie, prezzi da decidere con l'utente. Cambio a mappa aperta senza Pokémon di troppo (`TryRemoveOWEAboveCap` lavora già al contrario) | **Opus 5.5** | build verde; spenta: R avvia la ricerca DexNav sulla specie registrata, B corre, L non fa nulla, fino a 6 OWE in erba in 60 s (misurato in frame), nessuna Ball lanciata; accesa: le prove della fase 6 (riva, mancato, fermo, Pokémon mandato) danno gli stessi esiti. `.srm` utile |
 | 10 | **ARCEUS FORMULAS: statistiche e cattura** (D21). Formule e default da decidere nel §3 (fonti complete dal 20/11); le statistiche in `CalculateMonStats` dietro l'opzione (livelli d'impegno da IV/EV, squadra ricalcolata al cambio e al caricamento con i PS in proporzione, box al ritiro) e la cattura di Arceus in `ComputeOverworldCaptureOdds` (rango dalle medaglie, colpo alle spalle al posto del ×2) | **Opus 5.5** | build verde; 3 Pokémon (Lv 5, 25, 50) calcolati a mano e letti in RAM, opzione accesa e spenta, PS e stato conservati al cambio; probabilità di cattura su 3 casi uguale al calcolo a mano (ROM strumentata); il `.srm` dell'utente carica con l'opzione accesa e spenta. **Serve il `.srm`** |
@@ -1029,7 +1029,7 @@ con le statistiche di Arceus vale un'altra cosa.
 ### 5.7 Fase 7, com'è stata fatta (20/11)
 
 - **Modello**: Sonnet 5.5, come assegnato. Salvataggio dell'utente (PLUS.11).
-- **Cosa**: `P_ENABLE_MOVE_RELEARNERS` FALSE, `P_TM_MOVES_RELEARNER` resta TRUE
+- **Cosa**: `P_ENABLE_MOVE_RELEARNERS` resta TRUE come in SG (con FALSE il tag "TM START" usciva dallo schermo), egg/tutor chiusi dai due flag in codice, `P_TM_MOVES_RELEARNER` TRUE
   (P16), `P_FLAG_EGG_MOVES`/`P_FLAG_TUTOR_MOVES` agganciati a due flag nuovi
   (`FLAG_EGG_MOVES_UNLOCKED` 0x304, `FLAG_TUTOR_MOVES_UNLOCKED` 0x305, ex
   `FLAG_UNUSED_36/37` di `flags_hns.h`). Due NPC nuovi: Egg Move Master in
@@ -1040,9 +1040,13 @@ con le statistiche di Arceus vale un'altra cosa.
 - **Maestro dei tutor**: la House4 di Olivine di SG qui non esiste; scelta la
   House3 (la stanza col pescatore, stessa mappa di Blackthorn). Da confermare
   con l'utente se preferisce un altro posto.
-- **Sorgente di SG**: `add_repo Marcogn/soulgold` è stato rifiutato dal
-  sistema dei permessi, quindi niente confronto con SG: prezzi e posti dal
-  piano, **testi e sprite dei maestri scritti qui** (Gentleman e Sage).
+- **Sorgente di SG**: letto a fine fase (`310bf6a9`, dopo che l'utente ha
+  chiesto `add_repo`). Corretto il primo giro: SG tiene
+  `P_ENABLE_MOVE_RELEARNERS` TRUE e chiude egg/tutor nel codice. Con FALSE il
+  tag "TM START" usciva dallo schermo (`tilemapLeft` 22): visto solo con lo
+  stato TM aperto, non con LEVEL. Ora come SG. Prezzi e testi dei maestri
+  sono quelli di SG (stessi ¥ e stesso senso); posizioni e sprite no (SG ha
+  House4 a Olivine).
 - **Verificato** in mGBA col `.sav` dell'utente (Quilava Lv 38, MT in borsa):
   prima del pagamento il ciclo L/R del tag nella pagina mosse è LEVEL↔TM
   (uovo e tutor assenti); soldi insufficienti (¥23.638) = messaggio, nessun
