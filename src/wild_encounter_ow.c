@@ -2301,14 +2301,21 @@ bool32 CanAwareOWESeePlayer(struct ObjectEvent *owe)
         return FALSE;
 
     // Hit by a Ball that did not hold (ForceOWEToNoticePlayer): no distance
-    // or sight needed, but the height still counts, as below. Used up on
-    // the first look: kept until the player came back to its level, it
-    // fired from across the map.
+    // or sight needed. The level is the throw's (overworld_catch.c), where
+    // water and the shore are one: CanOWEReachPlayer would keep a Pokémon
+    // in the water from ever noticing a player who threw from the shore,
+    // and it would keep the unnoticed x2. On another level the bit is used
+    // up (kept, it fired from across the map once the player came back);
+    // a notice clears it in SetSavedOWEMovementState.
     if (IS_LOCALID_GENERATED_OWE(owe->localId)
      && (sOWEForcedNoticeMask & (1 << GetSpawnSlotByOWELocalId(owe->localId))))
     {
+        struct ObjectEvent *thrower = &gObjectEvents[gPlayerAvatar.objectEventId];
+
+        if (!OverworldCatch_AreLevelsApart(owe->currentElevation, thrower->currentElevation))
+            return TRUE;
         ClearOWEForcedNotice(owe);
-        return CanOWEReachPlayer(owe);
+        return FALSE;
     }
 
     u32 noiseDistance = GetPlayerNoiseDistance(owe);

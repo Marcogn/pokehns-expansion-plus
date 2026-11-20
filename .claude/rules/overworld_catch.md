@@ -66,14 +66,14 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   24, poi la Ball torna. **Esito deciso in `ResolveImpact`** (D15), il resto
   è animazione. Timer fermi a controlli bloccati. **Start bloccato finché un
   record non è libero** (`OverworldCatch_IsBallOut`), in silenzio.
-- **Bersaglio**: prima cosa sulla linea entro 5. Collisione, dislivello e
-  oggetti visibili non-OWE fermano la Ball (cade e torna); un oggetto a
-  un'altra altezza è saltato (`AreElevationsApart`). **Acqua (1) = terreno
-  (3)** (`GetThrowLevel`): senza, ogni lancio fra riva e acqua cadeva alla
-  prima casella. Le sporgenze non sono dislivelli. **La Ball non insegue**
-  (utente, 18/11): colpisce se all'arrivo `currentCoords` è la casella del
-  lancio (`targetX/Y`, `IsOWEAtLanding`); i salti sul posto non contano
-  (`GetObjectGroundPos` senza `y2`).
+- **Bersaglio**: prima cosa sulla linea entro 5; vuota: vola 5 e torna;
+  follower davanti: niente lancio. Collisione, dislivello e oggetti visibili
+  non-OWE fermano la Ball (cade e torna); un oggetto su un altro livello è
+  saltato (`OverworldCatch_AreLevelsApart`). L'acqua non ha collisione e
+  **acqua (1) = terreno (3)** (`GetThrowLevel`): senza, riva-acqua cadeva
+  alla prima casella. Sporgenze: non dislivelli. **Niente inseguimento**
+  (18/11): colpito se all'arrivo `currentCoords` è la casella del
+  lancio (`targetX/Y`); un salto sul posto non conta (niente `y2`).
 - **Sprite**: fogli delle Ball dei follower (`gPokeballGraphics`, frame
   0-4), `coordOffsetEnabled`, posizioni dagli sprite (`GetObjectGroundPos`).
   **Mai un assert**: senza sprite il volo prosegue invisibile e `FinishThrow`
@@ -87,23 +87,24 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   contatto (`TryTriggerOverworldWildEncounter`), e **una seconda Ball in volo
   verso di lui diventa un lancio a vuoto**: senza, il Pokémon veniva dato due
   volte. Lo sprite da nuoto legge `owe->invisible`.
-- **Lotta che parte** (`CreateBattleStartTask` e `_Debug` → `OverworldCatch_OnBattleStart`):
-  le Ball a terra finiscono prima della transizione (chi è dentro esce), quelle
-  in volo restano e atterrano dopo, invisibili fino all'impatto.
+- **Lotta che parte** (`CreateBattleStartTask` e `_Debug` →
+  `OverworldCatch_OnBattleStart`): le Ball a terra finiscono prima della
+  transizione (chi è dentro esce), quelle in volo atterrano dopo, invisibili.
 - **Posa**: frame della corsa fermo, tenuto da un'azione `DELAY_16` sul
   giocatore (senza, `PlayerFaceDirection` la rifà ogni frame). **Trappola**:
   `ObjectEventIsMovementOverridden` dà occupato anche un'azione finita e non
   tolta (il giocatore fermo ne ha sempre una): `ClearHeldMovementIfFinished`
   prima di `ObjectEventSetHeldMovement`.
-- **Il Pokémon nasce sullo stack** (`CreateMonFromOWE`, comune con la lotta),
-  **mai in `gEnemyParty`**: lo spawn lo usa nello stesso frame.
+- **Il Pokémon nasce sullo stack** (`CreateMonFromOWE`), **mai in
+  `gEnemyParty`**: lo spawn lo usa nello stesso frame.
 - **Formula**: `ComputeCaptureOddsFromParams` (`battle_script_commands.c`).
   ×2 se `!IsOWEAwareOfPlayer`; Quick Ball solo se non allertato; Timer mai.
   Sfida: `GetCaptureChallengeChecks`. **Nuzlocke: solo una cattura riuscita
-  segna la zona** (utente, 17/11, P3).
+  segna la zona** (P3).
 - **Fallito**: `ForceOWEToNoticePlayer`, **mai su un OWE già allertato o
-  "vaga"** (il bit resterebbe). Il bit salta distanza e vista, non l'altezza
-  (`CanOWEReachPlayer`), e si consuma al primo controllo. Il "vaga" tiene il ×2.
+  "vaga"** (il bit resterebbe). Il bit salta distanza e vista e usa il livello
+  del lancio (non `CanOWEReachPlayer`, acqua ≠ riva): su un altro livello si
+  consuma. Il "vaga" tiene il ×2.
 - **Coda** (`results`, 3): un lancio parte se c'è un record libero e Ball in
   volo + catture in coda < 3. Banner e soprannomi da
   `OverworldCatch_TryStartResults` a record tutti liberi, **dopo** il passo.

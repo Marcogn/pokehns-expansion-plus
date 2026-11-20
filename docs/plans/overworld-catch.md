@@ -866,6 +866,24 @@ basta Opus. La 7 è un port con sorgente chiaro, la 10 grafica e contenuto.
   emulatore: lo mostrano i dati della mappa (riva 3, acqua 1) contro il
   vecchio `IsElevationMismatchAt(3, casella 1)` = vero.
 
+- **`/pr-review` della PR #66 (20/11, su `803c87b1`)**: 7 punti. Corretti 2:
+  il bit dell'allerta forzata usava `CanOWEReachPlayer` (acqua ≠ riva), quindi
+  un Pokémon in acqua colpito dalla riva non notava mai il giocatore; ora usa
+  il livello del lancio (`OverworldCatch_AreLevelsApart`) e si consuma solo su
+  un altro livello. Regola: rimessi follower, linea vuota e acqua senza
+  collisione. Scartati: bersaglio oltre un confine di mappa (l'OWE della mappa
+  vecchia viene tolto comunque), ponte ad altezza 3 sull'acqua (sotto un ponte
+  si passa solo con caselle 15), controllo del bit fuori da `Step3` (solo con
+  `WE_OWE_UNRESTRICT_SIGHT`, FALSE). Lasciati come scelta: il colpo per casella
+  nel fotogramma in cui il Pokémon parte, il `y2` del Surf per la mano.
+  **Scoperto in emulatore**: un OWE dell'altra zona (in acqua col giocatore a
+  terra) viene ricambiato in ~30 frame dopo l'uscita dalla Ball
+  (`IsAnyOWEFromOtherArea`, fase 1): i lanci fra riva e acqua toccano solo
+  Pokémon rimasti dalla zona di prima. La correzione dell'allerta non si è
+  potuta vedere per questo (il Pokémon sparisce prima di guardare); letta sul
+  codice. Il caso "presa dalla riva" del 18/11 usava un OWE di terra messo in
+  acqua dal trucco.
+
 **Handoff per la fase 7 (Sonnet 5.5)**
 - La fase 7 è un port da Soulgold (ricorda mosse a pagamento): non tocca
   `overworld_catch.c`. Leggere `relearner.md` e il §3 per i maestri.

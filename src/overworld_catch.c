@@ -381,7 +381,7 @@ static u32 GetThrowLevel(u32 elevation)
 // multi-level one (15), as IsElevationMismatchAt reads a tile, and they
 // differ beyond water and ground. Under a multi-level bridge the two levels
 // meet, as they do for the engine (CanOWEReachPlayer).
-static bool32 AreElevationsApart(u32 a, u32 b)
+bool32 OverworldCatch_AreLevelsApart(u32 a, u32 b)
 {
     return a != ELEVATION_TRANSITION && b != ELEVATION_TRANSITION
         && a != ELEVATION_MULTI_LEVEL && b != ELEVATION_MULTI_LEVEL
@@ -412,7 +412,7 @@ static enum ThrowTarget FindThrowTarget(u32 *objectEventId, u32 *distance)
         // A change of level stops the Ball as a wall does (P2): a raised
         // platform with no collision of its own. A ledge is not one (same
         // elevation on both sides): the Ball flies over it.
-        if (MapGridGetCollisionAt(x, y) || AreElevationsApart(player->currentElevation, MapGridGetElevationAt(x, y)))
+        if (MapGridGetCollisionAt(x, y) || OverworldCatch_AreLevelsApart(player->currentElevation, MapGridGetElevationAt(x, y)))
             return THROW_TARGET_BLOCKED;
 
         // Not GetObjectEventIdByXY: an invisible trigger object may share
@@ -427,7 +427,7 @@ static enum ThrowTarget FindThrowTarget(u32 *objectEventId, u32 *distance)
                 continue;
             // Under or over the line (a Pokémon surfing under a bridge):
             // out of reach, as for a touch.
-            if (AreElevationsApart(player->currentElevation, object->currentElevation))
+            if (OverworldCatch_AreLevelsApart(player->currentElevation, object->currentElevation))
                 continue;
 
             if (!IsOverworldWildEncounter(object, OWE_GENERATED))

@@ -38,6 +38,8 @@ u32 ComputeBallShakeOdds(u32 odds);
 // thrown Pokémon, read and cleared by SetBattlePartyIds.
 extern u8 gOverworldThrowLeadSlot;
 
+// Two elevations a throw cannot cross (water and ground count as one level).
+bool32 OverworldCatch_AreLevelsApart(u32 a, u32 b);
 void OverworldCatch_UpdatePanel(void);
 void OverworldCatch_Update(void);
 bool32 OverworldCatch_HandleLButton(u16 newKeys, u16 heldKeys);
