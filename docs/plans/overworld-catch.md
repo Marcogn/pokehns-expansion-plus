@@ -1,6 +1,6 @@
 # Piano: cattura nell'overworld (stile Leggende Pokémon: Arceus)
 
-**Stato (20/11): fasi 1-7 fatte (tetti e prezzi; passo lento e percezione; nucleo del lancio; animazione; pannello e documentazione; revisione della prima parte; ricorda mosse a pagamento); prossima: fase 8 (Opus 5.5). Il 20/11 sono entrate le fasi 8-11 (menu, OVERWORLD CATCH, ARCEUS FORMULAS) e gli alfa sono passati a 12-14.**
+**Stato (20/11): fasi 1-8 fatte (tetti e prezzi; passo lento e percezione; nucleo del lancio; animazione; pannello e documentazione; revisione della prima parte; ricorda mosse a pagamento; menu riordinati e salvataggio 15); prossima: fase 9 (Opus 5.5). Il 20/11 sono entrate le fasi 8-11 (menu, OVERWORLD CATCH, ARCEUS FORMULAS) e gli alfa sono passati a 12-14.**
 
 Si appoggia agli OWE già in gioco: leggere prima
 [`.claude/rules/overworld_encounters.md`](../../.claude/rules/overworld_encounters.md)
@@ -89,7 +89,7 @@ che tiene la destinazione di ogni voce; le fasi lo rileggono, non lo copiano):
 | D19 | **Menu riordinati**: Impostazioni in 4 schede (GENERALE, MAPPA, LOTTA, SUONO: la MAIN di oggi ha 20 voci su 20), Sfide in 5 (MODALITÀ con dentro FEATURES, RANDOMIZER, NUZLOCKE, DIFFICOLTÀ, SFIDE). EASY CATCH e LEVEL SCALING vanno in Sfide · DIFFICOLTÀ; CLOCK TYPE e ALT SHINY in Impostazioni · GENERALE; il resto voce per voce nel documento. Spostare una voce non tocca il salvataggio. |
 | D20 | **OVERWORLD CATCH** (Impostazioni · MAPPA, ON/OFF, default ON). Spenta: tetti 6/3/3 e ricambio a 240 frame, niente passo lento né udito e cono (B corre), R avvia la ricerca DexNav, L senza pannello; **i prezzi restano**. Gli alfa (fasi 12-14) esistono solo col lancio acceso. |
 | D21 | **ARCEUS FORMULAS** (Impostazioni · LOTTA, OFF/ON, default OFF): **una voce sola** per le statistiche di Leggende Arceus (ogni Pokémon, ricalcolate al cambio) e la sua formula di cattura **solo nell'overworld** (in lotta resta quella di oggi); viaggiano insieme (utente, 20/11). Con loro la **formula del danno** di Arceus, se no le prime lotte durano 3-4 volte di più. Livelli d'impegno **derivati** da IV ed EV (niente dati nuovi nel Pokémon); le sfide su IV/EV restano e agiscono tramite i livelli. Il 20/11: **un tasso di cattura unico, 135, per tutte le specie** (la differenza la fanno la Ball del tipo, il livello e il comportamento); **leggendari e misteriosi tengono il loro tasso del gioco**; i **roamer restano come oggi** (R avvia la lotta, dove provano a fuggire), **rango del giocatore = 8 medaglie di Johto + Campione di Johto (0-9)**, colpo alle spalle come in Arceus (colpito da dietro). Ball: Poké/Great/Ultra coi valori di Arceus, le altre col loro effetto × 0,75 (il ×4 per tipo delle Ball di Kurt prende il posto dei tassi per specie); stadi delle statistiche del gioco (§3, documento [Formule di Arceus: scelte](https://claude.ai/artifact/3AR9iBxCBwF5N6RMHweHot), chiuso). |
-| D22 | **Salvataggio**: 2 bit, con il passo `saveVersion < 15` che li azzera. **`unusedTrainerCatchBit` non è libero**: vale 1 nel `.sav` dell'utente (PLUS.11, slot 0 e 1, letto il 20/11) benché il passo 9 lo azzeri; nessun codice di oggi lo scrive. Il secondo bit in coda a SaveBlock3 (20 byte liberi; `autoRun` ha 7 bit a zero nello stesso `.sav`, alternativa). OVERWORLD CATCH salvata invertita (0 = accesa). |
+| D22 | **Salvataggio**: 2 bit, con il passo `saveVersion < 15` che li azzera. **`unusedTrainerCatchBit` non è libero**: vale 1 nel `.sav` dell'utente (slot 0 e 1, letto il 20/11); nessun codice di oggi lo scrive. (Fase 8: quel `.sav` è a `saveVersion` 8, scritto da PLUS.2-5, e il bit a 1 è TRAINER CATCH acceso; il passo 9 non ci era mai passato.) Il secondo bit in coda a SaveBlock3 (20 byte liberi; `autoRun` ha 7 bit a zero nello stesso `.sav`, alternativa). OVERWORLD CATCH salvata invertita (0 = accesa). |
 
 Default della seconda parte, cambiabili prima della fase:
 
@@ -1077,6 +1077,73 @@ con le statistiche di Arceus vale un'altra cosa.
   (`FLAG_EGG/TUTOR_MOVES_UNLOCKED`, ex `FLAG_UNUSED_36/37`): oggi leggono 0 solo
   nel `.sav` provato, e nulla di PLUS.12 è uscito con loro (review della PR #69).
 - CHANGELOG: voce nuova sotto PLUS.12 "Changed" per il ricorda mosse.
+
+### 5.8 Fase 8, com'è stata fatta (20/11)
+
+- **Modello**: Opus 5.5, come assegnato. `.sav` dell'utente (quello delle fasi
+  6-7).
+- **Opzioni** (`src/option_menu.c`) in 4 schede dal documento del riordino:
+  GENERAL 11 (con DARK UI, CLOCK TYPE e ALT SHINY), OVERWORLD 10 (con
+  OVERWORLD CATCH), BATTLE 11 (BATTLE SCENE e BATTLE STYLE dalla MAIN, ARCEUS
+  FORMULAS), SOUND 6. Nomi delle schede in inglese come il resto del gioco
+  (GENERAL, OVERWORLD, BATTLE, SOUND al posto di GENERALE, MAPPA, LOTTA,
+  SUONO). Testi di OVERWORLD CATCH e ARCEUS FORMULAS scritti per quello che
+  faranno dalle fasi 9-11.
+- **Sfide** (`src/challenge_menu.c`) in 5 schede: FEATURES dentro MODE (16
+  righe: SHINY CHANCE, ITEM DROP, FRONTIER BANS in fondo, sempre attive anche
+  con RECOMMENDED, che blocca solo le voci del preset); DIFFICULTY 14 con EASY
+  CATCH e LEVEL SCALING (libere a metà partita, come erano in Opzioni).
+  `STATIC_ASSERT` sulle righe di ogni scheda nei due menu.
+- **Salvataggio 15** (`save.md`, cronaca in `save-history.md`):
+  `noOverworldCatch` sul bit 31.7 (invertito), `struct ExtraOptions` a SB3
+  +96 con `arceusFormulas` e 7 bit liberi già azzerati; il passo azzera anche
+  i flag 0x304/0x305 (handoff della fase 7). Accessori
+  `IsOverworldCatchEnabled()` e `AreArceusFormulasEnabled()` in
+  `option_menu.h`, ancora letti da nessuno.
+- **Titolo**: `oak_speech_hns.c` ricopia anche CLOCK TYPE, ALT SHINY e
+  OVERWORLD CATCH (ora voci delle Opzioni); EASY CATCH esce dalla lista e
+  LEVEL SCALING viene azzerata: da sfide, ripartono dal default come le altre.
+  `NewGameInitData` conserva `extraOptions`. Scelta mia, scritta nel
+  CHANGELOG: si cambia in due righe se l'utente preferisce il contrario.
+- **Verificato** in mGBA:
+  - `.sav` vero: è a **`saveVersion` 8** (PLUS.2-5, non PLUS.11): il bit 31.7
+    a 1 era TRAINER CATCH. Caricato e salvato: byte 31 `0x9d` → `0x1d`, byte
+    0-30 di `ChallengeSettings`, `soundAndFieldOptions` (`0x01`) ed
+    `extraOptions` (0) uguali.
+  - **Passo 15 da solo**, il caso che fallisce senza: copia portata a
+    versione 14 (checksum ricalcolato) con `extraOptions` `ff ff ff ff` e flag
+    0x304/0x305 a 1 → OVERWORLD CATCH ON, ARCEUS FORMULAS OFF a schermo; dopo il
+    salvataggio tutto a zero e il resto uguale anche dopo un giro nelle
+    Opzioni chiuse con B. Ricaricato: CONTINUE mostra lo slot nuovo (checksum
+    buono).
+  - Sfide a metà partita (PC dal debug): EASY CATCH OFF → byte 31 bit 0x08,
+    LEVEL SCALING ON → `soundAndFieldOptions` bit 0x40; TRAINER EVs e PLAYER
+    EVs rifiutano ancora di salire.
+  - **New Game** dal titolo con CLOCK TYPE FAKE RTC, ALT SHINY OFF, OVERWORLD
+    CATCH OFF, ARCEUS FORMULAS ON (il salvataggio di prima aveva LEVEL SCALING
+    ON): Sfide iniziali con EASY CATCH e LEVEL SCALING OFF; salvato in camera:
+    bit 31.7 = 1, `extraOptions` = 1, byte 29 = `0x0b` (FAKE RTC sì, ALT SHINY
+    no), `soundAndFieldOptions` `0x01`, versione 15; l'orologio finto corre.
+  - Ogni scheda guardata (18 screenshot) col tema scuro del `.sav` e, per
+    Opzioni e Sfide, col tema chiaro: i due menu non leggono il tema e hanno
+    la loro palette. Nessuna scheda oltre 16 righe; le etichette più lunghe
+    (OVERWORLD CATCH, ARCEUS FORMULAS) lasciano 8-9 px prima della scelta come
+    ENHANCED DEXNAV.
+- ROM: 31 916 340 B, **95,12%** (+896 B sulla fase 7).
+
+**Handoff per la fase 9 (Opus 5.5)**
+- Leggere OVERWORLD CATCH solo con `IsOverworldCatchEnabled()`; la voce è
+  `ITEM_OVERWORLD_CATCH` in `option_menu.c`. Il cambio a mappa aperta passa
+  da `Task_Save` delle Opzioni: è lì (o al ritorno sul campo) che vanno tolti
+  gli OWE di troppo e chiusi lancio e pannello.
+- Il `.sav` dell'utente è a versione 8: caricarlo esegue i passi 9-15 (il 9
+  azzera var e flag del TcloneR). Per provare un salvataggio "di oggi" usa
+  quello salvato da una build ≥ 15, o porta la versione a mano (`save.md`,
+  "Provare una migrazione").
+- `ExtraOptions.unused` ha 7 bit azzerati dal passo 15: la prossima opzione
+  va lì senza passo nuovo. `ChallengeSettings` è pieno.
+- Il menu debug "PC/Bag → Access PC" apre il PC ovunque: è la via rapida per
+  le Sfide a metà partita.
 
 ## 6. Scartato, e perché
 

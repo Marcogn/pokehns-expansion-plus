@@ -13,7 +13,7 @@ paths:
 
 Cronaca di ogni `SAVE_VERSION` (come fu provata, checksum, byte): `docs/claude/save-history.md`.
 
-## Mappa dei blocchi (stato a `SAVE_VERSION 14`)
+## Mappa dei blocchi (stato a `SAVE_VERSION 15`)
 
 | Dove | Cosa | Versione |
 | --- | --- | --- |
@@ -21,7 +21,8 @@ Cronaca di ogni `SAVE_VERSION` (come fu provata, checksum, byte): `docs/claude/s
 | SB3 +56 | `struct SoundAndFieldOptions` (1 byte di bitfield; `sizeof` è 4 per `-mabi=apcs-gnu`) | 8 |
 | SB3 +60 | `struct QuestLogSaveData`, 32 byte dalla v13 (`seenHigh` a +24 della struct) | 12, 13 |
 | SB3 +92 | `stripMenuOrder[4]` (un nibble per posto, id icona + 1) | 14 |
-| SB3 | 96 byte su `SAVE_BLOCK_3_CHUNK_SIZE` 116: **20 liberi** | |
+| SB3 +96 | `struct ExtraOptions`: `arceusFormulas` 1 bit + **7 bit liberi già azzerati** (`sizeof` 4) | 15 |
+| SB3 | 100 byte su `SAVE_BLOCK_3_CHUNK_SIZE` 116: **16 liberi** | |
 | SB2 +0x28 | `pokedex.tclonerTrainerFlags`, 83 byte (dal vecchio `filler` del Pokédex, ne restano 21) | 9, 10 |
 | flag | `FLAG_REDS_PATH_BATTLE` (ex `EXTENDED_86`), `INTRO_SEEN` e `PRIZE_*` (ex `87..95`); liberi `96..99` ma **non dimostrabilmente a zero** | 10, 11 |
 | engine flag | `FLAG_FAST_HMS` (`ENGINE_FLAGS_START + 13`); liberi da `+14` | 8 |
@@ -32,15 +33,17 @@ Cronaca di ogni `SAVE_VERSION` (come fu provata, checksum, byte): `docs/claude/s
 passate possono valere 1: **il byte è pieno** finché una migrazione non li
 azzera. Una nuova opzione: un flag, o un byte nuovo in coda a SB3.
 
-## Bit liberi in `ChallengeSettings`
+## Bit liberi
 
-`unusedTrainerCatchBit` (byte 31, bit 7) **non è libero senza migrazione**:
-il passo `saveVersion < 9` lo azzera, ma nel `.sav` dell'utente (PLUS.11,
-versione 14, letto il 20/11) vale **1** in tutti e due gli slot, e nessun
-codice di oggi lo scrive. Riusarlo vuol dire un passo nuovo che lo azzeri (piano
-`overworld-catch`, D22). Dopo, la prossima opzione allarga la struct (sposta il
-layout), va in coda a SB3 o vive in un flag. `autoRun` (`bool8`) ha i 7 bit alti
-a zero in quel `.sav`.
+`ChallengeSettings` **non ha più bit liberi**: l'ultimo (byte 31, bit 7, ex
+`unusedTrainerCatchBit`) è `noOverworldCatch` dalla versione 15; il passo
+`< 15` lo azzera (oltre al `< 9`). Nel `.sav` dell'utente valeva 1: TRAINER
+CATCH acceso, perché quel file è a **`saveVersion` 8** (scritto da PLUS.2-5,
+non da PLUS.11 come pensavamo). **Leggi la versione del `.sav` prima di dedurre
+da un bit**: u16 a SB1 +0, magic a SB1 +0x10E0. La prossima opzione va nei **7 bit di
+`ExtraOptions.unused`** (azzerati dal passo 15: si usano senza passo nuovo).
+`autoRun` (`bool8`) ha i 7 bit alti a zero in quel `.sav`, ma non sono mai stati
+azzerati da una migrazione.
 Riusare un bit che ha già avuto un significato vuol dire che nei salvataggi
 passati per quelle build può valere 1 (per questo `< 7` azzera
 `unusedDexNavBit`); stessa cautela per `FLAG_FORCE_SHINY` (ex `FLAG_UNUSED_3`).
@@ -53,8 +56,8 @@ comportamento di prima, anche se il nome viene brutto. **L'etichetta del valore
 zero viene prima nella lista di scelte** (`sChoices_OnOff` = ON per primo,
 `sChoices_OffOn` = OFF per primo). `skipNicknamePrompt` è invertito per questo;
 `noWildEncounters` 0 = incontri attivi. Vale anche quando il default è ON:
-`ENHANCED DEXNAV` è `basicDexNav` (1 = DexNav base), messo a `FALSE` in
-`new_game.c`.
+`ENHANCED DEXNAV` è `basicDexNav` (1 = DexNav base), e `OVERWORLD CATCH` è
+`noOverworldCatch`, tutti e due messi a `FALSE` in `new_game.c`.
 
 ## Un campo nuovo: le quattro cose
 
@@ -67,9 +70,10 @@ zero viene prima nella lista di scelte** (`sChoices_OnOff` = ON per primo,
    migrazione è anche il posto per **regalare un oggetto nuovo a chi è oltre il
    punto in cui lo si riceve** (Candy Jar: passo `< 6`).
 4. Se è un'opzione scelta dal titolo: aggiungerla in `oak_speech_hns.c`
-   (azzera `challengeSettings` e ricopia i campi a mano) **e** in
-   `NewGameInitData`, che chiama `ClearSav3()` e restituisce a mano solo
-   `challengeSettings` e `savedSoundAndField`. Altrimenti la scelta sparisce in
+   (azzera `challengeSettings` e ricopia a mano i campi **del menu Opzioni**;
+   quelli del menu Sfide ripartono dal default) **e** in `NewGameInitData`, che
+   chiama `ClearSav3()` e restituisce a mano solo `challengeSettings`,
+   `soundAndFieldOptions` ed `extraOptions`. Altrimenti la scelta sparisce in
    silenzio. Un campo che non è un'opzione (quest book, ordine della striscia)
    resta azzerato da `ClearSav3()`, ed è giusto così.
 

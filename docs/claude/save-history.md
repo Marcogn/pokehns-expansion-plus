@@ -183,6 +183,29 @@ spazzatura che lo fosse per caso mescolerebbe il menu. `STATIC_ASSERT`
 sull'offset in `save.c`. Verificato: un `.sav` a versione 13 carica con i
 4 byte a zero e ordine di default.
 
+#### `SAVE_VERSION 15`: OVERWORLD CATCH e ARCEUS FORMULAS (20/11)
+
+Piano `overworld-catch`, fase 8. `noOverworldCatch` riusa il bit 7 del byte 31
+di `ChallengeSettings` (ex `unusedTrainerCatchBit`, invertito: 0 = acceso);
+`struct ExtraOptions` in coda a SaveBlock3, **offset 96** (`arceusFormulas`
++ 7 bit liberi, `sizeof` 4): SaveBlock3 a 100 byte su 116, ne restano 16. Il
+passo `< 15` azzera il bit, la struct e i flag 0x304/0x305 del ricorda mosse
+(ex `FLAG_UNUSED_36/37`, mai usciti in una release).
+
+- **Il `.sav` dell'utente è a `saveVersion` 8** (u16 a SB1 +0, magic
+  `0xE8F828BC` a SB1 +0x10E0, valido): l'ha scritto una build PLUS.2-5, non
+  PLUS.11. Il bit 31.7 a 1 era TRAINER CATCH acceso, non un mistero; caricarlo
+  esegue i passi 9-15.
+- **Passo 15 da solo**: copia del `.sav` con `saveVersion` portato a 14 nello
+  slot attivo (checksum del settore 1 ricalcolato: il modello torna, verificato
+  sul settore originale), `extraOptions` a `ff ff ff ff` e flag 0x304/0x305 a
+  1. Caricato e salvato: byte 31 `0x9d` → `0x1d`, `extraOptions` a zero, flag a
+  zero, byte 0-30 di `ChallengeSettings` e `soundAndFieldOptions` (`0x01`)
+  uguali; ricaricato, CONTINUE mostra il tempo dello slot nuovo (checksum
+  buono).
+- Il `.sav` vero (8 → 15) dà gli stessi byte. L'SB3 sta nel `saveBlock3Chunk`
+  del settore con id 0 (offset 3968 del settore), fuori dal checksum.
+
 #### C'è già un sistema di migrazione dei salvataggi: usalo
 
 Scoperto portando il Candy Jar, dopo aver scritto a mano un marker magico che
