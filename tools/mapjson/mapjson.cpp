@@ -32,6 +32,7 @@ using json11::Json;
 #include "mapjson.h"
 
 #include <filesystem>
+#include <random>
 
 string version;
 // System directory separator
@@ -674,10 +675,21 @@ string generate_map_constants_text(string groups_filepath, Json groups_data, vec
     return text.str();
 }
 
+// Hasep: this runs on every `mapjson groups`, which make may start more than
+// once under -j (its targets are not grouped), while jsonproc reads the same
+// file. Truncating and rewriting it in place let jsonproc read it empty or
+// half written (CI, 18-20/11). Now the file is rewritten only when its
+// content changes, and then through a temporary file renamed over it, so a
+// reader always sees a whole file.
 void clean_heal_locations(vector<string> &valid_map_ids)
 {
+    const string path = "src/data/heal_locations.json";
     std::stringstream new_json;
-    std::ifstream infile("src/data/heal_locations.json");
+    std::stringstream old_json;
+    std::ifstream infile(path);
+    old_json << infile.rdbuf();
+    infile.clear();
+    infile.seekg(0);
     bool deleted_flag = false;
 
     std::regex map_regex("\"respawn_map\"\\s*:\\s*\"(MAP_\\w+)\"");
@@ -699,7 +711,18 @@ void clean_heal_locations(vector<string> &valid_map_ids)
         }
     }
 
-    write_text_file("src/data/heal_locations.json", new_json.str());
+    infile.close();
+
+    if (new_json.str() == old_json.str())
+        return;
+
+    std::random_device rd;
+    const string tmp_path = path + ".tmp" + std::to_string(rd());
+    write_text_file(tmp_path, new_json.str());
+    std::error_code ec;
+    std::filesystem::rename(tmp_path, path, ec);
+    if (ec)
+        FATAL_ERROR("Cannot replace %s: %s\n", path.c_str(), ec.message().c_str());
 }
 
 // Output paths are directories with trailing path separators
