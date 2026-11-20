@@ -88,7 +88,7 @@ che tiene la destinazione di ogni voce; le fasi lo rileggono, non lo copiano):
 | --- | --- |
 | D19 | **Menu riordinati**: Impostazioni in 4 schede (GENERALE, MAPPA, LOTTA, SUONO: la MAIN di oggi ha 20 voci su 20), Sfide in 5 (MODALITÀ con dentro FEATURES, RANDOMIZER, NUZLOCKE, DIFFICOLTÀ, SFIDE). EASY CATCH e LEVEL SCALING vanno in Sfide · DIFFICOLTÀ; CLOCK TYPE e ALT SHINY in Impostazioni · GENERALE; il resto voce per voce nel documento. Spostare una voce non tocca il salvataggio. |
 | D20 | **OVERWORLD CATCH** (Impostazioni · MAPPA, ON/OFF, default ON). Spenta: tetti 6/3/3 e ricambio a 240 frame, niente passo lento né udito e cono (B corre), R avvia la ricerca DexNav, L senza pannello; **i prezzi restano**. Gli alfa (fasi 12-14) esistono solo col lancio acceso. |
-| D21 | **ARCEUS FORMULAS** (Impostazioni · LOTTA, OFF/ON, default OFF): **una voce sola** per le statistiche di Leggende Arceus (ogni Pokémon, ricalcolate al cambio) e la sua formula di cattura **solo nell'overworld** (in lotta resta quella di oggi); viaggiano insieme (utente, 20/11). Con loro la **formula del danno** di Arceus, se no le prime lotte durano 3-4 volte di più. Livelli d'impegno **derivati** da IV ed EV (niente dati nuovi nel Pokémon); le sfide su IV/EV restano e agiscono tramite i livelli; Ball coi moltiplicatori di Arceus (Ultra ×2,25), quelle che Arceus non ha restano come sono; rango del giocatore dalle medaglie. |
+| D21 | **ARCEUS FORMULAS** (Impostazioni · LOTTA, OFF/ON, default OFF): **una voce sola** per le statistiche di Leggende Arceus (ogni Pokémon, ricalcolate al cambio) e la sua formula di cattura **solo nell'overworld** (in lotta resta quella di oggi); viaggiano insieme (utente, 20/11). Con loro la **formula del danno** di Arceus, se no le prime lotte durano 3-4 volte di più. Livelli d'impegno **derivati** da IV ed EV (niente dati nuovi nel Pokémon); le sfide su IV/EV restano e agiscono tramite i livelli. Il 20/11: **tassi di cattura di Arceus** (dati del gioco, `personal_la` di PKHeX; 80 delle 251 specie di Kanto e Johto li hanno), **rango del giocatore = 8 medaglie di Johto + Campione di Johto (0-9)**, colpo alle spalle come in Arceus (colpito da dietro). Ball una per una, specie senza tasso di Arceus e stadi delle statistiche: nel documento, sezione "Cattura e danno di Arceus". |
 | D22 | **Salvataggio**: 2 bit, con il passo `saveVersion < 15` che li azzera. **`unusedTrainerCatchBit` non è libero**: vale 1 nel `.sav` dell'utente (PLUS.11, slot 0 e 1, letto il 20/11) benché il passo 9 lo azzeri; nessun codice di oggi lo scrive. Il secondo bit in coda a SaveBlock3 (20 byte liberi; `autoRun` ha 7 bit a zero nello stesso `.sav`, alternativa). OVERWORLD CATCH salvata invertita (0 = accesa). |
 
 Default della seconda parte, cambiabili prima della fase:
@@ -360,20 +360,26 @@ Furret Lv 21 32% (alle spalle 37%, Ultra 44%), Pinsir Lv 22 19% (Ultra 31%);
 con la Ultra. Con la formula di oggi Furret era 12% / 28% e Pinsir 6% / 12%
 (fase 6).
 
-**Da decidere nelle fasi 10-11** (con un default):
+**Deciso il 20/11** (D21): tassi di cattura di Arceus; rango del giocatore =
+medaglie di Johto + 1 da Campione di Johto (0-9: con 9 anche un Pokémon di
+rango 10, un alfa di livello alto, dà rango 0, il massimo); colpo alle spalle
+di Arceus (Pokémon colpito da dietro, ×1,75; il ×2 di D2 sparisce con
+l'opzione accesa).
 
-- **Tasso di cattura**: Arceus ha tassi suoi, più alti; il gioco ha quelli
-  classici. Default: quelli del gioco (niente tabella nuova).
-- **rank_giocatore** dalle medaglie: default = medaglie, al massimo 10 (Johto
-  8 + Kanto oltre).
-- **Colpo alle spalle**: default = Pokémon che non ti ha notato e guarda
-  dall'altra parte; il ×2 di D2 sparisce con l'opzione accesa.
-- **Comportamento**: default = base 2, chi ti ha notato e ti carica o fugge 1.
-- **Stadi di statistica**: Arceus non li ha. Default: A e D effettivi con
-  gli stadi del gioco, AtkMod = DefMod = 1; STAB 1,25 e Tipo 2,5 / 0,4 di
-  Arceus.
-- **Le altre Ball del gioco** (Rete, Scuro, Velox...): tengono il loro
-  moltiplicatore, × 0,75 per stare sulla scala di Arceus.
+**Tassi di Arceus**: `PKHeX.Core/Resources/byte/personal/personal_la` di
+[PKHeX](https://github.com/kwsch/PKHeX) (dati estratti dal gioco), voci da
+0xB0 byte per numero nazionale, tasso al byte 0x08, presente nel gioco al bit 6
+del byte 0x21 (`PersonalInfo8LA.cs`). Letto il 20/11: 226 specie, di cui 48 di
+Kanto e 32 di Johto. **Rifatti specie per specie, non scalati**: Onix 45 → 235,
+Scyther 45 → 215, Machop 180 → 245, Heracross 45 → 85, Gyarados 45 → 55,
+Pikachu 190 → 145. Da confrontare con una seconda fonte in fase 10.
+
+**Ancora da decidere** (tendine nel documento, sezione "Cattura e danno di
+Arceus"; default tra parentesi): ogni Ball (Poké/Great/Ultra coi valori di
+Arceus, le altre con il loro effetto del gioco × 0,75, Master invariata); le 171
+specie senza tasso di Arceus (tasso del gioco); stadi delle statistiche (tenere
+gli stadi del gioco, AtkMod = DefMod = 1, con STAB 1,25 e Tipo 2,5 / 0,4 di
+Arceus). Comportamento: base 2, chi ti ha notato e carica o fugge 1.
 
 ## 4. Spazio misurato (build pulita di `d6520855`)
 
