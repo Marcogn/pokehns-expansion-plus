@@ -34,9 +34,13 @@ azzera. Una nuova opzione: un flag, o un byte nuovo in coda a SB3.
 
 ## Bit liberi in `ChallengeSettings`
 
-Resta **1** bit, `unusedTrainerCatchBit` (byte 31, bit 7): la migrazione
-`saveVersion < 9` lo azzera, quindi si riusa senza nuova migrazione. Dopo, la
-prossima opzione allarga la struct (sposta il layout) o vive in un flag.
+`unusedTrainerCatchBit` (byte 31, bit 7) **non è libero senza migrazione**:
+il passo `saveVersion < 9` lo azzera, ma nel `.sav` dell'utente (PLUS.11,
+versione 14, letto il 20/11) vale **1** in tutti e due gli slot, e nessun
+codice di oggi lo scrive. Riusarlo vuol dire un passo nuovo che lo azzeri (piano
+`overworld-catch`, D22). Dopo, la prossima opzione allarga la struct (sposta il
+layout), va in coda a SB3 o vive in un flag. `autoRun` (`bool8`) ha i 7 bit alti
+a zero in quel `.sav`.
 Riusare un bit che ha già avuto un significato vuol dire che nei salvataggi
 passati per quelle build può valere 1 (per questo `< 7` azzera
 `unusedDexNavBit`); stessa cautela per `FLAG_FORCE_SHINY` (ex `FLAG_UNUSED_3`).
