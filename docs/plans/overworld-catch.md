@@ -1,6 +1,6 @@
 # Piano: cattura nell'overworld (stile Leggende Pokémon: Arceus)
 
-**Stato (18/11): fasi 1-6 fatte (tetti e prezzi; passo lento e percezione; nucleo del lancio; animazione; pannello e documentazione; revisione della prima parte); prossima: fase 7 (Sonnet 5.5).**
+**Stato (20/11): fasi 1-6 fatte (tetti e prezzi; passo lento e percezione; nucleo del lancio; animazione; pannello e documentazione; revisione della prima parte); prossima: fase 7 (Sonnet 5.5). Il 20/11 sono entrate le fasi 8-11 (menu, OVERWORLD CATCH, ARCEUS FORMULAS) e gli alfa sono passati a 12-14.**
 
 Si appoggia agli OWE già in gioco: leggere prima
 [`.claude/rules/overworld_encounters.md`](../../.claude/rules/overworld_encounters.md)
@@ -80,18 +80,29 @@ Seconda parte, risposte dell'utente (14/11, dopo la prima stesura):
 | D16 | **Consumo**: la Ball si consuma solo se colpisce un Pokémon; a vuoto (5 caselle e cade) o contro NPC/muro/cartello torna in borsa. Verso il follower non parte. |
 | D14 | **Banner di cattura**: il riquadro in alto degli strumenti ottenuti, con l'icona del Pokémon al posto dell'icona dello strumento, "You caught XXX♂!" e sotto "It was added to your party." o "It was sent to the PC.", con una **fanfara breve**. Prototipo approvato in emulatore il 14/11 (§3). |
 
+Terza parte, risposte dell'utente (18-20/11, dal documento
+[Riordino Impostazioni e Sfide](https://claude.ai/artifact/7mFewnXGQH3VQCdSL1afTK),
+che tiene la destinazione di ogni voce; le fasi lo rileggono, non lo copiano):
+
+| # | Decisione |
+| --- | --- |
+| D19 | **Menu riordinati**: Impostazioni in 4 schede (GENERALE, MAPPA, LOTTA, SUONO: la MAIN di oggi ha 20 voci su 20), Sfide in 5 (MODALITÀ con dentro FEATURES, RANDOMIZER, NUZLOCKE, DIFFICOLTÀ, SFIDE). EASY CATCH e LEVEL SCALING vanno in Sfide · DIFFICOLTÀ; CLOCK TYPE e ALT SHINY in Impostazioni · GENERALE; il resto voce per voce nel documento. Spostare una voce non tocca il salvataggio. |
+| D20 | **OVERWORLD CATCH** (Impostazioni · MAPPA, ON/OFF, default ON). Spenta: tetti 6/3/3 e ricambio a 240 frame, niente passo lento né udito e cono (B corre), R avvia la ricerca DexNav, L senza pannello; **i prezzi restano**. Gli alfa (fasi 12-14) esistono solo col lancio acceso. |
+| D21 | **ARCEUS FORMULAS** (Impostazioni · LOTTA, OFF/ON, default OFF): **una voce sola** per le statistiche di Leggende Arceus (ogni Pokémon, ricalcolate al cambio) e la sua formula di cattura **solo nell'overworld** (in lotta resta quella di oggi); viaggiano insieme (utente, 20/11). Con loro la **formula del danno** di Arceus, se no le prime lotte durano 3-4 volte di più. Livelli d'impegno **derivati** da IV ed EV (niente dati nuovi nel Pokémon); le sfide su IV/EV restano e agiscono tramite i livelli; Ball coi moltiplicatori di Arceus (Ultra ×2,25), quelle che Arceus non ha restano come sono; rango del giocatore dalle medaglie. |
+| D22 | **Salvataggio**: 2 bit, con il passo `saveVersion < 15` che li azzera. **`unusedTrainerCatchBit` non è libero**: vale 1 nel `.sav` dell'utente (PLUS.11, slot 0 e 1, letto il 20/11) benché il passo 9 lo azzeri; nessun codice di oggi lo scrive. Il secondo bit in coda a SaveBlock3 (20 byte liberi; `autoRun` ha 7 bit a zero nello stesso `.sav`, alternativa). OVERWORLD CATCH salvata invertita (0 = accesa). |
+
 Default della seconda parte, cambiabili prima della fase:
 
 | # | Scelta | Default | Fase |
 | --- | --- | --- | --- |
-| P9 | Quanti alfa | **1 su 20** Pokémon generati, **al massimo 2 per mappa** (D12); mai shiny e alfa insieme (lo shiny vince); niente alfa in Safari, Gara, Azienda Lotta, acqua (lo sprite da nuoto non scala). Conto: a tetto pieno nasce un Pokémon ogni 480 frame (8 s, D3), cioè 7,5 al minuto: con 1 su 20 un alfa ogni ~2,7 minuti d'erba, con 1 su 50 ogni ~6,7. La fase 8 lo misura in frame e lo ritocca | 8 |
-| P17 | Premi della missione (D13) | 1 alfa: 10 Ultra Ball; 5: **da scegliere** (l'Ability Patch si compra già a Violet, `src/shop.c:1000`: non è un premio); 10: Shiny Charm (funziona, `src/pokemon.c:3249`, e nelle mappe di HnS non si ottiene altrove); 30: Master Ball. Si ritirano da un NPC, come lo scienziato di TcloneR (chi e dove: fase 10) | 10 |
-| P10 | Livello | quello tirato dalla tabella (già scalato) **+ 10**, senza il tetto `B_WILD_SCALING_MAX_ABOVE_TABLE` | 8 |
-| P11 | "Troppo forte" | livello dell'alfa **sopra** `GetLevelScalingCap()` (il tetto delle medaglie anche con LEVEL CAP spento, `src/caps.c`) | 9 |
-| P12 | Comportamento | sempre aggressivo, vista più lunga, non sparisce finché sei sulla mappa (come gli shiny) | 8 |
-| P13 | Aumento in lotta | +1 a Attacco, Difesa, Att. Sp., Dif. Sp., Velocità, col messaggio dei totem | 9 |
-| P14 | Mossa speciale | una mossa uovo della specie a caso, altrimenti una mossa tutor, altrimenti nessuna; sostituisce l'ultima | 9 |
-| P15 | Lancio su un alfa troppo forte | la Ball rimbalza **e non si consuma**, con un messaggio; l'alfa ti nota | 9 |
+| P9 | Quanti alfa | **1 su 20** Pokémon generati, **al massimo 2 per mappa** (D12); mai shiny e alfa insieme (lo shiny vince); niente alfa in Safari, Gara, Azienda Lotta, acqua (lo sprite da nuoto non scala). Conto: a tetto pieno nasce un Pokémon ogni 480 frame (8 s, D3), cioè 7,5 al minuto: con 1 su 20 un alfa ogni ~2,7 minuti d'erba, con 1 su 50 ogni ~6,7. La fase 12 lo misura in frame e lo ritocca | 12 |
+| P17 | Premi della missione (D13) | 1 alfa: 10 Ultra Ball; 5: **da scegliere** (l'Ability Patch si compra già a Violet, `src/shop.c:1000`: non è un premio); 10: Shiny Charm (funziona, `src/pokemon.c:3249`, e nelle mappe di HnS non si ottiene altrove); 30: Master Ball. Si ritirano da un NPC, come lo scienziato di TcloneR (chi e dove: fase 14) | 14 |
+| P10 | Livello | quello tirato dalla tabella (già scalato) **+ 10**, senza il tetto `B_WILD_SCALING_MAX_ABOVE_TABLE` | 12 |
+| P11 | "Troppo forte" | livello dell'alfa **sopra** `GetLevelScalingCap()` (il tetto delle medaglie anche con LEVEL CAP spento, `src/caps.c`) | 13 |
+| P12 | Comportamento | sempre aggressivo, vista più lunga, non sparisce finché sei sulla mappa (come gli shiny) | 12 |
+| P13 | Aumento in lotta | +1 a Attacco, Difesa, Att. Sp., Dif. Sp., Velocità, col messaggio dei totem | 13 |
+| P14 | Mossa speciale | una mossa uovo della specie a caso, altrimenti una mossa tutor, altrimenti nessuna; sostituisce l'ultima | 13 |
+| P15 | Lancio su un alfa troppo forte | la Ball rimbalza **e non si consuma**, con un messaggio; l'alfa ti nota | 13 |
 | P18 | Dopo il banner | soprannome chiesto come in lotta (rispetta `skipNicknamePrompt` e il soprannome obbligatorio della Nuzlocke); **niente** pagina del Pokédex | 3 |
 | P19 | Fanfara | `MUS_HG_OBTAIN_EGG` (`FANFARE_HG_OBTAIN_EGG`, 131 frame, ~2 s, "hai ricevuto un Pokémon"); il banner si chiude con A o B solo a fanfara finita | 3 |
 | P16 | Ricorda mosse MT | restano **sempre** disponibili (D10 parla solo di uovo e tutor; in SG le MT sono spente) | 7 |
@@ -203,14 +214,14 @@ Fatti per la seconda parte (alfa e ricorda mosse):
   (`include/global.fieldmap.h:289`): un bit diventa `alpha`. Gli altri campi
   che gli OWE riusano sono pieni (`sOverworldEncounterLevel` usa il bit 7 per
   il non-sparire, `src/wild_encounter_ow.c:41-47`). Gli oggetti finiscono in
-  SaveBlock1: la fase 8 controlla che un salvataggio vecchio legga 0 lì.
+  SaveBlock1: la fase 12 controlla che un salvataggio vecchio legga 0 lì.
 - **Bit nel Pokémon salvato**: bit non usati da nessun file, verificato con
   `grep`: `PokemonSubstruct0` `unused_02:6`, `unused_04:3`, `unused_0A:2`;
   `PokemonSubstruct1` `unused_04:5`, `unused_06:3`; `BoxPokemon` `unused_13`,
   `unused_1E` (`include/pokemon.h:130-170, 255-276`). Meglio uno delle
   sottostrutture: sono cifrate e coperte dal checksum. `CreateMon` azzera
   tutto, quindi un Pokémon vecchio legge 0 = non alfa. **Da controllare in
-  fase 9**: che expansion non abbia già preso quel bit nelle versioni dopo la
+  fase 13**: che expansion non abbia già preso quel bit nelle versioni dopo la
   1.15.2 (un `/upstream-sync` futuro lo sovrascriverebbe) e che l'app
   compagna di PokeDaisy non lo legga (`hasep_symbols.md`).
 - **Aumento da totem già nel motore**: `settotemboost`
@@ -228,16 +239,16 @@ Fatti per la seconda parte (alfa e ricorda mosse):
   sottomissione per premio (**le due liste vanno tenute allineate a mano**,
   `quest_book.md`). Gli alfa servono due var: `vars.h` ne segna diverse come
   `VAR_UNUSED_*`, ma `trainer_catch.md` avverte che alcune vecchie "libere"
-  **non sono dimostrabilmente a zero** nei salvataggi: la fase 10 le controlla
+  **non sono dimostrabilmente a zero** nei salvataggi: la fase 14 le controlla
   sul `.srm` dell'utente. Il contatore sale a ogni alfa catturato, in lotta e
-  col lancio (stessa funzione per i due lati, fase 9).
+  col lancio (stessa funzione per i due lati, fase 13).
 - `setwildbossbattle` (`src/scrcmd.c:3383`) è una lotta di script con mosse
   scelte, senza aumento di statistiche: non serve agli alfa.
 - **Sprite più grande**: il motore scala già sprite di oggetti con matrici
   affini (`src/event_object_movement.c:1531`, riflessi). Le matrici affini
   sono 32 e gli OWE in acqua ne usano una (`ST_OAM_AFFINE_ERASE`). Un oggetto
   scalato oltre i suoi 32×32 viene tagliato se non è in doppia dimensione:
-  **prototipo prima di promettere**, in fase 8.
+  **prototipo prima di promettere**, in fase 12.
 - **Ricorda mosse oggi**: `P_ENABLE_MOVE_RELEARNERS` **TRUE**
   (`include/config/summary_screen.h:13`) apre tutto; `P_FLAG_EGG_MOVES` e
   `P_FLAG_TUTOR_MOVES` sono **0**. Il codice li legge già
@@ -265,6 +276,30 @@ Trappole già note che qui mordono (dalla regola degli OWE):
   palette: il risucchio nella Ball va provato a parte.
 - `gEnemyParty[0]` azzerato: guardare il Pokémon catturato in squadra (il
   precedente è il Bad Egg di `trainer_catch.md`).
+
+### Fonti per ARCEUS FORMULAS (20/11; la fase 10 le completa)
+
+- **Statistiche, verificate**: [Pokébip](https://www.pokebip.com/page/jeux-video/legendes-pokemon-arceus/statistiques-niveau-effort)
+  e [Poképédia](https://www.pokepedia.fr/Calcul_des_statistiques), aperte. PS =
+  ⌊(L/100 + 1) × B⌋ + L + E; altra statistica = ⌊⌊(L/50 + 1) × B / 1,5⌋ × N⌋ +
+  E; E = (√B × m + L) / 2,5 con m = 0, 2, 3, 4, 7, 8, 9, 14, 15, 16, 25 per
+  impegno 0-10. Controllo: base 120, Lv 100, impegno 10 dà 490 e 390 come
+  l'esempio di ts-pokeapi (visto nei risultati di ricerca). **Aperti**: E
+  arrotondato all'intero più vicino (Pokébip) o per difetto (Poképédia);
+  impegno iniziale da IV 0-20 → 0, 21-25 → 1, 26-30 → 2, 31 → 3 (Bulbapedia
+  mette il 20 nel livello 1).
+- **Effetto misurato** (calcolo, IV 15 EV 0 contro impegno 0): base 100 a Lv
+  5 PS 25 → 112, Attacco 15 → 75; a Lv 50 167 → 220; a Lv 100 325 → 340.
+  Per questo D21 porta anche il danno.
+- **Cattura, incompleta**: [Serebii](https://www.serebii.net/legendsarceus/capture.shtml)
+  (aperta) dà colpo alle spalle ×1,75, stati ×1-4 (dorme ×4, mangia ×2,5),
+  Poké/Great/Ultra ×1 / ×1,5 / ×2,25. Bulbapedia (Catch rate, sezione Legends:
+  Arceus) risponde 403 da qui: dai risultati di ricerca, tasso × 0,75, un
+  rango = rango giocatore − rango Pokémon + 1 tra −5 e 0, rango del Pokémon
+  dal livello (+4 se alfa, massimo 10), due controlli e non serve superarli
+  entrambi. **Manca il termine del livello**: testo da chiedere all'utente.
+- **Danno**: nessuna fonte ancora (Bulbapedia, Damage, sezione Legends:
+  Arceus): da chiedere all'utente.
 
 ## 4. Spazio misurato (build pulita di `d6520855`)
 
@@ -297,10 +332,14 @@ costa di più del suo prezzo.
 | 5 | **Rifinitura e documentazione**: pannello di D18 (Ball o Pokémon, quantità o livello, modalità) dai mock del 16/11, rifatto con font e finestre del gioco, suoni, messaggi; `CHANGELOG.md`, `README.md`, regola `.claude/rules/overworld_catch.md` (con `paths:`), indice in CLAUDE.md §7, `docs/SOULGOLD_PORT_REPORT.md` (feature nuova, non un port) | **Sonnet 5.5** | build verde; pannello guardato con 1, 2 e 0 tipi di Ball in borsa e con 1 e 6 Pokémon, in tutti e due i temi; sparisce dopo ~2 s; testi riletti contro il codice; `docs_validate` verde |
 | 6 | **Revisione della prima parte**: `/code-review` medio sul diff delle fasi 1-5, ogni punto aperto provato in emulatore, bilanciamento (quante Ball per una cattura a inizio gioco e a metà), ROM consegnata zippata. Qui si decide anche se togliere il DexNav (D6) | **Opus 5.5** | build e CI verdi, percentuale di ROM annotata, punti aperti chiusi o motivati. **Serve il `.srm` dell'utente** |
 | 7 | **Ricorda mosse a pagamento** (D10), port da Soulgold: `P_ENABLE_MOVE_RELEARNERS` FALSE, `P_TM_MOVES_RELEARNER` resta TRUE (P16), due flag, due maestri con il loro prezzo (dove: dalle mappe, v. §3), testo nel riassunto quando la voce è chiusa | **Sonnet 5.5** | build verde; nel riassunto le mosse uovo/tutor non compaiono prima e compaiono dopo aver pagato (screenshot); le MT sì in tutti e due i casi; un salvataggio vecchio parte chiuso. **Serve il `.srm`** (Pokémon con mosse uovo vere) |
-| 8 | **Alfa sulla mappa**: bit `alpha` nell'oggetto, tiro P9, livello P10, comportamento P12, **prototipo dello sprite più grande** (se non regge: un'aura o un'icona sopra la testa, e lo si scrive) | **Opus 5.5** | build verde; con il debug che forza l'alfa: compare uno per mappa, ti insegue, non sparisce; sprite guardato su erba, in grotta, accanto ad altri OWE; tile e matrici affini misurate; un salvataggio vecchio carica senza alfa fantasma. `.srm` non necessario |
-| 9 | **Alfa in lotta e catturato**: aumento P13, blocco della cattura in lotta e col lancio (D7, P11, P15), bit nel Pokémon salvato con `MON_DATA_IS_ALPHA`, abilità nascosta e mossa P14 alla nascita | **Opus 5.5** | build verde; un alfa sopra il tetto respinge la Ball in lotta e nell'overworld (Ball non consumata), si batte e si fugge; uno sotto il tetto si cattura e **in squadra, dopo salvataggio e ricarica e passaggio nel PC, è ancora alfa** con abilità e mossa giuste; un Pokémon del salvataggio vecchio legge non-alfa e il checksum regge. **Serve il `.srm`** |
-| 10 | **Alfa visibile e missione**: segno nel riassunto (tutti e due i temi), follower più grande se la fase 8 l'ha reso possibile, **missione a livelli 1/5/10/30** sul modello di TcloneR (contatore, premi P17, NPC che li consegna, sottomissioni nel quest book, `/add-quest`) | **Sonnet 5.5** | screenshot del riassunto chiaro e scuro con indici contati sui `.4bpp`; follower guardato; con il contatore portato a 0, 1, 5, 10, 30 via debug: stato e "NEW" giusti nel libro, ogni premio ritirato una sola volta; le due var nuove a zero nel `.srm` dell'utente prima della modifica. **Serve il `.srm`** |
-| 11 | **Revisione finale e documentazione**: `/code-review` medio sul diff delle fasi 7-10, CHANGELOG (con l'avviso del ricorda mosse), regole, report SG (la fase 7 è un port), ROM consegnata | **Opus 5.5** | build e CI verdi, punti aperti chiusi o motivati. **Serve il `.srm`** |
+| 8 | **Menu e posto per le voci nuove** (D19, D22): schede nuove nei due menu dal documento (al massimo 20 righe ciascuna), voci spostate, OVERWORLD CATCH e ARCEUS FORMULAS presenti ma ancora senza effetto, `SAVE_VERSION` 15 con il passo che azzera i 2 bit, titolo (`oak_speech_hns.c`) e `NewGameInitData`; `save.md` corretta sul bit che non era libero | **Opus 5.5** | build verde; col `.srm` dell'utente: prima e dopo il caricamento `ChallengeSettings` e `SoundAndFieldOptions` uguali byte per byte salvo i 2 bit, che leggono 0; salvato e ricaricato, checksum giusto; ogni scheda guardata nei due temi, nessuna oltre 20 righe; una New Game tiene le scelte fatte al titolo. **Serve il `.srm`** |
+| 9 | **Interruttore OVERWORLD CATCH** (D20): spenta = il gioco di prima del piano salvo i prezzi; accesa = com'è oggi. Cambio a mappa aperta senza Pokémon di troppo (`TryRemoveOWEAboveCap` lavora già al contrario) | **Opus 5.5** | build verde; spenta: R avvia la ricerca DexNav sulla specie registrata, B corre, L non fa nulla, fino a 6 OWE in erba in 60 s (misurato in frame), nessuna Ball lanciata; accesa: le prove della fase 6 (riva, mancato, fermo, Pokémon mandato) danno gli stessi esiti. `.srm` utile |
+| 10 | **ARCEUS FORMULAS: statistiche e cattura** (D21). Prima le fonti: la pagina di Bulbapedia (testo fornito dall'utente) copiata nel §3 con le formule; poi le statistiche in `CalculateMonStats` dietro l'opzione (livelli d'impegno da IV/EV, squadra ricalcolata al cambio e al caricamento con i PS in proporzione, box al ritiro) e la cattura di Arceus in `ComputeOverworldCaptureOdds` (rango dalle medaglie, colpo alle spalle al posto del ×2) | **Opus 5.5** | build verde; 3 Pokémon (Lv 5, 25, 50) calcolati a mano e letti in RAM, opzione accesa e spenta, PS e stato conservati al cambio; probabilità di cattura su 3 casi uguale al calcolo a mano (ROM strumentata); il `.srm` dell'utente carica con l'opzione accesa e spenta. **Serve il `.srm`** |
+| 11 | **ARCEUS FORMULAS: danno e bilanciamento** (D21): formula del danno di Arceus dietro la stessa opzione (fonte nel §3), con BST EQUALIZER e le sfide su IV/EV provate insieme; misura dei colpi per KO a inizio e metà gioco con l'opzione accesa e spenta; CHANGELOG e regola (`overworld_catch.md` o una nuova `arceus.md`) | **Opus 5.5** | build verde; danno su 3 casi uguale al calcolo a mano (ROM strumentata); tabella dei colpi per KO accesa/spenta annotata, con l'utente a decidere se ritoccare; l'opzione accesa non rompe le lotte con allenatori scalati (`LEVEL SCALING`). `.srm` utile |
+| 12 | **Alfa sulla mappa**: bit `alpha` nell'oggetto, tiro P9, livello P10, comportamento P12, **prototipo dello sprite più grande** (se non regge: un'aura o un'icona sopra la testa, e lo si scrive) | **Opus 5.5** | build verde; con il debug che forza l'alfa: compare uno per mappa, ti insegue, non sparisce; sprite guardato su erba, in grotta, accanto ad altri OWE; tile e matrici affini misurate; un salvataggio vecchio carica senza alfa fantasma. `.srm` non necessario |
+| 13 | **Alfa in lotta e catturato**: aumento P13, blocco della cattura in lotta e col lancio (D7, P11, P15), bit nel Pokémon salvato con `MON_DATA_IS_ALPHA`, abilità nascosta e mossa P14 alla nascita | **Opus 5.5** | build verde; un alfa sopra il tetto respinge la Ball in lotta e nell'overworld (Ball non consumata), si batte e si fugge; uno sotto il tetto si cattura e **in squadra, dopo salvataggio e ricarica e passaggio nel PC, è ancora alfa** con abilità e mossa giuste; un Pokémon del salvataggio vecchio legge non-alfa e il checksum regge. **Serve il `.srm`** |
+| 14 | **Alfa visibile e missione**: segno nel riassunto (tutti e due i temi), follower più grande se la fase 12 l'ha reso possibile, **missione a livelli 1/5/10/30** sul modello di TcloneR (contatore, premi P17, NPC che li consegna, sottomissioni nel quest book, `/add-quest`) | **Sonnet 5.5** | screenshot del riassunto chiaro e scuro con indici contati sui `.4bpp`; follower guardato; con il contatore portato a 0, 1, 5, 10, 30 via debug: stato e "NEW" giusti nel libro, ogni premio ritirato una sola volta; le due var nuove a zero nel `.srm` dell'utente prima della modifica. **Serve il `.srm`** |
+| 15 | **Revisione finale e documentazione**: `/code-review` medio sul diff delle fasi 7-14, CHANGELOG (con l'avviso del ricorda mosse), regole, report SG (la fase 7 è un port), ROM consegnata | **Opus 5.5** | build e CI verdi, punti aperti chiusi o motivati. **Serve il `.srm`** |
 
 Perché questi modelli: le fasi 1 e 5 sono costanti, dati e testo con un
 cancello che prende gli errori. La 2 tocca un invariante nascosto (la macchina
@@ -309,9 +348,14 @@ animazioni concorrenti, la VRAM condivisa con icone ed effetti e una lotta che
 può partire nel mezzo. La 3
 apre il codice di lotta, crea un Pokémon fuori dalla lotta e incrocia Nuzlocke
 e salvataggio: è l'unico punto in cui un errore silenzioso arriva nel
-salvataggio dell'utente. Nella seconda parte la 9 tocca il Pokémon salvato, ma
+salvataggio dell'utente. Nella seconda parte la 13 tocca il Pokémon salvato, ma
 con un bit già riservato e un cancello che salva, ricarica e passa dal PC:
-basta Opus. La 7 è un port con sorgente chiaro, la 10 grafica e contenuto.
+basta Opus. La 7 è un port con sorgente chiaro, la 14 grafica e contenuto.
+Le fasi 8-11 (20/11) sono tutte su Opus: la 8 cambia il salvataggio, la 9 il
+movimento e R, la 10 e la 11 i numeri di ogni Pokémon e di ogni lotta. Vengono
+prima degli alfa perché gli alfa dipendono da tutte e tre le cose: esistono solo
+col lancio, hanno un rango in più nella cattura di Arceus e un livello +10 che
+con le statistiche di Arceus vale un'altra cosa.
 
 ### 5.1 Fase 1, com'è stata fatta (16/11)
 
@@ -889,7 +933,7 @@ basta Opus. La 7 è un port con sorgente chiaro, la 10 grafica e contenuto.
   `overworld_catch.c`. Leggere `relearner.md` e il §3 per i maestri.
 - Il salvataggio dell'utente (PLUS.11) è quello della fase 6: Route 43, 6
   medaglie; serve alla 7 per le mosse uovo vere.
-- Ancora non provati in emulatore (da fare se la 8 o la 11 passano di lì):
+- Ancora non provati in emulatore (da fare se la 9 o la 15 passano di lì):
   Ball in volo durante l'inizio di una lotta,
   grotta buia con Flash, un cartello letto entro 2 s da un lancio.
 
@@ -904,7 +948,7 @@ basta Opus. La 7 è un port con sorgente chiaro, la 10 grafica e contenuto.
   si possono già portare al massimo e gli EV togliere, e un colore diverso si
   confonderebbe con lo shiny.
 - **Alfa grande in lotta e nei menu**: gli sprite di lotta sono 64×64 fissi;
-  solo la mappa può scalare (fase 8).
+  solo la mappa può scalare (fase 12).
 - **Mira libera o a parabola regolabile**: il motore si muove a caselle; una
   linea retta nella direzione dello sguardo è leggibile e costa poco.
 - **Lancio nel Safari e alla Gara** (P5): hanno Ball contate e regole proprie
