@@ -18,4 +18,9 @@ bool8 ShouldSkipNicknamePrompt(void);
 enum BattleMusicTheme GetBattleMusicTheme(void);
 bool32 IsNightCenterMusicEnabled(void);
 
+// Single accessors for OVERWORLD CATCH and ARCEUS FORMULAS (overworld catch
+// plan, phase 8: present in the menu, read by nothing yet).
+bool8 IsOverworldCatchEnabled(void);
+bool8 AreArceusFormulasEnabled(void);
+
 #endif // GUARD_OPTION_MENU_H
