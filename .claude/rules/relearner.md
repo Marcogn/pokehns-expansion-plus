@@ -23,9 +23,12 @@ paths:
   `CheckRelearnerStateFlag` e in `move_relearner.inc`. Zero nei salvataggi vecchi
   = chiusi. Ordine del ciclo come SG: LEVEL, TUTOR, EGG, TM.
   `include/config/summary_screen.h` è incluso **prima** di `IS_HNS`: la guardia è
-  `#ifdef POKEMON_HNS`. Maestri: Egg Move Master in `BlackthornCity_House3_hns`
-  (NPC nuovo a (2,6), ¥88.888), Tutor Move Master in `OlivineCity_House3_hns`
-  (NPC nuovo a (7,4), ¥44.444: SG ha una House4 che qui non esiste). Pagano e
+  `#ifdef POKEMON_HNS`. Maestri, script e testi di SG: Egg Move Master in
+  `BlackthornCity_House3_hns` (NPC nuovo a (2,6)), Tutor Move Master in
+  `OlivineCity_House3_hns` (NPC nuovo a (7,4): SG ha una House4 che qui non
+  esiste). Prezzi (utente, 20/11): metà di SG, 44.444 / 22.222, metà ancora con
+  `FLAG_IS_CHAMPION` (Lance battuto), 22.222 / 11.111. `checkmoney` vuole una
+  costante: due rami, prezzo nel testo con `bufferstring`. Pagano e
   alzano il flag; la scelta della mossa resta nel riassunto. Il ricorda mosse a
   Squama Cuore di Blackthorn non c'entra (solo mosse di livello).
   Prova (guarda anche il tag intero, non solo "LEVEL"): pagina mosse, L/R sul tag "LEVEL": prima del pagamento il ciclo è

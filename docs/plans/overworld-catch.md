@@ -1055,6 +1055,15 @@ con le statistiche di Arceus vale un'altra cosa.
   diventa LEVEL→EGG→TM (uovo: Fury Swipes, Quick Attack, Reversal, Thrash,
   Foresight, Covet) e poi LEVEL→TUTOR→TM. Il `.sav` non è stato modificato
   (cmp). Un salvataggio vecchio parte chiuso: è la prova stessa (flag a 0).
+- **Prezzi e script (utente, 20/11, dopo la review)**: script e testi dei due
+  maestri ora quelli di SG (dissolvenza, fanfara, istruzioni; `waitfanfare` al
+  posto del `waitse` di SG dopo la fanfara). Prezzi metà di SG, 44.444 / 22.222,
+  e metà ancora da Campione di Johto (`FLAG_IS_CHAMPION`): 22.222 / 11.111.
+  Provato in mGBA col `.sav`: senza titolo chiede ¥44,444 e con ¥23.638 dice "A
+  pity."; "No" → "I see."; con `FLAG_IS_CHAMPION` e Max Money chiede ¥22,222 e
+  toglie esattamente quello (9.999.999 → 9.977.777), sequenza intera e, riparlando,
+  le istruzioni. Il maestro dei tutor è lo stesso modello con altre costanti:
+  non riprovato in emulatore dopo questa modifica.
 - **Non fatto**: "testo nel riassunto quando la voce è chiusa" (tabella): in
   SG non l'ho potuto vedere e senza fonte non l'ho inventato; il tag mostra
   solo le voci aperte. Da decidere con l'utente. Non provato: il pagamento del
