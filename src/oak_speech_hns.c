@@ -638,9 +638,8 @@ static void Task_NewGameHnsSpeech_FadeOutToChallengeMenu(u8 taskId)
         gSaveBlock3Ptr->challengeSettings.musicOnOff         = savedOptions.musicOnOff;
         gSaveBlock3Ptr->challengeSettings.bikeMusic          = savedOptions.bikeMusic;
         gSaveBlock3Ptr->challengeSettings.surfMusic          = savedOptions.surfMusic;
-        // These three are options-menu fields too. The first two were missing
-        // from this list, so choosing them on the title screen was silently
-        // undone by SetDefaultChallengeSettings() below.
+        // Options-menu fields too. Missing from this list, a choice made on the
+        // title screen would be silently undone by SetDefaultChallengeSettings().
         gSaveBlock3Ptr->challengeSettings.skipNicknamePrompt = savedOptions.skipNicknamePrompt;
         gSaveBlock3Ptr->challengeSettings.noWildEncounters   = savedOptions.noWildEncounters;
         gSaveBlock3Ptr->challengeSettings.basicDexNav        = savedOptions.basicDexNav;

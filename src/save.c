@@ -1046,10 +1046,10 @@ u8 LoadGameSave(u8 saveType)
     }
     if (gSaveBlock1Ptr->saveVersion < 7)
     {
-        // trainerCatch reuses the bit that DEXNAV SOULGOLD held before it was
-        // merged into ENHANCED DEXNAV, so a save that had that option on would
-        // wake up able to catch Trainers' Pokemon. Start every existing save
-        // with it off; it is one toggle away in the PC's challenge menu.
+        // This bit held DEXNAV SOULGOLD before it was merged into ENHANCED
+        // DEXNAV; then it was TRAINER CATCH, and since SAVE_VERSION 15 it is
+        // noOverworldCatch (stored inverted). Zero was "Trainer catching off"
+        // then and is "overworld catching ON", the default, now.
         gSaveBlock3Ptr->challengeSettings.noOverworldCatch = FALSE;
         // FLAG_FORCE_SHINY is the old FLAG_UNUSED_3. Upstream's history is a
         // single squashed commit, so there is no proving an older HnS never
@@ -1071,7 +1071,7 @@ u8 LoadGameSave(u8 saveType)
     if (gSaveBlock1Ptr->saveVersion < 9)
     {
         // TRAINER CATCH was replaced by the TcloneR key item. Its bit is
-        // ignored now; clearing it is what makes it free for another option.
+        // noOverworldCatch now: zero is OVERWORLD CATCH ON, the default.
         // Whoever had it on gets the item from the scientist like everyone
         // else: the clone count starts with the item.
         gSaveBlock3Ptr->challengeSettings.noOverworldCatch = FALSE;

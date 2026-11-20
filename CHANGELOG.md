@@ -73,7 +73,8 @@ add the section before releasing. Feature details live in the tables of
   are in BATTLE, `DARK UI` in GENERAL. Moving an option does not change its
   value: an existing save keeps every setting. On a new game, `EASY CATCH` and
   `LEVEL SCALING` now start OFF like every other challenge, while `CLOCK TYPE`
-  and `ALT SHINY` keep what was chosen in the title screen's options.
+  and `ALT SHINY` carry over like every other option: from the title screen's
+  Options, or from the save already on the cartridge if they were not touched.
 - **Two new options, not active yet**: `OVERWORLD CATCH` (Options · OVERWORLD,
   ON by default) and `ARCEUS FORMULAS` (Options · BATTLE, OFF by default). They
   are saved but do nothing in this build; the next steps of the overworld

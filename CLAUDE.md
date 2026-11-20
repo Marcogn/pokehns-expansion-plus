@@ -62,9 +62,9 @@ dell'utente si copia come `pokehns.sav` accanto alla ROM, mai nel git.
 
 Layout, polarità, migrazioni: `.claude/rules/save.md`.
 
-- `ChallengeSettings` è fissata a 32 byte e **non ha bit liberi senza migrazione**
-  (quello "libero" vale 1 in salvataggi veri, `save.md`); `soundAndFieldOptions`
-  è pieno. Una nuova opzione: un flag, o un campo in coda a SaveBlock3.
+- `ChallengeSettings` (32 byte) e `soundAndFieldOptions` sono **pieni**. Una
+  nuova opzione va nei **7 bit liberi di `ExtraOptions`** (SB3 +96, già
+  azzerati dal passo 15: niente passo nuovo); poi un flag o un campo in coda.
 - **Polarità**: un salvataggio vecchio legge zero, quindi zero = comportamento
   di prima; l'etichetta del valore zero viene prima nella lista.
 - Campo nuovo in SaveBlock3: in **fondo**, `STATIC_ASSERT` sull'offset in

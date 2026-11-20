@@ -31,7 +31,7 @@ Cronaca di ogni `SAVE_VERSION` (come fu provata, checksum, byte): `docs/claude/s
 `noNightCenterMusic` 1 (**invertito**), `levelScaling` 1, più due bit ignorati
 (`unusedOverworldMonsBit`, `unusedLevelScalingBit`) che nei salvataggi di build
 passate possono valere 1: **il byte è pieno** finché una migrazione non li
-azzera. Una nuova opzione: un flag, o un byte nuovo in coda a SB3.
+azzera. Una nuova opzione: i 7 bit di `ExtraOptions.unused` (sotto).
 
 ## Bit liberi
 
