@@ -15,18 +15,25 @@ add the section before releasing. Feature details live in the tables of
   arm, the Ball (drawn as the Ball you threw) flies in an arc to where the
   Pokémon stood, opens and draws it in, drops to the ground and shakes up
   to three times. It does not follow a Pokémon that moves: one that has
-  walked or run off by the time it lands is missed, and the Ball comes back. If it holds, it clicks and the Pokémon is yours
-  without a battle: a banner at the top says so with a short fanfare, then
-  the game offers the nickname. If it does not, the Pokémon breaks out,
-  notices you and flees or attacks as its temperament says.
+  walked or run off by the time it lands is missed. If it holds, it clicks
+  and the Pokémon is yours without a battle: a banner at the top says so,
+  with a short sound, while the game goes on. Catches in a row stack up to
+  three banners, one under the other; each goes by itself after about three
+  seconds, or makes room for a newer one, and they clear when a message or a
+  menu opens. No nickname is asked (the Name Rater renames), except with the
+  Nuzlocke's compulsory nicknames, asked once the volley is over. If the
+  Ball does not hold, the Pokémon breaks out, notices you and flees or
+  attacks as its temperament says.
   - The odds are the battle's own at full HP, **doubled if the Pokémon had
     not noticed you** (see *Sneaking up* below). `EASY CATCH`, the missing
     badge penalty and every Ball's bonus apply as in battle; the Quick
     Ball's bonus is for a Pokémon that has not noticed you.
-  - A Ball is only used up when it hits a wild Pokémon. With nothing on the
-    line it flies the 5 tiles and drops; against a wall, a tree, a person
-    or the edge of a raised platform it hits it and drops; either way it
-    comes back to the bag. It flies over ledges and over a Pokémon on
+  - **A Ball is only used up when it catches**: the count in the bag goes
+    down when the Pokémon stays inside, not at the throw. A Pokémon that
+    breaks out, or a Ball that hits nothing, costs nothing. With nothing on
+    the line it flies the 5 tiles and drops; against a wall, a tree, a person
+    or the edge of a raised platform it hits it and drops. A Ball lying on
+    the ground cannot be walked over. It flies over ledges and over a Pokémon on
     another level. Water and the shore count as one level: you can throw
     from the shore at a Pokémon in the water and from Surf at one on land. With your
     follower right in front nothing is thrown.
@@ -35,8 +42,8 @@ add the section before releasing. Feature details live in the tables of
     that starts meanwhile ends the shaking first: a Pokémon still inside
     comes out.
   - You can keep throwing while Balls are in the air (about one every half
-    second); the banners and the nickname prompts come after the volley. A
-    full party sends the Pokémon to the PC. A Ball that arrives at a
+    second), as many as the Balls you have. A full party sends the Pokémon
+    to the PC. A Ball that arrives at a
     Pokémon another Ball has already hit drops and comes back.
   - The Nuzlocke, Species Clause and One Type rules refuse the throw with
     the battle's messages, and a catch uses the area's encounter. No

@@ -1,4 +1,5 @@
 #include "global.h"
+#include "overworld_catch.h"
 #include "hasep_symbols.h"
 #include "malloc.h"
 #include "battle_anim.h"
@@ -6891,6 +6892,10 @@ static enum Collision GetVanillaCollision(struct ObjectEvent *objectEvent, s16 x
     else if (IsElevationMismatchAt(objectEvent->currentElevation, x, y))
         return COLLISION_ELEVATION_MISMATCH;
     else if (DoesObjectCollideWithObjectAt(objectEvent, x, y))
+        return COLLISION_OBJECT_EVENT;
+    // Hasep: a thrown Ball lying on the ground is not walked over
+    // (overworld_catch.c).
+    else if (OverworldCatch_IsBallOnGroundAt(x, y))
         return COLLISION_OBJECT_EVENT;
 
     return COLLISION_NONE;

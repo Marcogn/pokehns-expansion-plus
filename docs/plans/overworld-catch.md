@@ -1192,6 +1192,35 @@ con le statistiche di Arceus vale un'altra cosa.
   codice, lette); il Safari a cattura spenta.
 - ROM: 31 916 836 B, **95,12%** (+496 B sulla fase 8).
 
+**Richieste dell'utente dopo la fase 9 (20/11, stessa sessione)**
+- Decisioni (utente): **la Ball si consuma solo a cattura riuscita** (non
+  più all'impatto: sostituisce D16 per la Ball che colpisce e il Pokémon
+  esce; la perdita a lancio fallito arriverà con una missione futura);
+  **banner che non fermano il gioco**, pila di 3 in alto, ~3 s ciascuno, il
+  più vecchio esce se ne arriva un quarto (sostituisce D14 per il blocco);
+  **niente soprannome** per le catture col lancio salvo la Nuzlocke
+  obbligatoria (sostituisce P18); **niente fanfara**, un suono breve
+  (`SE_SUCCESS`, sostituisce P19); **una Ball a terra non si attraversa**;
+  icona del banner centrata.
+- Fatto in `overworld_catch.c` (trappole in `overworld_catch.md`): la Ball
+  esce dalla borsa in `GiveCaughtMon`, al lancio si contano quelle in volo;
+  `OverworldCatch_IsBallOnGroundAt` in `GetVanillaCollision`
+  (`event_object_movement.c`); banner come finestre BG0 da 92 (fuori dalla
+  finestra della ricerca DexNav, 8-91), tolti dal popup del nome mappa che
+  condivide i tile e scorre BG0; script dei risultati ridotto ai soprannomi.
+- **Verificato** in mGBA (partita nuova, Route 30 di notte, 11 Poké Ball dal
+  debug): tre lanci in raffica su Pokémon messi davanti da RAM: ×11 durante
+  il volo, ×10 e ×9 alle due catture, il terzo non preso e non scalato; due
+  banner impilati (Hoothoot, Spinarak), il primo sparito da solo e il
+  secondo salito in cima, poi sparito; il giocatore e i Pokémon si muovono
+  intanto. Icona misurata: 5 px sopra e 4 sotto nel primo banner, 7 e 6 nel
+  secondo (prima 9 e 0, `BANNER_ICON_Y` 20 → 16). Ball a terra: un record
+  `DROPPED` scritto da RAM su (50,15) a Cherrygrove tiene il giocatore su
+  (49,15) per 230 frame con Destra tenuta; finito il record, passa.
+- **Non provati**: la Nuzlocke col soprannome obbligatorio, il popup del
+  nome mappa sopra i banner, banner durante una ricerca DexNav, una Ball
+  vera (non scritta da RAM) a vuoto calpestata.
+
 **Handoff per la fase 10 (Opus 5.5)**
 - `AreArceusFormulasEnabled()` esiste già (`option_menu.h`), letto da
   nessuno; il bit è `ExtraOptions.arceusFormulas` (SB3 +96).

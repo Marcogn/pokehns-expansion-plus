@@ -238,3 +238,7 @@ numero da `data/maps/map_groups.json`, es. Violet Gym = 3/5).
   la lista per medaglie si prova a Violet (gruppo 3, mappa 1).
 - Una prova che "tiene L per guardare il pannello" e lo rilascia senza
   scorrere **cambia modalità** Ball/Pokémon: tenerne il conto.
+- **Spostare un OWE accanto al giocatore fa partire lotte** (i cacciatori ti
+  toccano): per provare la collisione con la Ball a terra si scrive un
+  record di `sCatch.throws` (48 byte: stato a 0, timer a 1, `spriteId` 64 a
+  12, `landX/Y` a 34, bit `landBlocks` a 38) in un posto senza OWE.

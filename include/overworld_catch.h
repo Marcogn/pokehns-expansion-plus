@@ -48,5 +48,7 @@ bool32 OverworldCatch_TryStartResults(void);
 bool32 OverworldCatch_IsBallOut(void);
 void OverworldCatch_OnBattleStart(void);
 bool32 OverworldCatch_IsOWEInBall(const struct ObjectEvent *owe);
+bool32 OverworldCatch_IsBallOnGroundAt(s16 x, s16 y);
+void OverworldCatch_DismissBanners(void);
 
 #endif // GUARD_OVERWORLD_CATCH_H

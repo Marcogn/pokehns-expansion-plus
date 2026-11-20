@@ -25,17 +25,11 @@ OverworldCatch_EventScript_Battle::
 	waitstate
 	end
 
-@ After a volley: one banner per catch, then one nickname prompt per catch.
+@ After a volley, with the Nuzlocke's compulsory nickname on: one prompt per
+@ catch. The banners do not stop the game (overworld_catch.c), and without the
+@ Nuzlocke's naming a thrown Ball asks for no nickname at all.
 OverworldCatch_EventScript_Results::
 	lock
-OverworldCatch_EventScript_NextBanner:
-	callnative OverworldCatch_ShowNextBanner, requests_effects=1
-	goto_if_eq VAR_RESULT, FALSE, OverworldCatch_EventScript_NextNickname
-	@ A callnative that stops the script does not end the frame's run of
-	@ commands: without this the script went on to the nicknames, and to its
-	@ end, under the banner.
-	waitstate
-	goto OverworldCatch_EventScript_NextBanner
 OverworldCatch_EventScript_NextNickname:
 	callnative OverworldCatch_SelectNextNickname, requests_effects=1
 	goto_if_eq VAR_RESULT, FALSE, OverworldCatch_EventScript_ResultsEnd

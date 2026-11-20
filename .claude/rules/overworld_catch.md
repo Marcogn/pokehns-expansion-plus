@@ -75,14 +75,11 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   torna. **Esito deciso in `ResolveImpact`** (D15), il resto è animazione.
   Timer fermi a controlli bloccati. **Start bloccato finché un record non è
   libero** (`OverworldCatch_IsBallOut`), in silenzio.
-- **Bersaglio**: prima cosa sulla linea entro 5; vuota: vola 5 e torna;
-  follower davanti: niente lancio. Collisione, dislivello e oggetti visibili
-  non-OWE fermano la Ball (cade e torna); un oggetto su un altro livello è
-  saltato (`OverworldCatch_AreLevelsApart`). L'acqua non ha collisione e
-  **acqua (1) = terreno (3)** (`GetThrowLevel`): senza, riva-acqua cadeva
-  alla prima casella. Sporgenze: non dislivelli. **Niente inseguimento**
-  (18/11): colpito se all'arrivo `currentCoords` è la casella del
-  lancio (`targetX/Y`); un salto sul posto non conta (niente `y2`).
+- **Bersaglio**: prima cosa sulla linea entro 5; follower davanti: niente
+  lancio. Collisione, dislivello e oggetti visibili non-OWE fermano la Ball;
+  un oggetto su un altro livello è saltato. **Acqua (1) = terreno (3)**
+  (`GetThrowLevel`). **Niente inseguimento**: colpito se all'arrivo
+  `currentCoords` è `targetX/Y` (niente `y2`).
 - **Sprite**: **mai un assert**: senza sprite il volo prosegue invisibile e
   `FinishThrow` chiude all'impatto. `IsBallSpriteValid` (callback + indice +
   magic) copre i campi ricostruiti (menu, warp).
@@ -108,11 +105,16 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   "vaga"** (il bit resterebbe). Il bit salta distanza e vista e usa il livello
   del lancio (non `CanOWEReachPlayer`, acqua ≠ riva): su un altro livello si
   consuma. Il "vaga" tiene il ×2.
-- **Coda** (`results`, 3): un lancio parte se c'è un record libero e Ball in
-  volo + catture in coda < 3. Banner e soprannomi da
-  `OverworldCatch_TryStartResults` a record tutti liberi, **dopo** il passo.
-  Palette dell'icona: `FieldEffectFreePaletteIfUnused`. Dopo un `callnative`
-  che ferma lo script serve `waitstate`.
+- **Ball tolta solo a cattura riuscita** (`GiveCaughtMon`, 20/11): al lancio
+  la borsa deve averne più di quelle in volo (`CountFlyingBalls`).
+- **Ball a terra = ostacolo** (`OverworldCatch_IsBallOnGroundAt` in
+  `GetVanillaCollision`): casella `landX/Y`, da `OPENING` a fine record.
+- **Banner senza script** (20/11): pila di 3 in alto, 180 frame, da
+  `ShowCatchBanner` (stato `CAUGHT`, o `FinishThrow`). Tile BG0 da 92, 84
+  a banner: la finestra DexNav va da 8 a 91, il popup del nome mappa (0x107,
+  scorre tutto BG0) li cancella (`ShowMapNamePopup`); in ricerca DexNav solo
+  slot 1-2. Spariscono a controlli bloccati. Soprannome solo con la Nuzlocke
+  (`results` + script, a banner spariti).
 - **Pokémon lanciato**: `gOverworldThrowLeadSlot` (letto e azzerato da
   `SetBattlePartyIds`, e a ogni frame a controlli liberi). Roamer e sciami:
   R avvia la lotta. Spento in Safari, Gara, Pike, Piramide, Trainer Hill.
