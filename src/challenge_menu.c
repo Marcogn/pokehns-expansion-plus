@@ -33,9 +33,10 @@
 // Submenu (tab) definitions
 // =============================================================================
 
+// FEATURES was folded into MODE in the overworld catching plan (phase 8): its
+// clock and shiny colour options moved to the options menu, the rest to MODE.
 enum {
     TAB_MODE,
-    TAB_FEATURES,
     TAB_RANDOMIZER,
     TAB_NUZLOCKE,
     TAB_DIFFICULTY,
@@ -60,18 +61,11 @@ enum {
     ITEM_MODE_NEW_CITRUS,
     ITEM_MODE_LEGENDARY_ABILITIES,
     ITEM_MODE_SURVIVE_POISON,
+    ITEM_MODE_SHINY_CHANCE,
+    ITEM_MODE_ITEM_DROP,
+    ITEM_MODE_FRONTIER_BANS,
     ITEM_MODE_NEXT,
     ITEM_MODE_COUNT,
-};
-
-enum {
-    ITEM_FEATURES_RTC_TYPE,
-    ITEM_FEATURES_SHINY_CHANCE,
-    ITEM_FEATURES_SHINY_COLOR,
-    ITEM_FEATURES_ITEM_DROP,
-    ITEM_FEATURES_FRONTIER_BANS,
-    ITEM_FEATURES_NEXT,
-    ITEM_FEATURES_COUNT,
 };
 
 enum {
@@ -119,6 +113,8 @@ enum {
     ITEM_DIFFICULTY_SCALING_EVS,
     ITEM_DIFFICULTY_LESS_ESCAPES,
     ITEM_DIFFICULTY_ESCAPE_ROPE_DIG,
+    ITEM_DIFFICULTY_EASY_CATCH,     // from the options menu (phase 8)
+    ITEM_DIFFICULTY_LEVEL_SCALING,  // from the options menu (phase 8)
     ITEM_DIFFICULTY_NEXT,
     ITEM_DIFFICULTY_COUNT,
 };
@@ -137,6 +133,13 @@ enum {
 
 // Maximum items in any single tab
 #define MAX_ITEMS_PER_TAB 20
+// The per-tab tables are indexed by item id, so an item past the limit would
+// write outside ChallengeMenuState.selections and sMidGameLockPolicy.
+STATIC_ASSERT(ITEM_MODE_COUNT <= MAX_ITEMS_PER_TAB, ChallengeMenuModeTabTooLong);
+STATIC_ASSERT(ITEM_RANDOM_COUNT <= MAX_ITEMS_PER_TAB, ChallengeMenuRandomizerTabTooLong);
+STATIC_ASSERT(ITEM_NUZLOCKE_COUNT <= MAX_ITEMS_PER_TAB, ChallengeMenuNuzlockeTabTooLong);
+STATIC_ASSERT(ITEM_DIFFICULTY_COUNT <= MAX_ITEMS_PER_TAB, ChallengeMenuDifficultyTabTooLong);
+STATIC_ASSERT(ITEM_CHALLENGES_COUNT <= MAX_ITEMS_PER_TAB, ChallengeMenuChallengesTabTooLong);
 #define ITEMS_VISIBLE 5
 #define Y_DIFF 16
 
@@ -181,8 +184,7 @@ enum {
 };
 
 static const u8 sMidGameLockPolicy[TAB_COUNT * MAX_ITEMS_PER_TAB] = {
-    // TAB_MODE — all free
-    // TAB_FEATURES — all free
+    // TAB_MODE — all free, the old FEATURES rows included
     // TAB_RANDOMIZER
     [TAB_RANDOMIZER * MAX_ITEMS_PER_TAB + ITEM_RANDOM_OFF_ON]      = LOCK_ONEWAY_DOWN,
     [TAB_RANDOMIZER * MAX_ITEMS_PER_TAB + ITEM_RANDOM_STARTER]     = LOCK_ONEWAY_DOWN,
@@ -219,6 +221,9 @@ static const u8 sMidGameLockPolicy[TAB_COUNT * MAX_ITEMS_PER_TAB] = {
     [TAB_DIFFICULTY * MAX_ITEMS_PER_TAB + ITEM_DIFFICULTY_SCALING_EVS]    = LOCK_ONEWAY_DOWN,
     [TAB_DIFFICULTY * MAX_ITEMS_PER_TAB + ITEM_DIFFICULTY_LESS_ESCAPES]   = LOCK_ONEWAY_DOWN,
     [TAB_DIFFICULTY * MAX_ITEMS_PER_TAB + ITEM_DIFFICULTY_ESCAPE_ROPE_DIG]= LOCK_ONEWAY_DOWN,
+    // EASY CATCH and LEVEL SCALING were free in the options menu and stay free.
+    [TAB_DIFFICULTY * MAX_ITEMS_PER_TAB + ITEM_DIFFICULTY_EASY_CATCH]     = LOCK_FREE,
+    [TAB_DIFFICULTY * MAX_ITEMS_PER_TAB + ITEM_DIFFICULTY_LEVEL_SCALING]  = LOCK_FREE,
     // TAB_CHALLENGES
     [TAB_CHALLENGES * MAX_ITEMS_PER_TAB + ITEM_CHALLENGES_POKECENTER]    = LOCK_ONEWAY_DOWN,
     [TAB_CHALLENGES * MAX_ITEMS_PER_TAB + ITEM_CHALLENGES_EXPENSIVE]     = LOCK_ONEWAY_DOWN,
@@ -423,6 +428,36 @@ static const u8 *const sDesc_Next[] = {
     COMPOUND_STRING("Continue to the next page."),
 };
 
+// Formerly the FEATURES tab.
+static const u8 *const sChoices_BanUnban[] = {
+    COMPOUND_STRING("BAN"),
+    COMPOUND_STRING("UNBAN"),
+};
+
+static const u8 *const sChoices_ShinyChance[] = {
+    COMPOUND_STRING("8192"),
+    COMPOUND_STRING("4096"),
+    COMPOUND_STRING("2048"),
+    COMPOUND_STRING("1024"),
+    COMPOUND_STRING("512"),
+};
+
+static const u8 *const sDesc_ShinyChance[] = {
+    COMPOUND_STRING("Very low chance of SHINY encounter.\nDefault chance from Generation III."),
+    COMPOUND_STRING("Low chance of SHINY encounter.\nDefault chance from Generation VI+."),
+    COMPOUND_STRING("Decent chance of SHINY encounter."),
+    COMPOUND_STRING("High chance of SHINY encounter."),
+    COMPOUND_STRING("Very high chance of SHINY encounter."),
+};
+static const u8 *const sDesc_ItemDrop[] = {
+    COMPOUND_STRING("Wild {PKMN} items will be only\nobtainable via capture or THIEF."),
+    COMPOUND_STRING("Wild {PKMN} will drop their hold\nitem after defeating them."),
+};
+static const u8 *const sDesc_FrontierBans[] = {
+    COMPOUND_STRING("Powerful legendary {PKMN} are banned\nin the BATTLE FRONTIER. Default."),
+    COMPOUND_STRING("All legendaries are allowed to\nparticipate in the BATTLE FRONTIER."),
+};
+
 static const struct ChallengeMenuItem sTabItems_Mode[] = {
     [ITEM_MODE_GAMEMODE] = {
         .name         = COMPOUND_STRING("GAMEMODE"),
@@ -496,6 +531,24 @@ static const struct ChallengeMenuItem sTabItems_Mode[] = {
         .numChoices   = 2,
         .choiceNames  = sChoices_Gen3Gen1,
     },
+    [ITEM_MODE_SHINY_CHANCE] = {
+        .name         = COMPOUND_STRING("SHINY CHANCE"),
+        .descriptions = sDesc_ShinyChance,
+        .numChoices   = 5,
+        .choiceNames  = sChoices_ShinyChance,
+    },
+    [ITEM_MODE_ITEM_DROP] = {
+        .name         = COMPOUND_STRING("ITEM DROP"),
+        .descriptions = sDesc_ItemDrop,
+        .numChoices   = 2,
+        .choiceNames  = sChoices_OffOn,
+    },
+    [ITEM_MODE_FRONTIER_BANS] = {
+        .name         = COMPOUND_STRING("FRONTIER BANS"),
+        .descriptions = sDesc_FrontierBans,
+        .numChoices   = 2,
+        .choiceNames  = sChoices_BanUnban,
+    },
     [ITEM_MODE_NEXT] = {
         .name         = COMPOUND_STRING("NEXT"),
         .descriptions = sDesc_Next,
@@ -529,24 +582,6 @@ static const u8 *const sChoices_OffChaos[] = {
 static const u8 *const sChoices_YesNo[] = {
     COMPOUND_STRING("YES"),
     COMPOUND_STRING("NO"),
-};
-
-static const u8 *const sChoices_BanUnban[] = {
-    COMPOUND_STRING("BAN"),
-    COMPOUND_STRING("UNBAN"),
-};
-
-static const u8 *const sChoices_RtcFake[] = {
-    COMPOUND_STRING("RTC"),
-    COMPOUND_STRING("FAKE RTC"),
-};
-
-static const u8 *const sChoices_ShinyChance[] = {
-    COMPOUND_STRING("8192"),
-    COMPOUND_STRING("4096"),
-    COMPOUND_STRING("2048"),
-    COMPOUND_STRING("1024"),
-    COMPOUND_STRING("512"),
 };
 
 static const u8 *const sChoices_Nuzlocke[] = {
@@ -627,75 +662,6 @@ static const u8 *const sChoices_BstEqual[] = {
     COMPOUND_STRING("500"),
 };
 
-// =============================================================================
-// FEATURES descriptions + table
-// =============================================================================
-
-static const u8 *const sDesc_RtcType[] = {
-    COMPOUND_STRING("Use vanilla Real Time Clock."),
-    COMPOUND_STRING("Use a fake Real Time Clock.\n1h in real life = 1 day in-game."),
-};
-static const u8 *const sDesc_ShinyChance[] = {
-    COMPOUND_STRING("Very low chance of SHINY encounter.\nDefault chance from Generation III."),
-    COMPOUND_STRING("Low chance of SHINY encounter.\nDefault chance from Generation VI+."),
-    COMPOUND_STRING("Decent chance of SHINY encounter."),
-    COMPOUND_STRING("High chance of SHINY encounter."),
-    COMPOUND_STRING("Very high chance of SHINY encounter."),
-};
-static const u8 *const sDesc_ItemDrop[] = {
-    COMPOUND_STRING("Wild {PKMN} items will be only\nobtainable via capture or THIEF."),
-    COMPOUND_STRING("Wild {PKMN} will drop their hold\nitem after defeating them."),
-};
-static const u8 *const sDesc_FrontierBans[] = {
-    COMPOUND_STRING("Powerful legendary {PKMN} are banned\nin the BATTLE FRONTIER. Default."),
-    COMPOUND_STRING("All legendaries are allowed to\nparticipate in the BATTLE FRONTIER."),
-};
-static const u8 *const sDesc_ShinyColor[] = {
-    COMPOUND_STRING("Original shiny color palette for\nall {PKMN}. Default."),
-    COMPOUND_STRING("Some shiny {PKMN} have brand new\ncolor palettes."),
-};
-static const u8 *const sDesc_FeaturesNext[] = {
-    COMPOUND_STRING("Continue to Randomizer options."),
-};
-
-static const struct ChallengeMenuItem sTabItems_Features[] = {
-    [ITEM_FEATURES_RTC_TYPE] = {
-        .name         = COMPOUND_STRING("CLOCK TYPE"),
-        .descriptions = sDesc_RtcType,
-        .numChoices   = 2,
-        .choiceNames  = sChoices_RtcFake,
-    },
-    [ITEM_FEATURES_SHINY_CHANCE] = {
-        .name         = COMPOUND_STRING("SHINY CHANCE"),
-        .descriptions = sDesc_ShinyChance,
-        .numChoices   = 5,
-        .choiceNames  = sChoices_ShinyChance,
-    },
-    [ITEM_FEATURES_SHINY_COLOR] = {
-        .name         = COMPOUND_STRING("ALT SHINY"),
-        .descriptions = sDesc_ShinyColor,
-        .numChoices   = 2,
-        .choiceNames  = sChoices_OffOn,
-    },
-    [ITEM_FEATURES_ITEM_DROP] = {
-        .name         = COMPOUND_STRING("ITEM DROP"),
-        .descriptions = sDesc_ItemDrop,
-        .numChoices   = 2,
-        .choiceNames  = sChoices_OffOn,
-    },
-    [ITEM_FEATURES_FRONTIER_BANS] = {
-        .name         = COMPOUND_STRING("FRONTIER BANS"),
-        .descriptions = sDesc_FrontierBans,
-        .numChoices   = 2,
-        .choiceNames  = sChoices_BanUnban,
-    },
-    [ITEM_FEATURES_NEXT] = {
-        .name         = COMPOUND_STRING("NEXT"),
-        .descriptions = sDesc_FeaturesNext,
-        .numChoices   = 0,
-        .choiceNames  = NULL,
-    },
-};
 
 // =============================================================================
 // RANDOMIZER descriptions + table
@@ -1019,6 +985,15 @@ static const u8 *const sDesc_EscapeRopeDig[] = {
     COMPOUND_STRING("ESCAPE ROPE and DIG can be used to\nexit dungeons."),
     COMPOUND_STRING("ESCAPE ROPE and DIG can't be used\nto exit dungeons."),
 };
+// Moved here from the options menu (phase 8).
+static const u8 *const sDesc_GuaranteedCatch[] = {
+    COMPOUND_STRING("Wild {PKMN} are caught at the\nnormal rate."),
+    COMPOUND_STRING("Every Ball catches a wild {PKMN}\nwithout fail."),
+};
+static const u8 *const sDesc_LevelScaling[] = {
+    COMPOUND_STRING("Trainers and wild {PKMN} keep the\nlevels they always had."),
+    COMPOUND_STRING("Trainers and wild {PKMN} rise to your\nteam's level, wild ones by 15 at most."),
+};
 static const u8 *const sDesc_DifficultyNext[] = {
     COMPOUND_STRING("Continue to challenge options."),
 };
@@ -1089,6 +1064,18 @@ static const struct ChallengeMenuItem sTabItems_Difficulty[] = {
         .descriptions = sDesc_EscapeRopeDig,
         .numChoices   = 2,
         .choiceNames  = sChoices_YesNo,
+    },
+    [ITEM_DIFFICULTY_EASY_CATCH] = {
+        .name         = COMPOUND_STRING("EASY CATCH"),
+        .descriptions = sDesc_GuaranteedCatch,
+        .numChoices   = 2,
+        .choiceNames  = sChoices_OffOn,
+    },
+    [ITEM_DIFFICULTY_LEVEL_SCALING] = {
+        .name         = COMPOUND_STRING("LEVEL SCALING"),
+        .descriptions = sDesc_LevelScaling,
+        .numChoices   = 2,
+        .choiceNames  = sChoices_OffOn,
     },
     [ITEM_DIFFICULTY_NEXT] = {
         .name         = COMPOUND_STRING("NEXT"),
@@ -1208,7 +1195,6 @@ struct TabDef
 
 static const struct TabDef sTabs[TAB_COUNT] = {
     [TAB_MODE]       = { COMPOUND_STRING("MODE"),       sTabItems_Mode,       ITEM_MODE_COUNT },
-    [TAB_FEATURES]   = { COMPOUND_STRING("FEATURES"),   sTabItems_Features,   ITEM_FEATURES_COUNT },
     [TAB_RANDOMIZER] = { COMPOUND_STRING("RANDOMIZER"), sTabItems_Randomizer, ITEM_RANDOM_COUNT },
     [TAB_NUZLOCKE]   = { COMPOUND_STRING("NUZLOCKE"),   sTabItems_Nuzlocke,   ITEM_NUZLOCKE_COUNT },
     [TAB_DIFFICULTY] = { COMPOUND_STRING("DIFFICULTY"),  sTabItems_Difficulty, ITEM_DIFFICULTY_COUNT },
@@ -1283,6 +1269,10 @@ static bool8 CheckConditions(u8 tab, u8 itemIndex)
         {
         case ITEM_MODE_GAMEMODE:
         case ITEM_MODE_NEXT:
+        // The old FEATURES rows are not part of the RECOMMENDED preset.
+        case ITEM_MODE_SHINY_CHANCE:
+        case ITEM_MODE_ITEM_DROP:
+        case ITEM_MODE_FRONTIER_BANS:
             return TRUE;
         case ITEM_MODE_FAIRY_TYPES:
             // Lock Fairy Type enabled if Fairy One Type Challenge enabled, otherwise fall through
@@ -1975,11 +1965,10 @@ static void Task_ConfirmSaveYes(u8 taskId)
     cs->genOneRecharge             = *GetSelectionPtr(TAB_MODE, ITEM_MODE_GEN_ONE_RECHARGE);
 
     // Features tab
-    cs->tx_Features_RTCType        = *GetSelectionPtr(TAB_FEATURES, ITEM_FEATURES_RTC_TYPE);
-    cs->tx_Features_ShinyChance    = *GetSelectionPtr(TAB_FEATURES, ITEM_FEATURES_SHINY_CHANCE);
-    cs->tx_Features_WildMonDropItems = *GetSelectionPtr(TAB_FEATURES, ITEM_FEATURES_ITEM_DROP);
-    cs->tx_Features_FrontierBans   = *GetSelectionPtr(TAB_FEATURES, ITEM_FEATURES_FRONTIER_BANS);
-    cs->tx_Features_ShinyColors    = *GetSelectionPtr(TAB_FEATURES, ITEM_FEATURES_SHINY_COLOR);
+    // CLOCK TYPE and ALT SHINY are in the options menu now.
+    cs->tx_Features_ShinyChance    = *GetSelectionPtr(TAB_MODE, ITEM_MODE_SHINY_CHANCE);
+    cs->tx_Features_WildMonDropItems = *GetSelectionPtr(TAB_MODE, ITEM_MODE_ITEM_DROP);
+    cs->tx_Features_FrontierBans   = *GetSelectionPtr(TAB_MODE, ITEM_MODE_FRONTIER_BANS);
 
     // Randomizer tab — if master toggle is OFF, clear all sub-fields
     if (*GetSelectionPtr(TAB_RANDOMIZER, ITEM_RANDOM_OFF_ON) == 0)
@@ -2067,6 +2056,8 @@ static void Task_ConfirmSaveYes(u8 taskId)
     cs->tx_Challenges_MaxPartyIVs     = *GetSelectionPtr(TAB_DIFFICULTY, ITEM_DIFFICULTY_MAX_PARTY_IVS);
     cs->tx_Challenges_LessEscapes     = *GetSelectionPtr(TAB_DIFFICULTY, ITEM_DIFFICULTY_LESS_ESCAPES);
     cs->tx_Difficulty_EscapeRopeDig   = *GetSelectionPtr(TAB_DIFFICULTY, ITEM_DIFFICULTY_ESCAPE_ROPE_DIG);
+    cs->guaranteedCatch               = *GetSelectionPtr(TAB_DIFFICULTY, ITEM_DIFFICULTY_EASY_CATCH);
+    gSaveBlock3Ptr->soundAndFieldOptions.levelScaling = *GetSelectionPtr(TAB_DIFFICULTY, ITEM_DIFFICULTY_LEVEL_SCALING);
 
     // Challenges tab
     cs->tx_Challenges_PkmnCenter      = *GetSelectionPtr(TAB_CHALLENGES, ITEM_CHALLENGES_POKECENTER);
@@ -2214,11 +2205,9 @@ void CB2_InitChallengeMenu(void)
                 *GetSelectionPtr(TAB_MODE, ITEM_MODE_GAMEMODE) = 1; // CUSTOM
 
             // Features tab
-            *GetSelectionPtr(TAB_FEATURES, ITEM_FEATURES_RTC_TYPE)     = cs->tx_Features_RTCType;
-            *GetSelectionPtr(TAB_FEATURES, ITEM_FEATURES_SHINY_CHANCE) = cs->tx_Features_ShinyChance;
-            *GetSelectionPtr(TAB_FEATURES, ITEM_FEATURES_ITEM_DROP)    = cs->tx_Features_WildMonDropItems;
-            *GetSelectionPtr(TAB_FEATURES, ITEM_FEATURES_FRONTIER_BANS)= cs->tx_Features_FrontierBans;
-            *GetSelectionPtr(TAB_FEATURES, ITEM_FEATURES_SHINY_COLOR)  = cs->tx_Features_ShinyColors;
+            *GetSelectionPtr(TAB_MODE, ITEM_MODE_SHINY_CHANCE)   = cs->tx_Features_ShinyChance;
+            *GetSelectionPtr(TAB_MODE, ITEM_MODE_ITEM_DROP)      = cs->tx_Features_WildMonDropItems;
+            *GetSelectionPtr(TAB_MODE, ITEM_MODE_FRONTIER_BANS)  = cs->tx_Features_FrontierBans;
 
             // Randomizer tab — derive master toggle from whether any sub-field is active
             *GetSelectionPtr(TAB_RANDOMIZER, ITEM_RANDOM_OFF_ON) =
@@ -2273,6 +2262,8 @@ void CB2_InitChallengeMenu(void)
             *GetSelectionPtr(TAB_DIFFICULTY, ITEM_DIFFICULTY_MAX_PARTY_IVS)  = cs->tx_Challenges_MaxPartyIVs;
             *GetSelectionPtr(TAB_DIFFICULTY, ITEM_DIFFICULTY_LESS_ESCAPES)   = cs->tx_Challenges_LessEscapes;
             *GetSelectionPtr(TAB_DIFFICULTY, ITEM_DIFFICULTY_ESCAPE_ROPE_DIG)= cs->tx_Difficulty_EscapeRopeDig;
+            *GetSelectionPtr(TAB_DIFFICULTY, ITEM_DIFFICULTY_EASY_CATCH)     = cs->guaranteedCatch;
+            *GetSelectionPtr(TAB_DIFFICULTY, ITEM_DIFFICULTY_LEVEL_SCALING)  = gSaveBlock3Ptr->soundAndFieldOptions.levelScaling;
 
             // Challenges tab
             *GetSelectionPtr(TAB_CHALLENGES, ITEM_CHALLENGES_POKECENTER)    = cs->tx_Challenges_PkmnCenter;

@@ -121,6 +121,8 @@ STATIC_ASSERT(offsetof(struct QuestLogSaveData, seenHigh) == 24, QuestLogSeenHig
 STATIC_ASSERT(sizeof(struct QuestLogSaveData) == 32, QuestLogSaveDataSize);
 // And for the strip menu's icon order (SAVE_VERSION 14).
 STATIC_ASSERT(offsetof(struct SaveBlock3, stripMenuOrder) == 92, SaveBlock3StripMenuOrderOffset);
+// And for the extra options (SAVE_VERSION 15).
+STATIC_ASSERT(offsetof(struct SaveBlock3, extraOptions) == 96, SaveBlock3ExtraOptionsOffset);
 // (sizeof(struct SoundAndFieldOptions) is 4, not 1: -mabi=apcs-gnu rounds every
 // struct up to a word. Harmless, but it is why this is not asserted.) Appending
 // must not push SaveBlock3 out of sector 0's 116-byte tail.
@@ -1044,11 +1046,11 @@ u8 LoadGameSave(u8 saveType)
     }
     if (gSaveBlock1Ptr->saveVersion < 7)
     {
-        // trainerCatch reuses the bit that DEXNAV SOULGOLD held before it was
-        // merged into ENHANCED DEXNAV, so a save that had that option on would
-        // wake up able to catch Trainers' Pokemon. Start every existing save
-        // with it off; it is one toggle away in the PC's challenge menu.
-        gSaveBlock3Ptr->challengeSettings.unusedTrainerCatchBit = FALSE;
+        // This bit held DEXNAV SOULGOLD before it was merged into ENHANCED
+        // DEXNAV; then it was TRAINER CATCH, and since SAVE_VERSION 15 it is
+        // noOverworldCatch (stored inverted). Zero was "Trainer catching off"
+        // then and is "overworld catching ON", the default, now.
+        gSaveBlock3Ptr->challengeSettings.noOverworldCatch = FALSE;
         // FLAG_FORCE_SHINY is the old FLAG_UNUSED_3. Upstream's history is a
         // single squashed commit, so there is no proving an older HnS never
         // wrote it; if it did, every wild Pokemon would come out shiny.
@@ -1069,10 +1071,10 @@ u8 LoadGameSave(u8 saveType)
     if (gSaveBlock1Ptr->saveVersion < 9)
     {
         // TRAINER CATCH was replaced by the TcloneR key item. Its bit is
-        // ignored now; clearing it is what makes it free for another option.
+        // noOverworldCatch now: zero is OVERWORLD CATCH ON, the default.
         // Whoever had it on gets the item from the scientist like everyone
         // else: the clone count starts with the item.
-        gSaveBlock3Ptr->challengeSettings.unusedTrainerCatchBit = FALSE;
+        gSaveBlock3Ptr->challengeSettings.noOverworldCatch = FALSE;
         // The per-Trainer flags took over Emerald's old dex flag filler, which
         // no build wrote but which is not provably zero in every save.
         memset(gSaveBlock2Ptr->pokedex.tclonerTrainerFlags, 0, sizeof(gSaveBlock2Ptr->pokedex.tclonerTrainerFlags));
@@ -1137,6 +1139,26 @@ u8 LoadGameSave(u8 saveType)
         // to be a valid order would silently shuffle the menu.
         memset(gSaveBlock3Ptr->stripMenuOrder, 0, sizeof(gSaveBlock3Ptr->stripMenuOrder));
         gSaveBlock1Ptr->saveVersion = 14;
+    }
+    if (gSaveBlock1Ptr->saveVersion < 15)
+    {
+        // OVERWORLD CATCH reuses the old TRAINER CATCH bit, and 1 would switch
+        // the overworld catching off. The version 9 step already clears it and
+        // no build since has written it, but a save that had TRAINER CATCH on
+        // reads 1 there (one did, written by a version 8 build), so this does
+        // not lean on that. Zero is ON, the default.
+        gSaveBlock3Ptr->challengeSettings.noOverworldCatch = FALSE;
+        // extraOptions was appended to SaveBlock3, after the strip menu's
+        // order: in an older save it holds whatever was in the sector buffer.
+        memset(&gSaveBlock3Ptr->extraOptions, 0, sizeof(gSaveBlock3Ptr->extraOptions));
+#if IS_HNS
+        // The move relearner's paid-for flags took FLAG_UNUSED_36/37, which no
+        // released build wrote but which are not provably clear in every save:
+        // a stray one would give away a Move Master's service for free.
+        FlagClear(FLAG_EGG_MOVES_UNLOCKED);
+        FlagClear(FLAG_TUTOR_MOVES_UNLOCKED);
+#endif
+        gSaveBlock1Ptr->saveVersion = 15;
     }
 
     // Add version migration steps here:

@@ -29,8 +29,12 @@
 // Tab definitions
 // =============================================================================
 
+// Four tabs since the overworld catching plan (phase 8): the old MAIN tab had
+// 20 rows out of 20. Which option sits in which tab is a menu choice only; the
+// value stays wherever it is saved.
 enum {
-    TAB_MAIN,
+    TAB_GENERAL,
+    TAB_OVERWORLD,
     TAB_BATTLE,
     TAB_SOUND,
     TAB_COUNT,
@@ -41,40 +45,46 @@ enum {
 // =============================================================================
 
 enum {
-    ITEM_MAIN_TEXTSPEED,
-    ITEM_MAIN_BATTLESCENE,
-    ITEM_MAIN_BATTLESTYLE,
-    ITEM_MAIN_BUTTONMODE,
-    ITEM_MAIN_FOLLOWER,
-    ITEM_MAIN_LARGE_FOLLOWER,
-    ITEM_MAIN_AUTORUN,
-    ITEM_MAIN_AUTORUN_SURF,
-    ITEM_MAIN_OW_SPEED,
-    ITEM_MAIN_FAST_HMS,
-    ITEM_MAIN_FISHING,
-    ITEM_MAIN_FASTER_JOY,
-    ITEM_MAIN_UNIT_TYPE,
-    ITEM_MAIN_MATCHCALL,
-    ITEM_MAIN_PARTY_MENU,
-    ITEM_MAIN_GUARANTEED_CATCH,
-    ITEM_MAIN_NICKNAMES,
-    ITEM_MAIN_NO_ENCOUNTERS,
-    ITEM_MAIN_ENHANCED_DEXNAV,
-    ITEM_MAIN_FRAMETYPE,
-    ITEM_MAIN_COUNT,
+    ITEM_GENERAL_TEXTSPEED,
+    ITEM_GENERAL_BUTTONMODE,
+    ITEM_GENERAL_FASTER_JOY,
+    ITEM_GENERAL_UNIT_TYPE,
+    ITEM_GENERAL_MATCHCALL,
+    ITEM_GENERAL_PARTY_MENU,
+    ITEM_GENERAL_NICKNAMES,
+    ITEM_GENERAL_DARK_UI,
+    ITEM_GENERAL_FRAMETYPE,
+    ITEM_GENERAL_RTC_TYPE,
+    ITEM_GENERAL_SHINY_COLOR,
+    ITEM_GENERAL_COUNT,
 };
 
 enum {
+    ITEM_OVERWORLD_FOLLOWER,
+    ITEM_OVERWORLD_LARGE_FOLLOWER,
+    ITEM_OVERWORLD_AUTORUN,
+    ITEM_OVERWORLD_AUTORUN_SURF,
+    ITEM_OVERWORLD_OW_SPEED,
+    ITEM_OVERWORLD_FAST_HMS,
+    ITEM_OVERWORLD_FISHING,
+    ITEM_OVERWORLD_NO_ENCOUNTERS,
+    ITEM_OVERWORLD_ENHANCED_DEXNAV,
+    ITEM_OVERWORLD_CATCH,
+    ITEM_OVERWORLD_COUNT,
+};
+
+enum {
+    ITEM_BATTLE_BATTLESCENE,
+    ITEM_BATTLE_BATTLESTYLE,
     ITEM_BATTLE_FAST_INTRO,
     ITEM_BATTLE_FAST_BATTLES,
     ITEM_BATTLE_SPEED,
     ITEM_BATTLE_NEW_BACKGROUNDS,
     ITEM_BATTLE_NEW_BATTLEUI,
-    ITEM_BATTLE_DARK_UI,
     ITEM_BATTLE_BALL_PROMPT,
     ITEM_BATTLE_RUN_TYPE,
     ITEM_BATTLE_LR_RUN,
-    ITEM_BATTLE_LEVEL_SCALING,
+    ITEM_BATTLE_ARCEUS_FORMULAS,
     ITEM_BATTLE_COUNT,
 };
 
@@ -91,7 +101,8 @@ enum {
 #define MAX_ITEMS_PER_TAB 20
 // The per-tab tables are indexed by item id, so an item past the limit would
 // write outside OptionMenuState.selections.
-STATIC_ASSERT(ITEM_MAIN_COUNT <= MAX_ITEMS_PER_TAB, OptionMenuMainTabTooLong);
+STATIC_ASSERT(ITEM_GENERAL_COUNT <= MAX_ITEMS_PER_TAB, OptionMenuGeneralTabTooLong);
+STATIC_ASSERT(ITEM_OVERWORLD_COUNT <= MAX_ITEMS_PER_TAB, OptionMenuOverworldTabTooLong);
 STATIC_ASSERT(ITEM_BATTLE_COUNT <= MAX_ITEMS_PER_TAB, OptionMenuBattleTabTooLong);
 STATIC_ASSERT(ITEM_SOUND_COUNT <= MAX_ITEMS_PER_TAB, OptionMenuSoundTabTooLong);
 #define ITEMS_VISIBLE 5
@@ -302,6 +313,11 @@ static const u8 *const sChoices_BattleMusic[] = {
     COMPOUND_STRING("RANDOM"),
 };
 
+static const u8 *const sChoices_RtcFake[] = {
+    COMPOUND_STRING("RTC"),
+    COMPOUND_STRING("FAKE RTC"),
+};
+
 static const u8 *const sChoices_RunType[] = {
     COMPOUND_STRING("NO"),
     COMPOUND_STRING("L+R+A"),
@@ -359,10 +375,6 @@ static const u8 *const sDesc_NoEncounters[] = {
 static const u8 *const sDesc_EnhancedDexNav[] = {
     COMPOUND_STRING("SOULGOLD's search, and every {PKMN}\nin the area is listed, seen or not."),
     COMPOUND_STRING("HnS's search, and the DEXNAV hides\n{PKMN} you have never seen."),
-};
-static const u8 *const sDesc_GuaranteedCatch[] = {
-    COMPOUND_STRING("Wild {PKMN} are caught at the\nnormal rate."),
-    COMPOUND_STRING("Every Ball catches a wild {PKMN}\nwithout fail."),
 };
 static const u8 *const sDesc_Follower[] = {
     COMPOUND_STRING("Let the first {PKMN} in your\nparty follow you."),
@@ -448,13 +460,27 @@ static const u8 *const sDesc_LRRun[] = {
     COMPOUND_STRING("Enables a prompt to show that you\ncan run away from battles."),
     COMPOUND_STRING("Disables said prompt to flee.\nButton combo still works."),
 };
-static const u8 *const sDesc_LevelScaling[] = {
-    COMPOUND_STRING("Trainers and wild {PKMN} keep the\nlevels they always had."),
-    COMPOUND_STRING("Trainers and wild {PKMN} rise to your\nteam's level, wild ones by 15 at most."),
-};
 static const u8 *const sDesc_FastHms[] = {
     COMPOUND_STRING("Show the prompt and animation\nwhen using a field move."),
     COMPOUND_STRING("Skip the prompt and animation\nwhen using a field move."),
+};
+// Moved here from the challenge menu's FEATURES tab (overworld catch, phase 8).
+static const u8 *const sDesc_RtcType[] = {
+    COMPOUND_STRING("Use vanilla Real Time Clock."),
+    COMPOUND_STRING("Use a fake Real Time Clock.\n1h in real life = 1 day in-game."),
+};
+static const u8 *const sDesc_ShinyColor[] = {
+    COMPOUND_STRING("Original shiny color palette for\nall {PKMN}. Default."),
+    COMPOUND_STRING("Some shiny {PKMN} have brand new\ncolor palettes."),
+};
+// Index 0 is ON: the field is noOverworldCatch, stored inverted.
+static const u8 *const sDesc_OverworldCatch[] = {
+    COMPOUND_STRING("Throw BALLS at wild {PKMN} with {R_BUTTON},\nhold {B_BUTTON} to sneak up on them."),
+    COMPOUND_STRING("No throwing: {R_BUTTON} searches with the\nDEXNAV and {B_BUTTON} runs, as before."),
+};
+static const u8 *const sDesc_ArceusFormulas[] = {
+    COMPOUND_STRING("Stats, damage and catch rates use\nthe usual formulas."),
+    COMPOUND_STRING("Stats, damage and overworld catches\nuse the LEGENDS: ARCEUS formulas."),
 };
 static const u8 *const sDesc_Sound[] = {
     COMPOUND_STRING("Sound is the same in all speakers.\nRecommended for original hardware."),
@@ -494,110 +520,119 @@ static const u8 *const sDesc_NightCenter[] = {
 // Tab item tables
 // =============================================================================
 
-static const struct OptionMenuItem sTabItems_Main[] = {
-    [ITEM_MAIN_TEXTSPEED] = {
+static const struct OptionMenuItem sTabItems_General[] = {
+    [ITEM_GENERAL_TEXTSPEED] = {
         .name         = COMPOUND_STRING("TEXT SPEED"),
         .descriptions = sDesc_TextSpeed,
         .numChoices   = 4,
         .choiceNames  = sChoices_TextSpeed,
     },
-    [ITEM_MAIN_BATTLESCENE] = {
-        .name         = COMPOUND_STRING("BATTLE SCENE"),
-        .descriptions = sDesc_BattleScene,
-        .numChoices   = 2,
-        .choiceNames  = sChoices_OnOff,
-    },
-    [ITEM_MAIN_BATTLESTYLE] = {
-        .name         = COMPOUND_STRING("BATTLE STYLE"),
-        .descriptions = sDesc_BattleStyle,
-        .numChoices   = 2,
-        .choiceNames  = sChoices_ShiftSet,
-    },
-    [ITEM_MAIN_BUTTONMODE] = {
+    [ITEM_GENERAL_BUTTONMODE] = {
         .name         = COMPOUND_STRING("BUTTON MODE"),
         .descriptions = sDesc_ButtonMode,
         .numChoices   = 3,
         .choiceNames  = sChoices_ButtonMode,
     },
-    [ITEM_MAIN_FOLLOWER] = {
-        .name         = COMPOUND_STRING("FOLLOWER"),
-        .descriptions = sDesc_Follower,
-        .numChoices   = 2,
-        .choiceNames  = sChoices_OnOff,
-    },
-    [ITEM_MAIN_LARGE_FOLLOWER] = {
-        .name         = COMPOUND_STRING("BIG FOLLOWERS"),
-        .descriptions = sDesc_LargeFollower,
-        .numChoices   = 2,
-        .choiceNames  = sChoices_OnOff,
-    },
-    [ITEM_MAIN_AUTORUN] = {
-        .name         = COMPOUND_STRING("AUTORUN"),
-        .descriptions = sDesc_Autorun,
-        .numChoices   = 2,
-        .choiceNames  = sChoices_OnOff,
-    },
-    [ITEM_MAIN_AUTORUN_SURF] = {
-        .name         = COMPOUND_STRING("AUTORUN (SURF)"),
-        .descriptions = sDesc_AutorunSurf,
-        .numChoices   = 2,
-        .choiceNames  = sChoices_OnOff,
-    },
-    [ITEM_MAIN_OW_SPEED] = {
-        .name         = COMPOUND_STRING("OW SPEED"),
-        .descriptions = sDesc_OwSpeed,
-        .numChoices   = OPTIONS_OVERWORLD_SPEED_COUNT,
-        .choiceNames  = sChoices_OwSpeed,
-    },
-    [ITEM_MAIN_FAST_HMS] = {
-        .name         = COMPOUND_STRING("FAST HMS"),
-        .descriptions = sDesc_FastHms,
-        .numChoices   = 2,
-        .choiceNames  = sChoices_OffOn,
-    },
-    [ITEM_MAIN_FISHING] = {
-        .name         = COMPOUND_STRING("EASIER FISHING"),
-        .descriptions = sDesc_Fishing,
-        .numChoices   = 2,
-        .choiceNames  = sChoices_OnOff,
-    },
-    [ITEM_MAIN_FASTER_JOY] = {
+    [ITEM_GENERAL_FASTER_JOY] = {
         .name         = COMPOUND_STRING("FASTER JOY"),
         .descriptions = sDesc_FasterJoy,
         .numChoices   = 2,
         .choiceNames  = sChoices_OnOff,
     },
-    [ITEM_MAIN_UNIT_TYPE] = {
+    [ITEM_GENERAL_UNIT_TYPE] = {
         .name         = COMPOUND_STRING("UNIT SYSTEM"),
         .descriptions = sDesc_UnitType,
         .numChoices   = 2,
         .choiceNames  = sChoices_MetricImperial,
     },
-    [ITEM_MAIN_MATCHCALL] = {
+    [ITEM_GENERAL_MATCHCALL] = {
         .name         = COMPOUND_STRING("MATCH CALLS"),
         .descriptions = sDesc_MatchCall,
         .numChoices   = 2,
         .choiceNames  = sChoices_OnOff,
     },
-    [ITEM_MAIN_PARTY_MENU] = {
+    [ITEM_GENERAL_PARTY_MENU] = {
         .name         = COMPOUND_STRING("PARTY MENU"),
         .descriptions = sDesc_PartyMenu,
         .numChoices   = PARTY_MENU_OPTION_COUNT,
         .choiceNames  = sChoices_PartyMenu,
     },
-    [ITEM_MAIN_GUARANTEED_CATCH] = {
-        .name         = COMPOUND_STRING("EASY CATCH"),
-        .descriptions = sDesc_GuaranteedCatch,
-        .numChoices   = 2,
-        .choiceNames  = sChoices_OffOn,
-    },
-    [ITEM_MAIN_NICKNAMES] = {
+    [ITEM_GENERAL_NICKNAMES] = {
         .name         = COMPOUND_STRING("NICKNAMES"),
         .descriptions = sDesc_Nicknames,
         .numChoices   = 2,
         .choiceNames  = sChoices_OnOff,
     },
-    [ITEM_MAIN_NO_ENCOUNTERS] = {
+    [ITEM_GENERAL_DARK_UI] = {
+        .name         = COMPOUND_STRING("DARK UI"),
+        .descriptions = sDesc_DarkUi,
+        .numChoices   = 2,
+        .choiceNames  = sChoices_LightDark,
+    },
+    [ITEM_GENERAL_FRAMETYPE] = {
+        .name         = COMPOUND_STRING("FRAME"),
+        .descriptions = sDesc_FrameType,
+        .numChoices   = FRAME_TYPE_SPECIAL,
+        .choiceNames  = NULL,
+    },
+    [ITEM_GENERAL_RTC_TYPE] = {
+        .name         = COMPOUND_STRING("CLOCK TYPE"),
+        .descriptions = sDesc_RtcType,
+        .numChoices   = 2,
+        .choiceNames  = sChoices_RtcFake,
+    },
+    [ITEM_GENERAL_SHINY_COLOR] = {
+        .name         = COMPOUND_STRING("ALT SHINY"),
+        .descriptions = sDesc_ShinyColor,
+        .numChoices   = 2,
+        .choiceNames  = sChoices_OffOn,
+    },
+};
+
+static const struct OptionMenuItem sTabItems_Overworld[] = {
+    [ITEM_OVERWORLD_FOLLOWER] = {
+        .name         = COMPOUND_STRING("FOLLOWER"),
+        .descriptions = sDesc_Follower,
+        .numChoices   = 2,
+        .choiceNames  = sChoices_OnOff,
+    },
+    [ITEM_OVERWORLD_LARGE_FOLLOWER] = {
+        .name         = COMPOUND_STRING("BIG FOLLOWERS"),
+        .descriptions = sDesc_LargeFollower,
+        .numChoices   = 2,
+        .choiceNames  = sChoices_OnOff,
+    },
+    [ITEM_OVERWORLD_AUTORUN] = {
+        .name         = COMPOUND_STRING("AUTORUN"),
+        .descriptions = sDesc_Autorun,
+        .numChoices   = 2,
+        .choiceNames  = sChoices_OnOff,
+    },
+    [ITEM_OVERWORLD_AUTORUN_SURF] = {
+        .name         = COMPOUND_STRING("AUTORUN (SURF)"),
+        .descriptions = sDesc_AutorunSurf,
+        .numChoices   = 2,
+        .choiceNames  = sChoices_OnOff,
+    },
+    [ITEM_OVERWORLD_OW_SPEED] = {
+        .name         = COMPOUND_STRING("OW SPEED"),
+        .descriptions = sDesc_OwSpeed,
+        .numChoices   = OPTIONS_OVERWORLD_SPEED_COUNT,
+        .choiceNames  = sChoices_OwSpeed,
+    },
+    [ITEM_OVERWORLD_FAST_HMS] = {
+        .name         = COMPOUND_STRING("FAST HMS"),
+        .descriptions = sDesc_FastHms,
+        .numChoices   = 2,
+        .choiceNames  = sChoices_OffOn,
+    },
+    [ITEM_OVERWORLD_FISHING] = {
+        .name         = COMPOUND_STRING("EASIER FISHING"),
+        .descriptions = sDesc_Fishing,
+        .numChoices   = 2,
+        .choiceNames  = sChoices_OnOff,
+    },
+    [ITEM_OVERWORLD_NO_ENCOUNTERS] = {
         .name         = COMPOUND_STRING("WILD BATTLES"),
         .descriptions = sDesc_NoEncounters,
         .numChoices   = 2,
@@ -606,7 +641,7 @@ static const struct OptionMenuItem sTabItems_Main[] = {
         // label for zero is the one that must come first.
         .choiceNames  = sChoices_OnOff,
     },
-    [ITEM_MAIN_ENHANCED_DEXNAV] = {
+    [ITEM_OVERWORLD_ENHANCED_DEXNAV] = {
         .name         = COMPOUND_STRING("ENHANCED DEXNAV"),
         .descriptions = sDesc_EnhancedDexNav,
         .numChoices   = 2,
@@ -615,15 +650,30 @@ static const struct OptionMenuItem sTabItems_Main[] = {
         // ON side, and the label for zero still has to come first.
         .choiceNames  = sChoices_OnOff,
     },
-    [ITEM_MAIN_FRAMETYPE] = {
-        .name         = COMPOUND_STRING("FRAME"),
-        .descriptions = sDesc_FrameType,
-        .numChoices   = FRAME_TYPE_SPECIAL,
-        .choiceNames  = NULL,
+    [ITEM_OVERWORLD_CATCH] = {
+        .name         = COMPOUND_STRING("OVERWORLD CATCH"),
+        .descriptions = sDesc_OverworldCatch,
+        .numChoices   = 2,
+        // ON first: the stored bit is noOverworldCatch, and zero - what an
+        // older save reads after the SAVE_VERSION 15 step - is the ON side.
+        .choiceNames  = sChoices_OnOff,
     },
 };
 
+
 static const struct OptionMenuItem sTabItems_Battle[] = {
+    [ITEM_BATTLE_BATTLESCENE] = {
+        .name         = COMPOUND_STRING("BATTLE SCENE"),
+        .descriptions = sDesc_BattleScene,
+        .numChoices   = 2,
+        .choiceNames  = sChoices_OnOff,
+    },
+    [ITEM_BATTLE_BATTLESTYLE] = {
+        .name         = COMPOUND_STRING("BATTLE STYLE"),
+        .descriptions = sDesc_BattleStyle,
+        .numChoices   = 2,
+        .choiceNames  = sChoices_ShiftSet,
+    },
     [ITEM_BATTLE_FAST_INTRO] = {
         .name         = COMPOUND_STRING("FAST INTRO"),
         .descriptions = sDesc_FastIntro,
@@ -654,12 +704,6 @@ static const struct OptionMenuItem sTabItems_Battle[] = {
         .numChoices   = 2,
         .choiceNames  = sChoices_Gen3Gen4,
     },
-    [ITEM_BATTLE_DARK_UI] = {
-        .name         = COMPOUND_STRING("DARK UI"),
-        .descriptions = sDesc_DarkUi,
-        .numChoices   = 2,
-        .choiceNames  = sChoices_LightDark,
-    },
     [ITEM_BATTLE_BALL_PROMPT] = {
         .name         = COMPOUND_STRING("BALL PROMPT"),
         .descriptions = sDesc_BallPrompt,
@@ -678,9 +722,9 @@ static const struct OptionMenuItem sTabItems_Battle[] = {
         .numChoices   = 2,
         .choiceNames  = sChoices_OnOff,
     },
-    [ITEM_BATTLE_LEVEL_SCALING] = {
-        .name         = COMPOUND_STRING("LEVEL SCALING"),
-        .descriptions = sDesc_LevelScaling,
+    [ITEM_BATTLE_ARCEUS_FORMULAS] = {
+        .name         = COMPOUND_STRING("ARCEUS FORMULAS"),
+        .descriptions = sDesc_ArceusFormulas,
         .numChoices   = 2,
         .choiceNames  = sChoices_OffOn,
     },
@@ -766,10 +810,23 @@ bool8 ShouldSkipNicknamePrompt(void)
     return gSaveBlock3Ptr->challengeSettings.skipNicknamePrompt;
 }
 
+// Read by the overworld catching (phase 9). Stored inverted: 0 = ON.
+bool8 IsOverworldCatchEnabled(void)
+{
+    return !gSaveBlock3Ptr->challengeSettings.noOverworldCatch;
+}
+
+// Read by the stat, catch and damage formulas (phases 10 and 11).
+bool8 AreArceusFormulasEnabled(void)
+{
+    return gSaveBlock3Ptr->extraOptions.arceusFormulas;
+}
+
 static const struct TabDef sTabs[TAB_COUNT] = {
-    [TAB_MAIN]   = { COMPOUND_STRING("OPTIONS"),        sTabItems_Main,   ITEM_MAIN_COUNT },
-    [TAB_BATTLE] = { COMPOUND_STRING("BATTLE OPTIONS"), sTabItems_Battle, ITEM_BATTLE_COUNT },
-    [TAB_SOUND]  = { COMPOUND_STRING("SOUND"),          sTabItems_Sound,  ITEM_SOUND_COUNT },
+    [TAB_GENERAL]   = { COMPOUND_STRING("GENERAL"),   sTabItems_General,   ITEM_GENERAL_COUNT },
+    [TAB_OVERWORLD] = { COMPOUND_STRING("OVERWORLD"), sTabItems_Overworld, ITEM_OVERWORLD_COUNT },
+    [TAB_BATTLE]    = { COMPOUND_STRING("BATTLE"),    sTabItems_Battle,    ITEM_BATTLE_COUNT },
+    [TAB_SOUND]     = { COMPOUND_STRING("SOUND"),     sTabItems_Sound,     ITEM_SOUND_COUNT },
 };
 
 // =============================================================================
@@ -977,7 +1034,7 @@ static void OptionMenu_ItemPrintFunc(u8 windowId, u32 itemId, u8 y)
     }
 
     // Frame type is special — no choiceNames array
-    if (sMenu->currentTab == TAB_MAIN && itemId == ITEM_MAIN_FRAMETYPE)
+    if (sMenu->currentTab == TAB_GENERAL && itemId == ITEM_GENERAL_FRAMETYPE)
     {
         DrawFrameTypeChoice(*GetSelectionPtr(sMenu->currentTab, itemId), y, active);
         return;
@@ -1115,7 +1172,7 @@ static void DrawDescription(void)
         u8 descIndex = sel;
 
         // For items with only 1 description (text speed, frame type), always use index 0
-        if (items[itemIndex].numChoices <= 1 || (sMenu->currentTab == TAB_MAIN && itemIndex == ITEM_MAIN_FRAMETYPE))
+        if (items[itemIndex].numChoices <= 1 || (sMenu->currentTab == TAB_GENERAL && itemIndex == ITEM_GENERAL_FRAMETYPE))
             descIndex = 0;
         else if (descIndex >= items[itemIndex].numChoices)
             descIndex = 0;
@@ -1194,7 +1251,7 @@ static void ProcessLeftRight(void)
         return;
 
     // Frame type special handling
-    if (sMenu->currentTab == TAB_MAIN && itemIndex == ITEM_MAIN_FRAMETYPE)
+    if (sMenu->currentTab == TAB_GENERAL && itemIndex == ITEM_GENERAL_FRAMETYPE)
     {
         u8 *sel = GetSelectionPtr(sMenu->currentTab, itemIndex);
         u8 prev = *sel;
@@ -1311,39 +1368,42 @@ static void Task_ProcessInput(u8 taskId)
 static void Task_Save(u8 taskId)
 {
     // SaveBlock2 — original options
-    gSaveBlock2Ptr->optionsTextSpeed        = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_TEXTSPEED);
-    gSaveBlock2Ptr->optionsBattleSceneOff   = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_BATTLESCENE);
-    gSaveBlock2Ptr->optionsBattleStyle      = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_BATTLESTYLE);
-    gSaveBlock2Ptr->optionsButtonMode       = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_BUTTONMODE);
-    gSaveBlock2Ptr->optionsWindowFrameType  = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_FRAMETYPE);
+    gSaveBlock2Ptr->optionsTextSpeed        = *GetSelectionPtr(TAB_GENERAL, ITEM_GENERAL_TEXTSPEED);
+    gSaveBlock2Ptr->optionsBattleSceneOff   = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_BATTLESCENE);
+    gSaveBlock2Ptr->optionsBattleStyle      = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_BATTLESTYLE);
+    gSaveBlock2Ptr->optionsButtonMode       = *GetSelectionPtr(TAB_GENERAL, ITEM_GENERAL_BUTTONMODE);
+    gSaveBlock2Ptr->optionsWindowFrameType  = *GetSelectionPtr(TAB_GENERAL, ITEM_GENERAL_FRAMETYPE);
     gSaveBlock2Ptr->optionsSound            = *GetSelectionPtr(TAB_SOUND, ITEM_SOUND_SOUND);
 
     // SaveBlock3 — HnS options plus
     struct ChallengeSettings *cs = &gSaveBlock3Ptr->challengeSettings;
-    cs->followerEnable     = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_FOLLOWER);
-    cs->followerLargeEnable= *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_LARGE_FOLLOWER);
-    cs->autoRun            = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_AUTORUN);
-    cs->autorunSurf        = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_AUTORUN_SURF);
-    cs->overworldSpeed     = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_OW_SPEED);
-    cs->partyMenuStyle     = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_PARTY_MENU);
-    cs->fishing            = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_FISHING);
-    cs->evenFasterJoy      = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_FASTER_JOY);
+    cs->followerEnable     = *GetSelectionPtr(TAB_OVERWORLD, ITEM_OVERWORLD_FOLLOWER);
+    cs->followerLargeEnable= *GetSelectionPtr(TAB_OVERWORLD, ITEM_OVERWORLD_LARGE_FOLLOWER);
+    cs->autoRun            = *GetSelectionPtr(TAB_OVERWORLD, ITEM_OVERWORLD_AUTORUN);
+    cs->autorunSurf        = *GetSelectionPtr(TAB_OVERWORLD, ITEM_OVERWORLD_AUTORUN_SURF);
+    cs->overworldSpeed     = *GetSelectionPtr(TAB_OVERWORLD, ITEM_OVERWORLD_OW_SPEED);
+    cs->partyMenuStyle     = *GetSelectionPtr(TAB_GENERAL, ITEM_GENERAL_PARTY_MENU);
+    cs->fishing            = *GetSelectionPtr(TAB_OVERWORLD, ITEM_OVERWORLD_FISHING);
+    cs->evenFasterJoy      = *GetSelectionPtr(TAB_GENERAL, ITEM_GENERAL_FASTER_JOY);
     if (cs->evenFasterJoy == 0)
         FlagSet(FLAG_EVEN_FASTER_JOY);
     else
         FlagClear(FLAG_EVEN_FASTER_JOY);
-    cs->unitSystem         = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_UNIT_TYPE);
-    cs->disableMatchCall   = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_MATCHCALL);
-    cs->guaranteedCatch    = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_GUARANTEED_CATCH);
+    cs->unitSystem         = *GetSelectionPtr(TAB_GENERAL, ITEM_GENERAL_UNIT_TYPE);
+    cs->disableMatchCall   = *GetSelectionPtr(TAB_GENERAL, ITEM_GENERAL_MATCHCALL);
     // sChoices_OnOff is ON first, so ON stores 0 and the field reads "skip".
-    cs->skipNicknamePrompt = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_NICKNAMES);
-    cs->noWildEncounters = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_NO_ENCOUNTERS);
-    cs->basicDexNav      = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_ENHANCED_DEXNAV);
+    cs->skipNicknamePrompt = *GetSelectionPtr(TAB_GENERAL, ITEM_GENERAL_NICKNAMES);
+    cs->darkUi             = *GetSelectionPtr(TAB_GENERAL, ITEM_GENERAL_DARK_UI);
+    cs->tx_Features_RTCType     = *GetSelectionPtr(TAB_GENERAL, ITEM_GENERAL_RTC_TYPE);
+    cs->tx_Features_ShinyColors = *GetSelectionPtr(TAB_GENERAL, ITEM_GENERAL_SHINY_COLOR);
+    cs->noWildEncounters = *GetSelectionPtr(TAB_OVERWORLD, ITEM_OVERWORLD_NO_ENCOUNTERS);
+    cs->basicDexNav      = *GetSelectionPtr(TAB_OVERWORLD, ITEM_OVERWORLD_ENHANCED_DEXNAV);
+    // sChoices_OnOff again: ON stores 0, and the field reads "no catching".
+    cs->noOverworldCatch = *GetSelectionPtr(TAB_OVERWORLD, ITEM_OVERWORLD_CATCH);
 
     cs->fastIntro          = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_FAST_INTRO);
     cs->fastBattle         = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_FAST_BATTLES);
     cs->battleSpeed        = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_SPEED);
-    cs->darkUi             = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_DARK_UI);
     cs->newBackgrounds     = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_NEW_BACKGROUNDS);
     cs->newBattleUI        = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_NEW_BATTLEUI);
     cs->ballPrompt         = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_BALL_PROMPT);
@@ -1356,7 +1416,7 @@ static void Task_Save(u8 taskId)
 
     // The options that live outside ChallengeSettings (SaveBlock3 tail).
     struct SoundAndFieldOptions *sf = &gSaveBlock3Ptr->soundAndFieldOptions;
-    sf->fastHms            = *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_FAST_HMS);
+    sf->fastHms            = *GetSelectionPtr(TAB_OVERWORLD, ITEM_OVERWORLD_FAST_HMS);
     // The scripts read the flag; the field only survives ClearSav1() at new game.
     if (sf->fastHms)
         FlagSet(FLAG_FAST_HMS);
@@ -1365,7 +1425,9 @@ static void Task_Save(u8 taskId)
     sf->battleMusicTheme   = *GetSelectionPtr(TAB_SOUND, ITEM_SOUND_BATTLE_MUSIC);
     // sChoices_OnOff is ON first, so ON stores 0 and the field reads "no night theme".
     sf->noNightCenterMusic = *GetSelectionPtr(TAB_SOUND, ITEM_SOUND_NIGHT_CENTER);
-    sf->levelScaling       = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_LEVEL_SCALING);
+    // LEVEL SCALING and EASY CATCH are in the challenge menu now.
+
+    gSaveBlock3Ptr->extraOptions.arceusFormulas = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_ARCEUS_FORMULAS);
 
     BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);
     gTasks[taskId].func = Task_FadeOut;
@@ -1441,53 +1503,56 @@ void CB2_InitOptionMenu(void)
     case 6:
     {
         sMenu = AllocZeroed(sizeof(struct OptionMenuState));
-        sMenu->currentTab = TAB_MAIN;
+        sMenu->currentTab = TAB_GENERAL;
         sMenu->arrowTaskId = TASK_NONE;
 
         // Load SaveBlock2 options
-        *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_TEXTSPEED)    = gSaveBlock2Ptr->optionsTextSpeed;
-        *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_BATTLESCENE)  = gSaveBlock2Ptr->optionsBattleSceneOff;
-        *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_BATTLESTYLE)  = gSaveBlock2Ptr->optionsBattleStyle;
-        *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_BUTTONMODE)   = gSaveBlock2Ptr->optionsButtonMode;
-        *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_FRAMETYPE)    = gSaveBlock2Ptr->optionsWindowFrameType;
-        *GetSelectionPtr(TAB_SOUND, ITEM_SOUND_SOUND)      = gSaveBlock2Ptr->optionsSound;
+        // Load SaveBlock2 options
+        *GetSelectionPtr(TAB_GENERAL, ITEM_GENERAL_TEXTSPEED)  = gSaveBlock2Ptr->optionsTextSpeed;
+        *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_BATTLESCENE)  = gSaveBlock2Ptr->optionsBattleSceneOff;
+        *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_BATTLESTYLE)  = gSaveBlock2Ptr->optionsBattleStyle;
+        *GetSelectionPtr(TAB_GENERAL, ITEM_GENERAL_BUTTONMODE) = gSaveBlock2Ptr->optionsButtonMode;
+        *GetSelectionPtr(TAB_GENERAL, ITEM_GENERAL_FRAMETYPE)  = gSaveBlock2Ptr->optionsWindowFrameType;
+        *GetSelectionPtr(TAB_SOUND, ITEM_SOUND_SOUND)          = gSaveBlock2Ptr->optionsSound;
 
         // Load SaveBlock3 HnS options
         struct ChallengeSettings *cs = &gSaveBlock3Ptr->challengeSettings;
-        *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_FOLLOWER)       = cs->followerEnable;
-        *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_LARGE_FOLLOWER) = cs->followerLargeEnable;
-        *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_AUTORUN)        = cs->autoRun;
-        *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_AUTORUN_SURF)   = cs->autorunSurf;
-        *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_OW_SPEED)       = cs->overworldSpeed;
-        *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_PARTY_MENU)     = cs->partyMenuStyle;
-        *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_FISHING)        = cs->fishing;
-        *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_FASTER_JOY)     = cs->evenFasterJoy;
-        *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_UNIT_TYPE)      = cs->unitSystem;
-        *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_MATCHCALL)    = cs->disableMatchCall;
-        *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_GUARANTEED_CATCH) = cs->guaranteedCatch;
-        *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_NICKNAMES)        = cs->skipNicknamePrompt;
-        *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_NO_ENCOUNTERS)   = cs->noWildEncounters;
-        *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_ENHANCED_DEXNAV) = cs->basicDexNav;
+        *GetSelectionPtr(TAB_OVERWORLD, ITEM_OVERWORLD_FOLLOWER)        = cs->followerEnable;
+        *GetSelectionPtr(TAB_OVERWORLD, ITEM_OVERWORLD_LARGE_FOLLOWER)  = cs->followerLargeEnable;
+        *GetSelectionPtr(TAB_OVERWORLD, ITEM_OVERWORLD_AUTORUN)         = cs->autoRun;
+        *GetSelectionPtr(TAB_OVERWORLD, ITEM_OVERWORLD_AUTORUN_SURF)    = cs->autorunSurf;
+        *GetSelectionPtr(TAB_OVERWORLD, ITEM_OVERWORLD_OW_SPEED)        = cs->overworldSpeed;
+        *GetSelectionPtr(TAB_OVERWORLD, ITEM_OVERWORLD_FISHING)         = cs->fishing;
+        *GetSelectionPtr(TAB_OVERWORLD, ITEM_OVERWORLD_NO_ENCOUNTERS)   = cs->noWildEncounters;
+        *GetSelectionPtr(TAB_OVERWORLD, ITEM_OVERWORLD_ENHANCED_DEXNAV) = cs->basicDexNav;
+        *GetSelectionPtr(TAB_OVERWORLD, ITEM_OVERWORLD_CATCH)           = cs->noOverworldCatch;
+        *GetSelectionPtr(TAB_GENERAL, ITEM_GENERAL_PARTY_MENU)  = cs->partyMenuStyle;
+        *GetSelectionPtr(TAB_GENERAL, ITEM_GENERAL_FASTER_JOY)  = cs->evenFasterJoy;
+        *GetSelectionPtr(TAB_GENERAL, ITEM_GENERAL_UNIT_TYPE)   = cs->unitSystem;
+        *GetSelectionPtr(TAB_GENERAL, ITEM_GENERAL_MATCHCALL)   = cs->disableMatchCall;
+        *GetSelectionPtr(TAB_GENERAL, ITEM_GENERAL_NICKNAMES)   = cs->skipNicknamePrompt;
+        *GetSelectionPtr(TAB_GENERAL, ITEM_GENERAL_DARK_UI)     = cs->darkUi;
+        *GetSelectionPtr(TAB_GENERAL, ITEM_GENERAL_RTC_TYPE)    = cs->tx_Features_RTCType;
+        *GetSelectionPtr(TAB_GENERAL, ITEM_GENERAL_SHINY_COLOR) = cs->tx_Features_ShinyColors;
 
         *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_FAST_INTRO)      = cs->fastIntro;
         *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_FAST_BATTLES)    = cs->fastBattle;
         *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_SPEED)           = cs->battleSpeed;
-        *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_DARK_UI)         = cs->darkUi;
         *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_NEW_BACKGROUNDS) = cs->newBackgrounds;
         *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_NEW_BATTLEUI)    = cs->newBattleUI;
         *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_BALL_PROMPT)     = cs->ballPrompt;
         *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_LR_RUN)          = cs->lrToRun;
         *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_RUN_TYPE)        = cs->runType;
+        *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_ARCEUS_FORMULAS) = gSaveBlock3Ptr->extraOptions.arceusFormulas;
 
         *GetSelectionPtr(TAB_SOUND, ITEM_SOUND_MUSIC)      = cs->musicOnOff;
         *GetSelectionPtr(TAB_SOUND, ITEM_SOUND_BIKE_MUSIC) = cs->bikeMusic;
         *GetSelectionPtr(TAB_SOUND, ITEM_SOUND_SURF_MUSIC) = cs->surfMusic;
 
         struct SoundAndFieldOptions *sf = &gSaveBlock3Ptr->soundAndFieldOptions;
-        *GetSelectionPtr(TAB_MAIN, ITEM_MAIN_FAST_HMS)           = sf->fastHms;
+        *GetSelectionPtr(TAB_OVERWORLD, ITEM_OVERWORLD_FAST_HMS) = sf->fastHms;
         *GetSelectionPtr(TAB_SOUND, ITEM_SOUND_BATTLE_MUSIC)     = GetBattleMusicTheme();
         *GetSelectionPtr(TAB_SOUND, ITEM_SOUND_NIGHT_CENTER)     = sf->noNightCenterMusic;
-        *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_LEVEL_SCALING)  = sf->levelScaling;
 
         gMain.state++;
         break;

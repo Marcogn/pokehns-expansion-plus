@@ -357,10 +357,18 @@ struct ChallengeSettings
                              // be the ON side: 1 means "fall back to the plain
                              // DexNav HnS shipped". Ugly name, right polarity -
                              // see the bit polarity rule in CLAUDE.md.
-    u8 unusedTrainerCatchBit:1; // was trainerCatch, the TRAINER CATCH option,
-                                // replaced by the TcloneR key item. Cleared by the
-                                // SAVE_VERSION 9 migration, so it is free again:
-                                // the only spare bit.
+    u8 noOverworldCatch:1;   // OVERWORLD CATCH, stored inverted: 0 = ON (the
+                             // default). Was trainerCatch (TRAINER CATCH, then
+                             // unusedTrainerCatchBit): 1 in saves that had it on.
+                             // The SAVE_VERSION 9 step clears it, and 15 again.
+};
+
+// Options appended to SaveBlock3 in SAVE_VERSION 15, which zeroes the whole
+// struct in older saves: every bit reads 0 as its default.
+struct ExtraOptions
+{
+    u8 arceusFormulas:1; // ARCEUS FORMULAS: 0 = off (default)
+    u8 unused:7;         // zeroed by SAVE_VERSION 15, free without a new step
 };
 
 // Quest book (src/quest_log.c). Every bit reads 0 as its default: not a
@@ -425,6 +433,8 @@ struct SaveBlock3
     // icon id + 1. All zero - a new game or a migrated save - is the default
     // order, and so is anything that is not a full permutation.
     u8 stripMenuOrder[4];
+    // Appended after stripMenuOrder (SAVE_VERSION 15).
+    struct ExtraOptions extraOptions;
 }; /* max size 1624 bytes */
 
 extern struct SaveBlock3 *gSaveBlock3Ptr;

@@ -152,6 +152,8 @@ void SetDefaultChallengeSettings(void)
     // ENHANCED DEXNAV is stored inverted and defaults to ON, so the field is
     // FALSE here for the same reason it is zero in an older save.
     gSaveblock3.challengeSettings.basicDexNav = FALSE;
+    // OVERWORLD CATCH is stored inverted and defaults to ON, like the DexNav.
+    gSaveblock3.challengeSettings.noOverworldCatch = FALSE;
 
     // Challenge menu — "RECOMMENDED" defaults
     gSaveblock3.challengeSettings.tx_Mode_Modern_Moves       = 1;
@@ -237,6 +239,8 @@ void NewGameInitData(void)
     // Chosen from the options menu before the game starts, like the settings
     // above; ClearSav3() would wipe it.
     struct SoundAndFieldOptions savedSoundAndField = gSaveBlock3Ptr->soundAndFieldOptions;
+    // ARCEUS FORMULAS can be chosen on the title screen too.
+    struct ExtraOptions savedExtraOptions = gSaveBlock3Ptr->extraOptions;
     if (gSaveFileStatus == SAVE_STATUS_EMPTY || gSaveFileStatus == SAVE_STATUS_CORRUPT)
         RtcReset();
 
@@ -256,6 +260,7 @@ void NewGameInitData(void)
     SetDefaultChallengeSettings();
     gSaveBlock3Ptr->challengeSettings = savedChallenge;
     gSaveBlock3Ptr->soundAndFieldOptions = savedSoundAndField;
+    gSaveBlock3Ptr->extraOptions = savedExtraOptions;
     ClearAllMail();
     gSaveBlock2Ptr->specialSaveWarpFlags = 0;
     gSaveBlock2Ptr->gcnLinkFlags = 0;

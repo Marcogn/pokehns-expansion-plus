@@ -63,6 +63,25 @@ add the section before releasing. Feature details live in the tables of
   in game.
 
 ### Changed
+- **Options and Challenges menus reorganised.** The options menu has four
+  tabs instead of three: GENERAL, OVERWORLD, BATTLE and SOUND (the first one
+  was full at 20 rows). The challenge menu has five: the FEATURES tab is gone,
+  its SHINY CHANCE, ITEM DROP and FRONTIER BANS rows are now at the end of MODE.
+  Moved between the menus: `CLOCK TYPE` and `ALT SHINY` to Options · GENERAL,
+  `EASY CATCH` and `LEVEL SCALING` to Challenges · DIFFICULTY (both still
+  changeable in either direction mid-game). `BATTLE SCENE` and `BATTLE STYLE`
+  are in BATTLE, `DARK UI` in GENERAL. Moving an option does not change its
+  value: an existing save keeps every setting. On a new game, `EASY CATCH` and
+  `LEVEL SCALING` now start OFF like every other challenge, while `CLOCK TYPE`
+  and `ALT SHINY` carry over like every other option: from the title screen's
+  Options, or from the save already on the cartridge if they were not touched.
+- **Two new options, not active yet**: `OVERWORLD CATCH` (Options · OVERWORLD,
+  ON by default) and `ARCEUS FORMULAS` (Options · BATTLE, OFF by default). They
+  are saved but do nothing in this build; the next steps of the overworld
+  catching wire them up.
+- Save version 15: an existing save loads with every setting as it was and
+  `OVERWORLD CATCH` ON. A bit left over from the old TRAINER CATCH option,
+  set in some saves, is cleared on the way.
 - **Egg moves and tutor moves are no longer free in the move relearner.**
   They are the one thing that changes for existing saves: until you pay, the
   summary screen's relearner (START on the Battle Moves page) offers only
