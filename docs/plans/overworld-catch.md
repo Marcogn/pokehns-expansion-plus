@@ -1064,6 +1064,9 @@ con le statistiche di Arceus vale un'altra cosa.
 **Handoff per la fase 8 (Opus 5.5)**
 - `FLAG_UNUSED_38/39` (0x306/7) restano liberi in `flags_hns.h`; la fase 8 non
   ne ha bisogno (bit di `ChallengeSettings`, `save.md`).
+- Il passo `saveVersion < 15` della fase 8 può azzerare anche i flag 0x304/0x305
+  (`FLAG_EGG/TUTOR_MOVES_UNLOCKED`, ex `FLAG_UNUSED_36/37`): oggi leggono 0 solo
+  nel `.sav` provato, e nulla di PLUS.12 è uscito con loro (review della PR #69).
 - CHANGELOG: voce nuova sotto PLUS.12 "Changed" per il ricorda mosse.
 
 ## 6. Scartato, e perché
