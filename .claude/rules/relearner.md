@@ -32,9 +32,8 @@ paths:
   alzano il flag; la scelta della mossa resta nel riassunto. Il ricorda mosse a
   Squama Cuore di Blackthorn non c'entra (solo mosse di livello).
   Prova (guarda anche il tag intero, non solo "LEVEL"): pagina mosse, L/R sul tag "LEVEL": prima del pagamento il ciclo è
-  LEVEL↔TM, dopo EGG si aggiunge, dopo TUTOR pure. Il sorgente di SG non era
-  accessibile in quella sessione: posizioni, prezzi e testi dei maestri sono
-  ricavati dal piano e dalle note, non copiati.
+  LEVEL↔TM, dopo EGG si aggiunge, dopo TUTOR pure. Confronto fatto con SG
+  `310bf6a9` (`Marcogn/soulgold`, lettura pubblica).
   Soulgold apre il relearner **solo dalla pagina Battle Moves** e forza
   `showContestInfo` a FALSE.
   Attenzione prima di gridare al bug sulla categoria LEVEL: `P_LVL_UP_LEARNSETS`
