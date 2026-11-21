@@ -1366,6 +1366,10 @@ con le statistiche di Arceus vale un'altra cosa.
   - Visto di passaggio: R+START (il debug) lancia anche una Ball, perché R
     è il tasto del lancio. Lasciato così, scritto nella regola.
 
+- **Confermato dall'utente (21/11)**: il colpo alle spalle vale anche su un
+  Pokémon allertato che fugge (conta solo la direzione); la Heavy Ball somma
+  il bonus del peso al tasso. La mappatura EV → impegno resta da confermare.
+
 **Handoff per la fase 11 (Opus 5.5)**
 - Le statistiche di Arceus a inizio gioco sono **molto** più alte (Bulbasaur
   Lv 5 con 252 EV in Attacco: 110 contro 15): finché non c'è il danno di
