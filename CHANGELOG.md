@@ -95,10 +95,8 @@ add the section before releasing. Feature details live in the tables of
   front of them, through trees and grass, and only hear you running or
   cycling. The cheaper Balls and the shops stay as they are. Turning it on
   with more Pokémon around than the new cap drops the extra ones in a moment.
-- **`ARCEUS FORMULAS`** (Options · BATTLE, OFF by default): stats and
-  overworld catches as in Pokémon Legends: Arceus. The damage formula comes
-  with the next step; until then battles with the option on last longer,
-  especially early on.
+- **`ARCEUS FORMULAS`** (Options · BATTLE, OFF by default): stats, damage
+  and overworld catches as in Pokémon Legends: Arceus.
   - **Stats**: every Pokémon, yours and the wild and trainers' ones, uses
     Arceus' stat formula. The effort levels (0-10) come from what the
     Pokémon already has: its IV gives the starting level as in Arceus (20
@@ -118,6 +116,15 @@ add the section before releasing. Feature details live in the tables of
     three quarters. Poké, Great and Ultra Ball have Arceus' values (0.75,
     1.5, 2.25); every other Ball keeps its own bonus, times 0.75. Master
     Ball and `EASY CATCH` still always catch.
+  - **Damage**: Arceus' formula, which weighs the level more and the
+    defending stat less than today's, so hits land harder on both sides:
+    battles are a hit or two shorter, and early on wild Pokémon hurt a lot
+    more (a Pidgey needs 3-4 Tackles to knock out a Lv 6 Cyndaquil instead
+    of 7-11). Same-type moves get ×1.25 instead of ×1.5 (Adaptability
+    ×1.5), a double weakness ×2.5 instead of ×4 and a double resistance
+    ×0.4 instead of ×0.25. Stat stages, abilities, items, weather and
+    critical hits stay as they are; the messages ("It's super effective!")
+    too.
 - Save version 15: an existing save loads with every setting as it was and
   `OVERWORLD CATCH` ON. A bit left over from the old TRAINER CATCH option,
   set in some saves, is cleared on the way.

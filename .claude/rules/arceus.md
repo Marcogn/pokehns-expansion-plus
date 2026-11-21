@@ -2,6 +2,7 @@
 paths:
   - "src/pokemon.c"
   - "src/battle_script_commands.c"
+  - "src/battle_util.c"
   - "src/overworld_catch.c"
   - "src/option_menu.c"
 ---
@@ -9,7 +10,7 @@ paths:
 # ARCEUS FORMULAS (D21 del piano `overworld-catch`)
 
 Decisioni, fonti trascritte e prove: [`docs/plans/overworld-catch.md`](../../docs/plans/overworld-catch.md)
-(D21, §3 "Fonti per ARCEUS FORMULAS", §5.10). Interruttore:
+(D21, §3 "Fonti per ARCEUS FORMULAS", §5.10, §5.11). Interruttore:
 `AreArceusFormulasEnabled()` (`ExtraOptions.arceusFormulas`, SB3 +0x60 bit 0,
 0 = spenta).
 
@@ -64,3 +65,24 @@ Decisioni, fonti trascritte e prove: [`docs/plans/overworld-catch.md`](../../doc
   ×2). **Colpo alle spalle** = `owe->facingDirection == throw->direction`
   all'impatto (direzione del giocatore salvata al lancio). Quick Ball: come
   prima, solo se non allertato.
+
+## Danno (`src/battle_util.c`, fase 11)
+
+- **Tre punti, tutti dietro l'opzione**: `CalculateBaseDamage` (formula di
+  Bulbapedia, troncata a ogni passo, senza il `+2` classico: un danno 0
+  diventa 1 alla fine come prima), `ArceusStabModifier` e
+  `ArceusTypeModifier`, applicati in `ApplyModifiersAfterDmgRoll` **e** nel
+  calcolo a parte di Divinazione (`DoFutureSightAttackDamageCalcVars`, STAB
+  1,5 scritto a mano). L'IA passa da `ApplyModifiersAfterDmgRoll`: stime e
+  danno vero coincidono.
+- **STAB**: si dimezza il bonus sopra 1 (1,5 → 1,25 di Arceus; Adattabilità
+  2 → 1,5; Tera 2,25 → 1,625). Scelta mia: Arceus non ha abilità né Tera.
+- **Tipo**: ≥ ×4 → ×2,5, ≤ ×0,25 (non 0) → ×0,4, **solo nel danno**:
+  `typeEffectivenessModifier` resta vero per messaggi, Expert Belt, Tinted
+  Lens e IA. `UQ_4_12(0.4)` = 1638 (0,3999).
+- **Restano del gioco** (D21, documento chiuso): stadi ±6, brutto colpo
+  (**×2**: `B_CRIT_MULTIPLIER` è GEN_3; Arceus 1,5), meteo, scottatura,
+  abilità, strumenti, bersagli multipli, Beat Up (Gen 3: usa le basi, non le
+  statistiche).
+- **Lotte in link** con l'opzione diversa sui due GBA: statistiche e danno
+  divergono. Non provato, non gestito.

@@ -1,6 +1,6 @@
 # Piano: cattura nell'overworld (stile Leggende Pokémon: Arceus)
 
-**Stato (21/11): fasi 1-10 fatte (tetti e prezzi; passo lento e percezione; nucleo del lancio; animazione; pannello e documentazione; revisione della prima parte; ricorda mosse a pagamento; menu riordinati e salvataggio 15; interruttore OVERWORLD CATCH e Ball speciali nei Mart; statistiche e cattura di Arceus); prossima: fase 11 (Opus 5.5). Il 20/11 sono entrate le fasi 8-11 (menu, OVERWORLD CATCH, ARCEUS FORMULAS) e gli alfa sono passati a 12-14.**
+**Stato (21/11): fasi 1-11 fatte (tetti e prezzi; passo lento e percezione; nucleo del lancio; animazione; pannello e documentazione; revisione della prima parte; ricorda mosse a pagamento; menu riordinati e salvataggio 15; interruttore OVERWORLD CATCH e Ball speciali nei Mart; statistiche e cattura di Arceus; danno di Arceus); prossima: fase 12 (Opus 5.5). Il 20/11 sono entrate le fasi 8-11 (menu, OVERWORLD CATCH, ARCEUS FORMULAS) e gli alfa sono passati a 12-14.**
 
 Si appoggia agli OWE già in gioco: leggere prima
 [`.claude/rules/overworld_encounters.md`](../../.claude/rules/overworld_encounters.md)
@@ -1390,6 +1390,80 @@ con le statistiche di Arceus vale un'altra cosa.
 - Da chiedere all'utente: la mappatura EV → impegno e la Heavy Ball (sopra);
   dalla fase 9, il passo lento con B nella ricerca DexNav a cattura spenta e
   il Mart di Cherrygrove.
+
+### 5.11 Fase 11, com'è stata fatta (21/11)
+
+- **Modello**: Opus 5.5, come assegnato. Col `.sav` dell'utente (PLUS.11, 6
+  medaglie, Route 43, squadra al Lv 38).
+- **Danno** (`src/battle_util.c`, trappole in `.claude/rules/arceus.md`):
+  formula base di Arceus in `CalculateBaseDamage`, STAB 1,25 e tipo 2,5 /
+  0,4 come deciso il 20/11 (documento chiuso: il resto resta del gioco).
+  Scelte mie, da confermare: **Adattabilità e Tera** col bonus sopra 1
+  dimezzato (2 → 1,5); **brutto colpo ×2** del gioco (`B_CRIT_MULTIPLIER`
+  GEN_3; Arceus 1,5), il documento non ne parlava; tipo ritoccato **solo nel
+  danno**, non nei messaggi né nell'IA.
+- **Verificato** in mGBA con una ROM strumentata (in
+  `DoMoveDamageCalcVars` una struct in EWRAM con potenza, Att., Dif.,
+  livello, danno base, tiro, STAB e tipo grezzi, danno finale; tolta prima
+  del commit) e un riferimento Python scritto da Bulbapedia, non dal C:
+  - **3 casi, opzione accesa**: Mega Drain di Vileplume Lv 38 (potenza 48,
+    Att. Sp. 261) su Skarmory Acciaio/Volante (Dif. Sp. 92), doppia
+    resistenza: base 62, tiro 89 → 55, STAB → 69, ×0,4 → **28**, PS 126 →
+    98. Stesso colpo con Skarmory reso Roccia/Terra in RAM: tiro 94 → 58 →
+    72 → ×2,5 → **180**. Dazzling Gleam (80, niente STAB) su Furret: base
+    122, tiro 93 → **113**, PS 146 → 33. Tutti uguali al riferimento.
+  - **Opzione spenta** (bit scritto in RAM a metà lotta): Fury Swipes di
+    Furret 4 e Mega Drain 78, uguali alla formula classica: la strada di
+    prima non è cambiata.
+  - **Allenatore scalato** (POKéMANIAC BRENT, Route 43) con LEVEL SCALING,
+    BST EQUALIZER 100 e le sfide IV/EV degli allenatori del `.sav`, opzione
+    accesa: avversari a Lv 38, statistiche come previsto (EV su PS,
+    Velocità e la statistica più alta di ogni coppia); Chip Away 70 → **57**
+    e Extrasensory ×2 → **124**, uguali al riferimento; lotta vinta fino in
+    fondo, nessun blocco né schermata blu.
+- **Colpi per KO** (calcolo col riferimento verificato sopra; IV 15, EV 0,
+  natura neutra, statistiche di base del repo; danno minimo-massimo):
+
+| Fase | Attaccante → difensore | Mossa | Classica: PS, danno, colpi | Arceus: PS, danno, colpi |
+| --- | --- | --- | --- | --- |
+| inizio | Cyndaquil Lv 6 → Pidgey Lv 4 | Ember 40 STAB | 17, 7-10, **2-3** | 47, 25-30, **2** |
+| inizio | Pidgey Lv 4 → Cyndaquil Lv 6 | Tackle 40 | 21, 2-3, **7-11** | 49, 15-18, **3-4** |
+| inizio | Chikorita Lv 8 → Rattata Lv 6 | Tackle 40 | 20, 5-7, **3-4** | 39, 22-26, **2** |
+| inizio | Rattata Lv 6 → Chikorita Lv 8 | Tackle 40 STAB | 26, 4-6, **5-7** | 59, 19-22, **3-4** |
+| inizio | Totodile Lv 10 → Pidgeotto Lv 9 | Water Gun 40 STAB | 31, 7-9, **4-5** | 81, 25-30, **3-4** |
+| inizio | Pidgeotto Lv 9 → Totodile Lv 10 | Gust 40 STAB | 31, 6-7, **5-6** | 69, 25-30, **3** |
+| metà | Quilava Lv 22 → Miltank Lv 20 | Flame Wheel 60 STAB | 71, 12-15, **5-6** | 142, 40-47, **4** |
+| metà | Miltank Lv 20 → Quilava Lv 22 | Stomp 65 STAB | 60, 21-25, **3** | 101, 56-67, **2** |
+| metà | Croconaw Lv 28 → Haunter Lv 27 | Bite 60 ×2 | 65, 44-54, **2** | 95, 114-136, **1** |
+| metà | Haunter Lv 27 → Croconaw Lv 28 | Shadow Ball 80 STAB | 78, 40-48, **2** | 122, 85-100, **2** |
+| metà | Bayleef Lv 30 → Graveler Lv 28 | Razor Leaf 55 STAB ×4 | 73, 52-64, **2** | 109, 100-117, **1-2** |
+| metà | Graveler Lv 28 → Bayleef Lv 30 | Rock Slide 75 STAB | 80, 28-34, **3** | 120, 67-80, **2** |
+| metà | Typhlosion Lv 38 → Skarmory Lv 36 | Flamethrower 90 STAB ×2 | 98, 122-146, **1** | 138, 212-252, **1** |
+| metà | Skarmory Lv 36 → Typhlosion Lv 38 | Steel Wing 70 STAB ×0,5 | 112, 15-18, **7-8** | 160, 35-41, **4-5** |
+| metà | Croconaw Lv 30 → Onix Lv 30 | Water Gun 40 STAB ×4 | 65, 72-88, **1** | 87, 117-140, **1** |
+
+  Lettura: con Arceus intero le lotte si accorciano **da tutte e due le
+  parti**, e all'inizio soprattutto quelle subite (un selvatico Lv 4 batte
+  un iniziale Lv 6 in 3-4 colpi invece di 7-11): la Difesa pesa poco
+  (`D + 50`) e il livello molto (`15 × L`). Le resistenze valgono meno (Steel
+  Wing su Typhlosion da 7-8 a 4-5 colpi). **Da decidere con l'utente** se
+  ritoccare; la tabella del §3 (stessa specie, stesso livello) diceva lo
+  stesso.
+- ROM: 31 920 212 B, **95,13%** (+624 B sulla fase 10).
+- **Non verificato**: Divinazione, Tera e Adattabilità in lotta (stesso
+  codice, solo letto); lotte in doppio e in link.
+
+**Handoff per la fase 12 (Opus 5.5)**
+- La fase 12 non tocca le formule: gli alfa (+10 livelli, P10) con
+  l'opzione accesa picchiano forte (il livello pesa `15 × L` nel danno), da
+  tenere a mente quando si tara P13 nella fase 13.
+- Da chiedere all'utente, se non risposto: il bilanciamento della tabella
+  sopra, il brutto colpo ×2 e l'Adattabilità ×1,5 (sopra); dalla fase 9 il
+  passo lento con B nella ricerca DexNav a cattura spenta e il Mart di
+  Cherrygrove.
+- Strumentazione del danno: la ricetta è sopra (struct in EWRAM scritta da
+  `DoMoveDamageCalcVars` quando `ctx->randomFactor`), il riferimento
+  Python va riscritto a ogni container (non nel git).
 
 ## 6. Scartato, e perché
 

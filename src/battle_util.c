@@ -55,6 +55,7 @@
 #include "constants/trainers.h"
 #include "constants/weather.h"
 #include "randomizer.h"
+#include "option_menu.h"
 #include "constants/pokemon.h"
 
 static bool32 TryRemoveScreens(enum BattlerId battler);
@@ -7399,7 +7400,38 @@ static inline u32 CalcDefenseStat(struct BattleContext *ctx)
 // base damage formula before adding any modifiers
 static inline s32 CalculateBaseDamage(u32 power, u32 userFinalAttack, u32 level, u32 targetFinalDefense)
 {
+    // ARCEUS FORMULAS: the Legends: Arceus base damage (Bulbapedia, Damage),
+    // floored at every step. Its stats are several times larger than the
+    // classic ones early on (plan overworld-catch §3), so the classic formula
+    // would make the first battles 3-4 times longer.
+    if (AreArceusFormulasEnabled())
+        return (100 + userFinalAttack + 15 * level) * power / (targetFinalDefense + 50) / 5;
     return power * userFinalAttack * (2 * level / 5 + 2) / targetFinalDefense / 50 + 2;
+}
+
+// ARCEUS FORMULAS: STAB is 1.25 instead of 1.5. Arceus has no abilities or
+// Tera, so the other STAB values (Adaptability 2.0, Tera) keep their order by
+// halving the bonus above 1: 1.5 -> 1.25, 2.0 -> 1.5, 2.25 -> 1.625.
+static inline uq4_12_t ArceusStabModifier(uq4_12_t modifier)
+{
+    if (!AreArceusFormulasEnabled() || modifier <= UQ_4_12(1.0))
+        return modifier;
+    return UQ_4_12(1.0) + (modifier - UQ_4_12(1.0)) / 2;
+}
+
+// ARCEUS FORMULAS: a double weakness is 2.5 instead of 4 and a double
+// resistance 0.4 instead of 0.25 (triple ones too, e.g. Forest's Curse).
+// Only the damage uses this: messages, Expert Belt and the AI's "super
+// effective" checks still read the real effectiveness.
+static inline uq4_12_t ArceusTypeModifier(uq4_12_t modifier)
+{
+    if (!AreArceusFormulasEnabled())
+        return modifier;
+    if (modifier >= UQ_4_12(4.0))
+        return UQ_4_12(2.5);
+    if (modifier != UQ_4_12(0.0) && modifier <= UQ_4_12(0.25))
+        return UQ_4_12(0.4);
+    return modifier;
 }
 
 static inline uq4_12_t GetTargetDamageModifier(struct BattleContext *ctx)
@@ -7796,10 +7828,10 @@ static inline s32 DoMoveDamageCalcVars(struct BattleContext *ctx)
 s32 ApplyModifiersAfterDmgRoll(struct BattleContext *ctx, s32 dmg)
 {
     if (GetActiveGimmick(ctx->battlerAtk) == GIMMICK_TERA)
-        DAMAGE_APPLY_MODIFIER(GetTeraMultiplier(ctx));
+        DAMAGE_APPLY_MODIFIER(ArceusStabModifier(GetTeraMultiplier(ctx)));
     else
-        DAMAGE_APPLY_MODIFIER(GetSameTypeAttackBonusModifier(ctx));
-    DAMAGE_APPLY_MODIFIER(ctx->typeEffectivenessModifier);
+        DAMAGE_APPLY_MODIFIER(ArceusStabModifier(GetSameTypeAttackBonusModifier(ctx)));
+    DAMAGE_APPLY_MODIFIER(ArceusTypeModifier(ctx->typeEffectivenessModifier));
     DAMAGE_APPLY_MODIFIER(GetBurnOrFrostBiteModifier(ctx));
     DAMAGE_APPLY_MODIFIER(GetZMaxMoveAgainstProtectionModifier(ctx));
     DAMAGE_APPLY_MODIFIER(GetOtherModifiers(ctx));
@@ -7937,10 +7969,10 @@ static inline s32 DoFutureSightAttackDamageCalcVars(struct BattleContext *ctx)
 
     // Same type attack bonus
     if (GetSpeciesType(partyMonSpecies, 0) == moveType || GetSpeciesType(partyMonSpecies, 1) == moveType)
-        DAMAGE_APPLY_MODIFIER(UQ_4_12(1.5));
+        DAMAGE_APPLY_MODIFIER(ArceusStabModifier(UQ_4_12(1.5)));
     else
         DAMAGE_APPLY_MODIFIER(UQ_4_12(1.0));
-    DAMAGE_APPLY_MODIFIER(ctx->typeEffectivenessModifier);
+    DAMAGE_APPLY_MODIFIER(ArceusTypeModifier(ctx->typeEffectivenessModifier));
 
     if (dmg == 0)
         dmg = 1;
