@@ -206,7 +206,7 @@ Una fase per sessione (`/next-phase overworld-catch`).
 ### 5.7 Fase 7, com'è stata fatta (20/11)
 
 - Ricorda mosse uovo/tutor a pagamento: Egg Move Master a Blackthorn,
-  Tutor Move Master a Olivine (House3: posto da confermare con l'utente).
+  Tutor Move Master a Olivine (House3, confermato dall'utente il 21/11).
 
 ### 5.8 Fase 8, com'è stata fatta (20/11)
 
@@ -267,9 +267,10 @@ Una fase per sessione (`/next-phase overworld-catch`).
   `DoMoveDamageCalcVars` quando `ctx->randomFactor` (potenza, A e D grezzi e
   finali, base, tiro, danno); il client RAM e il riferimento Python vanno
   riscritti a ogni container (`docs/claude/emulator.md`).
-- Ancora da chiedere all'utente: dalla fase 9 il passo lento con B nella
-  ricerca DexNav a cattura spenta e il Mart di Cherrygrove; dalla fase 7 il
-  posto del Tutor Move Master.
+- Confermato dall'utente (21/11): nella ricerca DexNav B resta il passo lento
+  anche a cattura spenta; il Mart di Cherrygrove vende le Ball solo dopo il
+  rifornimento della storia; Tutor Move Master in House3 di Olivine. Nessuna
+  domanda aperta fuori dagli alfa: punto di release 2.0.6.PLUS.12.
 
 ## 6. Scartato, e perché
 
