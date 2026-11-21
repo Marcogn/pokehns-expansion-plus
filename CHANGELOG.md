@@ -19,7 +19,7 @@ add the section before releasing. Feature details live in the tables of
   and the Pokémon is yours without a battle: a banner at the top says so,
   with a short sound, while the game goes on. Catches in a row pile up like
   notes, up to three: the newest lies on top, the older ones peek out under
-  it by their bottom edge, and they go from the bottom of the pile, each
+  it, a strip of paper and its edge each, and they go from the bottom of the pile, each
   about three seconds after it came or to make room for a newer one, and they clear when a message or a
   menu opens. No nickname is asked (the Name Rater renames), except with the
   Nuzlocke's compulsory nicknames, asked once the volley is over. If the
@@ -36,8 +36,9 @@ add the section before releasing. Feature details live in the tables of
     or the edge of a raised platform it hits it and drops. A Ball lying on
     the ground cannot be walked over. It flies over ledges and over a Pokémon on
     another level. Water and the shore count as one level: you can throw
-    from the shore at a Pokémon in the water and from Surf at one on land. With your
-    follower right in front nothing is thrown.
+    from the shore at a Pokémon in the water and from Surf at one on land. A follower
+    on the line goes back into its Ball as you throw (the Ball flies over
+    it) and comes out again at your next step.
   - While a Ball is out (about four seconds at most) the Start menu does
     not open, and a Pokémon inside a Ball cannot be walked into. A battle
     that starts meanwhile ends the shaking first: a Pokémon still inside

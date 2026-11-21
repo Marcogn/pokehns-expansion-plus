@@ -1229,6 +1229,17 @@ con le statistiche di Arceus vale un'altra cosa.
   catture distavano ~1,2 s; stesso ciclo di `DrawPileEdges`. Trappola: con
   `ScheduleBgCopyTilemapToVram` i bordi non comparivano, serve
   `CopyBgTilemapBufferToVram`.
+- **Foglietti con la carta e follower** (utente, 21/11): dei foglietti sotto
+  si vedeva solo il bordo (2 px di carta su 5 di cornice: "trasparenti");
+  ora ognuno spunta di due righe, una di carta (lati 3/5 e riempimento 4
+  della cornice, colore 14 che segue il tema) e il bordo. Tutte le 20
+  cornici del gioco hanno il centro pieno (letto dai `.png`). Provato: tre
+  foglietti insieme, ognuno con la sua striscia bianca. **Follower sulla
+  linea** (sostituisce "verso il follower non parte" di D16): saltato dal
+  bersaglio e rimandato nella Ball con la stessa animazione di quando va
+  nascosto (`SendFollowerIntoPokeball`); provato: Bulbasaur davanti, R, rientra
+  e la Ball parte; al primo passo esce e torna a seguire. Non provato col
+  tema scuro.
 - (Versione precedente, colonna col nuovo in cima) Geodude, Geodude,
   Rattata presi (×11 → ×8); Rattata compare in cima e spinge giù il Geodude
   rimasto, che poi sparisce dal basso mentre Rattata resta fermo.

@@ -74,11 +74,10 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   torna. **Esito deciso in `ResolveImpact`** (D15), il resto è animazione.
   Timer fermi a controlli bloccati. **Start bloccato finché un record non è
   libero** (`OverworldCatch_IsBallOut`), in silenzio.
-- **Bersaglio**: prima cosa sulla linea entro 5; follower davanti: niente
-  lancio. Collisione, dislivello e oggetti visibili non-OWE fermano la Ball;
-  un oggetto su un altro livello è saltato. **Acqua (1) = terreno (3)**
-  (`GetThrowLevel`). **Niente inseguimento**: colpito se all'arrivo
-  `currentCoords` è `targetX/Y` (niente `y2`).
+- **Bersaglio**: prima cosa sulla linea entro 5; il follower è saltato e
+  rientra nella Ball (`SendFollowerIntoPokeball`). Muri, dislivelli, oggetti
+  non-OWE fermano la Ball. **Acqua (1) = terreno (3)** (`GetThrowLevel`).
+  Colpito se all'arrivo `currentCoords` è `targetX/Y` (niente `y2`).
 - **Sprite**: **mai un assert**: senza sprite il volo prosegue invisibile e
   `FinishThrow` chiude all'impatto. `IsBallSpriteValid` (callback + indice +
   magic) copre i campi ricostruiti (menu, warp).
@@ -108,13 +107,12 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   la borsa deve averne più di quelle in volo (`CountFlyingBalls`).
 - **Ball a terra = ostacolo** (`OverworldCatch_IsBallOnGroundAt` in
   `GetVanillaCollision`): casella `landX/Y`, da `OPENING` a fine record.
-- **Banner senza script, a foglietti** (20-21/11): una finestra (il più
-  nuovo, tile BG0 da 92: la finestra DexNav usa 8-91) e sotto i bordi dei
-  vecchi, tile 6/7/8 della cornice scritti nel tilemap (`DrawPileEdges`) e
-  copiati con `CopyBgTilemapBufferToVram`. Max 3, 180 frame ciascuno, esce
-  il più vecchio. `pileUp` come `panelUp` (EWRAM a zero = finestra 0). Il
-  popup del nome mappa scorre BG0: li cancella. In ricerca DexNav la pila
-  scende (riga 6). Soprannome solo con la Nuzlocke.
+- **Banner a foglietti, senza script** (20-21/11): una finestra (il più
+  nuovo, tile BG0 da 92; DexNav 8-91) e sotto i vecchi, 2 righe ciascuno
+  (cornice 3/4/5 e 6/7/8: il solo bordo sembrava trasparente) nel tilemap,
+  con `CopyBgTilemapBufferToVram`. Max 3, 180 frame, esce il più vecchio.
+  `pileUp` come `panelUp`. Il popup del nome mappa (scorre BG0) li cancella;
+  in ricerca DexNav la pila scende. Soprannome solo con la Nuzlocke.
 - **Pokémon lanciato**: `gOverworldThrowLeadSlot` (azzerato da
   `SetBattlePartyIds` e a controlli liberi). Roamer e sciami: lotta. Spento
   in Safari, Gara, Pike, Piramide, Trainer Hill.

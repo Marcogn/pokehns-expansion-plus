@@ -106,7 +106,6 @@ enum ThrowTarget
 {
     THROW_TARGET_NONE,      // nothing on the line: the Ball flies the whole range and falls
     THROW_TARGET_BLOCKED,   // a wall, an NPC, a sign: the Ball hits it and falls (D16)
-    THROW_TARGET_FOLLOWER,  // the follower is in the way: nothing is thrown (D16)
     THROW_TARGET_OWE,
 };
 
@@ -433,8 +432,12 @@ bool32 OverworldCatch_AreLevelsApart(u32 a, u32 b)
 // stop it: it has no collision bit, so a Pokémon swimming next to the shore
 // can be hit. *distance is where the Ball ends: the Pokémon's tile, the tile
 // it hits, or the full range.
+// Set by FindThrowTarget: the follower stands on the line of the throw.
+static bool8 sFollowerOnLine;
+
 static enum ThrowTarget FindThrowTarget(u32 *objectEventId, u32 *distance)
 {
+    sFollowerOnLine = FALSE;
     struct ObjectEvent *player = &gObjectEvents[gPlayerAvatar.objectEventId];
     s16 x = player->currentCoords.x;
     s16 y = player->currentCoords.y;
@@ -467,8 +470,16 @@ static enum ThrowTarget FindThrowTarget(u32 *objectEventId, u32 *distance)
             if (OverworldCatch_AreLevelsApart(player->currentElevation, object->currentElevation))
                 continue;
 
+            // The following Pokémon goes back into its Ball when a Ball is
+            // thrown (user, 21/11; it used to stop the throw): the line goes
+            // on past it.
+            if (object->localId == OBJ_EVENT_ID_FOLLOWER)
+            {
+                sFollowerOnLine = TRUE;
+                continue;
+            }
             if (!IsOverworldWildEncounter(object, OWE_GENERATED))
-                return (object->localId == OBJ_EVENT_ID_FOLLOWER) ? THROW_TARGET_FOLLOWER : THROW_TARGET_BLOCKED;
+                return THROW_TARGET_BLOCKED;
 
             // Between the impact and the beam it is still there to the eye,
             // but already decided: the Ball hits it and drops, as on a wall.
@@ -770,8 +781,6 @@ bool32 OverworldCatch_TryThrow(void)
         return FALSE;
 
     target = FindThrowTarget(&objectEventId, &distance);
-    if (target == THROW_TARGET_FOLLOWER)
-        return FALSE;
     if (target == THROW_TARGET_OWE)
         owe = &gObjectEvents[objectEventId];
 
@@ -888,6 +897,9 @@ bool32 OverworldCatch_TryThrow(void)
 
         sCatch.cooldown = THROW_COOLDOWN;
         sCatch.panelTimer = PANEL_SHOW_FRAMES;
+        // The Ball flies over the follower while it goes back into its own.
+        if (sFollowerOnLine)
+            SendFollowerIntoPokeball();
         StartThrowPose();
         PlaySE(SE_BALL_THROW);
         break;
@@ -1596,6 +1608,7 @@ bool32 OverworldCatch_TryStartResults(void)
 #define BANNER_TILE_BASE    92
 #define BANNER_FRAME_TILE   0x214
 #define BANNER_FRAME_PAL    14
+#define PILE_ROWS_PER_NOTE  2   // rows each note under the top one sticks out by
 
 static u32 GetBannerTopRow(void)
 {
@@ -1641,7 +1654,7 @@ static void ErasePile(void)
     }
     if (sCatch.bannerEdges != 0)
     {
-        FillBgTilemapBufferRect(0, 0, 0, sCatch.bannerRow + 4, 30, sCatch.bannerEdges, 0);
+        FillBgTilemapBufferRect(0, 0, 0, sCatch.bannerRow + 4, 30, PILE_ROWS_PER_NOTE * sCatch.bannerEdges, 0);
         CopyBgTilemapBufferToVram(0);
         sCatch.bannerEdges = 0;
     }
@@ -1710,18 +1723,23 @@ static void DrawTopNote(const struct CatchBanner *banner, u32 row)
     CopyWindowToVram(windowId, COPYWIN_FULL);
 }
 
-// The bottom edges of the notes under the top one: the frame's bottom-left,
-// bottom and bottom-right tiles (6, 7, 8 of the standard frame), one row
-// lower and one tile narrower on each side per note.
+// The notes under the top one, each sticking out by two tile rows and one
+// tile narrower on each side: a row of paper (the frame's sides 3 and 5 and
+// its fill, tile 4, the theme's colour 14) and its bottom edge (6, 7, 8).
+// The bottom edge alone showed 2 px of paper over 5 of border: the notes
+// below looked see-through (user, 21/11).
 static void DrawPileEdges(u32 row, u32 count)
 {
     for (u32 k = 1; k <= count; k++)
     {
-        u32 y = row + 3 + k;
+        u32 y = row + 4 + PILE_ROWS_PER_NOTE * (k - 1);
 
-        FillBgTilemapBufferRect(0, BANNER_FRAME_TILE + 6, k, y, 1, 1, BANNER_FRAME_PAL);
-        FillBgTilemapBufferRect(0, BANNER_FRAME_TILE + 7, k + 1, y, 28 - 2 * k, 1, BANNER_FRAME_PAL);
-        FillBgTilemapBufferRect(0, BANNER_FRAME_TILE + 8, 29 - k, y, 1, 1, BANNER_FRAME_PAL);
+        FillBgTilemapBufferRect(0, BANNER_FRAME_TILE + 3, k, y, 1, 1, BANNER_FRAME_PAL);
+        FillBgTilemapBufferRect(0, BANNER_FRAME_TILE + 4, k + 1, y, 28 - 2 * k, 1, BANNER_FRAME_PAL);
+        FillBgTilemapBufferRect(0, BANNER_FRAME_TILE + 5, 29 - k, y, 1, 1, BANNER_FRAME_PAL);
+        FillBgTilemapBufferRect(0, BANNER_FRAME_TILE + 6, k, y + 1, 1, 1, BANNER_FRAME_PAL);
+        FillBgTilemapBufferRect(0, BANNER_FRAME_TILE + 7, k + 1, y + 1, 28 - 2 * k, 1, BANNER_FRAME_PAL);
+        FillBgTilemapBufferRect(0, BANNER_FRAME_TILE + 8, 29 - k, y + 1, 1, 1, BANNER_FRAME_PAL);
     }
     sCatch.bannerEdges = count;
     CopyBgTilemapBufferToVram(0);
@@ -1742,7 +1760,7 @@ static void RedrawPile(bool32 topChanged)
     }
     else if (sCatch.bannerEdges != 0)
     {
-        FillBgTilemapBufferRect(0, 0, 0, row + 4, 30, sCatch.bannerEdges, 0);
+        FillBgTilemapBufferRect(0, 0, 0, row + 4, 30, PILE_ROWS_PER_NOTE * sCatch.bannerEdges, 0);
         sCatch.bannerEdges = 0;
     }
     if (sCatch.pileUp && sCatch.numBanners > 1)

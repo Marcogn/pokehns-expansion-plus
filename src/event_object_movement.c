@@ -6221,6 +6221,26 @@ bool8 MovementType_FollowPlayer_Active(struct ObjectEvent *objectEvent, struct S
     return gFollowPlayerMovementFuncs[PlayerGetCopyableMovement()](objectEvent, sprite, GetPlayerMovementDirection(), NULL);
 }
 
+// Hasep (overworld catch): the follower goes back into its Ball, as when it
+// may not be seen (MovementType_FollowPlayer_Active), when a thrown Ball
+// would hit it. It then waits on the player's tile, unseen, and comes out at
+// the player's next step. FALSE if it is not out.
+bool32 SendFollowerIntoPokeball(void)
+{
+    struct ObjectEvent *objectEvent = GetFollowerObject();
+    struct Sprite *sprite;
+
+    if (objectEvent == NULL || objectEvent->invisible
+     || objectEvent->movementActionId == MOVEMENT_ACTION_ENTER_POKEBALL)
+        return FALSE;
+    sprite = &gSprites[objectEvent->spriteId];
+    ClearObjectEventMovement(objectEvent, sprite);
+    ObjectEventSetSingleMovement(objectEvent, sprite, MOVEMENT_ACTION_ENTER_POKEBALL);
+    objectEvent->singleMovementActive = TRUE;
+    sprite->sTypeFuncId = 2; // movement action sets state to 0
+    return TRUE;
+}
+
 bool8 MovementType_FollowPlayer_Moving(struct ObjectEvent *objectEvent, struct Sprite *sprite)
 {
     // Copied from ObjectEventExecSingleMovementAction
