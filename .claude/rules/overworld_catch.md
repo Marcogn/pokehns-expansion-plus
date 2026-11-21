@@ -78,9 +78,8 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   rientra nella Ball (`SendFollowerIntoPokeball`). Muri, dislivelli, oggetti
   non-OWE fermano la Ball. **Acqua (1) = terreno (3)** (`GetThrowLevel`).
   Colpito se all'arrivo `currentCoords` è `targetX/Y` (niente `y2`).
-- **Sprite**: **mai un assert**: senza sprite il volo prosegue invisibile e
-  `FinishThrow` chiude all'impatto. `IsBallSpriteValid` (callback + indice +
-  magic) copre i campi ricostruiti (menu, warp).
+- **Sprite**: **mai un assert**: senza sprite il volo prosegue invisibile.
+  `IsBallSpriteValid` copre i campi ricostruiti (menu, warp).
 - **Pokémon nella Ball** (dall'impatto, `holdsOWE`): congelato e, dal raggio,
   `invisible`, **riasserito a ogni frame** (`KeepOWEInBall`): il `release` di
   uno script scongela tutti. Ha il flag "non sparire" (`HoldOWEForThrow`,
