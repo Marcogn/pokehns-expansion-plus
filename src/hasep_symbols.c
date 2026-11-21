@@ -192,11 +192,19 @@ HASEP_EXPORT_VALUE(REPEL_LURE_MASK, "REPEL_LURE_MASK", REPEL_LURE_MASK);
 // What the game draws as shiny (MON_DATA_IS_SHINY): Hasep's challenge setting changes the odds, not this.
 HASEP_EXPORT_VALUE(SHINY_ODDS, "SHINY_ODDS", SHINY_ODDS);
 
+// ARCEUS FORMULAS (from PLUS.12): with the option on, CalculateMonStats is not the classic formula, and the app
+// works out the PC boxes' stats itself (the party's it reads from RAM). The mode, live: *gSaveBlock3Ptr +
+// SAVEBLOCK3_EXTRA_OPTIONS_OFFSET, bit ARCEUS_FORMULAS_MASK (0 = off); the fork then uses its port of the formula.
+HASEP_EXPORT(gSaveBlock3Ptr);
+HASEP_EXPORT_VALUE(SAVEBLOCK3_EXTRA_OPTIONS_OFFSET, "SAVEBLOCK3_EXTRA_OPTIONS_OFFSET", offsetof(struct SaveBlock3, extraOptions));
+HASEP_EXPORT_VALUE(ARCEUS_FORMULAS_MASK, "ARCEUS_FORMULAS_MASK", 1);
+
 // The layouts the app reads, as Heart and Soul 2.0.6 has them (measured on
 // both builds). A change here means the app reads garbage: bump
 // HASEP_SYMBOLS_LAYOUT_VERSION and update the app with the new values.
 STATIC_ASSERT(HASEP_SYMBOLS_LAYOUT_VERSION == 1, HasepLayoutVersionMatchesTheAssertsBelow);
 STATIC_ASSERT(sizeof(struct Pokemon) == 0x64, HasepLayoutPokemon);
+STATIC_ASSERT(offsetof(struct SaveBlock3, extraOptions) == 0x60, HasepLayoutExtraOptions); // ARCEUS_FORMULAS_MASK is its bit 0
 STATIC_ASSERT(sizeof(struct BattlePokemon) == 0x88, HasepLayoutBattlePokemon);
 STATIC_ASSERT(offsetof(struct BattlePokemon, ability) == 0x20, HasepLayoutBattlePokemonAbility);
 STATIC_ASSERT(offsetof(struct BattlePokemon, hp) == 0x2A, HasepLayoutBattlePokemonHp);

@@ -70,7 +70,9 @@ add the section before releasing. Feature details live in the tables of
   and the heal locations). With the fork's 1.6.0.1 you can take off from the
   MAP tab and fly over the map, fly to a town the scenic way and fly in a
   balloon, a helicopter, a zeppelin or a plane (`FLY ON`). Nothing changes
-  in game.
+  in game. The table also says where `ARCEUS FORMULAS` is stored, so the
+  fork's PC view can show the stats that option gives (PokeDaisy Hasep
+  1.6.1.2).
 
 ### Changed
 - **Options and Challenges menus reorganised.** The options menu has four
