@@ -1,5 +1,6 @@
 #include "global.h"
 #include "item.h"
+#include "option_menu.h"
 #include "berry.h"
 #include "pokeball.h"
 #include "string_util.h"
@@ -867,8 +868,47 @@ u32 GetItemHoldEffectParam(enum Item itemId)
     return gItemsInfo[SanitizeItemId(itemId)].holdEffectParam;
 }
 
+// ARCEUS FORMULAS: the Arceus stats more than double every HP total, so the
+// potions heal what they heal in Legends: Arceus (Serebii, Bulbapedia) instead
+// of their fixed 20/60/120. Max Potion already heals everything; the other
+// fixed-HP items (drinks, berries) have no Arceus value and stay as they are.
+u32 GetArceusPotionHealAmount(enum Item itemId, u32 amount)
+{
+    if (!AreArceusFormulasEnabled())
+        return amount;
+    switch (itemId)
+    {
+    case ITEM_POTION:
+        return 60;
+    case ITEM_SUPER_POTION:
+        return 100;
+    case ITEM_HYPER_POTION:
+        return 150;
+    default:
+        return amount;
+    }
+}
+
+static const u8 sText_ArceusPotionDesc[] = _("Restores the HP of\na Pokémon by\n60 points.");
+static const u8 sText_ArceusSuperPotionDesc[] = _("Restores the HP of\na Pokémon by\n100 points.");
+static const u8 sText_ArceusHyperPotionDesc[] = _("Restores the HP of\na Pokémon by\n150 points.");
+
 const u8 *GetItemDescription(enum Item itemId)
 {
+    if (AreArceusFormulasEnabled())
+    {
+        switch (itemId)
+        {
+        case ITEM_POTION:
+            return sText_ArceusPotionDesc;
+        case ITEM_SUPER_POTION:
+            return sText_ArceusSuperPotionDesc;
+        case ITEM_HYPER_POTION:
+            return sText_ArceusHyperPotionDesc;
+        default:
+            break;
+        }
+    }
     return gItemsInfo[SanitizeItemId(itemId)].description;
 }
 

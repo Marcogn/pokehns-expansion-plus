@@ -141,6 +141,12 @@ pesano come nella classica, come AtkMod/DefMod di Arceus; deciso il 21/11).
 STAB 1,25 (Adattabilità 1,5, utente 21/11), doppia debolezza ×2,5, doppia
 resistenza ×0,4; brutto colpo, meteo, scottatura del gioco.
 
+**Inizio gioco** (utente, 21/11): le pozioni curano come in Arceus (Pozione
+60, Superpozione 100, Iperpozione 150; Serebii e Bulbapedia), perché i PS
+sono più che raddoppiati; il danno dei Pokémon **selvatici** è ×0,6 / 0,75 /
+0,9 con 0 / 1 / 2 medaglie di Johto, pieno dalla terza (allenatori e
+giocatore mai).
+
 ## 4. Spazio
 
 ROM 95,13% dopo la fase 11 (errore CI al 99,5%); SaveBlock3 96 B su 116;
@@ -244,8 +250,13 @@ Una fase per sessione (`/next-phase overworld-catch`).
 
   Le lotte si accorciano dalle due parti; all'inizio pesano soprattutto i
   colpi subiti (la Difesa conta poco, `D + 50`, il livello molto, `15 × L`).
-  Bilanciamento dei selvatici di inizio gioco: **in discussione con
-  l'utente** (21/11).
+- **Inizio gioco** (§3, utente 21/11): pozioni di Arceus e selvatici ridotti
+  fino alla terza medaglia. Con la riduzione Pidgey → Cyndaquil va da 3-4 a
+  5-6 colpi, Rattata → Chikorita da 3-4 a 5-6; una Pozione su Cyndaquil Lv 6
+  (49 PS) lo cura di nuovo tutto (prima 20). Verificato in mGBA:
+  descrizioni 60/100/150 in borsa, Pozione +60 fuori e dentro la lotta (+20 a
+  opzione spenta), colpo selvatico con 0 medaglie ×0,6 (Fury Attack 11 → 7 →
+  6), allenatore con 0 medaglie e giocatore ×1.
 
 **Handoff per la fase 12 (Opus 5.5)**
 - La fase 12 non tocca le formule. Con l'opzione accesa un alfa (+10

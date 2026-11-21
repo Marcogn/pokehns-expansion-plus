@@ -127,6 +127,11 @@ add the section before releasing. Feature details live in the tables of
     too. Whatever raises or lowers Attack or Defense (stat stages, Huge
     Power, Choice Band, badge boosts) multiplies the damage, as Arceus does
     with its stat boosts: Swords Dance still doubles your hits.
+  - **Early game**: with the bigger HP totals the potions heal what they
+    heal in Legends: Arceus (Potion 60, Super Potion 100, Hyper Potion 150;
+    the bag says so), and wild Pokémon hit softer until your third Johto
+    badge (×0.6 with no badges, ×0.75 with one, ×0.9 with two). Trainers'
+    Pokémon and yours are not affected.
 - Save version 15: an existing save loads with every setting as it was and
   `OVERWORLD CATCH` ON. A bit left over from the old TRAINER CATCH option,
   set in some saves, is cleared on the way.

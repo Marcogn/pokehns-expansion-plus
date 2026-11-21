@@ -3,6 +3,8 @@ paths:
   - "src/pokemon.c"
   - "src/battle_script_commands.c"
   - "src/battle_util.c"
+  - "src/item.c"
+  - "src/battle_ai_items.c"
   - "src/overworld_catch.c"
   - "src/option_menu.c"
 ---
@@ -105,3 +107,20 @@ Trappole e fatti:
   grezzi, danno). Prove del 21/11 nel diario (`overworld-catch-history.md`).
 - **Lotte in link** con l'opzione diversa sui due GBA: statistiche e danno
   divergono. Non gestito.
+
+## Inizio gioco: cure e selvatici (fase 11c, utente 21/11)
+
+- **Pozioni come in Arceus** (Serebii, Bulbapedia): Pozione 60, Superpozione
+  100, Iperpozione 150 (Pozione Max già piena). `GetArceusPotionHealAmount`
+  (`src/item.c`) sostituisce l'importo fisso nei **tre** punti che lo
+  calcolano: `ExecuteTableBasedItemEffect` (`pokemon.c`, menu e lotta del
+  giocatore), `BS_ItemRestoreHP` (`battle_script_commands.c`) e la stima
+  dell'IA (`battle_ai_items.c`). Le descrizioni in borsa cambiano in
+  `GetItemDescription` (stringhe `static const`: un `COMPOUND_STRING`
+  restituito da una funzione è un indirizzo locale, `-Werror`). Bevande e
+  bacche restano: Arceus non le ha.
+- **Selvatici ridotti** (`GetArceusEarlyWildDamageModifier`, dopo i
+  rapporti): ×0,6 / 0,75 / 0,9 con 0 / 1 / 2 medaglie di Johto, pieno dalla
+  terza; solo lotte senza `BATTLE_TYPE_TRAINER` e attaccante del lato
+  avversario. Allenatori e giocatore mai. Medaglie: `FLAG_BADGE01..08_GET`
+  (in HnS `NUM_BADGES` è 16).

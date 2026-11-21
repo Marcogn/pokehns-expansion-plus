@@ -7811,6 +7811,31 @@ static inline uq4_12_t GetOtherModifiers(struct BattleContext *ctx)
     dmg = uq4_12_multiply_by_int_half_down(modifier, dmg); \
 } while (0)
 
+// ARCEUS FORMULAS: early on the Arceus damage lets a wild Pokémon a couple of
+// levels below yours knock it out in 3-4 hits (7-11 with the classic one).
+// Until the third Johto badge a wild Pokémon's hits are scaled down; trainers
+// and your own Pokémon are not touched (user, 21/11).
+static inline uq4_12_t GetArceusEarlyWildDamageModifier(struct BattleContext *ctx)
+{
+    static const uq4_12_t sModifierByBadges[] = { UQ_4_12(0.6), UQ_4_12(0.75), UQ_4_12(0.9) };
+    u32 badges = 0;
+
+    if (!AreArceusFormulasEnabled()
+     || (gBattleTypeFlags & BATTLE_TYPE_TRAINER)
+     || IsOnPlayerSide(ctx->battlerAtk))
+        return UQ_4_12(1.0);
+
+    // Johto badges only: Kanto's come after the eighth (NUM_BADGES is 16).
+    for (u32 flag = FLAG_BADGE01_GET; flag <= FLAG_BADGE08_GET; flag++)
+    {
+        if (FlagGet(flag))
+            badges++;
+    }
+    if (badges >= ARRAY_COUNT(sModifierByBadges))
+        return UQ_4_12(1.0);
+    return sModifierByBadges[badges];
+}
+
 static inline s32 DoMoveDamageCalcVars(struct BattleContext *ctx)
 {
     s32 dmg;
@@ -7829,6 +7854,7 @@ static inline s32 DoMoveDamageCalcVars(struct BattleContext *ctx)
     {
         dmg = CalculateBaseDamage(gBattleMovePower, sArceusRawAtkStat, gBattleMons[ctx->battlerAtk].level, sArceusRawDefStat);
         dmg = ApplyArceusStatRatio(dmg, userFinalAttack, sArceusRawAtkStat, targetFinalDefense, sArceusRawDefStat);
+        DAMAGE_APPLY_MODIFIER(GetArceusEarlyWildDamageModifier(ctx));
     }
     else
     {

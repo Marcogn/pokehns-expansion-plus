@@ -1267,3 +1267,23 @@ segno alfa per il riassunto. Nessun campo nuovo in SaveBlock3.
 - La tabella dei colpi per KO della §5.11 non cambia (senza modificatori
   grezzo = finale). ROM 95,13% (+224 B). **Adattabilità ×1,5** confermata
   dall'utente.
+
+### 5.11c Fase 11c, cure e selvatici di inizio gioco (21/11)
+
+- **Perché**: con le statistiche di Arceus i PS sono più che raddoppiati
+  (Cyndaquil Lv 6: 21 → 49) e la Pozione curava sempre 20 (dal 95% al 41% dei
+  PS); un Pidgey Lv 4 metteva KO Cyndaquil in 3-4 colpi (classica 7-11).
+  Scelta dell'utente: pozioni di Arceus **e** selvatici ridotti (variante C).
+- **Fatto**: `GetArceusPotionHealAmount` nei tre punti delle cure e
+  descrizioni in borsa; `GetArceusEarlyWildDamageModifier` ×0,6/0,75/0,9 per
+  0/1/2 medaglie di Johto (regola `arceus.md`).
+- **Verificato** in mGBA (ROM con la sonda del danno, tolta), `.sav`
+  dell'utente con le medaglie azzerate in RAM (`gSaveBlock1Ptr` + 0x1A9C):
+  - descrizioni in borsa: 60, 100, 150 punti;
+  - Pozione fuori dalla lotta su Quilava 10/145: **70**, messaggio "restored
+    by 60"; a opzione spenta **30** (+20);
+  - Pozione in lotta (Quilava 30 → 90, poi 4 Fury Attack da 6 → 66);
+  - Fury Attack di Skarmory selvatico, 0 medaglie: base Arceus 11, ×0,6 → 7,
+    tiro 95 → **6**; colpo di Quilava nella stessa lotta ×1;
+  - POKéMANIAC BRENT (allenatore), 0 medaglie: Wrap ×1 (12).
+- ROM 95,13%.
