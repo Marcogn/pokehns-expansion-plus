@@ -40,7 +40,6 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   Surf) qualunque sia AUTORUN. **A non fa più il creeping.** Va provato
   **prima** del blocco della corsa, che fa sempre `return` con AUTORUN acceso.
 - Il salto da una sporgenza spegne `creeping` (se no il salto era muto).
-- In Surf: velocità uguali, udito da camminata.
 - `PLAYER_AVATAR_FLAG_DASH` resta acceso per tutto il passo di corsa
   (`npc_clear_strange_bits` lo spegne solo fra due passi).
 
