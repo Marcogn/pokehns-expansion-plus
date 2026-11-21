@@ -87,9 +87,8 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   rimesso com'era all'uscita): un ricambio riuserebbe slot e `localId`. Non è
   bersaglio né contatto; **una seconda Ball verso di lui è un lancio a
   vuoto** (se no veniva dato due volte).
-- **Lotta che parte** (`CreateBattleStartTask` e `_Debug` →
-  `OverworldCatch_OnBattleStart`): le Ball a terra finiscono prima della
-  transizione (chi è dentro esce), quelle in volo atterrano dopo, invisibili.
+- **Lotta che parte** (`OverworldCatch_OnBattleStart`): le Ball a terra
+  finiscono prima (chi è dentro esce), quelle in volo atterrano dopo.
 - **Posa**: tenuta da `DELAY_16`. `ObjectEventIsMovementOverridden` dà
   occupato anche un'azione finita e non tolta: `ClearHeldMovementIfFinished`
   prima di `ObjectEventSetHeldMovement`.
@@ -111,8 +110,11 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   nuovo, tile BG0 da 92; DexNav 8-91) e sotto i vecchi, 2 righe ciascuno
   (cornice 3/4/5 e 6/7/8: il solo bordo sembrava trasparente) nel tilemap,
   con `CopyBgTilemapBufferToVram`. Max 3, 180 frame, esce il più vecchio.
-  `pileUp` come `panelUp`. Il popup del nome mappa (scorre BG0) li cancella;
-  in ricerca DexNav la pila scende. Soprannome solo con la Nuzlocke.
+  `pileUp` come `panelUp`. Lotta, messaggio, menu o dissolvenza: nascosti
+  (`pileHidden`), poi ridisegnati. Il popup del nome mappa li cancella; in
+  ricerca DexNav la pila scende. **Pal 14 caricata da noi**
+  (`LoadCatchFrameGfx`): dopo il Continue resta quella del titolo. Soprannome
+  solo con la Nuzlocke.
 - **Pokémon lanciato**: `gOverworldThrowLeadSlot` (azzerato da
   `SetBattlePartyIds` e a controlli liberi). Roamer e sciami: lotta. Spento
   in Safari, Gara, Pike, Piramide, Trainer Hill.

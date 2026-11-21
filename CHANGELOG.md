@@ -42,7 +42,8 @@ add the section before releasing. Feature details live in the tables of
   - While a Ball is out (about four seconds at most) the Start menu does
     not open, and a Pokémon inside a Ball cannot be walked into. A battle
     that starts meanwhile ends the shaking first: a Pokémon still inside
-    comes out.
+    comes out, and the notes of what was caught wait and show up when you
+    are back on the map (also after a message or a menu).
   - You can keep throwing while Balls are in the air (about one every half
     second), as many as the Balls you have. A full party sends the Pokémon
     to the PC. A Ball that arrives at a

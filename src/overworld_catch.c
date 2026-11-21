@@ -34,6 +34,8 @@
 #include "strings.h"
 #include "task.h"
 #include "text.h"
+#include "text_window.h"
+#include "palette.h"
 #include "trainer_hill.h"
 #include "window.h"
 #include "wild_encounter_ow.h"
@@ -194,6 +196,7 @@ struct OverworldCatch
     u8 bannerRow;       // tile row of the top note's window
     u8 bannerEdges;     // edges drawn under it
     u8 pileUp:1;        // the fields above are valid (a zeroed EWRAM is window 0, sprite 0)
+    u8 pileHidden:1;    // notes kept but not drawn: a battle, a message or a menu is up
     u8 panelWindowId;   // valid only while panelUp (zeroed EWRAM is window 0)
     u8 panelUp:1;
     u8 panelTimer;      // frames the panel stays up after a change or a throw
@@ -400,6 +403,7 @@ bool32 OverworldCatch_HandleLButton(u16 newKeys, u16 heldKeys)
 static void FinishThrow(struct PendingThrow *throw);
 static void ShowCatchBanner(struct PendingThrow *throw);
 static void DismissCatchBanners(void);
+static void HideCatchBanners(void);
 static void UpdateBanners(void);
 
 // Water tiles are elevation 1 and the ground around them 3: for a throw the
@@ -1015,7 +1019,7 @@ static void FinishThrow(struct PendingThrow *throw)
 // which makes it a miss.
 void OverworldCatch_OnBattleStart(void)
 {
-    DismissCatchBanners();
+    HideCatchBanners();
     sCatch.battleStarting = TRUE;
     for (u32 i = 0; i < THROW_MAX_PENDING; i++)
     {
@@ -1395,6 +1399,23 @@ static const u8 sText_PanelNoMon[] = _("Nobody can fight");
 static const u8 sText_PanelBallLine[] = _("Ball");
 static const u8 sText_PanelMonLine[] = _("Pokémon");
 
+#define BANNER_FRAME_TILE   0x214
+#define BANNER_FRAME_PAL    14
+
+// The frame of the panel and of the catch notes: the player's choice, its
+// palette in 14, darkened with the theme. Loaded here, not taken as found:
+// after a save is loaded palette 14 holds whatever the title screen left
+// until a message or a menu loads the frame, and the panel and the notes
+// came out with a white border (user, 21/11). Not during a DexNav search,
+// whose window puts its own palette in 14 (LoadDexNavWindowGfx).
+static void LoadCatchFrameGfx(void)
+{
+    if (FlagGet(DN_FLAG_SEARCHING))
+        return;
+    LoadUserWindowBorderGfxOnBg(0, BANNER_FRAME_TILE, BG_PLTT_ID(BANNER_FRAME_PAL));
+    ApplyDarkUiWindowFramePalette(BG_PLTT_ID(BANNER_FRAME_PAL));
+}
+
 static void HidePanel(void)
 {
     if (!sCatch.panelUp)
@@ -1490,6 +1511,7 @@ static void UpdatePanel(void)
             if (sCatch.panelWindowId == WINDOW_NONE)
                 return;
             sCatch.panelUp = TRUE;
+            LoadCatchFrameGfx();
             PutWindowTilemap(sCatch.panelWindowId);
             SetStandardWindowBorderStyle(sCatch.panelWindowId, FALSE);
             DrawStdFrameWithCustomTileAndPalette(sCatch.panelWindowId, FALSE, 0x214, 14);
@@ -1606,8 +1628,6 @@ bool32 OverworldCatch_TryStartResults(void)
 #define BANNER_ICON_Y       16  // was 20: the icon's art sits low in its 32x32 frame (measured, 20/11)
 #define BANNER_TEXT_X       40
 #define BANNER_TILE_BASE    92
-#define BANNER_FRAME_TILE   0x214
-#define BANNER_FRAME_PAL    14
 #define PILE_ROWS_PER_NOTE  2   // rows each note under the top one sticks out by
 
 static u32 GetBannerTopRow(void)
@@ -1681,6 +1701,7 @@ static void DrawTopNote(const struct CatchBanner *banner, u32 row)
     windowId = sCatch.bannerWindowId = AddWindow(&template);
     if (windowId == WINDOW_NONE)
         return;
+    LoadCatchFrameGfx();
     FillWindowPixelBuffer(windowId, PIXEL_FILL(0));
     PutWindowTilemap(windowId);
     SetStandardWindowBorderStyle(windowId, FALSE);
@@ -1780,10 +1801,22 @@ static void DismissCatchBanners(void)
 {
     ErasePile();
     sCatch.numBanners = 0;
+    sCatch.pileHidden = FALSE;
+}
+
+// A battle, a message or a menu: the notes leave the screen but are kept,
+// and come back, each with its full time, once the player is free again. A
+// battle that starts while a Ball shakes used to drop them, and the player
+// never learnt what the Ball had caught (user, 21/11).
+static void HideCatchBanners(void)
+{
+    ErasePile();
+    if (sCatch.numBanners != 0)
+        sCatch.pileHidden = TRUE;
 }
 
 // Called from ShowMapNamePopup: the pop-up scrolls all of BG0 while it
-// slides.
+// slides. The notes were seen already: they go.
 void OverworldCatch_DismissBanners(void)
 {
     if (sCatch.numBanners != 0)
@@ -1797,12 +1830,6 @@ static void ShowCatchBanner(struct PendingThrow *throw)
     struct CatchBanner *banner;
 
     throw->bannerShown = TRUE;
-    // Over a message or a menu nothing is drawn; the Pokémon is in the party
-    // or the PC anyway.
-    if (ArePlayerFieldControlsLocked())
-        return;
-
-    HideMapNamePopUpWindow();
     while (sCatch.numBanners >= BANNER_MAX)
         RemoveOldestBanner();
     banner = &sCatch.banners[sCatch.numBanners++];
@@ -1810,6 +1837,17 @@ static void ShowCatchBanner(struct PendingThrow *throw)
     banner->personality = throw->caughtPersonality;
     banner->toParty = throw->caughtToParty;
     banner->timer = BANNER_SHOW_FRAMES;
+    // A battle starting (the Balls on the ground finish before it) or a
+    // message up: the note waits for the player to be free (UpdateBanners).
+    // A fade too: the frame's palette load would light it up early.
+    if (sCatch.battleStarting || ArePlayerFieldControlsLocked() || gPaletteFade.active)
+    {
+        HideCatchBanners();
+        return;
+    }
+
+    HideMapNamePopUpWindow();
+    sCatch.pileHidden = FALSE;
     RedrawPile(TRUE);
     PlaySE(SE_SUCCESS);
 }
@@ -1823,9 +1861,22 @@ static void UpdateBanners(void)
 
     if (sCatch.numBanners == 0)
         return;
-    if (ArePlayerFieldControlsLocked())
+    if (ArePlayerFieldControlsLocked() || gPaletteFade.active)
     {
-        DismissCatchBanners();
+        if (!sCatch.pileHidden)
+            HideCatchBanners();
+        return;
+    }
+    // Back from a battle or a menu: the notes come back, the oldest still
+    // first to go.
+    if (sCatch.pileHidden)
+    {
+        sCatch.pileHidden = FALSE;
+        for (u32 i = 0; i < sCatch.numBanners; i++)
+            sCatch.banners[i].timer = BANNER_SHOW_FRAMES + 30 * i;
+        HideMapNamePopUpWindow();
+        RedrawPile(TRUE);
+        PlaySE(SE_SUCCESS);
         return;
     }
     for (u32 i = 0; i < sCatch.numBanners; i++)

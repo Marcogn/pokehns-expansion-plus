@@ -1240,6 +1240,19 @@ con le statistiche di Arceus vale un'altra cosa.
   nascosto (`SendFollowerIntoPokeball`); provato: Bulbasaur davanti, R, rientra
   e la Ball parte; al primo passo esce e torna a seguire. Non provato col
   tema scuro.
+- **Lotta durante una cattura e bordo bianco col tema scuro** (utente,
+  21/11, col suo `.sav`: 6 medaglie, tema scuro, cornice n. 1): (1) una lotta
+  che partiva con una Ball a terra scartava il foglietto della cattura; ora
+  i foglietti si nascondono (lotta, messaggio, menu, dissolvenza) e tornano
+  con il tempo pieno. Provato: Ball su un Girafarig, un altro Girafarig mi
+  carica e parte la lotta; fuggito, compare "You caught GIRAFARIG! It was
+  sent to the PC." e sparisce da solo. (2) Il "bordo bianco" non era il
+  tema: dopo il Continue la palette 14 tiene i colori del titolo (entry 2
+  bianca, letta in RAM) finché un messaggio o un menu non carica la
+  cornice; pannello e foglietti ora la caricano da sé (non durante una
+  ricerca DexNav, che usa la 14). Provato: pannello subito dopo il
+  caricamento, uguale al menu Start. Una prima correzione sul tema scuro
+  globale (entry chiare della cornice scurite) è stata tolta: non era la causa.
 - (Versione precedente, colonna col nuovo in cima) Geodude, Geodude,
   Rattata presi (×11 → ×8); Rattata compare in cima e spinge giù il Geodude
   rimasto, che poi sparisce dal basso mentre Rattata resta fermo.
