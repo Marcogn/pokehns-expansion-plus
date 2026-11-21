@@ -1431,8 +1431,10 @@ static void Task_Save(u8 taskId)
     if (gSaveBlock3Ptr->extraOptions.arceusFormulas != *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_ARCEUS_FORMULAS))
     {
         gSaveBlock3Ptr->extraOptions.arceusFormulas = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_ARCEUS_FORMULAS);
-        // Every stat formula changed: the party follows now (phase 10).
+        // Every stat formula changed: the party follows now, and the HP
+        // lost of the Pokémon in the PC and the Day Care is rescaled (phase 10).
         RecalculatePartyStats();
+        ConvertStoredMonsHPForStatFormulaSwitch();
     }
 
     BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);

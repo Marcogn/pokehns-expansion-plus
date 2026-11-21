@@ -3897,18 +3897,36 @@ void CalculateMonStats(struct Pokemon *mon)
     SetMonData(mon, MON_DATA_HP, &currentHP);
 }
 
-// ARCEUS FORMULAS changes every stat at once: after a switch (option menu)
-// and at load the party is recomputed, each Pokémon keeping its share of HP
-// rather than CalculateMonStats' "add the HP gained" (a switch to the smaller
-// formula would leave a hurt Pokémon at full health). Fainted stays fainted;
-// status is untouched. The boxes need nothing: BoxMonToMon recomputes on
-// withdrawal from the HP lost.
+// ARCEUS FORMULAS changes every stat at once. Each Pokémon keeps its share
+// of HP rather than CalculateMonStats' "add the HP gained" (a switch to the
+// smaller formula would leave a hurt Pokémon at full health): to the nearest
+// point, so that switching back and forth does not wear HP away (50/104 ->
+// 69/145 -> 49/104 when truncated). Full stays full, hurt stays hurt,
+// fainted stays fainted.
+static u32 ScaleHPToNewMax(u32 hp, u32 oldMaxHP, u32 newMaxHP)
+{
+    if (hp == 0)
+        return 0;
+    if (hp >= oldMaxHP)
+        return newMaxHP;
+    hp = (hp * newMaxHP + oldMaxHP / 2) / oldMaxHP;
+    if (hp >= newMaxHP)
+        hp = newMaxHP - 1;
+    if (hp == 0)
+        hp = 1;
+    return hp;
+}
+
+// After a switch (option menu) and at load. Status is untouched. HP is
+// written back even for a fainted Pokémon: SetMonData(MON_DATA_HP) is what
+// refreshes the HP lost in the BoxPokemon half, which a deposit carries to
+// the PC.
 void RecalculatePartyStats(void)
 {
     for (u32 i = 0; i < PARTY_SIZE; i++)
     {
         struct Pokemon *mon = &gPlayerParty[i];
-        u32 oldMaxHP, hp, newMaxHP;
+        u32 oldMaxHP, hp;
 
         if (GetMonData(mon, MON_DATA_SPECIES) == SPECIES_NONE)
             continue;
@@ -3916,27 +3934,63 @@ void RecalculatePartyStats(void)
         oldMaxHP = GetMonData(mon, MON_DATA_MAX_HP);
         hp = GetMonData(mon, MON_DATA_HP);
         CalculateMonStats(mon);
-        if (hp == 0 || oldMaxHP == 0)
+        if (oldMaxHP == 0)
             continue;
 
-        newMaxHP = GetMonData(mon, MON_DATA_MAX_HP);
-        // To the nearest point, so that switching back and forth does not
-        // wear HP away (50/104 -> 69/145 -> 49/104 when truncated). Hurt
-        // stays hurt and alive stays alive.
-        if (hp < oldMaxHP)
-        {
-            hp = (hp * newMaxHP + oldMaxHP / 2) / oldMaxHP;
-            if (hp >= newMaxHP)
-                hp = newMaxHP - 1;
-            if (hp == 0)
-                hp = 1;
-        }
-        else
-        {
-            hp = newMaxHP;
-        }
+        hp = ScaleHPToNewMax(hp, oldMaxHP, GetMonData(mon, MON_DATA_MAX_HP));
         SetMonData(mon, MON_DATA_HP, &hp);
     }
+}
+
+static u32 GetBoxMonMaxHPWithFormula(const struct BoxPokemon *boxMon, bool32 arceus)
+{
+    struct Pokemon mon = {0};
+    u32 saved = gSaveBlock3Ptr->extraOptions.arceusFormulas;
+
+    mon.box = *boxMon;
+    gSaveBlock3Ptr->extraOptions.arceusFormulas = arceus;
+    CalculateMonStats(&mon);
+    gSaveBlock3Ptr->extraOptions.arceusFormulas = saved;
+    return mon.maxHP;
+}
+
+// A Pokémon in the PC or the Day Care stores only the HP it has lost (PC
+// deposits do not heal, OW_PC_HEAL), and BoxMonToMon takes that from the
+// max HP of the formula in force at withdrawal: after a switch to the
+// smaller formula it would underflow. On a switch, every stored Pokémon's
+// HP lost is rescaled the way the party's HP is. Call it with the option
+// already at its new value.
+static void ConvertBoxMonHPLost(struct BoxPokemon *boxMon, bool32 wasArceus)
+{
+    u32 hpLost, oldMaxHP, newMaxHP;
+
+    if (!GetBoxMonData(boxMon, MON_DATA_SANITY_HAS_SPECIES) || GetBoxMonData(boxMon, MON_DATA_SANITY_IS_EGG))
+        return;
+    hpLost = GetBoxMonData(boxMon, MON_DATA_HP_LOST);
+    if (hpLost == 0)
+        return;
+
+    oldMaxHP = GetBoxMonMaxHPWithFormula(boxMon, wasArceus);
+    newMaxHP = GetBoxMonMaxHPWithFormula(boxMon, !wasArceus);
+    if (hpLost >= oldMaxHP)
+        hpLost = newMaxHP;
+    else
+        hpLost = newMaxHP - ScaleHPToNewMax(oldMaxHP - hpLost, oldMaxHP, newMaxHP);
+    SetBoxMonData(boxMon, MON_DATA_HP_LOST, &hpLost);
+}
+
+void ConvertStoredMonsHPForStatFormulaSwitch(void)
+{
+    bool32 wasArceus = !AreArceusFormulasEnabled();
+    u32 i, j;
+
+    for (i = 0; i < TOTAL_BOXES_COUNT; i++)
+    {
+        for (j = 0; j < IN_BOX_COUNT; j++)
+            ConvertBoxMonHPLost(GetBoxedMonPtr(i, j), wasArceus);
+    }
+    for (i = 0; i < DAYCARE_MON_COUNT; i++)
+        ConvertBoxMonHPLost(&gSaveBlock1Ptr->daycare.mons[i].mon, wasArceus);
 }
 
 void BoxMonToMon(const struct BoxPokemon *src, struct Pokemon *dest)
@@ -3950,6 +4004,10 @@ void BoxMonToMon(const struct BoxPokemon *src, struct Pokemon *dest)
     SetMonData(dest, MON_DATA_MAIL, &value);
     value = GetBoxMonData(&dest->box, MON_DATA_HP_LOST);
     CalculateMonStats(dest);
+    // Never below 0: HP lost under a larger stat formula than today's
+    // (ARCEUS FORMULAS) would wrap around to 65,000-odd HP.
+    if (value > GetMonData(dest, MON_DATA_MAX_HP))
+        value = GetMonData(dest, MON_DATA_MAX_HP);
     value = GetMonData(dest, MON_DATA_MAX_HP) - value;
     SetMonData(dest, MON_DATA_HP, &value);
 }

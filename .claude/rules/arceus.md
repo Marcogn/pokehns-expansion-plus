@@ -28,12 +28,18 @@ Decisioni, fonti trascritte e prove: [`docs/plans/overworld-catch.md`](../../doc
 - Impegno = base dagli IV (31/26/20 → 3/2/1) + `EV × 10 / 252`, massimo 10.
   `BST EQUALIZER` sostituisce la base anche qui; Hyper Training = IV 31.
 - **Al cambio** (`Task_Save` del menu Opzioni, solo se il valore cambia) e
-  **al caricamento** (`LoadGameSave`, slot normale e `SAVE_STATUS_OK`)
-  `RecalculatePartyStats()`: PS in proporzione arrotondati al più vicino
-  (troncando 50/104 → 69/145 → 49/104), ferito resta ferito, esausto resta
-  0, stato intatto. Al caricamento è un no-op se le statistiche sono già
-  coerenti (provato col `.sav` dell'utente). Il box non serve: `BoxMonToMon`
-  ricalcola dai PS persi.
+  **al caricamento** (`LoadGameSave`, slot normale, `OK` o `ERROR`: anche
+  `ERROR` carica lo slot buono) `RecalculatePartyStats()`: PS in proporzione
+  (`ScaleHPToNewMax`, al più vicino: troncando 50/104 → 69/145 → 49/104),
+  ferito resta ferito, esausto resta 0, stato intatto. **`SetMonData(HP)`
+  anche sull'esausto**: è lui che riallinea i PS persi della metà
+  `BoxPokemon`, che un deposito porta nel PC. Al caricamento è un no-op se
+  le statistiche sono già coerenti.
+- **PC e Pensione tengono solo i PS persi** (il deposito non cura,
+  `OW_PC_HEAL`): al cambio `ConvertStoredMonsHPForStatFormulaSwitch()` li
+  riscala tutti (14 box + 2 Pensione, 1 frame), se no al ritiro con la
+  formula più piccola `max - persi` andava in underflow (65 000 PS).
+  `BoxMonToMon` ora li limita comunque al massimo.
 - Anche il menu Opzioni del **titolo** ricalcola: la squadra è già caricata.
 
 ## Cattura (`ComputeArceusCaptureOddsFromParams`, `battle_script_commands.c`)
@@ -48,8 +54,9 @@ Decisioni, fonti trascritte e prove: [`docs/plans/overworld-catch.md`](../../doc
 - Ball: Poké/Great/Ultra 75/150/225 %; Beast, Safari, Sport e **qualunque
   Ball su un'Ultracreatura** come in `ComputeBallData`; le altre ×3/4.
   Master ed EASY CATCH = `CAPTURE_GUARANTEED`.
-- Rango giocatore = `FLAG_BADGE01..08_GET` + `FLAG_IS_CHAMPION` (Johto; Kanto
-  è `FLAG_IS_KANTO_CHAMPION`, non conta). Rango Pokémon `(L-1)/10+1`, max 10
+- Rango giocatore = `FLAG_BADGE01..08_GET` + `FLAG_IS_CHAMPION`. **In HnS
+  `NUM_BADGES` è 16** (Kanto subito dopo, `flags_hns.h`): il ciclo va fino a
+  `NUM_BADGES_CAPPED`. Il campione di Kanto è `FLAG_IS_KANTO_CHAMPION`. Rango Pokémon `(L-1)/10+1`, max 10
   (+4 alfa: fase 13).
 - Comportamento 2 se `!IsOWEAwareOfPlayer`, 1 se allertato (sostituisce il
   ×2). **Colpo alle spalle** = `owe->facingDirection == throw->direction`

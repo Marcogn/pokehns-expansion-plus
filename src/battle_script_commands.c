@@ -11005,7 +11005,9 @@ static u32 GetArceusPlayerRank(void)
 {
     u32 rank = FlagGet(FLAG_IS_CHAMPION);
 
-    for (u32 i = FLAG_BADGE01_GET; i < FLAG_BADGE01_GET + NUM_BADGES; i++)
+    // Johto only: NUM_BADGES is 16 in HnS, the Kanto badges being the 8
+    // flags right after FLAG_BADGE08_GET (flags_hns.h).
+    for (u32 i = FLAG_BADGE01_GET; i < FLAG_BADGE01_GET + NUM_BADGES_CAPPED; i++)
     {
         if (FlagGet(i))
             rank++;

@@ -1329,6 +1329,24 @@ con le statistiche di Arceus vale un'altra cosa.
   `CalculateMonStats` di sempre via `BoxMonToMon`).
 - ROM: 31 919 588 B, **95,13%** (+2 752 B sulla fase 9, tutto compreso).
 
+- **`/pr-review` della PR #72 (21/11, su `c0de0281`)**: 4 punti dalla
+  revisione generica, 3 veri e corretti. (1) I Pokémon nel PC e nella
+  Pensione tengono solo i PS persi (il deposito non cura): spenta l'opzione,
+  al ritiro `max - persi` andava in underflow (65 000 PS). Ora al cambio
+  vengono riscalati come la squadra, e `BoxMonToMon` li limita comunque.
+  Trovato rileggendo: anche un esausto della squadra teneva i PS persi
+  vecchi. Provato con un banco di prova: Pidgey nel box 40/70 → 19/33 →
+  40/70, l'esausto della squadra 140 → 101 PS persi su 101, tutto il PC
+  riscalato in 1 frame. (2) Il rango contava anche le 8 medaglie di Kanto
+  (`NUM_BADGES` 16 in HnS): ora solo Johto. (3) Al caricamento con uno slot
+  rotto (`SAVE_STATUS_ERROR`, lo slot buono si carica) la squadra non veniva
+  ricalcolata. (4) Colpo alle spalle anche su un Pokémon allertato che
+  fugge: scelta di regola, chiesta all'utente.
+- Già nel codice di prima (non toccato): `ComputeCaptureOddsFromParams`
+  conta anch'esso 16 medaglie e poi le limita a 8 (`NUM_BADGES_CAPPED`) per
+  il malus delle medaglie mancanti: senza effetto, perché in HnS le medaglie
+  di Kanto arrivano dopo le 8 di Johto.
+
 **Handoff per la fase 11 (Opus 5.5)**
 - Le statistiche di Arceus a inizio gioco sono **molto** più alte (Bulbasaur
   Lv 5 con 252 EV in Attacco: 110 contro 15): finché non c'è il danno di

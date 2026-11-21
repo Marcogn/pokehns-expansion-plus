@@ -1172,7 +1172,8 @@ u8 LoadGameSave(u8 saveType)
     // Not a migration: the party's stats follow ARCEUS FORMULAS as stored,
     // whatever formula the build that saved them used (a no-op when they
     // already agree).
-    if (saveType != SAVE_HALL_OF_FAME && status == SAVE_STATUS_OK)
+    // SAVE_STATUS_ERROR still loads the good slot.
+    if (saveType != SAVE_HALL_OF_FAME && (status == SAVE_STATUS_OK || status == SAVE_STATUS_ERROR))
         RecalculatePartyStats();
     return status;
 }
