@@ -102,8 +102,9 @@ add the section before releasing. Feature details live in the tables of
   - **Stats**: every Pokémon, yours and the wild and trainers' ones, uses
     Arceus' stat formula. The effort levels (0-10) come from what the
     Pokémon already has: its IV gives the starting level as in Arceus (20
-    and up 1, 26 up 2, 31 gives 3) and its EVs add the rest, so 252 EVs in a
-    stat reach the top. The IV and EV challenges and `BST EQUALIZER` keep
+    and up 1, 26 up 2, 31 gives 3) and its EVs add up to 7 more (one per 36
+    EVs), so the top level takes a 31 IV and 252 EVs: IVs and EVs both keep
+    counting. The IV and EV challenges and `BST EQUALIZER` keep
     working through them. Switching the option recomputes the party at once,
     each Pokémon keeping its share of HP (a hurt one stays hurt, a fainted
     one stays fainted, status stays); Pokémon in the PC follow when withdrawn.

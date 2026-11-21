@@ -3767,12 +3767,16 @@ static const u8 sArceusEffortMultipliers[ARCEUS_MAX_EFFORT_LEVEL + 1] = {0, 2, 3
 
 // No new data in the Pokémon (D21): the IV gives the starting level, as in
 // Arceus (IGanbaru.cs GetBias: 20 and up 1, 26 up 2, 31 gives 3), and the EVs
-// stand in for the Grit items: a full 252 alone reaches the top level.
+// stand in for the Grit items, up to 7 more (user, 21/11): the top level
+// takes both a 31 IV and 252 EVs, so IVs and EVs keep mattering, as in the
+// classic formula.
+#define ARCEUS_EV_EFFORT_LEVELS 7
+
 static u32 GetArceusEffortLevel(u32 iv, u32 ev)
 {
     u32 level = (iv >= 31) ? 3 : (iv >= 26) ? 2 : (iv >= 20) ? 1 : 0;
 
-    level += ev * ARCEUS_MAX_EFFORT_LEVEL / MAX_PER_STAT_EVS;
+    level += ev * ARCEUS_EV_EFFORT_LEVELS / MAX_PER_STAT_EVS;
     return min(level, ARCEUS_MAX_EFFORT_LEVEL);
 }
 

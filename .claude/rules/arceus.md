@@ -25,7 +25,9 @@ Decisioni, fonti trascritte e prove: [`docs/plans/overworld-catch.md`](../../doc
   `float` vengono da libgcc (soft-float).
 - Natura sul termine base, **prima** del bonus (`ModifyStatByNature`, stessa
   troncatura `×110/100` di PKHeX).
-- Impegno = base dagli IV (31/26/20 → 3/2/1) + `EV × 10 / 252`, massimo 10.
+- Impegno = base dagli IV (31/26/20 → 3/2/1) + `EV × 7 / 252`, massimo 10
+  (utente, 21/11: il 10 vuole IV 31 **e** 252 EV). HOME non converte: tiene i
+  livelli d'impegno a parte (PKHeX `GameDataPA8.cs`), nessun precedente.
   `BST EQUALIZER` sostituisce la base anche qui; Hyper Training = IV 31.
 - **Al cambio** (`Task_Save` del menu Opzioni, solo se il valore cambia) e
   **al caricamento** (`LoadGameSave`, slot normale, `OK` o `ERROR`: anche

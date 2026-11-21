@@ -1295,9 +1295,9 @@ con le statistiche di Arceus vale un'altra cosa.
   `.claude/rules/arceus.md`): formula di PKHeX, termini base in `float` a 32
   bit come il gioco (con interi esatti escono +1 in 19 PS e 89 altre
   statistiche su 25 500 coppie base × livello),
-  bonus d'impegno intero. **Impegno da IV ed EV** (scelta mia, da
-  confermare): base dagli IV (≥ 20 → 1, 26 → 2, 31 → 3) + `EV × 10 / 252`,
-  max 10; 252 EV in una statistica la portano al massimo, come i Grit.
+  bonus d'impegno intero. **Impegno da IV ed EV**: base dagli IV (≥ 20 → 1,
+  26 → 2, 31 → 3) + EV, max 10; prima `EV × 10 / 252`, poi `× 7` (utente,
+  sotto).
   `RecalculatePartyStats()` al cambio (menu Opzioni, anche dal titolo) e al
   caricamento, PS in proporzione arrotondati al più vicino.
 - **Cattura** (`ComputeArceusCaptureOddsFromParams`): formula di Bulbapedia
@@ -1368,7 +1368,14 @@ con le statistiche di Arceus vale un'altra cosa.
 
 - **Confermato dall'utente (21/11)**: il colpo alle spalle vale anche su un
   Pokémon allertato che fugge (conta solo la direzione); la Heavy Ball somma
-  il bonus del peso al tasso. La mappatura EV → impegno resta da confermare.
+  il bonus del peso al tasso. **EV → impegno: `EV × 7 / 252`** (al posto di
+  ×10): il massimo vuole IV 31 e 252 EV, così IV ed EV contano tutti e due
+  (con 510 EV se ne massimizzano comunque solo due). Nessun hack trovato che
+  l'abbia già fatto; HOME non converte, tiene i livelli d'impegno a parte
+  (PKHeX `PKM/HOME/GameDataPA8.cs`). Provato con un banco di prova (tolto):
+  i 3 Pokémon sintetici 36 su 36 uguali al riferimento (Attacco del
+  Bulbasaur IV 20 + 252 EV 110 → 82, PS del Sentret IV 15 + 252 EV
+  137 → 111); la squadra dell'utente (IV 31) non cambia: 3 + 7 = 10 come prima.
 
 **Handoff per la fase 11 (Opus 5.5)**
 - Le statistiche di Arceus a inizio gioco sono **molto** più alte (Bulbasaur
