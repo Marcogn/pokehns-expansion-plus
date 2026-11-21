@@ -124,7 +124,9 @@ add the section before releasing. Feature details live in the tables of
     ×1.5), a double weakness ×2.5 instead of ×4 and a double resistance
     ×0.4 instead of ×0.25. Stat stages, abilities, items, weather and
     critical hits stay as they are; the messages ("It's super effective!")
-    too.
+    too. Whatever raises or lowers Attack or Defense (stat stages, Huge
+    Power, Choice Band, badge boosts) multiplies the damage, as Arceus does
+    with its stat boosts: Swords Dance still doubles your hits.
 - Save version 15: an existing save loads with every setting as it was and
   `OVERWORLD CATCH` ON. A bit left over from the old TRAINER CATCH option,
   set in some saves, is cleared on the way.

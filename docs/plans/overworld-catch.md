@@ -1,6 +1,6 @@
 # Piano: cattura nell'overworld (stile Leggende Pokémon: Arceus)
 
-**Stato (21/11): fasi 1-11 fatte (tetti e prezzi; passo lento e percezione; nucleo del lancio; animazione; pannello e documentazione; revisione della prima parte; ricorda mosse a pagamento; menu riordinati e salvataggio 15; interruttore OVERWORLD CATCH e Ball speciali nei Mart; statistiche e cattura di Arceus; danno di Arceus); prossima: fase 12 (Opus 5.5). Il 20/11 sono entrate le fasi 8-11 (menu, OVERWORLD CATCH, ARCEUS FORMULAS) e gli alfa sono passati a 12-14.**
+**Stato (21/11): fasi 1-11 fatte (tetti e prezzi; passo lento e percezione; nucleo del lancio; animazione; pannello e documentazione; revisione della prima parte; ricorda mosse a pagamento; menu riordinati e salvataggio 15; interruttore OVERWORLD CATCH e Ball speciali nei Mart; statistiche e cattura di Arceus; danno di Arceus, con gli stadi sul danno finale); prossima: fase 12 (Opus 5.5). Il 20/11 sono entrate le fasi 8-11 (menu, OVERWORLD CATCH, ARCEUS FORMULAS) e gli alfa sono passati a 12-14.**
 
 Si appoggia agli OWE già in gioco: leggere prima
 [`.claude/rules/overworld_encounters.md`](../../.claude/rules/overworld_encounters.md)
@@ -1464,6 +1464,49 @@ con le statistiche di Arceus vale un'altra cosa.
 - Strumentazione del danno: la ricetta è sopra (struct in EWRAM scritta da
   `DoMoveDamageCalcVars` quando `ctx->randomFactor`), il riferimento
   Python va riscritto a ogni container (non nel git).
+
+### 5.11b Fase 11b, l'ibrido (21/11)
+
+- **Perché** (trovato confrontando con Pokémon Exceeded, sotto): la formula di
+  Arceus **somma** l'Attacco (`100 + A + 15 L`), e noi teniamo gli stadi del
+  gioco, che agiscono sulla statistica. Lv 50, Att. = Dif. = 150, potenza 80:
+  Attacco ×2 (Danza Spada, Forza Pura, Bendascelta) dava **+15%** (classica
+  +95%), Difesa ×2 −44% (classica −49%). In Arceus gli stadi moltiplicano il
+  danno finale (AtkMod, DefMod).
+- **Fatto** (utente, 21/11: "mi piace l'ibrido"): danno base con le
+  statistiche **grezze**, poi il danno × finale/grezzo dell'Attacco ×
+  grezzo/finale della Difesa (`ApplyArceusStatRatio`, dettagli in
+  `.claude/rules/arceus.md`). Stadi, abilità, strumenti e bonus medaglia
+  pesano come nella classica; il livello resta nella formula di Arceus.
+- **Verificato** in mGBA (ROM strumentata, tolta), `.sav` dell'utente:
+  Dazzling Gleam di Vileplume con **Att. Sp. +2** su Flaaffy: grezzo 261,
+  finale 522, base 114 → ×2 = 228, tiro 92 → **209** (senza l'ibrido 134);
+  stesso colpo su Girafarig con **Dif. Sp. +2**: base 111 → ×84/168 = 55,
+  tiro 97 → **53** (PS 129 → 76); Stomp di Girafarig: base 38 → ×129/142
+  (bonus medaglia ×1,1 di Vileplume) = 34 → 30 → STAB **37** (PS 170 → 133).
+  Opzione spenta: Stomp 11 → 10 → **15**, classica. Tutti uguali al calcolo.
+- La tabella dei colpi per KO della §5.11 non cambia (nessun modificatore:
+  grezzo = finale). ROM **95,13%** (+224 B).
+
+**Confronto con Pokémon Exceeded 14.6** (hack di Beniboy su expansion, opzione
+"PLA formulas" accesa di default; patch UPS dalla cartella Drive dell'utente,
+applicata a Emerald ricostruito da pret; formule lette dal codice
+disassemblato, statistiche controllate su Zigzagoon Lv 2 e Charmander Lv 5;
+nessun codice copiato):
+
+- Statistiche: impegno **fisso al massimo** (25) per tutti, IV ed EV sommati
+  come nella classica (`IV·L/100 + EV·L/400`), `⌊L/50⌋` e `⌊L/100⌋` interi:
+  Attacco di Charmander 106 (Lv 5) … 130 (Lv 49) → 166 (Lv 50).
+- Danno: `⌊P·A·84·(⌊√L⌋+100)/D/10000⌋ + 2`, rapporto Att./Dif. come la
+  classica ma con il livello quasi assente (Lv 10 contro Lv 50, stesse
+  statistiche: −3%). STAB 1,25; Adattabilità ≈ 1,66; tipo ×4 → 2,5, ×0,25 →
+  0,4, ×8 → 3, ×0,125 → 0,3; brutto colpo invariato.
+- Lettura: in Exceeded i moltiplicatori funzionano ma il livello no; nella
+  nostra prima versione il contrario. L'ibrido tiene tutti e due.
+
+**Handoff per la fase 12 (Opus 5.5)**: vale quello della §5.11. Da chiedere
+ancora: l'Adattabilità (noi 1,5, Exceeded ≈ 1,66) e il bilanciamento della
+tabella §5.11. Il brutto colpo ×2 del gioco è coerente con Exceeded.
 
 ## 6. Scartato, e perché
 

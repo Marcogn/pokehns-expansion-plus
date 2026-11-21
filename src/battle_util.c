@@ -6912,6 +6912,11 @@ static inline uq4_12_t ApplyDefensiveBadgeBoost(uq4_12_t modifier, enum BattlerI
     return modifier;
 }
 
+// ARCEUS FORMULAS: the stat each side used before its stages, abilities and
+// items, recorded by CalcAttackStat/CalcDefenseStat for ApplyArceusStatRatio.
+static u32 sArceusRawAtkStat;
+static u32 sArceusRawDefStat;
+
 static inline u32 CalcAttackStat(struct BattleContext *ctx)
 {
     u8 atkStage;
@@ -6969,6 +6974,8 @@ static inline u32 CalcAttackStat(struct BattleContext *ctx)
             atkStage = gBattleMons[battlerAtk].statStages[STAT_SPATK];
         }
     }
+
+    sArceusRawAtkStat = atkStat;
 
     // critical hits ignore attack stat's stage drops
     if (ctx->isCrit && atkStage < DEFAULT_STAT_STAGE)
@@ -7253,6 +7260,8 @@ static inline u32 CalcDefenseStat(struct BattleContext *ctx)
         defStage = gBattleMons[battlerDef].statStages[STAT_SPDEF];
     }
 
+    sArceusRawDefStat = defStat;
+
     // Self-destruct / Explosion cut defense in half
     if (GetConfig(B_EXPLOSION_DEFENSE) < GEN_5 && IsExplosionMove(ctx->move))
         defStat /= 2;
@@ -7432,6 +7441,23 @@ static inline uq4_12_t ArceusTypeModifier(uq4_12_t modifier)
     if (modifier != UQ_4_12(0.0) && modifier <= UQ_4_12(0.25))
         return UQ_4_12(0.4);
     return modifier;
+}
+
+// ARCEUS FORMULAS: the Arceus formula adds the attack (100 + A + 15 L), so a
+// doubled Attack (+2 stages, Huge Power, Choice Band) only gave about +15%.
+// Arceus applies its stat modifiers to the damage instead (AtkMod, DefMod), so
+// the base damage takes the raw stats and the ratio of each final stat to its
+// raw one multiplies the damage here: every stage, ability and item keeps the
+// weight it has in the classic formula.
+static inline s32 ApplyArceusStatRatio(s32 dmg, u32 finalAtk, u32 rawAtk, u32 finalDef, u32 rawDef)
+{
+    u64 scaled = dmg;
+
+    if (rawAtk != 0)
+        scaled = scaled * finalAtk / rawAtk;
+    if (finalDef != 0)
+        scaled = scaled * rawDef / finalDef;
+    return scaled > INT32_MAX ? INT32_MAX : (s32)scaled;
 }
 
 static inline uq4_12_t GetTargetDamageModifier(struct BattleContext *ctx)
@@ -7799,7 +7825,15 @@ static inline s32 DoMoveDamageCalcVars(struct BattleContext *ctx)
     userFinalAttack = CalcAttackStat(ctx);
     targetFinalDefense = CalcDefenseStat(ctx);
 
-    dmg = CalculateBaseDamage(gBattleMovePower, userFinalAttack, gBattleMons[ctx->battlerAtk].level, targetFinalDefense);
+    if (AreArceusFormulasEnabled())
+    {
+        dmg = CalculateBaseDamage(gBattleMovePower, sArceusRawAtkStat, gBattleMons[ctx->battlerAtk].level, sArceusRawDefStat);
+        dmg = ApplyArceusStatRatio(dmg, userFinalAttack, sArceusRawAtkStat, targetFinalDefense, sArceusRawDefStat);
+    }
+    else
+    {
+        dmg = CalculateBaseDamage(gBattleMovePower, userFinalAttack, gBattleMons[ctx->battlerAtk].level, targetFinalDefense);
+    }
     DAMAGE_APPLY_MODIFIER(GetTargetDamageModifier(ctx));
     DAMAGE_APPLY_MODIFIER(GetParentalBondModifier(ctx->battlerAtk));
     DAMAGE_APPLY_MODIFIER(GetWeatherDamageModifier(ctx));
@@ -7957,7 +7991,17 @@ static inline s32 DoFutureSightAttackDamageCalcVars(struct BattleContext *ctx)
         userFinalAttack = GetMonData(partyMon, MON_DATA_SPATK);
 
     targetFinalDefense = CalcDefenseStat(ctx);
-    dmg = CalculateBaseDamage(gBattleMovePower, userFinalAttack, partyMonLevel, targetFinalDefense);
+    if (AreArceusFormulasEnabled())
+    {
+        // The attacker's party stat has no stages or modifiers: only the
+        // defense side needs the ratio.
+        dmg = CalculateBaseDamage(gBattleMovePower, userFinalAttack, partyMonLevel, sArceusRawDefStat);
+        dmg = ApplyArceusStatRatio(dmg, userFinalAttack, userFinalAttack, targetFinalDefense, sArceusRawDefStat);
+    }
+    else
+    {
+        dmg = CalculateBaseDamage(gBattleMovePower, userFinalAttack, partyMonLevel, targetFinalDefense);
+    }
 
     DAMAGE_APPLY_MODIFIER(GetCriticalModifier(ctx->isCrit));
 

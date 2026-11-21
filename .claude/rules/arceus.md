@@ -80,6 +80,15 @@ Decisioni, fonti trascritte e prove: [`docs/plans/overworld-catch.md`](../../doc
 - **Tipo**: ≥ ×4 → ×2,5, ≤ ×0,25 (non 0) → ×0,4, **solo nel danno**:
   `typeEffectivenessModifier` resta vero per messaggi, Expert Belt, Tinted
   Lens e IA. `UQ_4_12(0.4)` = 1638 (0,3999).
+- **Ibrido (fase 11b, utente 21/11)**: il danno base usa le statistiche
+  **grezze** (`sArceusRawAtkStat`/`sArceusRawDefStat`, registrate in
+  `CalcAttackStat`/`CalcDefenseStat` prima di stadi, abilità, strumenti e
+  bonus medaglia), poi `ApplyArceusStatRatio` moltiplica il danno per
+  finale/grezzo dell'Attacco e grezzo/finale della Difesa, come AtkMod/DefMod
+  di Arceus. Senza, `100 + A + 15 L` somma l'Attacco: ×2 (+2 stadi, Forza
+  Pura, Bendascelta) dava solo +15%. Divinazione: l'Attacco viene dalla
+  squadra senza modificatori, solo la Difesa ha il rapporto. Le due statiche
+  si leggono subito dopo le due chiamate: niente fra mezzo le riscrive.
 - **Restano del gioco** (D21, documento chiuso): stadi ±6, brutto colpo
   (**×2**: `B_CRIT_MULTIPLIER` è GEN_3; Arceus 1,5), meteo, scottatura,
   abilità, strumenti, bersagli multipli, Beat Up (Gen 3: usa le basi, non le
