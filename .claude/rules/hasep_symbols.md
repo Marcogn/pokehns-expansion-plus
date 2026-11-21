@@ -59,6 +59,12 @@ coincide con la release in tutta la EWRAM, Hasep no (party +0x58, borsa +0xC...)
   con `MAP_GROUPS_COUNT` (lo script lo controlla con `nm` come un indirizzo: `ADDRESSES`). Movimenti, suoni e terreni di atterraggio sono quelli di HnS 2.0.6: gli `STATIC_ASSERT`
   `HasepFlight*` li fissano, con gli offset di ObjectEvent / Sprite / MapHeader / HealLocation che `pk_flight.c` usa, se uno salta il volo del fork va aggiornato. Verificato con il `mgba_dump` del fork:
   decollo da New Bark Town, Percorso 27, atterraggio; il percorso panoramico calcolato dall'app fino a Cherrygrove.
+- **ARCEUS FORMULAS, da PLUS.12**: con l'opzione accesa `CalculateMonStats` non è la formula classica, e
+  l'editor del salvataggio del fork (`Gen3SaveData.refreshPartyStats`, `gen3Stats`) riscrive statistiche e PS
+  classici: un ferito a 100/200 diventava 1/80, poi al caricamento ~3/200. Esportati `PARTY_STATS_RECALC_ON_LOAD`
+  (1: `LoadGameSave` ricalcola la squadra con i PS in proporzione, quindi l'editor deve lasciarle stare),
+  `gSaveBlock3Ptr`, `SAVEBLOCK3_EXTRA_OPTIONS_OFFSET` (0x60, `STATIC_ASSERT`) e `ARCEUS_FORMULAS_MASK` (1).
+  Il fork **non** legge SaveBlock3 dal `.sav`: la modalità si legge solo dal vivo. Lato fork da fare.
 - `gHasepAppScratch[32]` (EWRAM) è la RAM dove l'app scrive argomenti e lo
   script del PC; HnS usava la coda inutilizzata della EWRAM.
 - **Verifica**: `tools/hasep_symbols.py pokehns.gba --elf pokehns.elf`
