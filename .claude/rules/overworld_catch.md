@@ -13,8 +13,8 @@ paths:
 
 # Cattura nell'overworld: andature, percezione, lancio
 
-Piano e verifiche: [`docs/plans/overworld-catch.md`](../../docs/plans/overworld-catch.md).
-Gli OWE in generale: `overworld_encounters.md`.
+Piano: [`docs/plans/overworld-catch.md`](../../docs/plans/overworld-catch.md); prove nel diario
+`docs/claude/overworld-catch-history.md`. OWE in generale: `overworld_encounters.md`.
 
 ## Interruttore OVERWORLD CATCH (D20, fase 9)
 
@@ -38,7 +38,7 @@ Gli OWE in generale: `overworld_encounters.md`.
   AUTORUN acceso, oppure B tenuto durante una ricerca DexNav (a terra e in
   Surf) qualunque sia AUTORUN. **A non fa più il creeping.** Va provato
   **prima** del blocco della corsa, che fa sempre `return` con AUTORUN acceso.
-- Il salto da una sporgenza spegne `creeping` (se no il salto era muto).
+- Il salto da una sporgenza spegne `creeping` (se no era muto).
 - `PLAYER_AVATAR_FLAG_DASH` resta acceso per tutto il passo di corsa
   (`npc_clear_strange_bits` lo spegne solo fra due passi).
 
@@ -77,14 +77,13 @@ Gli OWE in generale: `overworld_encounters.md`.
   rientra nella Ball (`SendFollowerIntoPokeball`). Muri, dislivelli, oggetti
   non-OWE fermano la Ball. **Acqua (1) = terreno (3)** (`GetThrowLevel`).
   Colpito se all'arrivo `currentCoords` è `targetX/Y` (niente `y2`).
-- **Sprite**: **mai un assert**: senza sprite il volo prosegue invisibile.
-  `IsBallSpriteValid` copre i campi ricostruiti (menu, warp).
-- **Pokémon nella Ball** (dall'impatto, `holdsOWE`): congelato e, dal raggio,
-  `invisible`, **riasserito a ogni frame** (`KeepOWEInBall`): il `release` di
-  uno script scongela tutti. Ha il flag "non sparire" (`HoldOWEForThrow`,
-  rimesso com'era all'uscita): un ricambio riuserebbe slot e `localId`. Non è
-  bersaglio né contatto; **una seconda Ball verso di lui è un lancio a
-  vuoto** (se no veniva dato due volte).
+- **Sprite: mai un assert**: senza sprite il volo prosegue invisibile
+  (`IsBallSpriteValid` copre i campi ricostruiti).
+- **Pokémon nella Ball** (`holdsOWE`): congelato e `invisible`, **riasserito
+  a ogni frame** (`KeepOWEInBall`: il `release` di uno script scongela tutti);
+  flag "non sparire" (`HoldOWEForThrow`), se no il ricambio riusa slot e
+  `localId`. Non è bersaglio né contatto: **una seconda Ball verso di lui è
+  un lancio a vuoto** (se no veniva dato due volte).
 - **Lotta che parte** (`OverworldCatch_OnBattleStart`): le Ball a terra
   finiscono prima (chi è dentro esce), quelle in volo atterrano dopo.
 - **Posa**: tenuta da `DELAY_16`. `ObjectEventIsMovementOverridden` dà
@@ -93,19 +92,20 @@ Gli OWE in generale: `overworld_encounters.md`.
 - **Il Pokémon nasce sullo stack** (`CreateMonFromOWE`), **mai in
   `gEnemyParty`**: lo spawn lo usa nello stesso frame.
 - **Formula**: `ComputeCaptureOddsFromParams` (`battle_script_commands.c`;
-  ARCEUS FORMULAS: `arceus.md`). ×2 se `!IsOWEAwareOfPlayer`; Quick Ball solo se non allertato; Timer mai.
+  ARCEUS FORMULAS: `arceus.md`). ×2 se `!IsOWEAwareOfPlayer`; Quick Ball
+  solo se non allertato; Timer mai.
   Sfida: `GetCaptureChallengeChecks`. **Nuzlocke: solo una cattura riuscita
   segna la zona** (P3).
 - **Fallito**: `ForceOWEToNoticePlayer`, **mai su un OWE già allertato o
-  "vaga"** (il bit resterebbe). Il bit salta distanza e vista e usa il livello
-  del lancio (non `CanOWEReachPlayer`, acqua ≠ riva): su un altro livello si
-  consuma. Il "vaga" tiene il ×2.
+  "vaga"** (il bit resterebbe; il "vaga" tiene il ×2). Salta distanza e vista
+  e usa il livello del lancio (acqua ≠ riva in `CanOWEReachPlayer`): su un
+  altro livello si consuma.
 - **Ball tolta solo a cattura riuscita** (`GiveCaughtMon`): al lancio la
   borsa deve averne più di quelle in volo; all'impatto, se non c'è più (usata
   in una lotta partita durante il volo), è un lancio a vuoto.
 - **Ball a terra = ostacolo** (`OverworldCatch_IsBallOnGroundAt` in
   `GetVanillaCollision`): `landX/Y` della mappa del lancio, da `OPENING`.
-- **Banner a foglietti, senza script** (20-21/11): una finestra (il più
+- **Banner a foglietti, senza script**: una finestra (il più
   nuovo, tile BG0 da 92; DexNav 8-91) e sotto i vecchi, 2 righe ciascuno
   (cornice 3/4/5 e 6/7/8: il solo bordo sembrava trasparente) nel tilemap,
   con `CopyBgTilemapBufferToVram`. Max 3, 180 frame, esce il più vecchio.
@@ -130,12 +130,12 @@ Gli OWE in generale: `overworld_encounters.md`.
   CB2** (`OverworldCatch_UpdatePanel`, prima di `ScriptContext_RunScript`),
   prima che uno script disegni. **Menu Start e debug si aprono nel CB1 e
   disegnano subito**: `OverworldCatch_ClearScreenForMenu()` prima di
-  `ShowStartMenu`/`Debug_ShowMainMenu`, se no ci aprivano buchi (21/11).
+  `ShowStartMenu`/`Debug_ShowMainMenu`, se no ci aprivano buchi.
 - Su con L tenuto o `panelTimer` (120 frame); giù a controlli bloccati, con
   `L=A` o a cattura spenta. **Il rilascio di L senza scorrere cambia
   modalità** (D1), anche in una prova.
 
 ## Prove
 
-Ricette nel piano (§5.2-5.9) e `docs/claude/emulator.md`. `gSaveblock3 +
-0x13` = `autoRun`, `+0x2F` bit 7 = OVERWORLD CATCH spenta.
+Ricette: diario (fasi 2-9) e `docs/claude/emulator.md`. `gSaveblock3 + 0x13` =
+`autoRun`, `+0x2F` bit 7 = OVERWORLD CATCH spenta.

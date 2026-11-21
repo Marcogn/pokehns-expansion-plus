@@ -9,8 +9,8 @@ paths:
 
 # ARCEUS FORMULAS (D21 del piano `overworld-catch`)
 
-Decisioni, fonti trascritte e prove: [`docs/plans/overworld-catch.md`](../../docs/plans/overworld-catch.md)
-(D21, §3 "Fonti per ARCEUS FORMULAS", §5.10, §5.11). Interruttore:
+Decisioni e formule: [`docs/plans/overworld-catch.md`](../../docs/plans/overworld-catch.md)
+(D21, §3); prove nel diario [`docs/claude/overworld-catch-history.md`](../../docs/claude/overworld-catch-history.md). Interruttore:
 `AreArceusFormulasEnabled()` (`ExtraOptions.arceusFormulas`, SB3 +0x60 bit 0,
 0 = spenta).
 
@@ -66,32 +66,42 @@ Decisioni, fonti trascritte e prove: [`docs/plans/overworld-catch.md`](../../doc
   all'impatto (direzione del giocatore salvata al lancio). Quick Ball: come
   prima, solo se non allertato.
 
-## Danno (`src/battle_util.c`, fase 11)
+## Danno (`src/battle_util.c`, fasi 11 e 11b)
 
-- **Tre punti, tutti dietro l'opzione**: `CalculateBaseDamage` (formula di
-  Bulbapedia, troncata a ogni passo, senza il `+2` classico: un danno 0
-  diventa 1 alla fine come prima), `ArceusStabModifier` e
-  `ArceusTypeModifier`, applicati in `ApplyModifiersAfterDmgRoll` **e** nel
-  calcolo a parte di Divinazione (`DoFutureSightAttackDamageCalcVars`, STAB
-  1,5 scritto a mano). L'IA passa da `ApplyModifiersAfterDmgRoll`: stime e
-  danno vero coincidono.
-- **STAB**: si dimezza il bonus sopra 1 (1,5 → 1,25 di Arceus; Adattabilità
-  2 → 1,5; Tera 2,25 → 1,625). Scelta mia: Arceus non ha abilità né Tera.
-- **Tipo**: ≥ ×4 → ×2,5, ≤ ×0,25 (non 0) → ×0,4, **solo nel danno**:
-  `typeEffectivenessModifier` resta vero per messaggi, Expert Belt, Tinted
-  Lens e IA. `UQ_4_12(0.4)` = 1638 (0,3999).
-- **Ibrido (fase 11b, utente 21/11)**: il danno base usa le statistiche
-  **grezze** (`sArceusRawAtkStat`/`sArceusRawDefStat`, registrate in
-  `CalcAttackStat`/`CalcDefenseStat` prima di stadi, abilità, strumenti e
-  bonus medaglia), poi `ApplyArceusStatRatio` moltiplica il danno per
-  finale/grezzo dell'Attacco e grezzo/finale della Difesa, come AtkMod/DefMod
-  di Arceus. Senza, `100 + A + 15 L` somma l'Attacco: ×2 (+2 stadi, Forza
-  Pura, Bendascelta) dava solo +15%. Divinazione: l'Attacco viene dalla
-  squadra senza modificatori, solo la Difesa ha il rapporto. Le due statiche
-  si leggono subito dopo le due chiamate: niente fra mezzo le riscrive.
-- **Restano del gioco** (D21, documento chiuso): stadi ±6, brutto colpo
-  (**×2**: `B_CRIT_MULTIPLIER` è GEN_3; Arceus 1,5), meteo, scottatura,
-  abilità, strumenti, bersagli multipli, Beat Up (Gen 3: usa le basi, non le
-  statistiche).
+Formula e scelte nel piano §3. Il calcolo, con l'opzione accesa:
+
+1. **Base** (`CalculateBaseDamage`): `((100 + A + 15 L) × P / (D + 50)) / 5`,
+   troncata a ogni passo, senza il `+2` classico (un danno 0 diventa 1 alla
+   fine, come prima). **A e D sono grezzi**: `sArceusRawAtkStat` e
+   `sArceusRawDefStat`, scritti da `CalcAttackStat`/`CalcDefenseStat` dopo
+   la scelta della statistica (Foul Play, Body Press, Psyshock, Wonder Room)
+   e prima di stadi, abilità, strumenti, bonus medaglia ed Esplosione.
+2. **Rapporti** (`ApplyArceusStatRatio`, subito dopo la base): × finale/grezzo
+   dell'Attacco × grezzo/finale della Difesa, in `u64`. Così ogni
+   modificatore pesa come nella classica (+2 stadi = ×2), come AtkMod/DefMod
+   di Arceus. **Perché**: Arceus somma A; con gli stadi sulla statistica
+   l'Attacco ×2 dava solo +15% (Lv 50, A = D = 150).
+3. Bersagli multipli, meteo, brutto colpo, tiro casuale: del gioco.
+4. **STAB** (`ArceusStabModifier`): si dimezza il bonus sopra 1 → 1,25;
+   Adattabilità 1,5 (scelta dell'utente); Tera 2,25 → 1,625.
+5. **Tipo** (`ArceusTypeModifier`): ≥ ×4 → ×2,5, ≤ ×0,25 (non 0) → ×0,4
+   (`UQ_4_12(0.4)` = 1638), **solo nel danno**: `typeEffectivenessModifier`
+   resta vero per messaggi, Expert Belt, Tinted Lens e IA.
+
+Trappole e fatti:
+
+- Le due statiche si leggono subito dopo le due chiamate in
+  `DoMoveDamageCalcVars`: nulla fra mezzo le riscrive. Se si aggiunge codice
+  lì, non chiamare altre funzioni di danno prima della base.
+- **Divinazione** (`DoFutureSightAttackDamageCalcVars`) ha un calcolo suo:
+  Attacco dalla squadra, già senza modificatori, quindi solo il rapporto
+  della Difesa; STAB 1,5 scritto a mano passato da `ArceusStabModifier`.
+- **L'IA** usa `DoMoveDamageCalcVars` (senza tiro) e
+  `ApplyModifiersAfterDmgRoll`: le sue stime seguono la formula.
+- Brutto colpo **×2** del gioco (`B_CRIT_MULTIPLIER` GEN_3; Arceus 1,5):
+  tenuto di proposito. Beat Up Gen 3 usa le basi: invariato.
+- Banco di prova: struct in EWRAM scritta in `DoMoveDamageCalcVars` quando
+  `ctx->randomFactor` (A e D grezzi e finali, base, tiro, STAB e tipo
+  grezzi, danno). Prove del 21/11 nel diario (`overworld-catch-history.md`).
 - **Lotte in link** con l'opzione diversa sui due GBA: statistiche e danno
-  divergono. Non provato, non gestito.
+  divergono. Non gestito.
