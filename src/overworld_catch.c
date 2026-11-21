@@ -143,6 +143,7 @@ struct PendingThrow
     u8 landBlocks:1;
     u8 landMapNum;      // the map landX/Y are on: a seam crossing re-bases coordinates
     u8 landMapGroup;
+    u8 direction;       // the player's facing at the throw: a backstrike is a Pokémon facing the same way
     u8 bannerShown:1;
     u8 caughtToParty:1;
     u16 caughtSpecies;  // a catch: what its banner shows
@@ -856,6 +857,7 @@ bool32 OverworldCatch_TryThrow(void)
         throw->holdsOWE = FALSE;
         throw->bannerShown = FALSE;
         throw->landBlocks = TRUE;
+        throw->direction = player->facingDirection;
         throw->landMapNum = gSaveBlock1Ptr->location.mapNum;
         throw->landMapGroup = gSaveBlock1Ptr->location.mapGroup;
         if (owe != NULL)
@@ -1068,8 +1070,10 @@ static struct Pokemon *GetFirstMonAbleToBattle(void)
 
 // The battle formula at full HP (D2), with the party's first able Pokémon in
 // the place of the battler. Twice the odds if the Pokémon has not noticed the
-// player: our own balance choice, not a Legends: Arceus number.
-static u32 ComputeOverworldCaptureOdds(struct Pokemon *mon, const struct ObjectEvent *owe, u32 ball, bool32 aware)
+// player: our own balance choice, not a Legends: Arceus number. With ARCEUS
+// FORMULAS on, Arceus' own formula instead (phase 10): the noticed/unnoticed
+// behavior and a hit from behind take the place of the ×2.
+static u32 ComputeOverworldCaptureOdds(struct Pokemon *mon, const struct ObjectEvent *owe, u32 ball, bool32 aware, u32 throwDirection)
 {
     struct CaptureParams params = {0};
     struct Pokemon *lead = GetFirstMonAbleToBattle();
@@ -1093,6 +1097,9 @@ static u32 ComputeOverworldCaptureOdds(struct Pokemon *mon, const struct ObjectE
     params.quickBallSpent = aware;
     // The Dive Ball's bonus for a Pokémon met on the water.
     params.surfing = MetatileBehavior_IsSurfableWaterOrUnderwater(owe->currentMetatileBehavior);
+
+    if (AreArceusFormulasEnabled())
+        return ComputeArceusCaptureOddsFromParams(&params, aware, owe->facingDirection == throwDirection);
 
     odds = ComputeCaptureOddsFromParams(&params);
     if (odds != (u32)CAPTURE_GUARANTEED && !aware)
@@ -1230,7 +1237,7 @@ static void ResolveImpact(struct PendingThrow *throw, struct ObjectEvent *owe)
     }
 
     CreateMonFromOWE(&mon, owe);
-    shakes = RollShakes(ComputeOverworldCaptureOdds(&mon, owe, throw->ball, aware));
+    shakes = RollShakes(ComputeOverworldCaptureOdds(&mon, owe, throw->ball, aware, throw->direction));
     throw->caught = (shakes == BALL_3_SHAKES_SUCCESS && GiveCaughtMon(throw, &mon));
     // BALL_3_SHAKES_FAIL breaks out after the third.
     throw->shakes = min(shakes, BALL_3_SHAKES_FAIL);
@@ -1430,6 +1437,8 @@ static void LoadCatchFrameGfx(void)
     ApplyDarkUiWindowFramePalette(BG_PLTT_ID(BANNER_FRAME_PAL));
 }
 
+static void HideCatchBanners(void);
+
 static void HidePanel(void)
 {
     if (!sCatch.panelUp)
@@ -1550,6 +1559,18 @@ void OverworldCatch_UpdatePanel(void)
 {
     UpdatePanel();
     UpdateBanners();
+}
+
+// Right before the Start menu or the debug menu opens. They open from
+// ProcessPlayerFieldInput, in CB1, and draw at once: hiding the panel and
+// the notes in CB2, as for everything else, came after they had drawn and
+// cut holes into them where the two overlapped (user, 21/11). The notes are
+// kept and come back when the menu closes.
+void OverworldCatch_ClearScreenForMenu(void)
+{
+    HidePanel();
+    if (sCatch.numBanners != 0 && !sCatch.pileHidden)
+        HideCatchBanners();
 }
 
 // Every frame of the overworld, after the spawns.

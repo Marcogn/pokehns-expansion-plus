@@ -32,6 +32,7 @@ struct CaptureParams
 };
 
 u32 ComputeCaptureOddsFromParams(const struct CaptureParams *p);
+u32 ComputeArceusCaptureOddsFromParams(const struct CaptureParams *p, bool32 noticed, bool32 backstrike);
 u32 ComputeBallShakeOdds(u32 odds);
 
 // Party slot that leads the next wild battle, PARTY_SIZE for none. Set by a
@@ -50,5 +51,6 @@ void OverworldCatch_OnBattleStart(void);
 bool32 OverworldCatch_IsOWEInBall(const struct ObjectEvent *owe);
 bool32 OverworldCatch_IsBallOnGroundAt(s16 x, s16 y);
 void OverworldCatch_DismissBanners(void);
+void OverworldCatch_ClearScreenForMenu(void);
 
 #endif // GUARD_OVERWORLD_CATCH_H

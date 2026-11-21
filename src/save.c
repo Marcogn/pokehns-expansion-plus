@@ -11,6 +11,7 @@
 #include "load_save.h"
 #include "overworld.h"
 #include "hall_of_fame.h"
+#include "pokemon.h"
 #include "pokemon_storage_system.h"
 #include "trainer_hill.h"
 #include "link.h"
@@ -1167,6 +1168,13 @@ u8 LoadGameSave(u8 saveType)
     //     /* migration code */
     //     gSaveBlock1Ptr->saveVersion = 1;
     // }
+
+    // Not a migration: the party's stats follow ARCEUS FORMULAS as stored,
+    // whatever formula the build that saved them used (a no-op when they
+    // already agree).
+    // SAVE_STATUS_ERROR still loads the good slot.
+    if (saveType != SAVE_HALL_OF_FAME && (status == SAVE_STATUS_OK || status == SAVE_STATUS_ERROR))
+        RecalculatePartyStats();
     return status;
 }
 

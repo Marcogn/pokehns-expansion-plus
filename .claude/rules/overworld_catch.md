@@ -13,9 +13,8 @@ paths:
 
 # Cattura nell'overworld: andature, percezione, lancio
 
-Piano, decisioni e diario delle verifiche:
-[`docs/plans/overworld-catch.md`](../../docs/plans/overworld-catch.md) (§5.2
-per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
+Piano e verifiche: [`docs/plans/overworld-catch.md`](../../docs/plans/overworld-catch.md).
+Gli OWE in generale: `overworld_encounters.md`.
 
 ## Interruttore OVERWORLD CATCH (D20, fase 9)
 
@@ -63,10 +62,10 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
 
 ## Lancio (`src/overworld_catch.c`, fasi 3-4)
 
-- **Tasti**: R = `OverworldCatch_TryThrow` (`ProcessPlayerFieldInput`; in bici
-  Mach/Acro). R ricordato 16 frame (`sRPressBuffer`), **mai a controlli
-  bloccati**. L = `OverworldCatch_HandleLButton` da `DoCB1_Overworld` (toglie
-  il D-pad finché è tenuto); L tenuto attraverso un blocco conta come usato.
+- **Tasti**: R = `OverworldCatch_TryThrow` (in bici Mach/Acro; **R+START del
+  debug lancia anche**). R ricordato 16 frame, **mai a controlli bloccati**.
+  L = `OverworldCatch_HandleLButton` da `DoCB1_Overworld` (toglie il D-pad
+  finché è tenuto); L tenuto attraverso un blocco conta come usato.
   Con `L=A` main.c **aggiunge** A ma lascia L: l'opzione va letta.
 - **Un lancio è un record** (`sCatch.throws`, 3): `FLYING` → `OPENING` →
   `CLOSING` (cattura: qui l'OWE è tolto) → `FALLING` → `SHAKING` →
@@ -93,8 +92,8 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   prima di `ObjectEventSetHeldMovement`.
 - **Il Pokémon nasce sullo stack** (`CreateMonFromOWE`), **mai in
   `gEnemyParty`**: lo spawn lo usa nello stesso frame.
-- **Formula**: `ComputeCaptureOddsFromParams` (`battle_script_commands.c`).
-  ×2 se `!IsOWEAwareOfPlayer`; Quick Ball solo se non allertato; Timer mai.
+- **Formula**: `ComputeCaptureOddsFromParams` (`battle_script_commands.c`;
+  ARCEUS FORMULAS: `arceus.md`). ×2 se `!IsOWEAwareOfPlayer`; Quick Ball solo se non allertato; Timer mai.
   Sfida: `GetCaptureChallengeChecks`. **Nuzlocke: solo una cattura riuscita
   segna la zona** (P3).
 - **Fallito**: `ForceOWEToNoticePlayer`, **mai su un OWE già allertato o
@@ -127,13 +126,14 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   il fondo trasparente.**
 - **Tile e posto condivisi**: base 8 come banner, descrizione oggetto, menu
   Start e **finestra della ricerca DexNav** (stessa base e (1,16)): spento con
-  `DN_FLAG_SEARCHING`, se no la cancellava. Si aggiorna e si nasconde
-  **all'inizio del CB2** (`OverworldCatch_UpdatePanel` in `OverworldBasic`,
-  prima di `ScriptContext_RunScript`): i controlli si bloccano nel CB1, quindi
-  sparisce prima che uno script o un task disegni nello stesso frame.
+  `DN_FLAG_SEARCHING`. Pannello e foglietti si nascondono **all'inizio del
+  CB2** (`OverworldCatch_UpdatePanel`, prima di `ScriptContext_RunScript`),
+  prima che uno script disegni. **Menu Start e debug si aprono nel CB1 e
+  disegnano subito**: `OverworldCatch_ClearScreenForMenu()` prima di
+  `ShowStartMenu`/`Debug_ShowMainMenu`, se no ci aprivano buchi (21/11).
 - Su con L tenuto o `panelTimer` (120 frame); giù a controlli bloccati, con
   `L=A` o a cattura spenta. **Il rilascio di L senza scorrere cambia
-  modalità** (D1): anche in una prova che tiene L solo per guardare.
+  modalità** (D1), anche in una prova.
 
 ## Prove
 

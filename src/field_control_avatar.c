@@ -274,6 +274,7 @@ int ProcessPlayerFieldInput(struct FieldInput *input)
     {
         FlagSet(FLAG_OPENED_START_MENU);
         PlaySE(SE_WIN_OPEN);
+        OverworldCatch_ClearScreenForMenu();
         ShowStartMenu();
         return TRUE;
     }
@@ -326,6 +327,7 @@ int ProcessPlayerFieldInput(struct FieldInput *input)
     {
         PlaySE(SE_WIN_OPEN);
         FreezeObjectEvents();
+        OverworldCatch_ClearScreenForMenu();
         Debug_ShowMainMenu();
         return TRUE;
     }
@@ -1463,6 +1465,7 @@ static void Task_OpenStartMenu(u8 taskId)
         return;
 
     PlaySE(SE_WIN_OPEN);
+    OverworldCatch_ClearScreenForMenu();
     ShowStartMenu();
     DestroyTask(taskId);
 }

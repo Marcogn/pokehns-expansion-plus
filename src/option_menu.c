@@ -1,5 +1,6 @@
 #include "global.h"
 #include "option_menu.h"
+#include "pokemon.h"
 #include "bg.h"
 #include "gpu_regs.h"
 #include "international_string_util.h"
@@ -1427,7 +1428,14 @@ static void Task_Save(u8 taskId)
     sf->noNightCenterMusic = *GetSelectionPtr(TAB_SOUND, ITEM_SOUND_NIGHT_CENTER);
     // LEVEL SCALING and EASY CATCH are in the challenge menu now.
 
-    gSaveBlock3Ptr->extraOptions.arceusFormulas = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_ARCEUS_FORMULAS);
+    if (gSaveBlock3Ptr->extraOptions.arceusFormulas != *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_ARCEUS_FORMULAS))
+    {
+        gSaveBlock3Ptr->extraOptions.arceusFormulas = *GetSelectionPtr(TAB_BATTLE, ITEM_BATTLE_ARCEUS_FORMULAS);
+        // Every stat formula changed: the party follows now, and the HP
+        // lost of the Pokémon in the PC and the Day Care is rescaled (phase 10).
+        RecalculatePartyStats();
+        ConvertStoredMonsHPForStatFormulaSwitch();
+    }
 
     BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 16, RGB_BLACK);
     gTasks[taskId].func = Task_FadeOut;
