@@ -134,10 +134,11 @@ comportamento 2 (non notato) o 1, colpo alle spalle ×1,75; Ball: Poké/Great/
 Ultra 0,75/1,5/2,25, le altre col loro effetto × 0,75, Master/Beast/Safari/
 Sport invariate. Roamer invariati (R avvia la lotta).
 
-**Danno**: base = ((100 + A + 15 × L) × P / (D + 50)) / 5, troncato a ogni
-passo, con A e D **grezzi**; poi × finale/grezzo dell'Attacco × grezzo/
-finale della Difesa (stadi ±6 del gioco, abilità, strumenti, bonus medaglia:
-pesano come nella classica, come AtkMod/DefMod di Arceus; deciso il 21/11).
+**Danno**: base = ((100 + A + 15 × L) × P / (D + 50)) / 5 con A e D
+**grezzi**, e il numeratore × finale/grezzo dell'Attacco × grezzo/finale
+della Difesa prima delle divisioni (stadi ±6 del gioco, abilità, strumenti,
+bonus medaglia: pesano come nella classica, come AtkMod/DefMod di Arceus;
+deciso il 21/11). Senza modificatori è la formula troncata a ogni passo.
 STAB 1,25 (Adattabilità 1,5, utente 21/11), doppia debolezza ×2,5, doppia
 resistenza ×0,4; brutto colpo, meteo, scottatura del gioco.
 

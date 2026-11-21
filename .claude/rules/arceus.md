@@ -68,7 +68,7 @@ Decisioni e formule: [`docs/plans/overworld-catch.md`](../../docs/plans/overworl
   all'impatto (direzione del giocatore salvata al lancio). Quick Ball: come
   prima, solo se non allertato.
 
-## Danno (`src/battle_util.c`, fasi 11 e 11b)
+## Danno (`src/battle_util.c`, fasi 11, 11b e revisione)
 
 Formula e scelte nel piano §3. Il calcolo, con l'opzione accesa:
 

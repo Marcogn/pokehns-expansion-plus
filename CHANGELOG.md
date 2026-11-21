@@ -117,10 +117,8 @@ add the section before releasing. Feature details live in the tables of
     1.5, 2.25); every other Ball keeps its own bonus, times 0.75. Master
     Ball and `EASY CATCH` still always catch.
   - **Damage**: Arceus' formula, which weighs the level more and the
-    defending stat less than today's, so hits land harder on both sides:
-    battles are a hit or two shorter, and early on wild Pokémon hurt a lot
-    more (a Pidgey needs 3-4 Tackles to knock out a Lv 6 Cyndaquil instead
-    of 7-11). Same-type moves get ×1.25 instead of ×1.5 (Adaptability
+    defending stat less than today's, so hits land harder on both sides and
+    battles are a hit or two shorter. Same-type moves get ×1.25 instead of ×1.5 (Adaptability
     ×1.5), a double weakness ×2.5 instead of ×4 and a double resistance
     ×0.4 instead of ×0.25. Stat stages, abilities, items, weather and
     critical hits stay as they are; the messages ("It's super effective!")
