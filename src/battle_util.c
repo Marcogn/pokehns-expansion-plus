@@ -6913,7 +6913,7 @@ static inline uq4_12_t ApplyDefensiveBadgeBoost(uq4_12_t modifier, enum BattlerI
 }
 
 // ARCEUS FORMULAS: the stat each side used before its stages, abilities and
-// items, recorded by CalcAttackStat/CalcDefenseStat for ApplyArceusStatRatio.
+// items, recorded by CalcAttackStat/CalcDefenseStat for CalculateArceusBaseDamage.
 static u32 sArceusRawAtkStat;
 static u32 sArceusRawDefStat;
 
@@ -7409,12 +7409,6 @@ static inline u32 CalcDefenseStat(struct BattleContext *ctx)
 // base damage formula before adding any modifiers
 static inline s32 CalculateBaseDamage(u32 power, u32 userFinalAttack, u32 level, u32 targetFinalDefense)
 {
-    // ARCEUS FORMULAS: the Legends: Arceus base damage (Bulbapedia, Damage),
-    // floored at every step. Its stats are several times larger than the
-    // classic ones early on (plan overworld-catch §3), so the classic formula
-    // would make the first battles 3-4 times longer.
-    if (AreArceusFormulasEnabled())
-        return (100 + userFinalAttack + 15 * level) * power / (targetFinalDefense + 50) / 5;
     return power * userFinalAttack * (2 * level / 5 + 2) / targetFinalDefense / 50 + 2;
 }
 
@@ -7443,21 +7437,24 @@ static inline uq4_12_t ArceusTypeModifier(uq4_12_t modifier)
     return modifier;
 }
 
-// ARCEUS FORMULAS: the Arceus formula adds the attack (100 + A + 15 L), so a
-// doubled Attack (+2 stages, Huge Power, Choice Band) only gave about +15%.
-// Arceus applies its stat modifiers to the damage instead (AtkMod, DefMod), so
-// the base damage takes the raw stats and the ratio of each final stat to its
-// raw one multiplies the damage here: every stage, ability and item keeps the
-// weight it has in the classic formula.
-static inline s32 ApplyArceusStatRatio(s32 dmg, u32 finalAtk, u32 rawAtk, u32 finalDef, u32 rawDef)
+// ARCEUS FORMULAS: the Legends: Arceus base damage (Bulbapedia, Damage),
+// ((100 + A + 15 L) * P / (D + 50)) / 5. Its stats are several times larger
+// than the classic ones early on (plan overworld-catch §3), so the classic
+// formula would make the first battles 3-4 times longer.
+// A and D are the raw stats: the formula adds the attack, so a doubled Attack
+// (+2 stages, Huge Power, Choice Band) applied to A only gave about +15%.
+// Arceus applies its stat modifiers to the damage instead (AtkMod, DefMod),
+// so the ratio of each final stat to its raw one multiplies the numerator
+// before the two divisions: every stage, ability and item keeps its classic
+// weight, also on weak hits, and without modifiers the ratios cancel out and
+// the result is the same as flooring at every step.
+static inline s32 CalculateArceusBaseDamage(u32 power, u32 rawAtk, u32 finalAtk, u32 level, u32 rawDef, u32 finalDef)
 {
-    u64 scaled = dmg;
+    u64 numerator = (u64)(100 + rawAtk + 15 * level) * power * finalAtk * rawDef;
+    u64 denominator = (u64)(rawDef + 50) * (rawAtk ? rawAtk : 1) * (finalDef ? finalDef : 1);
+    u64 dmg = numerator / denominator / 5;
 
-    if (rawAtk != 0)
-        scaled = scaled * finalAtk / rawAtk;
-    if (finalDef != 0)
-        scaled = scaled * rawDef / finalDef;
-    return scaled > INT32_MAX ? INT32_MAX : (s32)scaled;
+    return dmg > INT32_MAX ? INT32_MAX : (s32)dmg;
 }
 
 static inline uq4_12_t GetTargetDamageModifier(struct BattleContext *ctx)
@@ -7822,7 +7819,8 @@ static inline uq4_12_t GetArceusEarlyWildDamageModifier(struct BattleContext *ct
 
     if (!AreArceusFormulasEnabled()
      || (gBattleTypeFlags & BATTLE_TYPE_TRAINER)
-     || IsOnPlayerSide(ctx->battlerAtk))
+     || IsOnPlayerSide(ctx->battlerAtk)
+     || !IsOnPlayerSide(ctx->battlerDef)) // not its partner, nor itself in confusion
         return UQ_4_12(1.0);
 
     // Johto badges only: Kanto's come after the eighth (NUM_BADGES is 16).
@@ -7852,8 +7850,8 @@ static inline s32 DoMoveDamageCalcVars(struct BattleContext *ctx)
 
     if (AreArceusFormulasEnabled())
     {
-        dmg = CalculateBaseDamage(gBattleMovePower, sArceusRawAtkStat, gBattleMons[ctx->battlerAtk].level, sArceusRawDefStat);
-        dmg = ApplyArceusStatRatio(dmg, userFinalAttack, sArceusRawAtkStat, targetFinalDefense, sArceusRawDefStat);
+        dmg = CalculateArceusBaseDamage(gBattleMovePower, sArceusRawAtkStat, userFinalAttack,
+                                        gBattleMons[ctx->battlerAtk].level, sArceusRawDefStat, targetFinalDefense);
         DAMAGE_APPLY_MODIFIER(GetArceusEarlyWildDamageModifier(ctx));
     }
     else
@@ -8019,10 +8017,10 @@ static inline s32 DoFutureSightAttackDamageCalcVars(struct BattleContext *ctx)
     targetFinalDefense = CalcDefenseStat(ctx);
     if (AreArceusFormulasEnabled())
     {
-        // The attacker's party stat has no stages or modifiers: only the
-        // defense side needs the ratio.
-        dmg = CalculateBaseDamage(gBattleMovePower, userFinalAttack, partyMonLevel, sArceusRawDefStat);
-        dmg = ApplyArceusStatRatio(dmg, userFinalAttack, userFinalAttack, targetFinalDefense, sArceusRawDefStat);
+        // The attacker's party stat has no stages or modifiers: raw = final.
+        dmg = CalculateArceusBaseDamage(gBattleMovePower, userFinalAttack, userFinalAttack,
+                                        partyMonLevel, sArceusRawDefStat, targetFinalDefense);
+        DAMAGE_APPLY_MODIFIER(GetArceusEarlyWildDamageModifier(ctx));
     }
     else
     {

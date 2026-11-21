@@ -72,18 +72,22 @@ Decisioni e formule: [`docs/plans/overworld-catch.md`](../../docs/plans/overworl
 
 Formula e scelte nel piano §3. Il calcolo, con l'opzione accesa:
 
-1. **Base** (`CalculateBaseDamage`): `((100 + A + 15 L) × P / (D + 50)) / 5`,
-   troncata a ogni passo, senza il `+2` classico (un danno 0 diventa 1 alla
-   fine, come prima). **A e D sono grezzi**: `sArceusRawAtkStat` e
-   `sArceusRawDefStat`, scritti da `CalcAttackStat`/`CalcDefenseStat` dopo
-   la scelta della statistica (Foul Play, Body Press, Psyshock, Wonder Room)
-   e prima di stadi, abilità, strumenti, bonus medaglia ed Esplosione.
-2. **Rapporti** (`ApplyArceusStatRatio`, subito dopo la base): × finale/grezzo
-   dell'Attacco × grezzo/finale della Difesa, in `u64`. Così ogni
-   modificatore pesa come nella classica (+2 stadi = ×2), come AtkMod/DefMod
-   di Arceus. **Perché**: Arceus somma A; con gli stadi sulla statistica
-   l'Attacco ×2 dava solo +15% (Lv 50, A = D = 150).
-3. Bersagli multipli, meteo, brutto colpo, tiro casuale: del gioco.
+1. **Base** (`CalculateArceusBaseDamage`): `((100 + A + 15 L) × P / (D + 50))
+   / 5`, senza il `+2` classico (un danno 0 diventa 1 alla fine, come prima).
+   **A e D sono grezzi**: `sArceusRawAtkStat` e `sArceusRawDefStat`, scritti
+   da `CalcAttackStat`/`CalcDefenseStat` dopo la scelta della statistica
+   (Foul Play, Body Press, Psyshock, Wonder Room) e prima di stadi, abilità,
+   strumenti, bonus medaglia ed Esplosione.
+2. **Rapporti**, nello stesso calcolo: il numeratore × finale/grezzo
+   dell'Attacco × grezzo/finale della Difesa **prima** delle due divisioni,
+   in `u64`. Ogni modificatore pesa come nella classica (+2 stadi = ×2), come
+   AtkMod/DefMod di Arceus; anche sui colpi deboli (applicati dopo il
+   troncamento, base 0 restava 0 con qualunque stadio). Senza modificatori i
+   rapporti si annullano e il risultato è identico al troncare a ogni passo.
+   **Perché**: Arceus somma A; con gli stadi sulla statistica l'Attacco ×2
+   dava solo +15% (Lv 50, A = D = 150).
+3. **Selvatici di inizio gioco** (sezione sotto), poi bersagli multipli,
+   meteo, brutto colpo, tiro casuale: del gioco.
 4. **STAB** (`ArceusStabModifier`): si dimezza il bonus sopra 1 → 1,25;
    Adattabilità 1,5 (scelta dell'utente); Tera 2,25 → 1,625.
 5. **Tipo** (`ArceusTypeModifier`): ≥ ×4 → ×2,5, ≤ ×0,25 (non 0) → ×0,4
@@ -96,8 +100,9 @@ Trappole e fatti:
   `DoMoveDamageCalcVars`: nulla fra mezzo le riscrive. Se si aggiunge codice
   lì, non chiamare altre funzioni di danno prima della base.
 - **Divinazione** (`DoFutureSightAttackDamageCalcVars`) ha un calcolo suo:
-  Attacco dalla squadra, già senza modificatori, quindi solo il rapporto
-  della Difesa; STAB 1,5 scritto a mano passato da `ArceusStabModifier`.
+  Attacco dalla squadra, già senza modificatori (grezzo = finale), quindi
+  solo il rapporto della Difesa; anche lì la riduzione dei selvatici; STAB
+  1,5 scritto a mano passato da `ArceusStabModifier`.
 - **L'IA** usa `DoMoveDamageCalcVars` (senza tiro) e
   `ApplyModifiersAfterDmgRoll`: le sue stime seguono la formula.
 - Brutto colpo **×2** del gioco (`B_CRIT_MULTIPLIER` GEN_3; Arceus 1,5):
@@ -115,12 +120,14 @@ Trappole e fatti:
   (`src/item.c`) sostituisce l'importo fisso nei **tre** punti che lo
   calcolano: `ExecuteTableBasedItemEffect` (`pokemon.c`, menu e lotta del
   giocatore), `BS_ItemRestoreHP` (`battle_script_commands.c`) e la stima
-  dell'IA (`battle_ai_items.c`). Le descrizioni in borsa cambiano in
+  dell'IA (`battle_ai_items.c`, `GetHPHealAmount` in `u32`: in `u8`
+  tagliava `maxHP - hp` della Pozione Max a 256). Le descrizioni in borsa cambiano in
   `GetItemDescription` (stringhe `static const`: un `COMPOUND_STRING`
   restituito da una funzione è un indirizzo locale, `-Werror`). Bevande e
   bacche restano: Arceus non le ha.
 - **Selvatici ridotti** (`GetArceusEarlyWildDamageModifier`, dopo i
   rapporti): ×0,6 / 0,75 / 0,9 con 0 / 1 / 2 medaglie di Johto, pieno dalla
-  terza; solo lotte senza `BATTLE_TYPE_TRAINER` e attaccante del lato
-  avversario. Allenatori e giocatore mai. Medaglie: `FLAG_BADGE01..08_GET`
+  terza; solo lotte senza `BATTLE_TYPE_TRAINER`, attaccante dell'avversario
+  **e bersaglio del giocatore** (non il compagno in doppio, non sé stesso
+  in confusione). Allenatori e giocatore mai. Medaglie: `FLAG_BADGE01..08_GET`
   (in HnS `NUM_BADGES` è 16).

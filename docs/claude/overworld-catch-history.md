@@ -1254,7 +1254,7 @@ segno alfa per il riassunto. Nessun campo nuovo in SaveBlock3.
   Trovato rifacendo i conti dopo la fase 11; deciso dall'utente il 21/11.
 - **Fatto**: danno base con le statistiche **grezze**, poi il danno ×
   finale/grezzo dell'Attacco × grezzo/finale della Difesa
-  (`ApplyArceusStatRatio`, `src/battle_util.c`; regola `arceus.md`).
+  (`ApplyArceusStatRatio`, poi `CalculateArceusBaseDamage` dopo la revisione; regola `arceus.md`).
 - **Verificato** in mGBA (ROM strumentata con anche le statistiche grezze,
   tolta prima del commit), `.sav` dell'utente:
   - Dazzling Gleam di Vileplume con **Att. Sp. +2** su Flaaffy: grezzo 261,
@@ -1287,3 +1287,21 @@ segno alfa per il riassunto. Nessun campo nuovo in SaveBlock3.
     tiro 95 → **6**; colpo di Quilava nella stessa lotta ×1;
   - POKéMANIAC BRENT (allenatore), 0 medaglie: Wrap ×1 (12).
 - ROM 95,13%.
+
+### `/pr-review` della PR #73 (21/11, su `ed9ad546`)
+
+- Revisione generica media + controlli del repo: nessun punto sui controlli
+  del repo (niente `#if`, salvataggio, palette, `assertf`, sonde lasciate).
+- Corretti: (1) **IA**: `GetHPHealAmount` (`battle_ai_items.c`) era `u8`,
+  e con i PS di Arceus sopra 255 la Pozione Max di un avversario a 30/330
+  valeva 44 nella stima (preesistente, ora frequente); (2) **rapporti prima
+  delle divisioni** (`CalculateArceusBaseDamage`): dopo il troncamento un
+  colpo debole perdeva il moltiplicatore (base 0 restava 0); (3) Divinazione
+  di un selvatico non ridotta; (4) riduzione dei selvatici anche sul
+  compagno in doppio e sull'autocolpo da confusione.
+- Tenuto: ≥ ×4 → 2,5 e ≤ ×0,25 → 0,4 anche per efficacie fuori dal tipo
+  (Catrame) e con Lente Colore su una tripla resistenza (0,8): regola voluta.
+- Riprovato in mGBA (sonda tolta): Stomp di Lickitung con il bonus medaglia
+  sulla Difesa (81 → 89) **50 → 57**, uguale a prima; Dazzling Gleam con
+  Att. Sp. +2 (136 → 272): base **171** (prima della correzione 170) → tiro
+  98 → **167**. Entrambi uguali al calcolo.
