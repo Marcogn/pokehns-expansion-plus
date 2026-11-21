@@ -10987,6 +10987,104 @@ u32 ComputeCaptureOddsFromParams(const struct CaptureParams *p)
     return odds;
 }
 
+// ARCEUS FORMULAS (overworld catch plan, phase 10, D21): the catch formula of
+// Pokémon Legends: Arceus, for a Ball thrown in the overworld only (battles
+// keep the one above). Bulbapedia, Catch rate, "Pokémon Legends: Arceus":
+//   a = 0.75 * rate + 30 * (rank + (3 maxHP - 2 HP) / (3 maxHP)
+//                           * status * ball * behavior * backstrike)
+// with no Mass Outbreaks and no berries here. a is 0-255 and the catch chance
+// is a / 255 in Arceus too, so the result feeds the same shake roll.
+// HnS choices (plan §3, 20/11): one rate for every species but the legendary
+// and mythical ones; the player's rank is the Johto badges plus the Johto
+// Champion; Poké, Great and Ultra Ball at Arceus' values, every other Ball at
+// its own effect here times 0.75, Master Ball, Beast, Safari and Sport Ball
+// and anything thrown at an Ultra Beast as they are.
+#define ARCEUS_CATCH_RATE 135
+
+static u32 GetArceusPlayerRank(void)
+{
+    u32 rank = FlagGet(FLAG_IS_CHAMPION);
+
+    for (u32 i = FLAG_BADGE01_GET; i < FLAG_BADGE01_GET + NUM_BADGES; i++)
+    {
+        if (FlagGet(i))
+            rank++;
+    }
+    return rank;
+}
+
+u32 ComputeArceusCaptureOddsFromParams(const struct CaptureParams *p, bool32 noticed, bool32 backstrike)
+{
+    const struct SpeciesInfo *info = &gSpeciesInfo[p->species];
+    struct BallData ball;
+    s32 rate, rank, monRank, a;
+    u32 multiplier, divider;
+    s64 bonus;
+
+    ComputeBallData(p, &ball);
+    if (ball.guaranteedCapture || IsGuaranteedCatchEnabled())
+        return CAPTURE_GUARANTEED;
+
+    if (info->isRestrictedLegendary || info->isSubLegendary || info->isMythical)
+        rate = info->catchRate;
+    else
+        rate = ARCEUS_CATCH_RATE;
+    // The Heavy Ball's weight bonus goes on the rate, as it does above.
+    rate += ball.flatBonus;
+    if (rate <= 0)
+        rate = 1;
+
+    multiplier = ball.multiplier;
+    divider = ball.divider;
+    if (!info->isUltraBeast)
+    {
+        switch (ItemIdToBallId(p->ballItem))
+        {
+        case BALL_POKE:
+            multiplier = 75;
+            divider = 100;
+            break;
+        case BALL_GREAT:
+            multiplier = 150;
+            divider = 100;
+            break;
+        case BALL_ULTRA:
+            multiplier = 225;
+            divider = 100;
+            break;
+        case BALL_BEAST:
+        case BALL_SAFARI:
+        case BALL_SPORT:
+            break;
+        default:
+            multiplier *= 3;
+            divider *= 4;
+            break;
+        }
+    }
+
+    // The Pokémon's rank, 1-10 (+4 for an alpha comes with phase 13).
+    monRank = min((p->level - 1) / 10 + 1, 10);
+    rank = GetArceusPlayerRank() - monRank + 1;
+    rank = max(-5, min(rank, 0));
+
+    // Everything in thousandths of a.
+    bonus = (s64)30000 * (p->maxHP * 3 - p->hp * 2) / (p->maxHP * 3);
+    bonus = bonus * multiplier / divider;
+    if (p->status1 & STATUS1_ANY)
+        bonus *= 2;
+    // Behavior: 2 for a Pokémon going about its business, 1 for one that has
+    // noticed the player and charges or flees.
+    if (!noticed)
+        bonus *= 2;
+    if (backstrike)
+        bonus = bonus * 175 / 100;
+
+    a = (s32)min(rate * 750 + rank * 30000 + bonus, (s64)255000) / 1000;
+    // Below 0 the catch is impossible in Arceus.
+    return max(a, 0);
+}
+
 static u32 ComputeCaptureOdds(u32 wildMonBattler, u32 playerBattler)
 {
     struct CaptureParams params;

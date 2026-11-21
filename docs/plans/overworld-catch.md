@@ -1,6 +1,6 @@
 # Piano: cattura nell'overworld (stile Leggende Pokémon: Arceus)
 
-**Stato (20/11): fasi 1-9 fatte (tetti e prezzi; passo lento e percezione; nucleo del lancio; animazione; pannello e documentazione; revisione della prima parte; ricorda mosse a pagamento; menu riordinati e salvataggio 15; interruttore OVERWORLD CATCH e Ball speciali nei Mart); prossima: fase 10 (Opus 5.5). Il 20/11 sono entrate le fasi 8-11 (menu, OVERWORLD CATCH, ARCEUS FORMULAS) e gli alfa sono passati a 12-14.**
+**Stato (21/11): fasi 1-10 fatte (tetti e prezzi; passo lento e percezione; nucleo del lancio; animazione; pannello e documentazione; revisione della prima parte; ricorda mosse a pagamento; menu riordinati e salvataggio 15; interruttore OVERWORLD CATCH e Ball speciali nei Mart; statistiche e cattura di Arceus); prossima: fase 11 (Opus 5.5). Il 20/11 sono entrate le fasi 8-11 (menu, OVERWORLD CATCH, ARCEUS FORMULAS) e gli alfa sono passati a 12-14.**
 
 Si appoggia agli OWE già in gioco: leggere prima
 [`.claude/rules/overworld_encounters.md`](../../.claude/rules/overworld_encounters.md)
@@ -294,9 +294,12 @@ e [Poképédia](https://www.pokepedia.fr/Calcul_des_statistiques)):
   fra Pokébip e Poképédia). m per impegno 0-10: 0, 2, 3, 4, 7, 8, 9, 14, 15,
   16, 25 (la tabella di Bulbapedia salta la riga 1; il 2 viene dalle altre due
   fonti).
-- Gli IV servono solo a dare l'impegno iniziale, fino a 3: 0-20 → 0, 21-25 →
-  1, 26-30 → 2, 31 → 3 (Pokébip; il caso IV 20 resta da confermare sulla
-  pagina Effort level, conta solo per quel valore).
+- Gli IV servono solo a dare l'impegno iniziale, fino a 3: 0-19 → 0, 20-25 →
+  1, 26-30 → 2, 31 → 3. **Chiuso il 21/11 su PKHeX**
+  (`PKHeX.Core/PKM/Interfaces/IGanbaru.cs`, `GetBias`: `>= 20 => 1`), che
+  replica il codice del gioco; Pokébip ed Eternia scrivono 21-25, sbagliato.
+  PKHeX (`PA8.cs`) conferma anche le formule sopra, con i due termini base in
+  `float` a 32 bit e l'arrotondamento "lontano da zero" del bonus.
 - Controllo: base 120, Lv 100, impegno 10 → PS 490, altra 390 (anche
   ts-pokeapi).
 
@@ -1283,6 +1286,62 @@ con le statistiche di Arceus vale un'altra cosa.
 - Da chiedere all'utente: il passo lento con B nella ricerca DexNav a cattura
   spenta (tenuto) e il Mart di Cherrygrove, che fino al rifornimento della
   storia non vende Ball.
+
+### 5.10 Fase 10, com'è stata fatta (21/11)
+
+- **Modello**: Opus 5.5, come assegnato. Col `.sav` dell'utente (PLUS.11, 6
+  medaglie, Route 43, squadra al Lv 38 con IV 31).
+- **Statistiche** (`CalculateMonStats`, dettagli e trappole in
+  `.claude/rules/arceus.md`): formula di PKHeX, termini base in `float` a 32
+  bit come il gioco (con interi esatti escono +1 in 19 PS e 89 altre
+  statistiche su 25 500 coppie base × livello),
+  bonus d'impegno intero. **Impegno da IV ed EV** (scelta mia, da
+  confermare): base dagli IV (≥ 20 → 1, 26 → 2, 31 → 3) + `EV × 10 / 252`,
+  max 10; 252 EV in una statistica la portano al massimo, come i Grit.
+  `RecalculatePartyStats()` al cambio (menu Opzioni, anche dal titolo) e al
+  caricamento, PS in proporzione arrotondati al più vicino.
+- **Cattura** (`ComputeArceusCaptureOddsFromParams`): formula di Bulbapedia
+  con le scelte del 20/11 (tasso 135, leggendari col loro, rango da medaglie
+  di Johto + Campione, Ball del documento chiuso). **Heavy Ball**: il bonus
+  fisso del peso va sul tasso, come oggi in lotta (scelta mia). Colpo alle
+  spalle = il Pokémon guarda dove andava la Ball (`throw->direction`).
+- **Verificato** in mGBA con una ROM strumentata (banco di prova in
+  `OverworldCatch_Update`, tolto prima del commit) e un riferimento Python
+  indipendente (PKHeX in `float32`):
+  - **3 Pokémon Lv 5, 25, 50** (Bulbasaur Adamant, Sentret Timid, Onix
+    Hardy, IV ed EV misti, IV 19/20/21/25/26/30/31 tutti presenti): 36
+    statistiche su 36 uguali al riferimento, accesa e spenta.
+  - **Squadra vera**: accesa dal menu Opzioni, 36 su 36 uguali; ferito 50/104
+    → 70/145 → di nuovo 50/104, avvelenato resta avvelenato, esausto resta a
+    0, pieni restano pieni. Spenta, le statistiche tornano identiche a
+    quelle del `.sav`.
+  - **Cattura, 6 casi** (6 medaglie, EASY CATCH spento in RAM: nel `.sav` è
+    acceso): Furret Lv 21 Poké Ball 116; Pinsir Lv 22 Ultra, allertato,
+    alle spalle 140; Pinsir Lv 95 Net Ball (rango −3) 63; Suicune Lv 40 Ultra
+    (tasso 3) 47; Furret Lv 100 allertato 18; Master Ball garantita. Tutti
+    uguali al calcolo a mano fatto prima. **Lancio vero**: Furret Lv 21 messo
+    a 2 caselle, girato come il giocatore, Poké Ball: 127 (calcolo 127,5).
+  - **Caricamento**: spenta, la squadra dopo `LoadGameSave` è identica alla
+    copia in SaveBlock1; salvato con l'opzione accesa e riavviato
+    l'emulatore, la squadra torna identica (statistiche, PS, stato).
+- **Non verificato**: una lotta con l'opzione accesa (fase 11, col danno);
+  il riassunto a schermo; un Pokémon ritirato dal PC (stesso
+  `CalculateMonStats` di sempre via `BoxMonToMon`).
+- ROM: 31 919 588 B, **95,13%** (+2 752 B sulla fase 9, tutto compreso).
+
+**Handoff per la fase 11 (Opus 5.5)**
+- Le statistiche di Arceus a inizio gioco sono **molto** più alte (Bulbasaur
+  Lv 5 con 252 EV in Attacco: 110 contro 15): finché non c'è il danno di
+  Arceus le prime lotte con l'opzione accesa sono lunghissime. Anche i
+  Pokémon degli allenatori e i selvatici usano le statistiche nuove
+  (`CreateMon` → `CalculateMonStats`).
+- Gli EV degli allenatori scalati (`TrainerScalingEVs`, `caps.c:169`)
+  alzano l'impegno: da guardare nella tabella dei colpi per KO.
+- Banco di prova: la ricetta è in §5.10 sopra e in `emulator.md`; il client
+  RAM (`ramd.py`) va riscritto a ogni container (non nel git).
+- Da chiedere all'utente: la mappatura EV → impegno e la Heavy Ball (sopra);
+  dalla fase 9, il passo lento con B nella ricerca DexNav a cattura spenta e
+  il Mart di Cherrygrove.
 
 ## 6. Scartato, e perché
 

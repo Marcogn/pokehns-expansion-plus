@@ -32,6 +32,7 @@ struct CaptureParams
 };
 
 u32 ComputeCaptureOddsFromParams(const struct CaptureParams *p);
+u32 ComputeArceusCaptureOddsFromParams(const struct CaptureParams *p, bool32 noticed, bool32 backstrike);
 u32 ComputeBallShakeOdds(u32 odds);
 
 // Party slot that leads the next wild battle, PARTY_SIZE for none. Set by a

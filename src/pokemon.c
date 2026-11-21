@@ -3755,8 +3755,55 @@ static u16 CalculateBoxMonChecksumReencrypt(struct BoxPokemon *boxMon)
     return checksum;
 }
 
+// ARCEUS FORMULAS (overworld catch plan, phase 10, D21): the stats of
+// Pokémon Legends: Arceus, as PKHeX computes them from the game's own code
+// (PA8.cs GetStatHp / GetStat / GetGanbaruStat, IGanbaru.cs). The two base
+// terms are single-precision floats on purpose: the game truncates floats, and
+// exact integer maths comes out 1 higher in about 0.4% of the cases (checked
+// over every base stat and level). The effort bonus is exact in integers.
+#define ARCEUS_MAX_EFFORT_LEVEL 10
+
+static const u8 sArceusEffortMultipliers[ARCEUS_MAX_EFFORT_LEVEL + 1] = {0, 2, 3, 4, 7, 8, 9, 14, 15, 16, 25};
+
+// No new data in the Pokémon (D21): the IV gives the starting level, as in
+// Arceus (IGanbaru.cs GetBias: 20 and up 1, 26 up 2, 31 gives 3), and the EVs
+// stand in for the Grit items: a full 252 alone reaches the top level.
+static u32 GetArceusEffortLevel(u32 iv, u32 ev)
+{
+    u32 level = (iv >= 31) ? 3 : (iv >= 26) ? 2 : (iv >= 20) ? 1 : 0;
+
+    level += ev * ARCEUS_MAX_EFFORT_LEVEL / MAX_PER_STAT_EVS;
+    return min(level, ARCEUS_MAX_EFFORT_LEVEL);
+}
+
+// round((sqrt(base) * multiplier + level) / 2.5), half away from zero, with the
+// square root in 1/4096ths (255 << 24 still fits a u32).
+static s32 GetArceusEffortBonus(u32 baseStat, u32 effortLevel, u32 level)
+{
+    u32 value = Sqrt(baseStat << 24) * sArceusEffortMultipliers[effortLevel] + (level << 12);
+
+    return (value * 2 + (5 << 12) / 2) / (5 << 12);
+}
+
+static s32 GetArceusMaxHP(u32 baseStat, u32 iv, u32 ev, u32 level)
+{
+    s32 n = (s32)((((float)level / 100.0f) + 1.0f) * baseStat + level);
+
+    return n + GetArceusEffortBonus(baseStat, GetArceusEffortLevel(iv, ev), level);
+}
+
+static s32 GetArceusStat(u32 baseStat, u32 iv, u32 ev, u32 level, u8 nature, enum Stat stat)
+{
+    s32 n = (s32)((((float)level / 50.0f) + 1.0f) * baseStat / 1.5f);
+
+    // The nature goes on the base term only, before the effort bonus (PA8.cs).
+    n = ModifyStatByNature(nature, n, stat);
+    return n + GetArceusEffortBonus(baseStat, GetArceusEffortLevel(iv, ev), level);
+}
+
 void CalculateMonStats(struct Pokemon *mon)
 {
+    bool32 arceus = AreArceusFormulasEnabled();
     s32 oldMaxHP = GetMonData(mon, MON_DATA_MAX_HP);
     s32 currentHP = GetMonData(mon, MON_DATA_HP);
     u16 species = GetMonData(mon, MON_DATA_SPECIES);
@@ -3794,10 +3841,18 @@ void CalculateMonStats(struct Pokemon *mon)
             continue;
 
         u32 baseStat = equalizedBst ? equalizedBst : GetSpeciesBaseStat(species, i);
-        s32 n = (((2 * baseStat + iv[i] + ev[i] / 4) * level) / 100) + 5;
-        n = ModifyStatByNature(nature, n, i);
-        if (B_FRIENDSHIP_BOOST == TRUE)
-            n = n + ((n * 10 * friendship) / (MAX_FRIENDSHIP * 100));
+        s32 n;
+        if (arceus)
+        {
+            n = GetArceusStat(baseStat, iv[i], ev[i], level, nature, i);
+        }
+        else
+        {
+            n = (((2 * baseStat + iv[i] + ev[i] / 4) * level) / 100) + 5;
+            n = ModifyStatByNature(nature, n, i);
+            if (B_FRIENDSHIP_BOOST == TRUE)
+                n = n + ((n * 10 * friendship) / (MAX_FRIENDSHIP * 100));
+        }
         SetMonData(mon, MON_DATA_MAX_HP + i, &n);
     }
 
@@ -3809,6 +3864,10 @@ void CalculateMonStats(struct Pokemon *mon)
     if (species == SPECIES_SHEDINJA)
     {
         newMaxHP = 1;
+    }
+    else if (arceus)
+    {
+        newMaxHP = GetArceusMaxHP(equalizedBst ? equalizedBst : GetSpeciesBaseHP(species), iv[STAT_HP], ev[STAT_HP], level);
     }
     else
     {
@@ -3836,6 +3895,48 @@ void CalculateMonStats(struct Pokemon *mon)
         currentHP = newMaxHP;
 
     SetMonData(mon, MON_DATA_HP, &currentHP);
+}
+
+// ARCEUS FORMULAS changes every stat at once: after a switch (option menu)
+// and at load the party is recomputed, each Pokémon keeping its share of HP
+// rather than CalculateMonStats' "add the HP gained" (a switch to the smaller
+// formula would leave a hurt Pokémon at full health). Fainted stays fainted;
+// status is untouched. The boxes need nothing: BoxMonToMon recomputes on
+// withdrawal from the HP lost.
+void RecalculatePartyStats(void)
+{
+    for (u32 i = 0; i < PARTY_SIZE; i++)
+    {
+        struct Pokemon *mon = &gPlayerParty[i];
+        u32 oldMaxHP, hp, newMaxHP;
+
+        if (GetMonData(mon, MON_DATA_SPECIES) == SPECIES_NONE)
+            continue;
+
+        oldMaxHP = GetMonData(mon, MON_DATA_MAX_HP);
+        hp = GetMonData(mon, MON_DATA_HP);
+        CalculateMonStats(mon);
+        if (hp == 0 || oldMaxHP == 0)
+            continue;
+
+        newMaxHP = GetMonData(mon, MON_DATA_MAX_HP);
+        // To the nearest point, so that switching back and forth does not
+        // wear HP away (50/104 -> 69/145 -> 49/104 when truncated). Hurt
+        // stays hurt and alive stays alive.
+        if (hp < oldMaxHP)
+        {
+            hp = (hp * newMaxHP + oldMaxHP / 2) / oldMaxHP;
+            if (hp >= newMaxHP)
+                hp = newMaxHP - 1;
+            if (hp == 0)
+                hp = 1;
+        }
+        else
+        {
+            hp = newMaxHP;
+        }
+        SetMonData(mon, MON_DATA_HP, &hp);
+    }
 }
 
 void BoxMonToMon(const struct BoxPokemon *src, struct Pokemon *dest)

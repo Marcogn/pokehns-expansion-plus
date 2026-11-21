@@ -13,9 +13,8 @@ paths:
 
 # Cattura nell'overworld: andature, percezione, lancio
 
-Piano, decisioni e diario delle verifiche:
-[`docs/plans/overworld-catch.md`](../../docs/plans/overworld-catch.md) (§5.2
-per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
+Piano e verifiche: [`docs/plans/overworld-catch.md`](../../docs/plans/overworld-catch.md).
+Gli OWE in generale: `overworld_encounters.md`.
 
 ## Interruttore OVERWORLD CATCH (D20, fase 9)
 
@@ -93,8 +92,8 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   prima di `ObjectEventSetHeldMovement`.
 - **Il Pokémon nasce sullo stack** (`CreateMonFromOWE`), **mai in
   `gEnemyParty`**: lo spawn lo usa nello stesso frame.
-- **Formula**: `ComputeCaptureOddsFromParams` (`battle_script_commands.c`).
-  ×2 se `!IsOWEAwareOfPlayer`; Quick Ball solo se non allertato; Timer mai.
+- **Formula**: `ComputeCaptureOddsFromParams` (`battle_script_commands.c`;
+  ARCEUS FORMULAS: `arceus.md`). ×2 se `!IsOWEAwareOfPlayer`; Quick Ball solo se non allertato; Timer mai.
   Sfida: `GetCaptureChallengeChecks`. **Nuzlocke: solo una cattura riuscita
   segna la zona** (P3).
 - **Fallito**: `ForceOWEToNoticePlayer`, **mai su un OWE già allertato o

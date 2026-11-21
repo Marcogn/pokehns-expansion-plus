@@ -95,9 +95,28 @@ add the section before releasing. Feature details live in the tables of
   front of them, through trees and grass, and only hear you running or
   cycling. The cheaper Balls and the shops stay as they are. Turning it on
   with more Pokémon around than the new cap drops the extra ones in a moment.
-- **A new option, not active yet**: `ARCEUS FORMULAS` (Options · BATTLE, OFF
-  by default). It is saved but does nothing in this build; the next steps of
-  the overworld catching wire it up.
+- **`ARCEUS FORMULAS`** (Options · BATTLE, OFF by default): stats and
+  overworld catches as in Pokémon Legends: Arceus. The damage formula comes
+  with the next step; until then battles with the option on last longer,
+  especially early on.
+  - **Stats**: every Pokémon, yours and the wild and trainers' ones, uses
+    Arceus' stat formula. The effort levels (0-10) come from what the
+    Pokémon already has: its IV gives the starting level as in Arceus (20
+    and up 1, 26 up 2, 31 gives 3) and its EVs add the rest, so 252 EVs in a
+    stat reach the top. The IV and EV challenges and `BST EQUALIZER` keep
+    working through them. Switching the option recomputes the party at once,
+    each Pokémon keeping its share of HP (a hurt one stays hurt, a fainted
+    one stays fainted, status stays); Pokémon in the PC follow when withdrawn.
+  - **Catching with a thrown Ball** (battles keep the formula of today):
+    Arceus' formula, with **one catch rate, 135, for every species** except
+    the legendary and mythical ones, which keep their own. Your rank is your
+    Johto badges plus 1 as Johto Champion: a Pokémon more than one rank above
+    yours (rank = level / 10, rounded up) gets much harder to catch, and
+    with a Poké Ball can become impossible. A Pokémon that has not noticed
+    you counts twice as one that has, and hitting it from behind adds
+    three quarters. Poké, Great and Ultra Ball have Arceus' values (0.75,
+    1.5, 2.25); every other Ball keeps its own bonus, times 0.75. Master
+    Ball and `EASY CATCH` still always catch.
 - Save version 15: an existing save loads with every setting as it was and
   `OVERWORLD CATCH` ON. A bit left over from the old TRAINER CATCH option,
   set in some saves, is cleared on the way.
