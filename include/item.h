@@ -234,6 +234,7 @@ const u8 *GetItemEffect(enum Item itemId);
 enum HoldEffect GetItemHoldEffect(enum Item itemId);
 u32 GetItemHoldEffectParam(enum Item itemId);
 const u8 *GetItemDescription(enum Item itemId);
+u32 GetArceusPotionHealAmount(enum Item itemId, u32 amount);
 u8 GetItemImportance(enum Item itemId);
 u8 GetItemConsumability(enum Item itemId);
 enum Pocket GetItemPocket(enum Item itemId);

@@ -71,7 +71,7 @@ Andature, udito e cono di vista (fase 2 di quel piano): `overworld_catch.md`.
   da `nm`, 16 oggetti da 0x24 byte, `active` = bit 0 del byte 0,
   `trainerType` a +7 (0xFF = OWE), `localId` a +8 (generati = 247-252),
   `gMain` + 0x20 = `vblankCounter1`. Dettagli e ricetta nell'appendice di
-  `docs/plans/overworld-catch.md` §5.1.
+  `docs/claude/overworld-catch-history.md` (fase 1).
 - **Un `assertf` su una condizione che il gioco può raggiungere è una schermata
   blu** (`make hns` non è RELEASE). VRAM/palette piene o tabella oggetti piena
   sono `if` che saltano lo spawn (`CheckCanLoadOWE`). Con `OW_GFX_COMPRESS`

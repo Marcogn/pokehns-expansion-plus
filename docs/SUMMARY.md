@@ -41,6 +41,7 @@
 - [Save migrations, history (for Claude)](./claude/save-history.md)
 - [DexNav, verification diary (for Claude)](./claude/dexnav-history.md)
 - [Battle UI and dark theme, diary (for Claude)](./claude/battle-ui-history.md)
+- [Overworld catch, phase diary (for Claude)](./claude/overworld-catch-history.md)
 - [Tutorials]()
   - [What are AI Flags?](tutorials/ai_flags.md)
     - [How to add new AI Flags](tutorials/ai_logic.md)

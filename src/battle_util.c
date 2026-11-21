@@ -55,6 +55,7 @@
 #include "constants/trainers.h"
 #include "constants/weather.h"
 #include "randomizer.h"
+#include "option_menu.h"
 #include "constants/pokemon.h"
 
 static bool32 TryRemoveScreens(enum BattlerId battler);
@@ -6911,6 +6912,11 @@ static inline uq4_12_t ApplyDefensiveBadgeBoost(uq4_12_t modifier, enum BattlerI
     return modifier;
 }
 
+// ARCEUS FORMULAS: the stat each side used before its stages, abilities and
+// items, recorded by CalcAttackStat/CalcDefenseStat for CalculateArceusBaseDamage.
+static u32 sArceusRawAtkStat;
+static u32 sArceusRawDefStat;
+
 static inline u32 CalcAttackStat(struct BattleContext *ctx)
 {
     u8 atkStage;
@@ -6968,6 +6974,8 @@ static inline u32 CalcAttackStat(struct BattleContext *ctx)
             atkStage = gBattleMons[battlerAtk].statStages[STAT_SPATK];
         }
     }
+
+    sArceusRawAtkStat = atkStat;
 
     // critical hits ignore attack stat's stage drops
     if (ctx->isCrit && atkStage < DEFAULT_STAT_STAGE)
@@ -7252,6 +7260,8 @@ static inline u32 CalcDefenseStat(struct BattleContext *ctx)
         defStage = gBattleMons[battlerDef].statStages[STAT_SPDEF];
     }
 
+    sArceusRawDefStat = defStat;
+
     // Self-destruct / Explosion cut defense in half
     if (GetConfig(B_EXPLOSION_DEFENSE) < GEN_5 && IsExplosionMove(ctx->move))
         defStat /= 2;
@@ -7400,6 +7410,51 @@ static inline u32 CalcDefenseStat(struct BattleContext *ctx)
 static inline s32 CalculateBaseDamage(u32 power, u32 userFinalAttack, u32 level, u32 targetFinalDefense)
 {
     return power * userFinalAttack * (2 * level / 5 + 2) / targetFinalDefense / 50 + 2;
+}
+
+// ARCEUS FORMULAS: STAB is 1.25 instead of 1.5. Arceus has no abilities or
+// Tera, so the other STAB values (Adaptability 2.0, Tera) keep their order by
+// halving the bonus above 1: 1.5 -> 1.25, 2.0 -> 1.5, 2.25 -> 1.625.
+static inline uq4_12_t ArceusStabModifier(uq4_12_t modifier)
+{
+    if (!AreArceusFormulasEnabled() || modifier <= UQ_4_12(1.0))
+        return modifier;
+    return UQ_4_12(1.0) + (modifier - UQ_4_12(1.0)) / 2;
+}
+
+// ARCEUS FORMULAS: a double weakness is 2.5 instead of 4 and a double
+// resistance 0.4 instead of 0.25 (triple ones too, e.g. Forest's Curse).
+// Only the damage uses this: messages, Expert Belt and the AI's "super
+// effective" checks still read the real effectiveness.
+static inline uq4_12_t ArceusTypeModifier(uq4_12_t modifier)
+{
+    if (!AreArceusFormulasEnabled())
+        return modifier;
+    if (modifier >= UQ_4_12(4.0))
+        return UQ_4_12(2.5);
+    if (modifier != UQ_4_12(0.0) && modifier <= UQ_4_12(0.25))
+        return UQ_4_12(0.4);
+    return modifier;
+}
+
+// ARCEUS FORMULAS: the Legends: Arceus base damage (Bulbapedia, Damage),
+// ((100 + A + 15 L) * P / (D + 50)) / 5. Its stats are several times larger
+// than the classic ones early on (plan overworld-catch §3), so the classic
+// formula would make the first battles 3-4 times longer.
+// A and D are the raw stats: the formula adds the attack, so a doubled Attack
+// (+2 stages, Huge Power, Choice Band) applied to A only gave about +15%.
+// Arceus applies its stat modifiers to the damage instead (AtkMod, DefMod),
+// so the ratio of each final stat to its raw one multiplies the numerator
+// before the two divisions: every stage, ability and item keeps its classic
+// weight, also on weak hits, and without modifiers the ratios cancel out and
+// the result is the same as flooring at every step.
+static inline s32 CalculateArceusBaseDamage(u32 power, u32 rawAtk, u32 finalAtk, u32 level, u32 rawDef, u32 finalDef)
+{
+    u64 numerator = (u64)(100 + rawAtk + 15 * level) * power * finalAtk * rawDef;
+    u64 denominator = (u64)(rawDef + 50) * (rawAtk ? rawAtk : 1) * (finalDef ? finalDef : 1);
+    u64 dmg = numerator / denominator / 5;
+
+    return dmg > INT32_MAX ? INT32_MAX : (s32)dmg;
 }
 
 static inline uq4_12_t GetTargetDamageModifier(struct BattleContext *ctx)
@@ -7753,6 +7808,32 @@ static inline uq4_12_t GetOtherModifiers(struct BattleContext *ctx)
     dmg = uq4_12_multiply_by_int_half_down(modifier, dmg); \
 } while (0)
 
+// ARCEUS FORMULAS: early on the Arceus damage lets a wild Pokémon a couple of
+// levels below yours knock it out in 3-4 hits (7-11 with the classic one).
+// Until the third Johto badge a wild Pokémon's hits are scaled down; trainers
+// and your own Pokémon are not touched (user, 21/11).
+static inline uq4_12_t GetArceusEarlyWildDamageModifier(struct BattleContext *ctx)
+{
+    static const uq4_12_t sModifierByBadges[] = { UQ_4_12(0.6), UQ_4_12(0.75), UQ_4_12(0.9) };
+    u32 badges = 0;
+
+    if (!AreArceusFormulasEnabled()
+     || (gBattleTypeFlags & BATTLE_TYPE_TRAINER)
+     || IsOnPlayerSide(ctx->battlerAtk)
+     || !IsOnPlayerSide(ctx->battlerDef)) // not its partner, nor itself in confusion
+        return UQ_4_12(1.0);
+
+    // Johto badges only: Kanto's come after the eighth (NUM_BADGES is 16).
+    for (u32 flag = FLAG_BADGE01_GET; flag <= FLAG_BADGE08_GET; flag++)
+    {
+        if (FlagGet(flag))
+            badges++;
+    }
+    if (badges >= ARRAY_COUNT(sModifierByBadges))
+        return UQ_4_12(1.0);
+    return sModifierByBadges[badges];
+}
+
 static inline s32 DoMoveDamageCalcVars(struct BattleContext *ctx)
 {
     s32 dmg;
@@ -7767,7 +7848,16 @@ static inline s32 DoMoveDamageCalcVars(struct BattleContext *ctx)
     userFinalAttack = CalcAttackStat(ctx);
     targetFinalDefense = CalcDefenseStat(ctx);
 
-    dmg = CalculateBaseDamage(gBattleMovePower, userFinalAttack, gBattleMons[ctx->battlerAtk].level, targetFinalDefense);
+    if (AreArceusFormulasEnabled())
+    {
+        dmg = CalculateArceusBaseDamage(gBattleMovePower, sArceusRawAtkStat, userFinalAttack,
+                                        gBattleMons[ctx->battlerAtk].level, sArceusRawDefStat, targetFinalDefense);
+        DAMAGE_APPLY_MODIFIER(GetArceusEarlyWildDamageModifier(ctx));
+    }
+    else
+    {
+        dmg = CalculateBaseDamage(gBattleMovePower, userFinalAttack, gBattleMons[ctx->battlerAtk].level, targetFinalDefense);
+    }
     DAMAGE_APPLY_MODIFIER(GetTargetDamageModifier(ctx));
     DAMAGE_APPLY_MODIFIER(GetParentalBondModifier(ctx->battlerAtk));
     DAMAGE_APPLY_MODIFIER(GetWeatherDamageModifier(ctx));
@@ -7796,10 +7886,10 @@ static inline s32 DoMoveDamageCalcVars(struct BattleContext *ctx)
 s32 ApplyModifiersAfterDmgRoll(struct BattleContext *ctx, s32 dmg)
 {
     if (GetActiveGimmick(ctx->battlerAtk) == GIMMICK_TERA)
-        DAMAGE_APPLY_MODIFIER(GetTeraMultiplier(ctx));
+        DAMAGE_APPLY_MODIFIER(ArceusStabModifier(GetTeraMultiplier(ctx)));
     else
-        DAMAGE_APPLY_MODIFIER(GetSameTypeAttackBonusModifier(ctx));
-    DAMAGE_APPLY_MODIFIER(ctx->typeEffectivenessModifier);
+        DAMAGE_APPLY_MODIFIER(ArceusStabModifier(GetSameTypeAttackBonusModifier(ctx)));
+    DAMAGE_APPLY_MODIFIER(ArceusTypeModifier(ctx->typeEffectivenessModifier));
     DAMAGE_APPLY_MODIFIER(GetBurnOrFrostBiteModifier(ctx));
     DAMAGE_APPLY_MODIFIER(GetZMaxMoveAgainstProtectionModifier(ctx));
     DAMAGE_APPLY_MODIFIER(GetOtherModifiers(ctx));
@@ -7925,7 +8015,17 @@ static inline s32 DoFutureSightAttackDamageCalcVars(struct BattleContext *ctx)
         userFinalAttack = GetMonData(partyMon, MON_DATA_SPATK);
 
     targetFinalDefense = CalcDefenseStat(ctx);
-    dmg = CalculateBaseDamage(gBattleMovePower, userFinalAttack, partyMonLevel, targetFinalDefense);
+    if (AreArceusFormulasEnabled())
+    {
+        // The attacker's party stat has no stages or modifiers: raw = final.
+        dmg = CalculateArceusBaseDamage(gBattleMovePower, userFinalAttack, userFinalAttack,
+                                        partyMonLevel, sArceusRawDefStat, targetFinalDefense);
+        DAMAGE_APPLY_MODIFIER(GetArceusEarlyWildDamageModifier(ctx));
+    }
+    else
+    {
+        dmg = CalculateBaseDamage(gBattleMovePower, userFinalAttack, partyMonLevel, targetFinalDefense);
+    }
 
     DAMAGE_APPLY_MODIFIER(GetCriticalModifier(ctx->isCrit));
 
@@ -7937,10 +8037,10 @@ static inline s32 DoFutureSightAttackDamageCalcVars(struct BattleContext *ctx)
 
     // Same type attack bonus
     if (GetSpeciesType(partyMonSpecies, 0) == moveType || GetSpeciesType(partyMonSpecies, 1) == moveType)
-        DAMAGE_APPLY_MODIFIER(UQ_4_12(1.5));
+        DAMAGE_APPLY_MODIFIER(ArceusStabModifier(UQ_4_12(1.5)));
     else
         DAMAGE_APPLY_MODIFIER(UQ_4_12(1.0));
-    DAMAGE_APPLY_MODIFIER(ctx->typeEffectivenessModifier);
+    DAMAGE_APPLY_MODIFIER(ArceusTypeModifier(ctx->typeEffectivenessModifier));
 
     if (dmg == 0)
         dmg = 1;

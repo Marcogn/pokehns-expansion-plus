@@ -57,8 +57,9 @@ Dettagli in `.claude/rules/overworld_encounters.md` e
 `docs/plans/overworld-encounters.md`.
 
 Lancio della Ball nell'overworld (R/L, animazione, pannello della scelta,
-passo lento, percezione): **non viene da Soulgold**, è una feature di questo
-fork. Regola `.claude/rules/overworld_catch.md`, piano
+passo lento, percezione) e `ARCEUS FORMULAS` (statistiche, cattura, danno e
+cure di Leggende Arceus): **non vengono da Soulgold**, sono feature di questo
+fork. Regole `.claude/rules/overworld_catch.md` e `arceus.md`, piano
 `docs/plans/overworld-catch.md`.
 
 ## 3. Aggiunto qui

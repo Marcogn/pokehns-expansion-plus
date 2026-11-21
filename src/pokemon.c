@@ -6517,6 +6517,9 @@ bool8 PokemonUseItemEffects(struct Pokemon *mon, enum Item item, u8 partyIndex, 
                                     dataUnsigned = 1;
                             }
                             break;
+                        default:
+                            dataUnsigned = GetArceusPotionHealAmount(item, dataUnsigned);
+                            break;
                         }
 
                         // Only restore HP if not at max health
