@@ -1437,6 +1437,8 @@ static void LoadCatchFrameGfx(void)
     ApplyDarkUiWindowFramePalette(BG_PLTT_ID(BANNER_FRAME_PAL));
 }
 
+static void HideCatchBanners(void);
+
 static void HidePanel(void)
 {
     if (!sCatch.panelUp)
@@ -1557,6 +1559,18 @@ void OverworldCatch_UpdatePanel(void)
 {
     UpdatePanel();
     UpdateBanners();
+}
+
+// Right before the Start menu or the debug menu opens. They open from
+// ProcessPlayerFieldInput, in CB1, and draw at once: hiding the panel and
+// the notes in CB2, as for everything else, came after they had drawn and
+// cut holes into them where the two overlapped (user, 21/11). The notes are
+// kept and come back when the menu closes.
+void OverworldCatch_ClearScreenForMenu(void)
+{
+    HidePanel();
+    if (sCatch.numBanners != 0 && !sCatch.pileHidden)
+        HideCatchBanners();
 }
 
 // Every frame of the overworld, after the spawns.

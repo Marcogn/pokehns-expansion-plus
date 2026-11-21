@@ -1347,6 +1347,25 @@ con le statistiche di Arceus vale un'altra cosa.
   il malus delle medaglie mancanti: senza effetto, perché in HnS le medaglie
   di Kanto arrivano dopo le 8 di Johto.
 
+- **Bug grafici segnalati dall'utente (21/11, con screenshot)**, riprodotti
+  in mGBA e corretti:
+  - **Menu Start e menu debug con dei buchi** dove c'erano il pannello (in
+    basso a sinistra) e il foglietto (in alto): i due menu si aprono nel CB1
+    e disegnano subito, la pulizia di pannello e foglietti nel CB2 veniva
+    dopo e li bucava. Ora `OverworldCatch_ClearScreenForMenu()` li toglie
+    prima. Provato: Start con il foglietto di Raticate a schermo (menu
+    intero, il foglietto torna alla chiusura); R+START durante le scosse con
+    il pannello su (menu debug intero; prima, stessa sequenza, bucato).
+  - **"Pietra" blu impassabile**: non era la Ball. *Access PC* del debug
+    accende e spegne lo schermo del PC sulla casella che il giocatore
+    guarda, e HnS aveva tolto il controllo "davanti a un PC": guardando a
+    sud è la casella del giocatore (rossa durante il PC, blu e solida dopo).
+    Ora la metatile cambia solo se lì c'è un PC. Provato: dal debug su Route
+    43 nessun quadrato e la casella si attraversa; il PC vero del Centro di
+    Violet va ancora da 0x062 a 0x063 e torna 0x062.
+  - Visto di passaggio: R+START (il debug) lancia anche una Ball, perché R
+    è il tasto del lancio. Lasciato così, scritto nella regola.
+
 **Handoff per la fase 11 (Opus 5.5)**
 - Le statistiche di Arceus a inizio gioco sono **molto** più alte (Bulbasaur
   Lv 5 con 252 EV in Attacco: 110 contro 15): finché non c'è il danno di

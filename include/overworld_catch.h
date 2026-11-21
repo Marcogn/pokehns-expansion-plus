@@ -51,5 +51,6 @@ void OverworldCatch_OnBattleStart(void);
 bool32 OverworldCatch_IsOWEInBall(const struct ObjectEvent *owe);
 bool32 OverworldCatch_IsBallOnGroundAt(s16 x, s16 y);
 void OverworldCatch_DismissBanners(void);
+void OverworldCatch_ClearScreenForMenu(void);
 
 #endif // GUARD_OVERWORLD_CATCH_H

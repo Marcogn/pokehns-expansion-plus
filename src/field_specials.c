@@ -1145,43 +1145,48 @@ static void PCTurnOnEffect(struct Task *task)
     task->tTimer++;
 }
 
+// The PC's metatile with its screen on or off, for the PC_LOCATION_* in
+// gSpecialVar_0x8004.
+static u16 GetPCMetatileId(bool32 screenOn)
+{
+    if (gSpecialVar_0x8004 == PC_LOCATION_OTHER)
+        return screenOn ? (IS_FRLG ? METATILE_BuildingFrlg_PCOn : METATILE_Building_PC_On)
+                        : (IS_FRLG ? METATILE_BuildingFrlg_PCOff : METATILE_Building_PC_Off);
+    if (gSpecialVar_0x8004 == PC_LOCATION_BRENDANS_HOUSE)
+        return screenOn ? METATILE_BrendansMaysHouse_BrendanPC_On : METATILE_BrendansMaysHouse_BrendanPC_Off;
+    if (gSpecialVar_0x8004 == PC_LOCATION_MAYS_HOUSE)
+        return screenOn ? METATILE_BrendansMaysHouse_MayPC_On : METATILE_BrendansMaysHouse_MayPC_Off;
+    if (gSpecialVar_0x8004 == PC_LOCATION_PLAYER_HOUSE_FRLG)
+        return screenOn ? METATILE_GenericBuilding1_PlayersPCOn : METATILE_GenericBuilding1_PlayersPCOff;
+    if (gSpecialVar_0x8004 == PC_LOCATION_HNS)
+    {
+        if (gMapHeader.mapLayout->layoutVersion == LAYOUT_VERSION_EMERALD)
+            return screenOn ? METATILE_Building_PC_On : METATILE_Building_PC_Off;
+        return screenOn ? METATILE_JohtoBuildingHns_PC_On : METATILE_JohtoBuildingHns_PC_Off;
+    }
+    if (gSpecialVar_0x8004 == PC_LOCATION_PLAYER_HOUSE_HNS)
+        return screenOn ? METATILE_PlayersHouseHns_PC_On : METATILE_PlayersHouseHns_PC_Off;
+    return 0;
+}
+
+// HnS skips IsPlayerInFrontOfPC (its PC tiles are not the ones it knows),
+// so the tile the effects would redraw is checked here instead: the PC
+// opened from the debug menu, in the middle of a route and facing south,
+// turned the player's own tile into an impassable PC (user, 21/11).
+static bool32 IsPCMetatileAt(s8 dx, s8 dy)
+{
+    u32 metatileId = MapGridGetMetatileIdAt(gSaveBlock1Ptr->pos.x + dx + MAP_OFFSET, gSaveBlock1Ptr->pos.y + dy + MAP_OFFSET);
+
+    return metatileId == GetPCMetatileId(TRUE) || metatileId == GetPCMetatileId(FALSE);
+}
+
 static void PCTurnOnEffect_SetMetatile(s16 isScreenOn, s8 dx, s8 dy)
 {
-    u16 metatileId = 0;
-    if (isScreenOn)
-    {
-        // Screen is on, set it off
-        if (gSpecialVar_0x8004 == PC_LOCATION_OTHER)
-            metatileId = IS_FRLG ? METATILE_BuildingFrlg_PCOff : METATILE_Building_PC_Off;
-        else if (gSpecialVar_0x8004 == PC_LOCATION_BRENDANS_HOUSE)
-            metatileId = METATILE_BrendansMaysHouse_BrendanPC_Off;
-        else if (gSpecialVar_0x8004 == PC_LOCATION_MAYS_HOUSE)
-            metatileId = METATILE_BrendansMaysHouse_MayPC_Off;
-        else if (gSpecialVar_0x8004 == PC_LOCATION_PLAYER_HOUSE_FRLG)
-            metatileId = METATILE_GenericBuilding1_PlayersPCOff;
-        else if (gSpecialVar_0x8004 == PC_LOCATION_HNS)
-            metatileId = (gMapHeader.mapLayout->layoutVersion == LAYOUT_VERSION_EMERALD)
-                ? METATILE_Building_PC_Off : METATILE_JohtoBuildingHns_PC_Off;
-        else if (gSpecialVar_0x8004 == PC_LOCATION_PLAYER_HOUSE_HNS)
-            metatileId = METATILE_PlayersHouseHns_PC_Off;
-    }
-    else
-    {
-        // Screen is off, set it on
-        if (gSpecialVar_0x8004 == PC_LOCATION_OTHER)
-            metatileId = IS_FRLG ? METATILE_BuildingFrlg_PCOn : METATILE_Building_PC_On;
-        else if (gSpecialVar_0x8004 == PC_LOCATION_BRENDANS_HOUSE)
-            metatileId = METATILE_BrendansMaysHouse_BrendanPC_On;
-        else if (gSpecialVar_0x8004 == PC_LOCATION_MAYS_HOUSE)
-            metatileId = METATILE_BrendansMaysHouse_MayPC_On;
-        else if (gSpecialVar_0x8004 == PC_LOCATION_PLAYER_HOUSE_FRLG)
-            metatileId = METATILE_GenericBuilding1_PlayersPCOn;
-        else if (gSpecialVar_0x8004 == PC_LOCATION_HNS)
-            metatileId = (gMapHeader.mapLayout->layoutVersion == LAYOUT_VERSION_EMERALD)
-                ? METATILE_Building_PC_On : METATILE_JohtoBuildingHns_PC_On;
-        else if (gSpecialVar_0x8004 == PC_LOCATION_PLAYER_HOUSE_HNS)
-            metatileId = METATILE_PlayersHouseHns_PC_On;
-    }
+    // Screen on: set it off; off: set it on.
+    u16 metatileId = GetPCMetatileId(!isScreenOn);
+
+    if (!IsPCMetatileAt(dx, dy))
+        return;
     MapGridSetMetatileIdAt(gSaveBlock1Ptr->pos.x + dx + MAP_OFFSET, gSaveBlock1Ptr->pos.y + dy + MAP_OFFSET, metatileId | MAPGRID_IMPASSABLE);
 }
 
@@ -1220,19 +1225,9 @@ static void PCTurnOffEffect(void)
         break;
     }
 
-    if (gSpecialVar_0x8004 == PC_LOCATION_OTHER)
-        metatileId = IS_FRLG ? METATILE_BuildingFrlg_PCOff : METATILE_Building_PC_Off;
-    else if (gSpecialVar_0x8004 == PC_LOCATION_BRENDANS_HOUSE)
-        metatileId = METATILE_BrendansMaysHouse_BrendanPC_Off;
-    else if (gSpecialVar_0x8004 == PC_LOCATION_MAYS_HOUSE)
-        metatileId = METATILE_BrendansMaysHouse_MayPC_Off;
-    else if (gSpecialVar_0x8004 == PC_LOCATION_PLAYER_HOUSE_FRLG)
-        metatileId = METATILE_GenericBuilding1_PlayersPCOff;
-    else if (gSpecialVar_0x8004 == PC_LOCATION_HNS)
-        metatileId = (gMapHeader.mapLayout->layoutVersion == LAYOUT_VERSION_EMERALD)
-            ? METATILE_Building_PC_Off : METATILE_JohtoBuildingHns_PC_Off;
-    else if (gSpecialVar_0x8004 == PC_LOCATION_PLAYER_HOUSE_HNS)
-        metatileId = METATILE_PlayersHouseHns_PC_Off;
+    if (!IsPCMetatileAt(dx, dy))
+        return;
+    metatileId = GetPCMetatileId(FALSE);
 
     MapGridSetMetatileIdAt(gSaveBlock1Ptr->pos.x + dx + MAP_OFFSET, gSaveBlock1Ptr->pos.y + dy + MAP_OFFSET, metatileId | MAPGRID_IMPASSABLE);
     DrawWholeMapView();

@@ -38,6 +38,12 @@ paths:
   niente e lascia `VAR_RESULT` a NO. I due prompt del *valutatore di nickname* usano
   un testo proprio e non vanno toccati.
 
+- **Effetto del PC** (`DoPCTurnOnEffect`/`DoPCTurnOffEffect`,
+  `field_specials.c`): HnS salta `IsPlayerInFrontOfPC` (non conosce le sue
+  metatile), e da *Access PC* del debug in mezzo a una rotta la casella del
+  giocatore diventava un PC impassabile. Ora la metatile si cambia solo se
+  lì c'è già quella del PC (`IsPCMetatileAt`). Violet: PC 0x062/0x063 in (11,1).
+
 - **Mente**: tutte e 21 già in vendita al negozio di fiori di Goldenrod, dietro
   medaglia 3 e dietro il toggle `MODE_MINTS` del challenge menu.
 
