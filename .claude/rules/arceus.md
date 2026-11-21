@@ -46,6 +46,8 @@ Decisioni e formule: [`docs/plans/overworld-catch.md`](../../docs/plans/overworl
   formula più piccola `max - persi` andava in underflow (65 000 PS).
   `BoxMonToMon` ora li limita comunque al massimo.
 - Anche il menu Opzioni del **titolo** ricalcola: la squadra è già caricata.
+- **PokeDaisy Hasep** ricalcola da sé le statistiche dei box (`hasepArceusStats`,
+  `hasep_symbols.md`): cambiare questa formula vuol dire cambiare anche quella.
 
 ## Cattura (`ComputeArceusCaptureOddsFromParams`, `battle_script_commands.c`)
 

@@ -192,13 +192,10 @@ HASEP_EXPORT_VALUE(REPEL_LURE_MASK, "REPEL_LURE_MASK", REPEL_LURE_MASK);
 // What the game draws as shiny (MON_DATA_IS_SHINY): Hasep's challenge setting changes the odds, not this.
 HASEP_EXPORT_VALUE(SHINY_ODDS, "SHINY_ODDS", SHINY_ODDS);
 
-// ARCEUS FORMULAS (from PLUS.12): with the option on, CalculateMonStats is not the classic formula, so the app's
-// own stat calculation (save editor) no longer matches the game. PARTY_STATS_RECALC_ON_LOAD = 1 says this build
-// recalculates the party's stats at every load (RecalculatePartyStats in LoadGameSave), HP kept in proportion,
-// whatever formula is on: an editor should leave a party Pokémon's stats and HP as they are and let the game do it.
-// The mode itself, live: *gSaveBlock3Ptr + SAVEBLOCK3_EXTRA_OPTIONS_OFFSET, bit ARCEUS_FORMULAS_MASK (0 = off).
+// ARCEUS FORMULAS (from PLUS.12): with the option on, CalculateMonStats is not the classic formula, and the app
+// works out the PC boxes' stats itself (the party's it reads from RAM). The mode, live: *gSaveBlock3Ptr +
+// SAVEBLOCK3_EXTRA_OPTIONS_OFFSET, bit ARCEUS_FORMULAS_MASK (0 = off); the fork then uses its port of the formula.
 HASEP_EXPORT(gSaveBlock3Ptr);
-HASEP_EXPORT_VALUE(PARTY_STATS_RECALC_ON_LOAD, "PARTY_STATS_RECALC_ON_LOAD", 1);
 HASEP_EXPORT_VALUE(SAVEBLOCK3_EXTRA_OPTIONS_OFFSET, "SAVEBLOCK3_EXTRA_OPTIONS_OFFSET", offsetof(struct SaveBlock3, extraOptions));
 HASEP_EXPORT_VALUE(ARCEUS_FORMULAS_MASK, "ARCEUS_FORMULAS_MASK", 1);
 
