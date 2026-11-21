@@ -12252,7 +12252,7 @@ void BS_ItemRestoreHP(void)
                 healAmount = max(1, maxHP / 4);
             break;
         default:
-            healAmount = healParam;
+            healAmount = GetArceusPotionHealAmount(gLastUsedItem, healParam);
             break;
         }
         if (hp + healAmount > maxHP)

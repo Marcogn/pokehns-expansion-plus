@@ -76,11 +76,11 @@ bool32 ShouldUseItem(enum BattlerId battler)
         switch (GetItemBattleUsage(item))
         {
         case EFFECT_ITEM_HEAL_AND_CURE_STATUS:
-            healAmount = GetHPHealAmount(itemEffects[GetItemEffectParamOffset(battler, item, 4, ITEM4_HEAL_HP)], GetBattlerMon(battler));
+            healAmount = GetArceusPotionHealAmount(item, GetHPHealAmount(itemEffects[GetItemEffectParamOffset(battler, item, 4, ITEM4_HEAL_HP)], GetBattlerMon(battler)));
             shouldUse = AI_ShouldHeal(battler, healAmount);
             break;
         case EFFECT_ITEM_RESTORE_HP:
-            healAmount = GetHPHealAmount(itemEffects[GetItemEffectParamOffset(battler, item, 4, ITEM4_HEAL_HP)], GetBattlerMon(battler));
+            healAmount = GetArceusPotionHealAmount(item, GetHPHealAmount(itemEffects[GetItemEffectParamOffset(battler, item, 4, ITEM4_HEAL_HP)], GetBattlerMon(battler)));
             shouldUse = AI_ShouldHeal(battler, healAmount);
             break;
         case EFFECT_ITEM_CURE_STATUS:
@@ -247,27 +247,31 @@ static bool32 AI_ShouldHeal(enum BattlerId battler, u32 healAmount)
     return shouldHeal;
 }
 
+// The amount is a u32: ARCEUS FORMULAS makes HP totals above 255 common, and
+// a u8 cut "maxHP - hp" of a Max Potion modulo 256.
 static u32 GetHPHealAmount(u8 itemEffectParam, struct Pokemon *mon)
 {
+    u32 amount = itemEffectParam;
+
     switch (itemEffectParam)
     {
     case ITEM6_HEAL_HP_FULL:
-        itemEffectParam = GetMonData(mon, MON_DATA_MAX_HP) - GetMonData(mon, MON_DATA_HP);
+        amount = GetMonData(mon, MON_DATA_MAX_HP) - GetMonData(mon, MON_DATA_HP);
         break;
     case ITEM6_HEAL_HP_HALF:
-        itemEffectParam = GetMonData(mon, MON_DATA_MAX_HP) / 2;
-        if (itemEffectParam == 0)
-            itemEffectParam = 1;
+        amount = GetMonData(mon, MON_DATA_MAX_HP) / 2;
+        if (amount == 0)
+            amount = 1;
         break;
     case ITEM6_HEAL_HP_LVL_UP:
-        itemEffectParam = gBattleScripting.levelUpHP;
+        amount = gBattleScripting.levelUpHP;
         break;
     case ITEM6_HEAL_HP_QUARTER:
-        itemEffectParam = GetMonData(mon, MON_DATA_MAX_HP) / 4;
-        if (itemEffectParam == 0)
-            itemEffectParam = 1;
+        amount = GetMonData(mon, MON_DATA_MAX_HP) / 4;
+        if (amount == 0)
+            amount = 1;
         break;
     }
 
-    return itemEffectParam;
+    return amount;
 }
