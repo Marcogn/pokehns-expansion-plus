@@ -102,10 +102,11 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   "vaga"** (il bit resterebbe). Il bit salta distanza e vista e usa il livello
   del lancio (non `CanOWEReachPlayer`, acqua ≠ riva): su un altro livello si
   consuma. Il "vaga" tiene il ×2.
-- **Ball tolta solo a cattura riuscita** (`GiveCaughtMon`, 20/11): al lancio
-  la borsa deve averne più di quelle in volo (`CountFlyingBalls`).
+- **Ball tolta solo a cattura riuscita** (`GiveCaughtMon`): al lancio la
+  borsa deve averne più di quelle in volo; all'impatto, se non c'è più (usata
+  in una lotta partita durante il volo), è un lancio a vuoto.
 - **Ball a terra = ostacolo** (`OverworldCatch_IsBallOnGroundAt` in
-  `GetVanillaCollision`): casella `landX/Y`, da `OPENING` a fine record.
+  `GetVanillaCollision`): `landX/Y` della mappa del lancio, da `OPENING`.
 - **Banner a foglietti, senza script** (20-21/11): una finestra (il più
   nuovo, tile BG0 da 92; DexNav 8-91) e sotto i vecchi, 2 righe ciascuno
   (cornice 3/4/5 e 6/7/8: il solo bordo sembrava trasparente) nel tilemap,

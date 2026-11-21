@@ -1245,8 +1245,9 @@ static const struct MartExtras sMartExtras[] =
     { MAP_VIRIDIAN_CITY_MART_HNS, sMartExtras_ViridianCity },
 };
 
-// The longest badge list is 35 items (20 plus the 15 special Balls of the
-// overworld catch plan, phase 9) plus its terminator; the rest is headroom
+// The longest badge list is 39 items (sShopInventory_EightBadges_PC, with
+// the 15 special Balls of the overworld catch plan, phase 9) plus its
+// terminator; the rest is headroom
 // for the extras (Violet adds 2). Anything past the end is dropped rather than overrun.
 static EWRAM_DATA u16 sBadgeMartItems[48] = {0};
 

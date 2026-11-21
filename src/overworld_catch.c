@@ -141,6 +141,8 @@ struct PendingThrow
     s16 landX;          // the tile the Ball comes down on: nobody walks onto it
     s16 landY;          // while it lies there (landBlocks)
     u8 landBlocks:1;
+    u8 landMapNum;      // the map landX/Y are on: a seam crossing re-bases coordinates
+    u8 landMapGroup;
     u8 bannerShown:1;
     u8 caughtToParty:1;
     u16 caughtSpecies;  // a catch: what its banner shows
@@ -854,6 +856,8 @@ bool32 OverworldCatch_TryThrow(void)
         throw->holdsOWE = FALSE;
         throw->bannerShown = FALSE;
         throw->landBlocks = TRUE;
+        throw->landMapNum = gSaveBlock1Ptr->location.mapNum;
+        throw->landMapGroup = gSaveBlock1Ptr->location.mapGroup;
         if (owe != NULL)
         {
             throw->localId = owe->localId;
@@ -1006,8 +1010,9 @@ static void FinishThrow(struct PendingThrow *throw)
         break;
     }
     // A catch whose banner the animation did not get to (no sprite, the
-    // field rebuilt): shown now, unless a battle is starting.
-    if (throw->caught && !throw->bannerShown && !sCatch.battleStarting)
+    // field rebuilt, a battle starting during the shakes): its note now,
+    // hidden by ShowCatchBanner until the player is free again.
+    if (throw->caught && !throw->bannerShown)
         ShowCatchBanner(throw);
     DestroyBallSprite(throw);
     throw->state = THROW_FREE;
@@ -1206,6 +1211,15 @@ static void ResolveImpact(struct PendingThrow *throw, struct ObjectEvent *owe)
     struct Pokemon mon;
     bool32 aware = IsOWEAwareOfPlayer(owe);
     u32 shakes;
+
+    // The Ball is still in the bag until it catches: one used up meanwhile
+    // (thrown in a battle that started while this one flew) is gone, and
+    // this one becomes a miss, or the catch would be free.
+    if (!CheckBagHasItem(throw->ball, 1))
+    {
+        StartBallFall(throw);
+        return;
+    }
 
     // The Ball bounces off and comes back (P8).
     if (GetCatchBlock(owe) != THROW_BLOCK_NONE)
@@ -1589,7 +1603,9 @@ bool32 OverworldCatch_IsBallOnGroundAt(s16 x, s16 y)
         const struct PendingThrow *throw = &sCatch.throws[i];
 
         if (throw->state != THROW_FREE && throw->state != THROW_FLYING
-         && throw->landBlocks && throw->landX == x && throw->landY == y)
+         && throw->landBlocks && throw->landX == x && throw->landY == y
+         && throw->landMapNum == gSaveBlock1Ptr->location.mapNum
+         && throw->landMapGroup == gSaveBlock1Ptr->location.mapGroup)
             return TRUE;
     }
     return FALSE;

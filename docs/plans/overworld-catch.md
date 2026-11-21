@@ -1253,6 +1253,18 @@ con le statistiche di Arceus vale un'altra cosa.
   ricerca DexNav, che usa la 14). Provato: pannello subito dopo il
   caricamento, uguale al menu Start. Una prima correzione sul tema scuro
   globale (entry chiare della cornice scurite) è stata tolta: non era la causa.
+- **`/pr-review` della PR #71 (21/11, su `25fdeeb3`)**: 5 punti dalla
+  revisione generica, tutti veri. Corretti: (1) il foglietto saltato quando
+  la lotta parte durante le scosse (`FinishThrow` escludeva
+  `battleStarting`); provato con un record `SHAKING` scritto in RAM e una
+  lotta per contatto: al ritorno "You caught FLAAFFY! It was sent to the
+  PC."; (2) una Ball in volo durante una lotta poteva essere usata in lotta
+  e poi catturare gratis: ora all'impatto, senza la Ball in borsa, è un
+  lancio a vuoto (letto sul codice); (3) a cattura spenta, R con foglietti a
+  schermo cancellava la finestra della ricerca DexNav in alto: la ricerca
+  toglie i foglietti prima di disegnare (letto); (4) la casella bloccata
+  dalla Ball tiene la mappa del lancio; (5) commento della lista più lunga
+  dei Mart (39).
 - (Versione precedente, colonna col nuovo in cima) Geodude, Geodude,
   Rattata presi (×11 → ×8); Rattata compare in cima e spinge giù il Geodude
   rimasto, che poi sparisce dal basso mentre Rattata resta fermo.
