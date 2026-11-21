@@ -116,9 +116,9 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   il più vecchio. `pileUp` come `panelUp` (EWRAM a zero = finestra 0). Il
   popup del nome mappa scorre BG0: li cancella. In ricerca DexNav la pila
   scende (riga 6). Soprannome solo con la Nuzlocke.
-- **Pokémon lanciato**: `gOverworldThrowLeadSlot` (letto e azzerato da
-  `SetBattlePartyIds`, e a ogni frame a controlli liberi). Roamer e sciami:
-  R avvia la lotta. Spento in Safari, Gara, Pike, Piramide, Trainer Hill.
+- **Pokémon lanciato**: `gOverworldThrowLeadSlot` (azzerato da
+  `SetBattlePartyIds` e a controlli liberi). Roamer e sciami: lotta. Spento
+  in Safari, Gara, Pike, Piramide, Trainer Hill.
 
 ## Pannello della scelta (D18, `UpdatePanel`)
 
