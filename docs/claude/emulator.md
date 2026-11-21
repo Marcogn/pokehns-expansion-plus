@@ -221,3 +221,24 @@ numero da `data/maps/map_groups.json`, es. Violet Gym = 3/5).
   flag, Pokémon e Ball, o li toglie. Si compila e si ripristina il sorgente.
 - Il tema scuro scritto in RAM (`gSaveblock3 + 16 + 31`, bit 0x04) non si
   vede finché le pal 14/15 non si ricaricano: la prima schermata dopo è chiara.
+
+## Un client RAM senza GDB e passi contati (overworld-catch fase 9, 20/11)
+
+- **Al posto di `gdb-multiarch`**: un demone Python tiene l'unica connessione
+  allo stub di `mgba -g` (porta 2345; `+` per ogni pacchetto, `c` per
+  ripartire, byte `0x03` per fermare, `m addr,len` / `M addr,len:hex`) e
+  serve le richieste su un socket unix. Ogni lettura ferma e riparte il
+  gioco da sé. **Letture oltre ~256 byte danno `E06`**: spezzarle; le
+  risposte possono essere compresse (`X*N` = X ripetuto N-29 volte).
+  Avviarlo **dopo** che mgba ascolta (connection refused se troppo presto).
+- **Camminare di una casella**: `keydown`, attendere che `currentCoords`
+  (+0x10) cambi, `keyup`. Con AUTORUN acceso un tocco di 0,3 s fa 2-4
+  caselle; il primo tocco in una direzione nuova può solo girare.
+- **Il Mart di Cherrygrove** a inizio storia vende solo Potion e Antidote:
+  la lista per medaglie si prova a Violet (gruppo 3, mappa 1).
+- Una prova che "tiene L per guardare il pannello" e lo rilascia senza
+  scorrere **cambia modalità** Ball/Pokémon: tenerne il conto.
+- **Spostare un OWE accanto al giocatore fa partire lotte** (i cacciatori ti
+  toccano): per provare la collisione con la Ball a terra si scrive un
+  record di `sCatch.throws` (48 byte: stato a 0, timer a 1, `spriteId` 64 a
+  12, `landX/Y` a 34, bit `landBlocks` a 38) in un posto senza OWE.

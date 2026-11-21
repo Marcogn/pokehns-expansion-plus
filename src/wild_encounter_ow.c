@@ -1,6 +1,7 @@
 #include "global.h"
 #include "wild_encounter_ow.h"
 #include "overworld_catch.h"
+#include "option_menu.h"
 #include "battle_setup.h"
 #include "battle_main.h"
 #include "battle_pike.h"
@@ -44,6 +45,10 @@ STATIC_ASSERT(OWE_SPAWNS_MAX_LAND <= OWE_SPAWNS_MAX, OWESpawnCapLandFits);
 STATIC_ASSERT(OWE_SPAWNS_MAX_WATER <= OWE_SPAWNS_MAX, OWESpawnCapWaterFits);
 STATIC_ASSERT(OWE_SPAWNS_MAX_CAVE <= OWE_SPAWNS_MAX, OWESpawnCapCaveFits);
 STATIC_ASSERT(OWE_SPAWNS_MAX_SAFARI <= OWE_SPAWNS_MAX, OWESpawnCapSafariFits);
+STATIC_ASSERT(OWE_SPAWNS_MAX_LAND_NO_CATCH <= OWE_SPAWNS_MAX, OWESpawnCapLandNoCatchFits);
+STATIC_ASSERT(OWE_SPAWNS_MAX_WATER_NO_CATCH <= OWE_SPAWNS_MAX, OWESpawnCapWaterNoCatchFits);
+STATIC_ASSERT(OWE_SPAWNS_MAX_CAVE_NO_CATCH <= OWE_SPAWNS_MAX, OWESpawnCapCaveNoCatchFits);
+STATIC_ASSERT(OWE_SPAWNS_MAX_SAFARI_NO_CATCH <= OWE_SPAWNS_MAX, OWESpawnCapSafariNoCatchFits);
 
 
 #define sOverworldEncounterLevel        trainerRange_berryTreeId
@@ -62,6 +67,7 @@ STATIC_ASSERT(OWE_SPAWNS_MAX_SAFARI <= OWE_SPAWNS_MAX, OWESpawnCapSafariFits);
 #define OWE_SPAWN_WIDTH_RADIUS          (OWE_SPAWN_WIDTH_TOTAL - 1) / 2     // Distance from center to left/right edge (not including center).
 #define OWE_SPAWN_HEIGHT_RADIUS         (OWE_SPAWN_HEIGHT_TOTAL - 1) / 2    // Distance from center to top/bottom edge (not including center).
 
+#define OWE_SPAWN_TIME_REPLACEMENT_NO_CATCH 240 // Hasep: the time before the catch plan, while OVERWORLD CATCH is off (plan D20).
 #define OWE_SPAWN_TIME_REPLACEMENT      480 // The number of frames before an existing spawn will be replaced with a new one (requires WE_OWE_SPAWN_REPLACEMENT). Hasep: 480, was 240 (catch plan D3: with the caps lowered, a full area churns half as often).
 #define OWE_SPAWN_TIME_LURE             0
 #define OWE_SPAWN_TIME_MINIMUM          30  // The minimum value the spawn wait time can be reset to. Prevents spawn attempts every frame.
@@ -297,6 +303,18 @@ const struct BehaviorOWE *OWE_GetBehaviorInfo(const struct ObjectEvent *owe)
 // caves, as the user asked. The Safari Zone has its own, lower land cap.
 static u32 GetOWESpawnCap(void)
 {
+    // OVERWORLD CATCH off (plan D20): the caps from before the plan. Turned
+    // on with the map open, TryRemoveOWEAboveCap drops the extra ones.
+    if (!IsOverworldCatchEnabled())
+    {
+        if (ShouldSpawnWaterOWE())
+            return OWE_SPAWNS_MAX_WATER_NO_CATCH;
+        if (gMapHeader.mapType == MAP_TYPE_UNDERGROUND || gMapHeader.mapType == MAP_TYPE_INDOOR)
+            return OWE_SPAWNS_MAX_CAVE_NO_CATCH;
+        if (GetSafariZoneFlag())
+            return OWE_SPAWNS_MAX_SAFARI_NO_CATCH;
+        return OWE_SPAWNS_MAX_LAND_NO_CATCH;
+    }
     if (ShouldSpawnWaterOWE())
         return OWE_SPAWNS_MAX_WATER;
     if (gMapHeader.mapType == MAP_TYPE_UNDERGROUND || gMapHeader.mapType == MAP_TYPE_INDOOR)
@@ -1952,7 +1970,9 @@ static void SetNewOWESpawnCountdown(void)
     u32 numActive = GetNumberOfActiveOWEs(OWE_GENERATED);
 
     if (WE_OWE_SPAWN_REPLACEMENT && numActive >= GetOWESpawnCap())
-        sOWESpawnCountdown = IsAnyOWEFromOtherArea() ? OWE_SPAWN_TIME_MINIMUM : OWE_SPAWN_TIME_REPLACEMENT;
+        sOWESpawnCountdown = IsAnyOWEFromOtherArea() ? OWE_SPAWN_TIME_MINIMUM
+                           : IsOverworldCatchEnabled() ? OWE_SPAWN_TIME_REPLACEMENT
+                           : OWE_SPAWN_TIME_REPLACEMENT_NO_CATCH;
     else if (LURE_STEP_COUNT && numActive < GetOWESpawnCap())
         sOWESpawnCountdown = OWE_SPAWN_TIME_LURE;
     else
@@ -2295,6 +2315,56 @@ static bool32 IsOWESightBlocked(struct ObjectEvent *owe, struct ObjectEvent *pla
     return FALSE;
 }
 
+// Hasep: how a Pokémon noticed the player before the overworld catch plan,
+// kept for OVERWORLD CATCH off (plan D20). Running or cycling within the
+// active distance, or standing in a 4x3 rectangle in front of it whatever the
+// behaviour (the four widened in phase 2 were 4x3 too), with no hearing of a
+// walk, no cone, and obstacles and tall grass not hiding the player.
+#define OWE_VIEW_DISTANCE_NO_CATCH  4
+#define OWE_VIEW_WIDTH_NO_CATCH     3
+
+static bool32 CanAwareOWESeePlayer_NoCatch(struct ObjectEvent *owe)
+{
+    if (gPlayerAvatar.runningState == MOVING
+     && TestPlayerAvatarFlags(PLAYER_AVATAR_FLAG_DASH | PLAYER_AVATAR_FLAG_BIKE)
+     && IsPlayerInsideOWEActiveDistance(owe))
+        return TRUE;
+
+    struct ObjectEvent *player = &gObjectEvents[gPlayerAvatar.objectEventId];
+    s32 dx = player->currentCoords.x - owe->currentCoords.x;
+    s32 dy = player->currentCoords.y - owe->currentCoords.y;
+    s32 forward, side;
+
+    switch (owe->facingDirection)
+    {
+    case DIR_NORTH:
+        forward = -dy;
+        side = dx;
+        break;
+    case DIR_SOUTH:
+        forward = dy;
+        side = dx;
+        break;
+    case DIR_EAST:
+        forward = dx;
+        side = dy;
+        break;
+    case DIR_WEST:
+        forward = -dx;
+        side = dy;
+        break;
+    default:
+        return FALSE;
+    }
+
+    // The old test let forward be 0 (the player beside it on the same row).
+    if (forward < 0 || forward > OWE_VIEW_DISTANCE_NO_CATCH
+     || abs(side) > (OWE_VIEW_WIDTH_NO_CATCH - 1) / 2)
+        return FALSE;
+
+    return CanOWEReachPlayer(owe);
+}
+
 bool32 CanAwareOWESeePlayer(struct ObjectEvent *owe)
 {
     if (owe->movementType == MOVEMENT_TYPE_WANDER_AROUND_OWE)
@@ -2317,6 +2387,10 @@ bool32 CanAwareOWESeePlayer(struct ObjectEvent *owe)
         ClearOWEForcedNotice(owe);
         return FALSE;
     }
+
+    // OVERWORLD CATCH off (plan D20): the sight from before the plan.
+    if (!IsOverworldCatchEnabled())
+        return CanAwareOWESeePlayer_NoCatch(owe);
 
     u32 noiseDistance = GetPlayerNoiseDistance(owe);
     if (noiseDistance != 0 && IsPlayerWithinOWEDistance(owe, noiseDistance))

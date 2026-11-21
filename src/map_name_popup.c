@@ -1,4 +1,5 @@
 #include "global.h"
+#include "overworld_catch.h"
 #include "battle_pyramid.h"
 #include "bg.h"
 #include "event_data.h"
@@ -557,6 +558,9 @@ void ShowMapNamePopup(void)
 {
     if (FlagGet(FLAG_HIDE_MAP_NAME_POPUP) != TRUE)
     {
+        // Hasep: the pop-up shares BG0 tiles with the overworld catch
+        // banners and scrolls all of BG0 while it slides.
+        OverworldCatch_DismissBanners();
         if (!FuncIsActiveTask(Task_MapNamePopUpWindow))
         {
             // New pop up window

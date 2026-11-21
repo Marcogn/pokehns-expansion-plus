@@ -1,9 +1,11 @@
 #include "global.h"
+#include "option_menu.h"
 #include "overworld_catch.h"
 #include "battle.h"
 #include "battle_controllers.h"
 #include "battle_pike.h"
 #include "battle_pyramid.h"
+#include "bg.h"
 #include "bug_contest.h"
 #include "event_data.h"
 #include "event_object_movement.h"
@@ -14,6 +16,7 @@
 #include "fldeff.h"
 #include "gpu_regs.h"
 #include "item.h"
+#include "map_name_popup.h"
 #include "menu.h"
 #include "metatile_behavior.h"
 #include "nuzlocke.h"
@@ -31,6 +34,8 @@
 #include "strings.h"
 #include "task.h"
 #include "text.h"
+#include "text_window.h"
+#include "palette.h"
 #include "trainer_hill.h"
 #include "window.h"
 #include "wild_encounter_ow.h"
@@ -103,7 +108,6 @@ enum ThrowTarget
 {
     THROW_TARGET_NONE,      // nothing on the line: the Ball flies the whole range and falls
     THROW_TARGET_BLOCKED,   // a wall, an NPC, a sign: the Ball hits it and falls (D16)
-    THROW_TARGET_FOLLOWER,  // the follower is in the way: nothing is thrown (D16)
     THROW_TARGET_OWE,
 };
 
@@ -134,9 +138,21 @@ struct PendingThrow
     s16 height;
     s16 targetX;        // the tile the Pokémon was on, or stepping into, at the throw
     s16 targetY;
+    s16 landX;          // the tile the Ball comes down on: nobody walks onto it
+    s16 landY;          // while it lies there (landBlocks)
+    u8 landBlocks:1;
+    u8 landMapNum;      // the map landX/Y are on: a seam crossing re-bases coordinates
+    u8 landMapGroup;
+    u8 bannerShown:1;
+    u8 caughtToParty:1;
+    u16 caughtSpecies;  // a catch: what its banner shows
+    u32 caughtPersonality;
 };
 
-// A catch already made, waiting for its banner and its nickname prompt.
+// A catch made with the Nuzlocke's compulsory nickname on: the prompt comes
+// once no Ball is out and no banner is up. With the Nuzlocke's naming off
+// there is no prompt at all for a thrown Ball (user, 20/11): the Name Rater
+// renames.
 struct CatchResult
 {
     u32 personality;
@@ -146,12 +162,25 @@ struct CatchResult
     u8 boxPos;
 };
 
+// A catch banner: a note in a pile at the top of the screen, gone by itself
+// after BANNER_SHOW_FRAMES or when a newer catch needs room (user, 20-21/11).
+// The world goes on meanwhile.
+struct CatchBanner
+{
+    u32 personality;
+    u16 species;
+    u16 timer;
+    u8 toParty;
+};
+
+#define BANNER_MAX          3
+#define BANNER_SHOW_FRAMES  180   // ~3 s
+
 struct OverworldCatch
 {
     struct PendingThrow throws[THROW_MAX_PENDING];
     struct CatchResult results[THROW_MAX_PENDING];
     u8 numResults;
-    u8 bannerIndex;
     u8 nicknameIndex;
     u8 cooldown;
     u8 monMode:1;   // FALSE: R throws a Ball. TRUE: R sends out a Pokémon (D17)
@@ -159,10 +188,17 @@ struct OverworldCatch
     u8 lScrolled:1;
     u8 monSlot;
     u8 blockReason;
-    u8 bannerWindowId;
+    struct CatchBanner banners[BANNER_MAX];
+    u8 numBanners;      // banners[0] is the oldest, at the bottom of the pile
+    u8 battleStarting:1;
+    u8 bannerWindowId;  // the note on top (WINDOW_NONE: none drawn)
     u8 bannerIconSpriteId;
     u8 bannerIconSpriteId2;
     u8 bannerIconPaletteNum;
+    u8 bannerRow;       // tile row of the top note's window
+    u8 bannerEdges;     // edges drawn under it
+    u8 pileUp:1;        // the fields above are valid (a zeroed EWRAM is window 0, sprite 0)
+    u8 pileHidden:1;    // notes kept but not drawn: a battle, a message or a menu is up
     u8 panelWindowId;   // valid only while panelUp (zeroed EWRAM is window 0)
     u8 panelUp:1;
     u8 panelTimer;      // frames the panel stays up after a change or a throw
@@ -316,8 +352,10 @@ static void ScrollMon(s32 delta)
 // throws whatever is selected.
 bool32 OverworldCatch_HandleLButton(u16 newKeys, u16 heldKeys)
 {
+    // OVERWORLD CATCH off (plan D20): L does nothing on the map, as before.
     if (gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_L_EQUALS_A
-     || !FlagGet(FLAG_SYS_POKEMON_GET))
+     || !FlagGet(FLAG_SYS_POKEMON_GET)
+     || !IsOverworldCatchEnabled())
     {
         sCatch.lHeld = FALSE;
         return FALSE;
@@ -365,6 +403,10 @@ bool32 OverworldCatch_HandleLButton(u16 newKeys, u16 heldKeys)
 // ---------------------------------------------------------------------------
 
 static void FinishThrow(struct PendingThrow *throw);
+static void ShowCatchBanner(struct PendingThrow *throw);
+static void DismissCatchBanners(void);
+static void HideCatchBanners(void);
+static void UpdateBanners(void);
 
 // Water tiles are elevation 1 and the ground around them 3: for a throw the
 // two are one level, or every throw from the shore at a Pokémon in the water
@@ -396,8 +438,12 @@ bool32 OverworldCatch_AreLevelsApart(u32 a, u32 b)
 // stop it: it has no collision bit, so a Pokémon swimming next to the shore
 // can be hit. *distance is where the Ball ends: the Pokémon's tile, the tile
 // it hits, or the full range.
+// Set by FindThrowTarget: the follower stands on the line of the throw.
+static bool8 sFollowerOnLine;
+
 static enum ThrowTarget FindThrowTarget(u32 *objectEventId, u32 *distance)
 {
+    sFollowerOnLine = FALSE;
     struct ObjectEvent *player = &gObjectEvents[gPlayerAvatar.objectEventId];
     s16 x = player->currentCoords.x;
     s16 y = player->currentCoords.y;
@@ -430,8 +476,16 @@ static enum ThrowTarget FindThrowTarget(u32 *objectEventId, u32 *distance)
             if (OverworldCatch_AreLevelsApart(player->currentElevation, object->currentElevation))
                 continue;
 
+            // The following Pokémon goes back into its Ball when a Ball is
+            // thrown (user, 21/11; it used to stop the throw): the line goes
+            // on past it.
+            if (object->localId == OBJ_EVENT_ID_FOLLOWER)
+            {
+                sFollowerOnLine = TRUE;
+                continue;
+            }
             if (!IsOverworldWildEncounter(object, OWE_GENERATED))
-                return (object->localId == OBJ_EVENT_ID_FOLLOWER) ? THROW_TARGET_FOLLOWER : THROW_TARGET_BLOCKED;
+                return THROW_TARGET_BLOCKED;
 
             // Between the impact and the beam it is still there to the eye,
             // but already decided: the Ball hits it and drops, as on a wall.
@@ -516,6 +570,19 @@ static u32 CountThrows(enum ThrowState state)
     for (u32 i = 0; i < THROW_MAX_PENDING; i++)
     {
         if (sCatch.throws[i].state == state)
+            count++;
+    }
+    return count;
+}
+
+// Balls of this kind in the air: still in the bag, but spoken for.
+static u32 CountFlyingBalls(u32 ball)
+{
+    u32 count = 0;
+
+    for (u32 i = 0; i < THROW_MAX_PENDING; i++)
+    {
+        if (sCatch.throws[i].state == THROW_FLYING && sCatch.throws[i].ball == ball)
             count++;
     }
     return count;
@@ -714,12 +781,12 @@ bool32 OverworldCatch_TryThrow(void)
     struct ObjectEvent *owe = NULL;
     enum ThrowTarget target;
 
-    if (!FlagGet(FLAG_SYS_POKEMON_GET))
+    // The caller starts a DexNav search instead while OVERWORLD CATCH is
+    // off; this is the guard for any other caller.
+    if (!FlagGet(FLAG_SYS_POKEMON_GET) || !IsOverworldCatchEnabled())
         return FALSE;
 
     target = FindThrowTarget(&objectEventId, &distance);
-    if (target == THROW_TARGET_FOLLOWER)
-        return FALSE;
     if (target == THROW_TARGET_OWE)
         owe = &gObjectEvents[objectEventId];
 
@@ -759,6 +826,12 @@ bool32 OverworldCatch_TryThrow(void)
     if (sCatch.cooldown != 0 || CountThrows(THROW_FLYING) + sCatch.numResults >= THROW_MAX_PENDING)
         return FALSE;
 
+    // The Ball stays in the bag until it holds a Pokémon (user, 20/11): the
+    // ones in the air are spoken for, so three in the air are three real
+    // Balls.
+    if (CountTotalItemQuantityInBag(ball) <= CountFlyingBalls(ball))
+        return FALSE;
+
     if (owe != NULL)
     {
         enum ThrowBlock block = GetCatchBlock(owe);
@@ -773,10 +846,6 @@ bool32 OverworldCatch_TryThrow(void)
         if (throw->state != THROW_FREE)
             continue;
 
-        // The Ball leaves the bag now, so that three in the air are three
-        // real Balls; one that hits nothing comes back (ReturnBall).
-        if (!RemoveBagItem(ball, 1))
-            return FALSE;
         gLastThrownBall = ball;
         throw->state = THROW_FLYING;
         throw->flightTime = throw->timer = THROW_FLIGHT_BASE + THROW_FLIGHT_PER_TILE * distance;
@@ -785,6 +854,10 @@ bool32 OverworldCatch_TryThrow(void)
         throw->miss = (owe == NULL);
         throw->caught = FALSE;
         throw->holdsOWE = FALSE;
+        throw->bannerShown = FALSE;
+        throw->landBlocks = TRUE;
+        throw->landMapNum = gSaveBlock1Ptr->location.mapNum;
+        throw->landMapGroup = gSaveBlock1Ptr->location.mapGroup;
         if (owe != NULL)
         {
             throw->localId = owe->localId;
@@ -800,11 +873,20 @@ bool32 OverworldCatch_TryThrow(void)
         if (owe != NULL)
         {
             GetObjectGroundPos(owe, &throw->toX, &throw->toY);
-            throw->targetX = owe->currentCoords.x;
-            throw->targetY = owe->currentCoords.y;
+            throw->targetX = throw->landX = owe->currentCoords.x;
+            throw->targetY = throw->landY = owe->currentCoords.y;
         }
         else
         {
+            // The full range, or the tile before whatever it hits; none
+            // when that is the player's own (a wall right in front: the
+            // Ball drops at the player's feet).
+            u32 tiles = (target == THROW_TARGET_BLOCKED) ? distance - 1 : distance;
+
+            throw->landX = player->currentCoords.x + gDirectionToVectors[player->facingDirection].x * tiles;
+            throw->landY = player->currentCoords.y + gDirectionToVectors[player->facingDirection].y * tiles;
+            throw->landBlocks = (tiles != 0);
+
             // The full range, or the near side of whatever it hits,
             // counted from the player (the Ball starts half a tile ahead).
             s32 pixels = 16 * distance - 8 - (target == THROW_TARGET_BLOCKED ? 8 : 0);
@@ -823,16 +905,14 @@ bool32 OverworldCatch_TryThrow(void)
 
         sCatch.cooldown = THROW_COOLDOWN;
         sCatch.panelTimer = PANEL_SHOW_FRAMES;
+        // The Ball flies over the follower while it goes back into its own.
+        if (sFollowerOnLine)
+            SendFollowerIntoPokeball();
         StartThrowPose();
         PlaySE(SE_BALL_THROW);
         break;
     }
     return FALSE;
-}
-
-static void ReturnBall(struct PendingThrow *throw)
-{
-    AddBagItem(throw->ball, 1);
 }
 
 // The Pokémon the Ball was thrown at, if it is still that one: it may have
@@ -929,8 +1009,11 @@ static void FinishThrow(struct PendingThrow *throw)
             ReleaseOWEFromBall(throw);
         break;
     }
-    if (throw->miss)
-        ReturnBall(throw);
+    // A catch whose banner the animation did not get to (no sprite, the
+    // field rebuilt, a battle starting during the shakes): its note now,
+    // hidden by ShowCatchBanner until the player is free again.
+    if (throw->caught && !throw->bannerShown)
+        ShowCatchBanner(throw);
     DestroyBallSprite(throw);
     throw->state = THROW_FREE;
 }
@@ -941,6 +1024,8 @@ static void FinishThrow(struct PendingThrow *throw)
 // which makes it a miss.
 void OverworldCatch_OnBattleStart(void)
 {
+    HideCatchBanners();
+    sCatch.battleStarting = TRUE;
     for (u32 i = 0; i < THROW_MAX_PENDING; i++)
     {
         struct PendingThrow *throw = &sCatch.throws[i];
@@ -950,6 +1035,7 @@ void OverworldCatch_OnBattleStart(void)
         else
             FinishThrow(throw);
     }
+    sCatch.battleStarting = FALSE;
 }
 
 // A Pokémon inside a Ball cannot be walked into: there is nothing to fight
@@ -1038,8 +1124,9 @@ static u32 RollShakes(u32 odds)
 // at the end of the battle), minus the screens: no experience (P6), no
 // Pokédex page (P18), no swap-into-party prompt (P8: a full party sends it to
 // the PC). Returns FALSE if the Pokémon could not be stored.
-static bool32 GiveCaughtMon(struct Pokemon *mon, u32 ball)
+static bool32 GiveCaughtMon(struct PendingThrow *throw, struct Pokemon *mon)
 {
+    u32 ball = throw->ball;
     u32 species = GetMonData(mon, MON_DATA_SPECIES);
     u32 personality = GetMonData(mon, MON_DATA_PERSONALITY);
     enum NationalDexOrder dexNum = SpeciesToNationalPokedexNum(species);
@@ -1075,7 +1162,14 @@ static bool32 GiveCaughtMon(struct Pokemon *mon, u32 ball)
     if (IsNuzlockeActive() && !checks.speciesClause && !checks.oneTypeBlocked && !IsNuzlockeCaptureSuspended())
         NuzlockeFlagSet(NuzlockeGetCurrentRegionMapSectionId());
 
-    if (sCatch.numResults < THROW_MAX_PENDING)
+    throw->caughtSpecies = species;
+    throw->caughtPersonality = personality;
+    throw->caughtToParty = (givenTo == MON_GIVEN_TO_PARTY);
+
+    // The Ball leaves the bag now that it holds the Pokémon.
+    RemoveBagItem(ball, 1);
+
+    if (IsNuzlockeNicknamingActive() && sCatch.numResults < THROW_MAX_PENDING)
     {
         result = &sCatch.results[sCatch.numResults++];
         result->species = species;
@@ -1118,6 +1212,15 @@ static void ResolveImpact(struct PendingThrow *throw, struct ObjectEvent *owe)
     bool32 aware = IsOWEAwareOfPlayer(owe);
     u32 shakes;
 
+    // The Ball is still in the bag until it catches: one used up meanwhile
+    // (thrown in a battle that started while this one flew) is gone, and
+    // this one becomes a miss, or the catch would be free.
+    if (!CheckBagHasItem(throw->ball, 1))
+    {
+        StartBallFall(throw);
+        return;
+    }
+
     // The Ball bounces off and comes back (P8).
     if (GetCatchBlock(owe) != THROW_BLOCK_NONE)
     {
@@ -1128,7 +1231,7 @@ static void ResolveImpact(struct PendingThrow *throw, struct ObjectEvent *owe)
 
     CreateMonFromOWE(&mon, owe);
     shakes = RollShakes(ComputeOverworldCaptureOdds(&mon, owe, throw->ball, aware));
-    throw->caught = (shakes == BALL_3_SHAKES_SUCCESS && GiveCaughtMon(&mon, throw->ball));
+    throw->caught = (shakes == BALL_3_SHAKES_SUCCESS && GiveCaughtMon(throw, &mon));
     // BALL_3_SHAKES_FAIL breaks out after the third.
     throw->shakes = min(shakes, BALL_3_SHAKES_FAIL);
 
@@ -1263,6 +1366,7 @@ static void UpdateThrow(struct PendingThrow *throw)
                 throw->state = THROW_CAUGHT;
                 throw->timer = BALL_CAUGHT_FRAMES;
                 PlaySE(SE_RG_BALL_CLICK);
+                ShowCatchBanner(throw);
             }
             else
             {
@@ -1308,6 +1412,23 @@ static const u8 sText_PanelNoBalls[] = _("No Balls");
 static const u8 sText_PanelNoMon[] = _("Nobody can fight");
 static const u8 sText_PanelBallLine[] = _("Ball");
 static const u8 sText_PanelMonLine[] = _("Pokémon");
+
+#define BANNER_FRAME_TILE   0x214
+#define BANNER_FRAME_PAL    14
+
+// The frame of the panel and of the catch notes: the player's choice, its
+// palette in 14, darkened with the theme. Loaded here, not taken as found:
+// after a save is loaded palette 14 holds whatever the title screen left
+// until a message or a menu loads the frame, and the panel and the notes
+// came out with a white border (user, 21/11). Not during a DexNav search,
+// whose window puts its own palette in 14 (LoadDexNavWindowGfx).
+static void LoadCatchFrameGfx(void)
+{
+    if (FlagGet(DN_FLAG_SEARCHING))
+        return;
+    LoadUserWindowBorderGfxOnBg(0, BANNER_FRAME_TILE, BG_PLTT_ID(BANNER_FRAME_PAL));
+    ApplyDarkUiWindowFramePalette(BG_PLTT_ID(BANNER_FRAME_PAL));
+}
 
 static void HidePanel(void)
 {
@@ -1377,7 +1498,7 @@ static void UpdatePanel(void)
     // DexNav search has its own window there (dexnav.c, AddSearchWindow:
     // BG0 at (1,16), tiles from 8, the same as the panel's).
     if (ArePlayerFieldControlsLocked() || gSaveBlock2Ptr->optionsButtonMode == OPTIONS_BUTTON_MODE_L_EQUALS_A
-     || FlagGet(DN_FLAG_SEARCHING))
+     || FlagGet(DN_FLAG_SEARCHING) || !IsOverworldCatchEnabled())
         show = FALSE;
     if (sCatch.panelTimer != 0 && !sCatch.lHeld)
         sCatch.panelTimer--;
@@ -1404,6 +1525,7 @@ static void UpdatePanel(void)
             if (sCatch.panelWindowId == WINDOW_NONE)
                 return;
             sCatch.panelUp = TRUE;
+            LoadCatchFrameGfx();
             PutWindowTilemap(sCatch.panelWindowId);
             SetStandardWindowBorderStyle(sCatch.panelWindowId, FALSE);
             DrawStdFrameWithCustomTileAndPalette(sCatch.panelWindowId, FALSE, 0x214, 14);
@@ -1427,6 +1549,7 @@ static void UpdatePanel(void)
 void OverworldCatch_UpdatePanel(void)
 {
     UpdatePanel();
+    UpdateBanners();
 }
 
 // Every frame of the overworld, after the spawns.
@@ -1463,54 +1586,75 @@ void OverworldCatch_Update(void)
 // After the volley: banners, then nicknames
 // ---------------------------------------------------------------------------
 
-// A Ball is out of the bag (in the air or on the ground) until its record is
-// free: no Start menu meanwhile, a save would lose it.
+// A Ball is out (in the air or on the ground) until its record is free: no
+// Start menu meanwhile. The throw lives in EWRAM, and a menu rebuilds the
+// field's sprites under it.
 bool32 OverworldCatch_IsBallOut(void)
 {
     return CountThrows(THROW_FREE) != THROW_MAX_PENDING;
 }
 
-// Called when the player could start a script. Returns TRUE if the results
-// script was started.
+// A Ball lying on this tile (or about to: falling onto it): nobody walks
+// onto it (GetVanillaCollision). In the air it is no obstacle.
+bool32 OverworldCatch_IsBallOnGroundAt(s16 x, s16 y)
+{
+    for (u32 i = 0; i < THROW_MAX_PENDING; i++)
+    {
+        const struct PendingThrow *throw = &sCatch.throws[i];
+
+        if (throw->state != THROW_FREE && throw->state != THROW_FLYING
+         && throw->landBlocks && throw->landX == x && throw->landY == y
+         && throw->landMapNum == gSaveBlock1Ptr->location.mapNum
+         && throw->landMapGroup == gSaveBlock1Ptr->location.mapGroup)
+            return TRUE;
+    }
+    return FALSE;
+}
+
+// Called when the player could start a script: the Nuzlocke's compulsory
+// nicknames, once no Ball is out and the banners are gone. Returns TRUE if
+// the script was started.
 bool32 OverworldCatch_TryStartResults(void)
 {
-    if (sCatch.numResults == 0 || CountThrows(THROW_FREE) != THROW_MAX_PENDING)
+    if (sCatch.numResults == 0 || sCatch.numBanners != 0
+     || CountThrows(THROW_FREE) != THROW_MAX_PENDING)
         return FALSE;
 
-    sCatch.bannerIndex = 0;
     sCatch.nicknameIndex = 0;
     ScriptContext_SetupScript(OverworldCatch_EventScript_Results);
     return TRUE;
 }
 
-#define BANNER_ICON_X   26
-#define BANNER_ICON_Y   20
-#define BANNER_TEXT_X   40
+// ---------------------------------------------------------------------------
+// Catch banners (D14, made non-blocking on 20/11): the box of the "item
+// obtained" description (ScriptShowItemDescription, overworld.c: same frame
+// and palettes, so it follows the dark theme the same way) with the party
+// icon of the Pokémon in the item's place. A pile of notes at the top (user,
+// 21/11): the newest one lies on top and is the one shown; each older one
+// shows only the bottom edge of its frame, one tile lower and narrower per
+// note, and they go from the bottom of the pile up, each ~3 s after it came.
+// BG0 tiles from 92, past the DexNav search window (8-91) and the panel
+// (8-43); the edges are the frame's own tiles. The map name pop-up scrolls
+// all of BG0 while it slides: a banner hides it and it clears the banners
+// (ShowMapNamePopup). During a DexNav search its window can be at the top,
+// so the pile moves down under it.
+// ---------------------------------------------------------------------------
 
-static void Task_CatchBanner(u8 taskId)
+#define BANNER_ICON_X       26
+#define BANNER_ICON_Y       16  // was 20: the icon's art sits low in its 32x32 frame (measured, 20/11)
+#define BANNER_TEXT_X       40
+#define BANNER_TILE_BASE    92
+#define PILE_ROWS_PER_NOTE  2   // rows each note under the top one sticks out by
+
+static u32 GetBannerTopRow(void)
 {
-    // The banner closes with A or B, and only once the fanfare is over (P19).
-    if (!IsFanfareTaskInactive() || !JOY_NEW(A_BUTTON | B_BUTTON))
-        return;
-
-    if (sCatch.bannerIconSpriteId != MAX_SPRITES)
-        FreeAndDestroyMonIconSprite(&gSprites[sCatch.bannerIconSpriteId]);
-    if (sCatch.bannerIconSpriteId2 != MAX_SPRITES)
-        FreeAndDestroyMonIconSprite(&gSprites[sCatch.bannerIconSpriteId2]);
-    // The six mon icon palettes are shared by tag: freed only if no other
-    // icon on screen uses it (the DexNav search HUD does).
-    if (sCatch.bannerIconPaletteNum != 0xFF)
-        FieldEffectFreePaletteIfUnused(sCatch.bannerIconPaletteNum);
-    ClearStdWindowAndFrameToTransparent(sCatch.bannerWindowId, FALSE);
-    CopyWindowToVram(sCatch.bannerWindowId, COPYWIN_FULL);
-    RemoveWindow(sCatch.bannerWindowId);
-    ScriptContext_Enable();
-    DestroyTask(taskId);
+    return FlagGet(DN_FLAG_SEARCHING) ? 6 : 1;
 }
 
-static u8 CreateBannerIcon(const struct CatchResult *result, bool32 objWindow)
+static u8 CreateBannerIcon(const struct CatchBanner *banner, u32 row, bool32 objWindow)
 {
-    u8 spriteId = CreateMonIcon(result->species, SpriteCB_MonIcon, BANNER_ICON_X, BANNER_ICON_Y, 0, result->personality);
+    u8 spriteId = CreateMonIcon(banner->species, SpriteCB_MonIcon, BANNER_ICON_X,
+                                BANNER_ICON_Y + 8 * (row - 1), 0, banner->personality);
 
     if (spriteId != MAX_SPRITES)
     {
@@ -1521,13 +1665,40 @@ static u8 CreateBannerIcon(const struct CatchResult *result, bool32 objWindow)
     return spriteId;
 }
 
-// The box of the "item obtained" description (ScriptShowItemDescription,
-// overworld.c: same window, frame and palettes, so it follows the dark theme
-// the same way) with the party icon of the Pokémon in the item's place (D14).
-// Shown once the Pokémon is already in the party or in the PC.
-// Sets VAR_RESULT to FALSE when no catch is left, TRUE when a banner is up
-// (the script then waits for it).
-void OverworldCatch_ShowNextBanner(struct ScriptContext *ctx)
+// The note on top and the edges under it, off the screen.
+static void ErasePile(void)
+{
+    if (!sCatch.pileUp)
+        return;
+    sCatch.pileUp = FALSE;
+    if (sCatch.bannerIconSpriteId != MAX_SPRITES)
+        FreeAndDestroyMonIconSprite(&gSprites[sCatch.bannerIconSpriteId]);
+    if (sCatch.bannerIconSpriteId2 != MAX_SPRITES)
+        FreeAndDestroyMonIconSprite(&gSprites[sCatch.bannerIconSpriteId2]);
+    sCatch.bannerIconSpriteId = sCatch.bannerIconSpriteId2 = MAX_SPRITES;
+    // The six mon icon palettes are shared by tag: freed only if no other
+    // icon on screen uses it (the DexNav search HUD).
+    if (sCatch.bannerIconPaletteNum != 0xFF)
+        FieldEffectFreePaletteIfUnused(sCatch.bannerIconPaletteNum);
+    sCatch.bannerIconPaletteNum = 0xFF;
+    if (sCatch.bannerWindowId != WINDOW_NONE)
+    {
+        ClearStdWindowAndFrameToTransparent(sCatch.bannerWindowId, FALSE);
+        CopyWindowToVram(sCatch.bannerWindowId, COPYWIN_FULL);
+        RemoveWindow(sCatch.bannerWindowId);
+        sCatch.bannerWindowId = WINDOW_NONE;
+    }
+    if (sCatch.bannerEdges != 0)
+    {
+        FillBgTilemapBufferRect(0, 0, 0, sCatch.bannerRow + 4, 30, PILE_ROWS_PER_NOTE * sCatch.bannerEdges, 0);
+        CopyBgTilemapBufferToVram(0);
+        sCatch.bannerEdges = 0;
+    }
+}
+
+// "You caught XXX♂!" and "It was added to your party." or "It was sent to
+// the PC.", on the note at the given tile row.
+static void DrawTopNote(const struct CatchBanner *banner, u32 row)
 {
     static const u8 sGenderColors[][3] =
     {
@@ -1535,70 +1706,202 @@ void OverworldCatch_ShowNextBanner(struct ScriptContext *ctx)
         [MON_FEMALE] = {TEXT_COLOR_TRANSPARENT, TEXT_COLOR_RED, TEXT_COLOR_LIGHT_RED},
     };
     struct WindowTemplate template;
-    const struct CatchResult *result;
     u32 gender, x;
     u8 windowId;
 
-    Script_RequestEffects(SCREFF_V1 | SCREFF_HARDWARE);
-
-    if (sCatch.bannerIndex >= sCatch.numResults)
-    {
-        gSpecialVar_Result = FALSE;
-        return;
-    }
-    result = &sCatch.results[sCatch.bannerIndex++];
-    gSpecialVar_Result = TRUE;
-
-    SetWindowTemplateFields(&template, 0, 1, 1, 28, 3, 15, 8);
+    sCatch.pileUp = TRUE;
+    sCatch.bannerIconSpriteId = sCatch.bannerIconSpriteId2 = MAX_SPRITES;
+    sCatch.bannerIconPaletteNum = 0xFF;
+    sCatch.bannerEdges = 0;
+    SetWindowTemplateFields(&template, 0, 1, row, 28, 3, 15, BANNER_TILE_BASE);
     windowId = sCatch.bannerWindowId = AddWindow(&template);
+    if (windowId == WINDOW_NONE)
+        return;
+    LoadCatchFrameGfx();
     FillWindowPixelBuffer(windowId, PIXEL_FILL(0));
     PutWindowTilemap(windowId);
     SetStandardWindowBorderStyle(windowId, FALSE);
-    DrawStdFrameWithCustomTileAndPalette(windowId, FALSE, 0x214, 14);
+    DrawStdFrameWithCustomTileAndPalette(windowId, FALSE, BANNER_FRAME_TILE, BANNER_FRAME_PAL);
 
     // The party icon: the 64x64 battle sprite does not fit a box 3 tiles
     // high. In a dark cave a second copy opens a hole in the darkness, as
     // the item icon does.
-    LoadMonIconPalettePersonality(result->species, result->personality);
-    sCatch.bannerIconSpriteId = CreateBannerIcon(result, FALSE);
-    sCatch.bannerIconSpriteId2 = MAX_SPRITES;
+    LoadMonIconPalettePersonality(banner->species, banner->personality);
+    sCatch.bannerIconSpriteId = CreateBannerIcon(banner, row, FALSE);
     if (GetFlashLevel() > 0 || InBattlePyramid_())
     {
         SetGpuRegBits(REG_OFFSET_DISPCNT, DISPCNT_OBJWIN_ON);
         SetGpuRegBits(REG_OFFSET_WINOUT, WINOUT_WINOBJ_OBJ);
-        sCatch.bannerIconSpriteId2 = CreateBannerIcon(result, TRUE);
+        sCatch.bannerIconSpriteId2 = CreateBannerIcon(banner, row, TRUE);
     }
-    // Remembered from whichever copy exists: with the first one missing the
-    // second used to be left on screen. With neither (no free sprite at all)
-    // the palette stays loaded until the next map load frees them all.
-    sCatch.bannerIconPaletteNum = 0xFF;
+    // Remembered from whichever copy exists: with neither (no free sprite at
+    // all) the palette stays loaded until the next map load frees them all.
     if (sCatch.bannerIconSpriteId != MAX_SPRITES)
         sCatch.bannerIconPaletteNum = gSprites[sCatch.bannerIconSpriteId].oam.paletteNum;
     else if (sCatch.bannerIconSpriteId2 != MAX_SPRITES)
         sCatch.bannerIconPaletteNum = gSprites[sCatch.bannerIconSpriteId2].oam.paletteNum;
 
-    // "You caught XXX♂!". FONT_SMALL has no gender glyphs (the symbol comes
-    // out as an "8"), so the symbol is printed on its own in FONT_NORMAL,
-    // blue or red, and the "!" after it.
-    StringCopy(gStringVar1, GetSpeciesName(result->species));
+    // FONT_SMALL has no gender glyphs (the symbol comes out as an "8"), so
+    // the symbol is printed on its own in FONT_NORMAL, blue or red.
+    StringCopy(gStringVar1, GetSpeciesName(banner->species));
     StringExpandPlaceholders(gStringVar4, sText_YouCaught);
-    AddTextPrinterParameterized(windowId, FONT_SMALL, gStringVar4, BANNER_TEXT_X, 0, 0, NULL);
+    AddTextPrinterParameterized(windowId, FONT_SMALL, gStringVar4, BANNER_TEXT_X, 0, TEXT_SKIP_DRAW, NULL);
     x = BANNER_TEXT_X + GetStringWidth(FONT_SMALL, gStringVar4, 0);
-    gender = GetGenderFromSpeciesAndPersonality(result->species, result->personality);
+    gender = GetGenderFromSpeciesAndPersonality(banner->species, banner->personality);
     if (gender == MON_MALE || gender == MON_FEMALE)
     {
         const u8 *symbol = (gender == MON_MALE) ? gText_MaleSymbol : gText_FemaleSymbol;
 
-        AddTextPrinterParameterized3(windowId, FONT_NORMAL, x + 1, 0, sGenderColors[gender], 0, symbol);
+        AddTextPrinterParameterized3(windowId, FONT_NORMAL, x + 1, 0, sGenderColors[gender], TEXT_SKIP_DRAW, symbol);
         x += 1 + GetStringWidth(FONT_NORMAL, symbol, 0);
     }
-    AddTextPrinterParameterized(windowId, FONT_SMALL, sText_Exclamation, x, 0, 0, NULL);
-    AddTextPrinterParameterized(windowId, FONT_SMALL, result->toParty ? sText_AddedToParty : sText_SentToPC, BANNER_TEXT_X, 12, 0, NULL);
+    AddTextPrinterParameterized(windowId, FONT_SMALL, sText_Exclamation, x, 0, TEXT_SKIP_DRAW, NULL);
+    AddTextPrinterParameterized(windowId, FONT_SMALL, banner->toParty ? sText_AddedToParty : sText_SentToPC, BANNER_TEXT_X, 12, TEXT_SKIP_DRAW, NULL);
     CopyWindowToVram(windowId, COPYWIN_FULL);
+}
 
-    PlayFanfare(MUS_HG_OBTAIN_EGG);
-    // The script waits in a waitstate of its own; the task wakes it.
-    CreateTask(Task_CatchBanner, 10);
+// The notes under the top one, each sticking out by two tile rows and one
+// tile narrower on each side: a row of paper (the frame's sides 3 and 5 and
+// its fill, tile 4, the theme's colour 14) and its bottom edge (6, 7, 8).
+// The bottom edge alone showed 2 px of paper over 5 of border: the notes
+// below looked see-through (user, 21/11).
+static void DrawPileEdges(u32 row, u32 count)
+{
+    for (u32 k = 1; k <= count; k++)
+    {
+        u32 y = row + 4 + PILE_ROWS_PER_NOTE * (k - 1);
+
+        FillBgTilemapBufferRect(0, BANNER_FRAME_TILE + 3, k, y, 1, 1, BANNER_FRAME_PAL);
+        FillBgTilemapBufferRect(0, BANNER_FRAME_TILE + 4, k + 1, y, 28 - 2 * k, 1, BANNER_FRAME_PAL);
+        FillBgTilemapBufferRect(0, BANNER_FRAME_TILE + 5, 29 - k, y, 1, 1, BANNER_FRAME_PAL);
+        FillBgTilemapBufferRect(0, BANNER_FRAME_TILE + 6, k, y + 1, 1, 1, BANNER_FRAME_PAL);
+        FillBgTilemapBufferRect(0, BANNER_FRAME_TILE + 7, k + 1, y + 1, 28 - 2 * k, 1, BANNER_FRAME_PAL);
+        FillBgTilemapBufferRect(0, BANNER_FRAME_TILE + 8, 29 - k, y + 1, 1, 1, BANNER_FRAME_PAL);
+    }
+    sCatch.bannerEdges = count;
+    CopyBgTilemapBufferToVram(0);
+}
+
+// Draws the pile again: the newest note on top, the edges of the others.
+// With only the oldest gone the top note stays as it is.
+static void RedrawPile(bool32 topChanged)
+{
+    u32 row = GetBannerTopRow();
+
+    if (topChanged || row != sCatch.bannerRow)
+    {
+        ErasePile();
+        sCatch.bannerRow = row;
+        if (sCatch.numBanners != 0)
+            DrawTopNote(&sCatch.banners[sCatch.numBanners - 1], row);
+    }
+    else if (sCatch.bannerEdges != 0)
+    {
+        FillBgTilemapBufferRect(0, 0, 0, row + 4, 30, PILE_ROWS_PER_NOTE * sCatch.bannerEdges, 0);
+        sCatch.bannerEdges = 0;
+    }
+    if (sCatch.pileUp && sCatch.numBanners > 1)
+        DrawPileEdges(row, sCatch.numBanners - 1);
+    else
+        CopyBgTilemapBufferToVram(0);
+}
+
+static void RemoveOldestBanner(void)
+{
+    sCatch.numBanners--;
+    for (u32 i = 0; i < sCatch.numBanners; i++)
+        sCatch.banners[i] = sCatch.banners[i + 1];
+}
+
+static void DismissCatchBanners(void)
+{
+    ErasePile();
+    sCatch.numBanners = 0;
+    sCatch.pileHidden = FALSE;
+}
+
+// A battle, a message or a menu: the notes leave the screen but are kept,
+// and come back, each with its full time, once the player is free again. A
+// battle that starts while a Ball shakes used to drop them, and the player
+// never learnt what the Ball had caught (user, 21/11).
+static void HideCatchBanners(void)
+{
+    ErasePile();
+    if (sCatch.numBanners != 0)
+        sCatch.pileHidden = TRUE;
+}
+
+// Called from ShowMapNamePopup: the pop-up scrolls all of BG0 while it
+// slides. The notes were seen already: they go.
+void OverworldCatch_DismissBanners(void)
+{
+    if (sCatch.numBanners != 0)
+        DismissCatchBanners();
+}
+
+// A catch: its note on top of the pile, the oldest dropped if the pile is
+// full. A short sound, no fanfare: the music goes on (user, 20/11).
+static void ShowCatchBanner(struct PendingThrow *throw)
+{
+    struct CatchBanner *banner;
+
+    throw->bannerShown = TRUE;
+    while (sCatch.numBanners >= BANNER_MAX)
+        RemoveOldestBanner();
+    banner = &sCatch.banners[sCatch.numBanners++];
+    banner->species = throw->caughtSpecies;
+    banner->personality = throw->caughtPersonality;
+    banner->toParty = throw->caughtToParty;
+    banner->timer = BANNER_SHOW_FRAMES;
+    // A battle starting (the Balls on the ground finish before it) or a
+    // message up: the note waits for the player to be free (UpdateBanners).
+    // A fade too: the frame's palette load would light it up early.
+    if (sCatch.battleStarting || ArePlayerFieldControlsLocked() || gPaletteFade.active)
+    {
+        HideCatchBanners();
+        return;
+    }
+
+    HideMapNamePopUpWindow();
+    sCatch.pileHidden = FALSE;
+    RedrawPile(TRUE);
+    PlaySE(SE_SUCCESS);
+}
+
+// Each frame, first thing in CB2 (with the panel): a message, a menu or a
+// script owns the screen, so the pile goes; otherwise each note counts down
+// from when it came, and the oldest, at the bottom, goes first.
+static void UpdateBanners(void)
+{
+    u32 before = sCatch.numBanners;
+
+    if (sCatch.numBanners == 0)
+        return;
+    if (ArePlayerFieldControlsLocked() || gPaletteFade.active)
+    {
+        if (!sCatch.pileHidden)
+            HideCatchBanners();
+        return;
+    }
+    // Back from a battle or a menu: the notes come back, the oldest still
+    // first to go.
+    if (sCatch.pileHidden)
+    {
+        sCatch.pileHidden = FALSE;
+        for (u32 i = 0; i < sCatch.numBanners; i++)
+            sCatch.banners[i].timer = BANNER_SHOW_FRAMES + 30 * i;
+        HideMapNamePopUpWindow();
+        RedrawPile(TRUE);
+        PlaySE(SE_SUCCESS);
+        return;
+    }
+    for (u32 i = 0; i < sCatch.numBanners; i++)
+        sCatch.banners[i].timer--;
+    while (sCatch.numBanners != 0 && sCatch.banners[0].timer == 0)
+        RemoveOldestBanner();
+    // A search started or ended under the pile: it moves.
+    if (sCatch.numBanners != before || GetBannerTopRow() != sCatch.bannerRow)
+        RedrawPile(sCatch.numBanners == 0);
 }
 
 // The next caught Pokémon to offer a nickname for (asked after the last

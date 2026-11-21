@@ -1,4 +1,5 @@
 #include "global.h"
+#include "overworld_catch.h"
 #include "battle_main.h"
 #include "battle_setup.h"
 #include "bg.h"
@@ -1168,6 +1169,9 @@ bool32 TryStartDexNavSearch(void)
         return FALSE;
 
     HideMapNamePopUpWindow();
+    // Hasep: the overworld catch notes share BG0's top rows with the search
+    // window, which may be drawn there.
+    OverworldCatch_DismissBanners();
     ChangeBgY_ScreenOff(0, 0, 0);
     PlaySE(SE_DEX_SEARCH);
     return InitDexNavSearch(val & DEXNAV_MASK_SPECIES, val >> 14);

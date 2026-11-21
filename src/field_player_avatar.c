@@ -1,4 +1,5 @@
 #include "global.h"
+#include "option_menu.h"
 #include "main.h"
 #include "bike.h"
 #include "challenge_menu.h"
@@ -943,9 +944,14 @@ static void PlayerNotOnBikeMoving(enum Direction direction, u16 heldKeys)
     // there scares the target anyway. With AUTORUN off and no search B is the
     // run, as before, so there is no slow walk (plan P20). Wild Pokémon on the
     // map do not hear a slow walk (CanAwareOWESeePlayer).
+    // With OVERWORLD CATCH off (plan D20) there is no slow walk outside a
+    // search: B held with AUTORUN on is the normal walk again, as before the
+    // plan. The search keeps B for the creep (A held never worked there with
+    // AUTORUN on, see above).
     if (!(gPlayerAvatar.flags & PLAYER_AVATAR_FLAG_UNDERWATER)
      && (heldKeys & B_BUTTON)
-     && (gSaveBlock3Ptr->challengeSettings.autoRun == 0 || FlagGet(DN_FLAG_SEARCHING)))
+     && ((gSaveBlock3Ptr->challengeSettings.autoRun == 0 && IsOverworldCatchEnabled())
+      || FlagGet(DN_FLAG_SEARCHING)))
     {
         gPlayerAvatar.creeping = TRUE;
         PlayerWalkSlow(direction);
@@ -953,7 +959,9 @@ static void PlayerNotOnBikeMoving(enum Direction direction, u16 heldKeys)
     }
 
     if (!(gPlayerAvatar.flags & PLAYER_AVATAR_FLAG_UNDERWATER)
-     && (gSaveBlock3Ptr->challengeSettings.autoRun == 0 || (heldKeys & B_BUTTON))
+     // AUTORUN on: run unless B is held (B held only gets here with
+     // OVERWORLD CATCH off, where it walks). AUTORUN off: B held runs.
+     && (gSaveBlock3Ptr->challengeSettings.autoRun == 0 ? !(heldKeys & B_BUTTON) : (heldKeys & B_BUTTON))
      && FlagGet(FLAG_SYS_B_DASH)
      && IsRunningDisallowed(gObjectEvents[gPlayerAvatar.objectEventId].currentMetatileBehavior) == 0
      && !FollowerNPCComingThroughDoor()

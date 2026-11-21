@@ -37,7 +37,8 @@ Andature, udito e cono di vista (fase 2 di quel piano): `overworld_catch.md`.
   `INDOOR`), Safari **3** (`OWE_SPAWNS_MAX_SAFARI`), 6 caselle per tentativo
   (`OWE_SPAWN_TILE_TRIES`), ricambio a tetto pieno ogni 480 frame
   (`OWE_SPAWN_TIME_REPLACEMENT`; erano 6/3/3, Safari 4, 240: piano
-  `overworld-catch` fase 1). `OWE_SPAWNS_MAX` resta 6: **non è un tetto**,
+  `overworld-catch` fase 1; con OVERWORLD CATCH spenta tornano quelli, fase 9,
+  `overworld_catch.md`). `OWE_SPAWNS_MAX` resta 6: **non è un tetto**,
   dimensiona gli array e i `localId` (`STATIC_ASSERT` sui tetti in
   `wild_encounter_ow.c`). A tetto pieno il ricambio è uno per uno, quindi
   **sopra il tetto** (salvataggio fatto con i tetti vecchi: gli oggetti stanno

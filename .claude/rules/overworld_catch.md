@@ -17,6 +17,18 @@ Piano, decisioni e diario delle verifiche:
 [`docs/plans/overworld-catch.md`](../../docs/plans/overworld-catch.md) (§5.2
 per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
 
+## Interruttore OVERWORLD CATCH (D20, fase 9)
+
+- Solo `IsOverworldCatchEnabled()`. **Spenta = gioco di prima del piano
+  salvo prezzi e negozi**: tetti `*_NO_CATCH` 6/3/3, Safari 4, ricambio 240;
+  `CanAwareOWESeePlayer_NoCatch` (4x3 per tutti, solo corsa/bici sentite,
+  niente copertura); B con AUTORUN acceso = camminata (il passo lento resta
+  nella ricerca DexNav); R = `TryStartDexNavSearch`; L, pannello e
+  `OverworldCatch_TryThrow` spenti.
+- Si cambia dal menu Start, chiuso con una Ball fuori o banner in coda:
+  nessun lancio vivo al cambio. Riaccesa, `TryRemoveOWEAboveCap` toglie
+  l'eccesso. **A cattura spenta R+START del debug avvia prima il DexNav.**
+
 ## Andature (`PlayerNotOnBikeMoving`, `src/field_player_avatar.c`)
 
 - **`autoRun` 0 = acceso** (prima voce di `sDesc_Autorun`). Partita nuova
@@ -28,7 +40,6 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   Surf) qualunque sia AUTORUN. **A non fa più il creeping.** Va provato
   **prima** del blocco della corsa, che fa sempre `return` con AUTORUN acceso.
 - Il salto da una sporgenza spegne `creeping` (se no il salto era muto).
-- In Surf: velocità uguali, udito da camminata.
 - `PLAYER_AVATAR_FLAG_DASH` resta acceso per tutto il passo di corsa
   (`npc_clear_strange_bits` lo spegne solo fra due passi).
 
@@ -49,7 +60,6 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
 - **`IsOWEAwareOfPlayer()`** = `OWE_SAVED_MOVEMENT_STATE_FLAG` (bit 7 di
   `warpArrowSpriteId`): alzato in `Common_Step7`, tolto a riposo, sopravvive
   al ricaricamento. Il "vaga" (`WANDER_AROUND_OWE`) non nota mai.
-- Il controllo gira solo in `WanderAround_Step3` (fra due passi).
 
 ## Lancio (`src/overworld_catch.c`, fasi 3-4)
 
@@ -58,42 +68,28 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   bloccati**. L = `OverworldCatch_HandleLButton` da `DoCB1_Overworld` (toglie
   il D-pad finché è tenuto); L tenuto attraverso un blocco conta come usato.
   Con `L=A` main.c **aggiunge** A ma lascia L: l'opzione va letta.
-- **Un lancio è un record** (`sCatch.throws`, 3) con stato e timer: `FLYING`
-  (8 + 8 a casella) → `OPENING` 16 (Pokémon nascosto dal frame 4, il raggio)
-  → `CLOSING` 8 (cattura: qui l'OWE è tolto) → `FALLING` 8 → `SHAKING` (16 +
-  32 a scossa, 0-3 da `RollShakes`) → `CAUGHT` 40 / `BREAKOUT` 12 (l'OWE esce,
-  poi `ForceOWEToNoticePlayer`). A vuoto: `FLYING` → `FALLING` → `DROPPED`
-  24, poi la Ball torna. **Esito deciso in `ResolveImpact`** (D15), il resto
-  è animazione. Timer fermi a controlli bloccati. **Start bloccato finché un
-  record non è libero** (`OverworldCatch_IsBallOut`), in silenzio.
-- **Bersaglio**: prima cosa sulla linea entro 5; vuota: vola 5 e torna;
-  follower davanti: niente lancio. Collisione, dislivello e oggetti visibili
-  non-OWE fermano la Ball (cade e torna); un oggetto su un altro livello è
-  saltato (`OverworldCatch_AreLevelsApart`). L'acqua non ha collisione e
-  **acqua (1) = terreno (3)** (`GetThrowLevel`): senza, riva-acqua cadeva
-  alla prima casella. Sporgenze: non dislivelli. **Niente inseguimento**
-  (18/11): colpito se all'arrivo `currentCoords` è la casella del
-  lancio (`targetX/Y`); un salto sul posto non conta (niente `y2`).
-- **Sprite**: fogli delle Ball dei follower (`gPokeballGraphics`, frame
-  0-4), `coordOffsetEnabled`, posizioni dagli sprite (`GetObjectGroundPos`).
-  **Mai un assert**: senza sprite il volo prosegue invisibile e `FinishThrow`
-  chiude all'impatto. `IsBallSpriteValid` (callback + indice + magic) copre
-  i campi ricostruiti (menu, warp).
+- **Un lancio è un record** (`sCatch.throws`, 3): `FLYING` → `OPENING` →
+  `CLOSING` (cattura: qui l'OWE è tolto) → `FALLING` → `SHAKING` →
+  `CAUGHT`/`BREAKOUT`; a vuoto `FLYING` → `FALLING` → `DROPPED`, poi la Ball
+  torna. **Esito deciso in `ResolveImpact`** (D15), il resto è animazione.
+  Timer fermi a controlli bloccati. **Start bloccato finché un record non è
+  libero** (`OverworldCatch_IsBallOut`), in silenzio.
+- **Bersaglio**: prima cosa sulla linea entro 5; il follower è saltato e
+  rientra nella Ball (`SendFollowerIntoPokeball`). Muri, dislivelli, oggetti
+  non-OWE fermano la Ball. **Acqua (1) = terreno (3)** (`GetThrowLevel`).
+  Colpito se all'arrivo `currentCoords` è `targetX/Y` (niente `y2`).
+- **Sprite**: **mai un assert**: senza sprite il volo prosegue invisibile.
+  `IsBallSpriteValid` copre i campi ricostruiti (menu, warp).
 - **Pokémon nella Ball** (dall'impatto, `holdsOWE`): congelato e, dal raggio,
   `invisible`, **riasserito a ogni frame** (`KeepOWEInBall`): il `release` di
   uno script scongela tutti. Ha il flag "non sparire" (`HoldOWEForThrow`,
-  rimesso com'era all'uscita): un ricambio della stessa specie riusa slot e
-  `localId` e passerebbe per lui. Non è bersaglio (`FindThrowTarget`), né
-  contatto (`TryTriggerOverworldWildEncounter`), e **una seconda Ball in volo
-  verso di lui diventa un lancio a vuoto**: senza, il Pokémon veniva dato due
-  volte. Lo sprite da nuoto legge `owe->invisible`.
-- **Lotta che parte** (`CreateBattleStartTask` e `_Debug` →
-  `OverworldCatch_OnBattleStart`): le Ball a terra finiscono prima della
-  transizione (chi è dentro esce), quelle in volo atterrano dopo, invisibili.
-- **Posa**: frame della corsa fermo, tenuto da un'azione `DELAY_16` sul
-  giocatore (senza, `PlayerFaceDirection` la rifà ogni frame). **Trappola**:
-  `ObjectEventIsMovementOverridden` dà occupato anche un'azione finita e non
-  tolta (il giocatore fermo ne ha sempre una): `ClearHeldMovementIfFinished`
+  rimesso com'era all'uscita): un ricambio riuserebbe slot e `localId`. Non è
+  bersaglio né contatto; **una seconda Ball verso di lui è un lancio a
+  vuoto** (se no veniva dato due volte).
+- **Lotta che parte** (`OverworldCatch_OnBattleStart`): le Ball a terra
+  finiscono prima (chi è dentro esce), quelle in volo atterrano dopo.
+- **Posa**: tenuta da `DELAY_16`. `ObjectEventIsMovementOverridden` dà
+  occupato anche un'azione finita e non tolta: `ClearHeldMovementIfFinished`
   prima di `ObjectEventSetHeldMovement`.
 - **Il Pokémon nasce sullo stack** (`CreateMonFromOWE`), **mai in
   `gEnemyParty`**: lo spawn lo usa nello stesso frame.
@@ -105,14 +101,23 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   "vaga"** (il bit resterebbe). Il bit salta distanza e vista e usa il livello
   del lancio (non `CanOWEReachPlayer`, acqua ≠ riva): su un altro livello si
   consuma. Il "vaga" tiene il ×2.
-- **Coda** (`results`, 3): un lancio parte se c'è un record libero e Ball in
-  volo + catture in coda < 3. Banner e soprannomi da
-  `OverworldCatch_TryStartResults` a record tutti liberi, **dopo** il passo.
-  Palette dell'icona: `FieldEffectFreePaletteIfUnused`. Dopo un `callnative`
-  che ferma lo script serve `waitstate`.
-- **Pokémon lanciato**: `gOverworldThrowLeadSlot` (letto e azzerato da
-  `SetBattlePartyIds`, e a ogni frame a controlli liberi). Roamer e sciami:
-  R avvia la lotta. Spento in Safari, Gara, Pike, Piramide, Trainer Hill.
+- **Ball tolta solo a cattura riuscita** (`GiveCaughtMon`): al lancio la
+  borsa deve averne più di quelle in volo; all'impatto, se non c'è più (usata
+  in una lotta partita durante il volo), è un lancio a vuoto.
+- **Ball a terra = ostacolo** (`OverworldCatch_IsBallOnGroundAt` in
+  `GetVanillaCollision`): `landX/Y` della mappa del lancio, da `OPENING`.
+- **Banner a foglietti, senza script** (20-21/11): una finestra (il più
+  nuovo, tile BG0 da 92; DexNav 8-91) e sotto i vecchi, 2 righe ciascuno
+  (cornice 3/4/5 e 6/7/8: il solo bordo sembrava trasparente) nel tilemap,
+  con `CopyBgTilemapBufferToVram`. Max 3, 180 frame, esce il più vecchio.
+  `pileUp` come `panelUp`. Lotta, messaggio, menu o dissolvenza: nascosti
+  (`pileHidden`), poi ridisegnati. Il popup del nome mappa li cancella; in
+  ricerca DexNav la pila scende. **Pal 14 caricata da noi**
+  (`LoadCatchFrameGfx`): dopo il Continue resta quella del titolo. Soprannome
+  solo con la Nuzlocke.
+- **Pokémon lanciato**: `gOverworldThrowLeadSlot` (azzerato da
+  `SetBattlePartyIds` e a controlli liberi). Roamer e sciami: lotta. Spento
+  in Safari, Gara, Pike, Piramide, Trainer Hill.
 
 ## Pannello della scelta (D18, `UpdatePanel`)
 
@@ -126,12 +131,11 @@ per la fase 2). Gli OWE in generale: `overworld_encounters.md`.
   **all'inizio del CB2** (`OverworldCatch_UpdatePanel` in `OverworldBasic`,
   prima di `ScriptContext_RunScript`): i controlli si bloccano nel CB1, quindi
   sparisce prima che uno script o un task disegni nello stesso frame.
-- Su con L tenuto o `panelTimer` (120 frame, riarmato da cambio, scorrimento,
-  lancio); giù a controlli bloccati o con `L=A`. Il rilascio di L senza
-  scorrere **cambia modalità** (D1). Solo testo (`FONT_SMALL`, niente sprite).
+- Su con L tenuto o `panelTimer` (120 frame); giù a controlli bloccati, con
+  `L=A` o a cattura spenta. **Il rilascio di L senza scorrere cambia
+  modalità** (D1): anche in una prova che tiene L solo per guardare.
 
 ## Prove
 
-Ricette in §5.2-5.5 del piano e `docs/claude/emulator.md`. `PendingThrow` =
-36 B. `gSaveblock3 + 0x13` = `autoRun`; `FLAG_SYS_B_DASH` = byte `0x118` bit 0
-di SaveBlock1. Un OWE col bit 7 di `+0x1D` non viene ricambiato.
+Ricette nel piano (§5.2-5.9) e `docs/claude/emulator.md`. `gSaveblock3 +
+0x13` = `autoRun`, `+0x2F` bit 7 = OVERWORLD CATCH spenta.

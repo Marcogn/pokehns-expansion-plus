@@ -15,28 +15,38 @@ add the section before releasing. Feature details live in the tables of
   arm, the Ball (drawn as the Ball you threw) flies in an arc to where the
   Pokémon stood, opens and draws it in, drops to the ground and shakes up
   to three times. It does not follow a Pokémon that moves: one that has
-  walked or run off by the time it lands is missed, and the Ball comes back. If it holds, it clicks and the Pokémon is yours
-  without a battle: a banner at the top says so with a short fanfare, then
-  the game offers the nickname. If it does not, the Pokémon breaks out,
-  notices you and flees or attacks as its temperament says.
+  walked or run off by the time it lands is missed. If it holds, it clicks
+  and the Pokémon is yours without a battle: a banner at the top says so,
+  with a short sound, while the game goes on. Catches in a row pile up like
+  notes, up to three: the newest lies on top, the older ones peek out under
+  it, a strip of paper and its edge each, and they go from the bottom of the pile, each
+  about three seconds after it came or to make room for a newer one, and they clear when a message or a
+  menu opens. No nickname is asked (the Name Rater renames), except with the
+  Nuzlocke's compulsory nicknames, asked once the volley is over. If the
+  Ball does not hold, the Pokémon breaks out, notices you and flees or
+  attacks as its temperament says.
   - The odds are the battle's own at full HP, **doubled if the Pokémon had
     not noticed you** (see *Sneaking up* below). `EASY CATCH`, the missing
     badge penalty and every Ball's bonus apply as in battle; the Quick
     Ball's bonus is for a Pokémon that has not noticed you.
-  - A Ball is only used up when it hits a wild Pokémon. With nothing on the
-    line it flies the 5 tiles and drops; against a wall, a tree, a person
-    or the edge of a raised platform it hits it and drops; either way it
-    comes back to the bag. It flies over ledges and over a Pokémon on
+  - **A Ball is only used up when it catches**: the count in the bag goes
+    down when the Pokémon stays inside, not at the throw. A Pokémon that
+    breaks out, or a Ball that hits nothing, costs nothing. With nothing on
+    the line it flies the 5 tiles and drops; against a wall, a tree, a person
+    or the edge of a raised platform it hits it and drops. A Ball lying on
+    the ground cannot be walked over. It flies over ledges and over a Pokémon on
     another level. Water and the shore count as one level: you can throw
-    from the shore at a Pokémon in the water and from Surf at one on land. With your
-    follower right in front nothing is thrown.
+    from the shore at a Pokémon in the water and from Surf at one on land. A follower
+    on the line goes back into its Ball as you throw (the Ball flies over
+    it) and comes out again at your next step.
   - While a Ball is out (about four seconds at most) the Start menu does
     not open, and a Pokémon inside a Ball cannot be walked into. A battle
     that starts meanwhile ends the shaking first: a Pokémon still inside
-    comes out.
+    comes out, and the notes of what was caught wait and show up when you
+    are back on the map (also after a message or a menu).
   - You can keep throwing while Balls are in the air (about one every half
-    second); the banners and the nickname prompts come after the volley. A
-    full party sends the Pokémon to the PC. A Ball that arrives at a
+    second), as many as the Balls you have. A full party sends the Pokémon
+    to the PC. A Ball that arrives at a
     Pokémon another Ball has already hit drops and comes back.
   - The Nuzlocke, Species Clause and One Type rules refuse the throw with
     the battle's messages, and a catch uses the area's encounter. No
@@ -75,10 +85,19 @@ add the section before releasing. Feature details live in the tables of
   `LEVEL SCALING` now start OFF like every other challenge, while `CLOCK TYPE`
   and `ALT SHINY` carry over like every other option: from the title screen's
   Options, or from the save already on the cartridge if they were not touched.
-- **Two new options, not active yet**: `OVERWORLD CATCH` (Options · OVERWORLD,
-  ON by default) and `ARCEUS FORMULAS` (Options · BATTLE, OFF by default). They
-  are saved but do nothing in this build; the next steps of the overworld
-  catching wire them up.
+- **`OVERWORLD CATCH`** (Options · OVERWORLD, ON by default) turns the
+  overworld catching on and off, also mid-game. OFF is the game as it was
+  before it: up to 6 visible Pokémon on land, 3 on water and in caves, 4 in
+  the Safari Zone, replaced every 4 seconds; no throwing, no selection panel,
+  L does nothing on the map and R starts a DexNav search on the registered
+  species; holding B with `AUTORUN` on is a normal walk again (still the slow
+  walk during a DexNav search), and wild Pokémon see you in a 4×3 box in
+  front of them, through trees and grass, and only hear you running or
+  cycling. The cheaper Balls and the shops stay as they are. Turning it on
+  with more Pokémon around than the new cap drops the extra ones in a moment.
+- **A new option, not active yet**: `ARCEUS FORMULAS` (Options · BATTLE, OFF
+  by default). It is saved but does nothing in this build; the next steps of
+  the overworld catching wire it up.
 - Save version 15: an existing save loads with every setting as it was and
   `OVERWORLD CATCH` ON. A bit left over from the old TRAINER CATCH option,
   set in some saves, is cleared on the way.
@@ -92,7 +111,8 @@ add the section before releasing. Feature details live in the tables of
   ¥11,111). TMs stay available as before. Script and texts are Soulgold's; the
   fees are half of Soulgold's.
 - **R no longer starts a DexNav search** on the registered species: open
-  the DexNav from the Start menu. On a bike R still swaps Mach and Acro.
+  the DexNav from the Start menu. On a bike R still swaps Mach and Acro. With
+  `OVERWORLD CATCH` off R starts the search as before.
 - **Fewer visible Pokémon**: the first step of the overworld catching
   (`docs/plans/overworld-catch.md`). Up to **4** wild Pokémon on land
   (was 6), **2** on water and in caves (was 3) and **3** in the Safari Zone
@@ -105,9 +125,13 @@ add the section before releasing. Feature details live in the tables of
   are replaced quickly when you start or stop surfing.
 - **Cheaper special Balls**: Net, Nest, Dive, Dusk, Timer, Repeat and
   Luxury Ball now cost 100 (Luxury was 3000, the others 1000) and Heal Ball
-  50 (was 300). Poké, Great, Ultra and Quick Ball are unchanged. These
-  Balls are only sold in the Hoenn and Alola shops of the ROM, not in the
-  Johto and Kanto ones: the price shows in the sell value for now.
+  50 (was 300). Poké, Great, Ultra and Quick Ball are unchanged.
+- **Special Balls in every Poké Mart**, which did not sell any: Heal, Nest
+  and Repeat Ball from the start, Net, Dive, Dusk, Timer and Luxury Ball from
+  the first badge, and Kurt's seven (Love, Lure, Friend, Heavy, Moon, Fast,
+  Level) from the second badge at 500 each (their price was 1000). Kurt still
+  makes them for Apricorns. Cherrygrove's Mart keeps its short list until the
+  story restocks it.
 - **Sneaking up on wild Pokémon**: the second step of the overworld
   catching. With `AUTORUN` on, **holding B is now a slow walk** (it was a
   normal walk), and wild Pokémon on the map cannot hear it. They hear you
