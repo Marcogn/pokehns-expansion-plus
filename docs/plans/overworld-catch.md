@@ -1219,7 +1219,17 @@ con le statistiche di Arceus vale un'altra cosa.
   secondo (prima 9 e 0, `BANNER_ICON_Y` 20 → 16). Ball a terra: un record
   `DROPPED` scritto da RAM su (50,15) a Cherrygrove tiene il giocatore su
   (49,15) per 230 frame con Destra tenuta; finito il record, passa.
-- Nuovo in cima, riprovato (Route 29 nord, tre lanci): Geodude, Geodude,
+- **A foglietti** (utente, 21/11: "uno sopra l'altro come dei post-it, non
+  una colonna"): tutti nello stesso posto in alto, il nuovo sopra, dei
+  vecchi spunta solo il bordo inferiore (8 px più in basso e una casella più
+  stretti per lato ciascuno), escono dal fondo ~3 s dopo il loro arrivo.
+  Provato (Route 29 nord, tre lanci, ×11 → ×8): Rattata♂, poi Geodude sopra
+  col bordo di Rattata sotto, poi Rattata♀ sopra col bordo di Geodude
+  mentre Rattata♂ era già uscito. Tre foglietti insieme non visti: le
+  catture distavano ~1,2 s; stesso ciclo di `DrawPileEdges`. Trappola: con
+  `ScheduleBgCopyTilemapToVram` i bordi non comparivano, serve
+  `CopyBgTilemapBufferToVram`.
+- (Versione precedente, colonna col nuovo in cima) Geodude, Geodude,
   Rattata presi (×11 → ×8); Rattata compare in cima e spinge giù il Geodude
   rimasto, che poi sparisce dal basso mentre Rattata resta fermo.
 - **Non provati**: la Nuzlocke col soprannome obbligatorio, il popup del

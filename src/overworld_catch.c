@@ -5,6 +5,7 @@
 #include "battle_controllers.h"
 #include "battle_pike.h"
 #include "battle_pyramid.h"
+#include "bg.h"
 #include "bug_contest.h"
 #include "event_data.h"
 #include "event_object_movement.h"
@@ -158,19 +159,15 @@ struct CatchResult
     u8 boxPos;
 };
 
-// A catch banner on screen: top of the screen, one under the other, gone by
-// itself after BANNER_SHOW_FRAMES or when a newer catch needs its slot
-// (user, 20/11). The world goes on meanwhile.
+// A catch banner: a note in a pile at the top of the screen, gone by itself
+// after BANNER_SHOW_FRAMES or when a newer catch needs room (user, 20-21/11).
+// The world goes on meanwhile.
 struct CatchBanner
 {
     u32 personality;
     u16 species;
     u16 timer;
     u8 toParty;
-    u8 windowId;
-    u8 iconSpriteId;
-    u8 iconSpriteId2;   // the OBJ window copy in a dark cave
-    u8 iconPaletteNum;
 };
 
 #define BANNER_MAX          3
@@ -189,8 +186,15 @@ struct OverworldCatch
     u8 monSlot;
     u8 blockReason;
     struct CatchBanner banners[BANNER_MAX];
-    u8 numBanners;      // banners[0] is the oldest, in the bottom slot
+    u8 numBanners;      // banners[0] is the oldest, at the bottom of the pile
     u8 battleStarting:1;
+    u8 bannerWindowId;  // the note on top (WINDOW_NONE: none drawn)
+    u8 bannerIconSpriteId;
+    u8 bannerIconSpriteId2;
+    u8 bannerIconPaletteNum;
+    u8 bannerRow;       // tile row of the top note's window
+    u8 bannerEdges;     // edges drawn under it
+    u8 pileUp:1;        // the fields above are valid (a zeroed EWRAM is window 0, sprite 0)
     u8 panelWindowId;   // valid only while panelUp (zeroed EWRAM is window 0)
     u8 panelUp:1;
     u8 panelTimer;      // frames the panel stays up after a change or a throw
@@ -1575,36 +1579,33 @@ bool32 OverworldCatch_TryStartResults(void)
 // Catch banners (D14, made non-blocking on 20/11): the box of the "item
 // obtained" description (ScriptShowItemDescription, overworld.c: same frame
 // and palettes, so it follows the dark theme the same way) with the party
-// icon of the Pokémon in the item's place, one per catch, stacked at the top.
-// BG0 tiles: the panel and the DexNav search window both start at 8 (the
-// search window is up to 28x3 = 84 tiles), so the banners start at 92, 84
-// tiles each, under the message box (0x194). The third one shares tiles with
-// the map name pop-up (0x107): a banner hides the pop-up and a pop-up clears
-// the banners (ShowMapNamePopup). During a DexNav search its window takes
-// the top or the bottom rows: the banners use the two middle slots only.
+// icon of the Pokémon in the item's place. A pile of notes at the top (user,
+// 21/11): the newest one lies on top and is the one shown; each older one
+// shows only the bottom edge of its frame, one tile lower and narrower per
+// note, and they go from the bottom of the pile up, each ~3 s after it came.
+// BG0 tiles from 92, past the DexNav search window (8-91) and the panel
+// (8-43); the edges are the frame's own tiles. The map name pop-up scrolls
+// all of BG0 while it slides: a banner hides it and it clears the banners
+// (ShowMapNamePopup). During a DexNav search its window can be at the top,
+// so the pile moves down under it.
 // ---------------------------------------------------------------------------
 
 #define BANNER_ICON_X       26
 #define BANNER_ICON_Y       16  // was 20: the icon's art sits low in its 32x32 frame (measured, 20/11)
 #define BANNER_TEXT_X       40
 #define BANNER_TILE_BASE    92
-#define BANNER_TILES        (28 * 3)
-#define BANNER_SLOT_ROWS    5   // 3 rows of window and its frame above and below
+#define BANNER_FRAME_TILE   0x214
+#define BANNER_FRAME_PAL    14
 
-static u32 GetFirstBannerSlot(void)
+static u32 GetBannerTopRow(void)
 {
-    return FlagGet(DN_FLAG_SEARCHING) ? 1 : 0;
+    return FlagGet(DN_FLAG_SEARCHING) ? 6 : 1;
 }
 
-static u32 GetMaxBanners(void)
-{
-    return BANNER_MAX - GetFirstBannerSlot();
-}
-
-static u8 CreateBannerIcon(const struct CatchBanner *banner, u32 slot, bool32 objWindow)
+static u8 CreateBannerIcon(const struct CatchBanner *banner, u32 row, bool32 objWindow)
 {
     u8 spriteId = CreateMonIcon(banner->species, SpriteCB_MonIcon, BANNER_ICON_X,
-                                BANNER_ICON_Y + 8 * BANNER_SLOT_ROWS * slot, 0, banner->personality);
+                                BANNER_ICON_Y + 8 * (row - 1), 0, banner->personality);
 
     if (spriteId != MAX_SPRITES)
     {
@@ -1615,30 +1616,40 @@ static u8 CreateBannerIcon(const struct CatchBanner *banner, u32 slot, bool32 ob
     return spriteId;
 }
 
-static void EraseBanner(struct CatchBanner *banner)
+// The note on top and the edges under it, off the screen.
+static void ErasePile(void)
 {
-    if (banner->iconSpriteId != MAX_SPRITES)
-        FreeAndDestroyMonIconSprite(&gSprites[banner->iconSpriteId]);
-    if (banner->iconSpriteId2 != MAX_SPRITES)
-        FreeAndDestroyMonIconSprite(&gSprites[banner->iconSpriteId2]);
-    banner->iconSpriteId = banner->iconSpriteId2 = MAX_SPRITES;
+    if (!sCatch.pileUp)
+        return;
+    sCatch.pileUp = FALSE;
+    if (sCatch.bannerIconSpriteId != MAX_SPRITES)
+        FreeAndDestroyMonIconSprite(&gSprites[sCatch.bannerIconSpriteId]);
+    if (sCatch.bannerIconSpriteId2 != MAX_SPRITES)
+        FreeAndDestroyMonIconSprite(&gSprites[sCatch.bannerIconSpriteId2]);
+    sCatch.bannerIconSpriteId = sCatch.bannerIconSpriteId2 = MAX_SPRITES;
     // The six mon icon palettes are shared by tag: freed only if no other
-    // icon on screen uses it (another banner, the DexNav search HUD).
-    if (banner->iconPaletteNum != 0xFF)
-        FieldEffectFreePaletteIfUnused(banner->iconPaletteNum);
-    banner->iconPaletteNum = 0xFF;
-    if (banner->windowId != WINDOW_NONE)
+    // icon on screen uses it (the DexNav search HUD).
+    if (sCatch.bannerIconPaletteNum != 0xFF)
+        FieldEffectFreePaletteIfUnused(sCatch.bannerIconPaletteNum);
+    sCatch.bannerIconPaletteNum = 0xFF;
+    if (sCatch.bannerWindowId != WINDOW_NONE)
     {
-        ClearStdWindowAndFrameToTransparent(banner->windowId, FALSE);
-        CopyWindowToVram(banner->windowId, COPYWIN_FULL);
-        RemoveWindow(banner->windowId);
+        ClearStdWindowAndFrameToTransparent(sCatch.bannerWindowId, FALSE);
+        CopyWindowToVram(sCatch.bannerWindowId, COPYWIN_FULL);
+        RemoveWindow(sCatch.bannerWindowId);
+        sCatch.bannerWindowId = WINDOW_NONE;
     }
-    banner->windowId = WINDOW_NONE;
+    if (sCatch.bannerEdges != 0)
+    {
+        FillBgTilemapBufferRect(0, 0, 0, sCatch.bannerRow + 4, 30, sCatch.bannerEdges, 0);
+        CopyBgTilemapBufferToVram(0);
+        sCatch.bannerEdges = 0;
+    }
 }
 
 // "You caught XXX♂!" and "It was added to your party." or "It was sent to
-// the PC.", in the given slot.
-static void DrawBanner(struct CatchBanner *banner, u32 slot)
+// the PC.", on the note at the given tile row.
+static void DrawTopNote(const struct CatchBanner *banner, u32 row)
 {
     static const u8 sGenderColors[][3] =
     {
@@ -1649,34 +1660,36 @@ static void DrawBanner(struct CatchBanner *banner, u32 slot)
     u32 gender, x;
     u8 windowId;
 
-    banner->iconSpriteId = banner->iconSpriteId2 = MAX_SPRITES;
-    banner->iconPaletteNum = 0xFF;
-    SetWindowTemplateFields(&template, 0, 1, 1 + BANNER_SLOT_ROWS * slot, 28, 3, 15, BANNER_TILE_BASE + BANNER_TILES * slot);
-    windowId = banner->windowId = AddWindow(&template);
+    sCatch.pileUp = TRUE;
+    sCatch.bannerIconSpriteId = sCatch.bannerIconSpriteId2 = MAX_SPRITES;
+    sCatch.bannerIconPaletteNum = 0xFF;
+    sCatch.bannerEdges = 0;
+    SetWindowTemplateFields(&template, 0, 1, row, 28, 3, 15, BANNER_TILE_BASE);
+    windowId = sCatch.bannerWindowId = AddWindow(&template);
     if (windowId == WINDOW_NONE)
         return;
     FillWindowPixelBuffer(windowId, PIXEL_FILL(0));
     PutWindowTilemap(windowId);
     SetStandardWindowBorderStyle(windowId, FALSE);
-    DrawStdFrameWithCustomTileAndPalette(windowId, FALSE, 0x214, 14);
+    DrawStdFrameWithCustomTileAndPalette(windowId, FALSE, BANNER_FRAME_TILE, BANNER_FRAME_PAL);
 
     // The party icon: the 64x64 battle sprite does not fit a box 3 tiles
     // high. In a dark cave a second copy opens a hole in the darkness, as
     // the item icon does.
     LoadMonIconPalettePersonality(banner->species, banner->personality);
-    banner->iconSpriteId = CreateBannerIcon(banner, slot, FALSE);
+    sCatch.bannerIconSpriteId = CreateBannerIcon(banner, row, FALSE);
     if (GetFlashLevel() > 0 || InBattlePyramid_())
     {
         SetGpuRegBits(REG_OFFSET_DISPCNT, DISPCNT_OBJWIN_ON);
         SetGpuRegBits(REG_OFFSET_WINOUT, WINOUT_WINOBJ_OBJ);
-        banner->iconSpriteId2 = CreateBannerIcon(banner, slot, TRUE);
+        sCatch.bannerIconSpriteId2 = CreateBannerIcon(banner, row, TRUE);
     }
     // Remembered from whichever copy exists: with neither (no free sprite at
     // all) the palette stays loaded until the next map load frees them all.
-    if (banner->iconSpriteId != MAX_SPRITES)
-        banner->iconPaletteNum = gSprites[banner->iconSpriteId].oam.paletteNum;
-    else if (banner->iconSpriteId2 != MAX_SPRITES)
-        banner->iconPaletteNum = gSprites[banner->iconSpriteId2].oam.paletteNum;
+    if (sCatch.bannerIconSpriteId != MAX_SPRITES)
+        sCatch.bannerIconPaletteNum = gSprites[sCatch.bannerIconSpriteId].oam.paletteNum;
+    else if (sCatch.bannerIconSpriteId2 != MAX_SPRITES)
+        sCatch.bannerIconPaletteNum = gSprites[sCatch.bannerIconSpriteId2].oam.paletteNum;
 
     // FONT_SMALL has no gender glyphs (the symbol comes out as an "8"), so
     // the symbol is printed on its own in FONT_NORMAL, blue or red.
@@ -1697,22 +1710,49 @@ static void DrawBanner(struct CatchBanner *banner, u32 slot)
     CopyWindowToVram(windowId, COPYWIN_FULL);
 }
 
-// Every banner erased and drawn again in its slot, the newest at the top
-// (user, 20/11): a new one pushes the others down, and the oldest, at the
-// bottom, goes first, so the others stay where they are.
-static void RedrawBanners(void)
+// The bottom edges of the notes under the top one: the frame's bottom-left,
+// bottom and bottom-right tiles (6, 7, 8 of the standard frame), one row
+// lower and one tile narrower on each side per note.
+static void DrawPileEdges(u32 row, u32 count)
 {
-    u32 first = GetFirstBannerSlot();
+    for (u32 k = 1; k <= count; k++)
+    {
+        u32 y = row + 3 + k;
 
-    for (u32 i = 0; i < sCatch.numBanners; i++)
-        EraseBanner(&sCatch.banners[i]);
-    for (u32 i = 0; i < sCatch.numBanners; i++)
-        DrawBanner(&sCatch.banners[i], first + sCatch.numBanners - 1 - i);
+        FillBgTilemapBufferRect(0, BANNER_FRAME_TILE + 6, k, y, 1, 1, BANNER_FRAME_PAL);
+        FillBgTilemapBufferRect(0, BANNER_FRAME_TILE + 7, k + 1, y, 28 - 2 * k, 1, BANNER_FRAME_PAL);
+        FillBgTilemapBufferRect(0, BANNER_FRAME_TILE + 8, 29 - k, y, 1, 1, BANNER_FRAME_PAL);
+    }
+    sCatch.bannerEdges = count;
+    CopyBgTilemapBufferToVram(0);
+}
+
+// Draws the pile again: the newest note on top, the edges of the others.
+// With only the oldest gone the top note stays as it is.
+static void RedrawPile(bool32 topChanged)
+{
+    u32 row = GetBannerTopRow();
+
+    if (topChanged || row != sCatch.bannerRow)
+    {
+        ErasePile();
+        sCatch.bannerRow = row;
+        if (sCatch.numBanners != 0)
+            DrawTopNote(&sCatch.banners[sCatch.numBanners - 1], row);
+    }
+    else if (sCatch.bannerEdges != 0)
+    {
+        FillBgTilemapBufferRect(0, 0, 0, row + 4, 30, sCatch.bannerEdges, 0);
+        sCatch.bannerEdges = 0;
+    }
+    if (sCatch.pileUp && sCatch.numBanners > 1)
+        DrawPileEdges(row, sCatch.numBanners - 1);
+    else
+        CopyBgTilemapBufferToVram(0);
 }
 
 static void RemoveOldestBanner(void)
 {
-    EraseBanner(&sCatch.banners[0]);
     sCatch.numBanners--;
     for (u32 i = 0; i < sCatch.numBanners; i++)
         sCatch.banners[i] = sCatch.banners[i + 1];
@@ -1720,20 +1760,20 @@ static void RemoveOldestBanner(void)
 
 static void DismissCatchBanners(void)
 {
-    for (u32 i = 0; i < sCatch.numBanners; i++)
-        EraseBanner(&sCatch.banners[i]);
+    ErasePile();
     sCatch.numBanners = 0;
 }
 
-// Called from ShowMapNamePopup: the pop-up shares the third banner's tiles
-// and scrolls all of BG0 while it slides.
+// Called from ShowMapNamePopup: the pop-up scrolls all of BG0 while it
+// slides.
 void OverworldCatch_DismissBanners(void)
 {
-    DismissCatchBanners();
+    if (sCatch.numBanners != 0)
+        DismissCatchBanners();
 }
 
-// A catch: its banner at the top of the stack, the oldest (at the bottom)
-// dropped if the stack is full. A short sound, no fanfare: the music goes on (user, 20/11).
+// A catch: its note on top of the pile, the oldest dropped if the pile is
+// full. A short sound, no fanfare: the music goes on (user, 20/11).
 static void ShowCatchBanner(struct PendingThrow *throw)
 {
     struct CatchBanner *banner;
@@ -1744,27 +1784,24 @@ static void ShowCatchBanner(struct PendingThrow *throw)
     if (ArePlayerFieldControlsLocked())
         return;
 
-    // The map name pop-up shares tiles with the stack and scrolls BG0.
     HideMapNamePopUpWindow();
-    while (sCatch.numBanners >= GetMaxBanners())
+    while (sCatch.numBanners >= BANNER_MAX)
         RemoveOldestBanner();
     banner = &sCatch.banners[sCatch.numBanners++];
     banner->species = throw->caughtSpecies;
     banner->personality = throw->caughtPersonality;
     banner->toParty = throw->caughtToParty;
     banner->timer = BANNER_SHOW_FRAMES;
-    banner->windowId = WINDOW_NONE;
-    banner->iconSpriteId = banner->iconSpriteId2 = MAX_SPRITES;
-    banner->iconPaletteNum = 0xFF;
-    RedrawBanners();
+    RedrawPile(TRUE);
     PlaySE(SE_SUCCESS);
 }
 
 // Each frame, first thing in CB2 (with the panel): a message, a menu or a
-// script owns the screen, so the banners go; otherwise each counts down.
+// script owns the screen, so the pile goes; otherwise each note counts down
+// from when it came, and the oldest, at the bottom, goes first.
 static void UpdateBanners(void)
 {
-    bool32 changed = FALSE;
+    u32 before = sCatch.numBanners;
 
     if (sCatch.numBanners == 0)
         return;
@@ -1773,25 +1810,13 @@ static void UpdateBanners(void)
         DismissCatchBanners();
         return;
     }
-    // A search started under the stack: its window takes a slot.
-    if (sCatch.numBanners > GetMaxBanners())
-    {
-        while (sCatch.numBanners > GetMaxBanners())
-            RemoveOldestBanner();
-        changed = TRUE;
-    }
-    while (sCatch.numBanners != 0 && --sCatch.banners[0].timer == 0)
-    {
+    for (u32 i = 0; i < sCatch.numBanners; i++)
+        sCatch.banners[i].timer--;
+    while (sCatch.numBanners != 0 && sCatch.banners[0].timer == 0)
         RemoveOldestBanner();
-        changed = TRUE;
-    }
-    for (u32 i = 1; i < sCatch.numBanners; i++)
-    {
-        if (sCatch.banners[i].timer > 1)
-            sCatch.banners[i].timer--;
-    }
-    if (changed)
-        RedrawBanners();
+    // A search started or ended under the pile: it moves.
+    if (sCatch.numBanners != before || GetBannerTopRow() != sCatch.bannerRow)
+        RedrawPile(sCatch.numBanners == 0);
 }
 
 // The next caught Pokémon to offer a nickname for (asked after the last
