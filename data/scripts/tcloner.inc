@@ -162,11 +162,15 @@ TCloner_EventScript_NobodyGetsHurt:
 
 @ He leaves once the dialogue is over, rewards pending or not. removeobject
 @ sets the object's hide flag; TCloner_EventScript_UpdateNpcs keeps it set.
+@ fadescreenswapbuffers, not fadescreen: the screen comes back without a map
+@ change, and fadescreen FADE_TO_BLACK saves the palettes already tinted by
+@ the time of day, so FADE_FROM_BLACK tinted them a second time (at night the
+@ town stayed darker than the night until the next map load).
 TCloner_EventScript_Leave:
 	closemessage
-	fadescreen FADE_TO_BLACK
+	fadescreenswapbuffers FADE_TO_BLACK
 	removeobject VAR_LAST_TALKED
-	fadescreen FADE_FROM_BLACK
+	fadescreenswapbuffers FADE_FROM_BLACK
 	release
 	end
 
