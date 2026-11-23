@@ -6,13 +6,16 @@
 // sizes the slot arrays (STATIC_ASSERTs in wild_encounter_ow.c). Overworld-catch plan (D3,
 // 14/11): land 4, water and caves 2, Safari 3, because the player now throws
 // Balls at these Pokémon and 6 on a route was clutter. Before: 6/3/3, Safari 4.
-#define OWE_SPAWNS_MAX_LAND             4
+// Issue #83 (user, 23/11): land 3, Safari 2, still too many on screen; the
+// replacement time is shorter to match (OWE_SPAWN_TIME_REPLACEMENT).
+#define OWE_SPAWNS_MAX_LAND             3
 #define OWE_SPAWNS_MAX_WATER            2
 #define OWE_SPAWNS_MAX_CAVE             2
 // Hasep: the Safari Zone is land only; its water and cave keep the caps above.
 // With 6 there, many of them AGGRESSIVE (Tauros, Rhyhorn), a test run had 18
-// battles in about 8 minutes; the user asked for 4, then 3 (catch plan, D3).
-#define OWE_SPAWNS_MAX_SAFARI           3
+// battles in about 8 minutes; the user asked for 4, then 3 (catch plan, D3),
+// then 2 (issue #83).
+#define OWE_SPAWNS_MAX_SAFARI           2
 // Hasep: the caps before the overworld catch plan, used while OVERWORLD CATCH
 // is off (plan D20: off is the game as it was, prices aside).
 #define OWE_SPAWNS_MAX_LAND_NO_CATCH    6

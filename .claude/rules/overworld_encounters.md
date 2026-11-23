@@ -33,11 +33,13 @@ Andature, udito e cono di vista (fase 2 di quel piano): `overworld_catch.md`.
 - Il bit `unusedOverworldMonsBit` (SaveBlock3, byte 56 bit 5) è **ignorato ma
   non libero**: nei salvataggi passati per le build con la voce `WILD POKéMON`
   del PC può valere 1.
-- Tetti **4/2/2** (terra/acqua/grotta; grotta = `MAP_TYPE_UNDERGROUND` o
-  `INDOOR`), Safari **3** (`OWE_SPAWNS_MAX_SAFARI`), 6 caselle per tentativo
-  (`OWE_SPAWN_TILE_TRIES`), ricambio a tetto pieno ogni 480 frame
-  (`OWE_SPAWN_TIME_REPLACEMENT`; erano 6/3/3, Safari 4, 240: piano
-  `overworld-catch` fase 1; con OVERWORLD CATCH spenta tornano quelli, fase 9,
+- Tetti **3/2/2** (terra/acqua/grotta; grotta = `MAP_TYPE_UNDERGROUND` o
+  `INDOOR`), Safari **2** (`OWE_SPAWNS_MAX_SAFARI`), 6 caselle per tentativo
+  (`OWE_SPAWN_TILE_TRIES`), ricambio a tetto pieno ogni 360 frame
+  (`OWE_SPAWN_TIME_REPLACEMENT`; issue #83, utente 23/11: Route 29 da 4 a 3 a
+  schermo a regime. Prima 4/2/2, Safari 3, 480; in origine 6/3/3, Safari 4,
+  240: piano `overworld-catch` fase 1; con OVERWORLD CATCH spenta tornano
+  questi ultimi, fase 9,
   `overworld_catch.md`). `OWE_SPAWNS_MAX` resta 6: **non è un tetto**,
   dimensiona gli array e i `localId` (`STATIC_ASSERT` sui tetti in
   `wild_encounter_ow.c`). A tetto pieno il ricambio è uno per uno, quindi

@@ -110,10 +110,12 @@ Trappole e fatti:
 - Brutto colpo **×2** del gioco (`B_CRIT_MULTIPLIER` GEN_3; Arceus 1,5):
   tenuto di proposito. Beat Up Gen 3 usa le basi: invariato.
 - Banco di prova: struct in EWRAM scritta in `DoMoveDamageCalcVars` quando
-  `ctx->randomFactor` (A e D grezzi e finali, base, tiro, STAB e tipo
-  grezzi, danno). Prove del 21/11 nel diario (`overworld-catch-history.md`).
+  `ctx->randomFactor` (grezzi, finali, base, tiro, danno); prove nel diario.
 - **Lotte in link** con l'opzione diversa sui due GBA: statistiche e danno
   divergono. Non gestito.
+- **KO in un colpo (issue #77): voluto**, l'utente tiene così (23/11). Sei
+  colpi misurati = formula; pari livello, 80 STAB: neutra 2-3 colpi
+  (classica 3-4), superefficace 1-2 (classica 2).
 
 ## Inizio gioco: cure e selvatici (fase 11c, utente 21/11)
 

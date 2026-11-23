@@ -28,6 +28,7 @@ dice "in SG è scuro", controlla prima quale opzione e quale schermata.
 | Box dei messaggi, cornici, Sì/No, scelte, salvataggio, menu debug | `ApplyDarkUi*Palette` in `text_window.c`, da `LoadMessageBoxAndBorderGfx`, `LoadSignPostWindowFrameGfx`, `LoadMessageBoxAndFrameGfx` (`menu.c`) | testo 1/2/3 e coppie 4/5, 6/7, 8/9; box 11/12; cartello 11; cornice entry 14 |
 | Menu della borsa | `LoadBagMenuTextWindows` (`item_menu.c`) | cornice pal 14, box pal 13, testo pal 15 |
 | Menu e messaggi della squadra (entrambe le varianti) | dopo il caricamento di pal 13/14/15 | |
+| Messaggi della squadra SwSh | `PrintMessage` (`swsh_party_menu.c`) | con il tema scuro niente sprite SwSh (box grigio senza cornice, sparito sullo sfondo scuro): cornice dell'utente pal 13 (tile 0x63) e colori standard del dialogo sulla pal 14, come la squadra classica. Bianco 1 rimappato al fondo: stampare `WHITE` su quel box dava un testo "vuoto" (issue #79). Ogni chiusura usa già `ClearStdWindowAndFrameToTransparent` |
 | Squadra SwSh | `ApplyDarkPartyMenuColors` (`swsh_party_menu.c`) | sfondo = solo pal 0; testo pannello destro pal 1 (12/7); riquadri da `palBuffer` (selezionato pal 6, scelto per Switch pal 10) |
 | Summary | `LoadDarkSummaryPalettes` (`pokemon_summary_screen.c`, solo `IS_HNS`) | pagine pal 0..3 (5 pannello, 12 pannello colorato, 13 bordo, 14/15 cornice e fondo), pal 4 barra, pal 6/7 testo, pal 8 PP = `gDarkPPTextPalette` |
 

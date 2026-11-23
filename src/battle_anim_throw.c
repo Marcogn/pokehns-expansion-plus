@@ -654,6 +654,9 @@ void FreeHealthboxPalsForLevelUp(enum BattlerId battler)
     gSprites[healthBoxSpriteId].oam.paletteNum = paletteId1;
     gSprites[spriteId1].oam.paletteNum = paletteId1;
     gSprites[spriteId2].oam.paletteNum = paletteId2;
+    // The box was borrowed from whichever palette it had: give back the shiny
+    // one if that is what it was, not always the normal one.
+    RestoreHealthboxPalette(battler);
 }
 
 void AnimTask_FreeHealthboxPalsForLevelUp(u8 taskId)

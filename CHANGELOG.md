@@ -6,6 +6,48 @@ tag `v2.0.6.PLUS.3`) as the release notes, and refuses to run without one:
 add the section before releasing. Feature details live in the tables of
 [`README.md`](README.md).
 
+## 2.0.6.PLUS.13
+
+### Changed
+- **TcloneR: the Ball always holds on a Trainer's Pokémon**: whenever the
+  TcloneR lets you throw (it is in the bag, an ordinary Trainer battle), the
+  catch is certain, like a Master Ball: three shakes and it is yours. Wild
+  battles are unchanged.
+- **Fewer wild Pokémon on the map, renewed more often**: with OVERWORLD
+  CATCH on, at most 3 on land (was 4) and 2 in the Safari Zone (was 3);
+  water and caves stay at 2. When the area is full one of them is replaced
+  every 6 seconds instead of 8, so new faces still come along. A save made
+  with more on the map loses the extra one a moment after loading (shiny
+  ones always stay).
+- **Shiny healthbox under the dark theme**: now dark like the other boxes,
+  with a gold border (Gen 3 skin) or gold lines (Gen 4 skin) to tell it is
+  shiny. It was a bright gold box under white text, hard to read.
+
+### Fixed
+- **FRB on the Gen 4 battle UI**: a frostbitten Pokémon showed BRN on its
+  healthbox with the Gen 4 skin (the colour was already the frostbite one).
+- **Aspear Berry and Ice Heal descriptions**: they said "defrosts"; in this
+  game frostbite replaces freeze, so they now say they heal frostbite.
+- **Shiny healthbox on level-up**: for a moment after the level-up flash
+  the box of a shiny Pokémon went back to the normal palette.
+- **"Already knows four moves" under the dark theme** (SwSh party screen):
+  the message box had no frame and its text came out hollow and hard to
+  read. Under the dark theme the party screen's messages now use the same
+  framed box as every other dark message. The light theme is unchanged.
+- **Catch notes**: between one note and the one under it a row of the map
+  showed through (the frame's bottom edge ends in transparent pixels). The
+  notes now join with no gap, with every frame.
+- **Night after the TcloneR scientist leaves**: at night, once he walked off
+  (Goldenrod and every other place he appears) the whole town stayed darker
+  than the night until you went through a door.
+
+### Notes
+- **ARCEUS FORMULAS and one-hit KOs**: checked, not a bug. The damage the
+  game deals matches the formula exactly; with Pokémon of the same level a
+  neutral STAB move takes 2-3 hits (3-4 with the classic formula) and a
+  super-effective one often only 1 from mid game on, as in Legends: Arceus.
+  Kept as it is.
+
 ## 2.0.6.PLUS.12
 
 ### Added

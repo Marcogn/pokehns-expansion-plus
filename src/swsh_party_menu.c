@@ -4058,6 +4058,25 @@ static u8 DisplaySelectionWindow(u8 windowType)
 
 static void PrintMessage(const u8 *text)
 {
+    // Under the dark theme the SwSh box (a frameless dark grey sprite) sank
+    // into the dark background, and its white text came out hollow: palette 14
+    // has entry 1 remapped to the dark fill and entry 2 to light. Draw it as the
+    // classic menu and every other dark box do instead: the player's frame on
+    // palette 13 and the standard dialogue colours, which the remap turns into
+    // light text on the dark fill. Every path that closes WIN_MSG already uses
+    // ClearStdWindowAndFrameToTransparent, so the frame goes with it.
+    if (IsDarkUiEnabled())
+    {
+        DrawStdFrameWithCustomTileAndPalette(WIN_MSG, FALSE, 0x63, 13);
+        FillWindowPixelBuffer(WIN_MSG, PIXEL_FILL(TEXT_COLOR_WHITE));
+        PutWindowTilemap(WIN_MSG);
+        CopyWindowToVram(WIN_MSG, COPYWIN_GFX);
+        ScheduleBgCopyTilemapToVram(2);
+        gTextFlags.canABSpeedUpPrint = TRUE;
+        AddTextPrinterParameterized2(WIN_MSG, FONT_NORMAL, text, GetPlayerTextSpeedDelay(), 0, TEXT_COLOR_DARK_GRAY, TEXT_COLOR_WHITE, TEXT_COLOR_LIGHT_GRAY);
+        return;
+    }
+
     CreateMessageWindowSprite();
     FillBgTilemapBufferRect(2, SWSH_PARTY_MENU_BLANK_TILE, 1, 15, 28, 4, 14);
     PutWindowTilemap(WIN_MSG);
