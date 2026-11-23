@@ -180,20 +180,24 @@ static const u16 sDarkHealthboxPalGen3[16] =
     [15] = RGB(13, 18, 31),
 };
 
-// Shiny healthbox under the dark theme. Only slightly darker than the light
-// theme's gold: dimming it further turns the hue to brown and the box stops
-// reading as gold at all, which is the whole point of it.
+// Shiny healthbox under the dark theme: a dark body like the other dark boxes
+// (a bright gold one under white text read as a light box), with the gold moved
+// to the border so the box still says "shiny". A dimmed gold body turns olive
+// brown, so the body only gets a hint of warmth. Entry 7 is the outer ring and
+// 5/8 its corners; 7 also draws part of the exp bar frame and 8 the outline of
+// the shiny star, which go gold with it. Entry 3 stays dark: it is the text
+// shadow as well as the inner ring.
 static const u16 sDarkShinyHealthboxPalGen3[16] =
 {
     [ 0] = RGB( 0,  0,  0),
     [ 1] = RGB(31, 31, 31),  // was RGB(8, 8, 8)
-    [ 2] = RGB(25, 21,  1),  // was RGB(31, 31, 31)
+    [ 2] = RGB( 6,  5,  3),  // was RGB(31, 31, 31)
     [ 3] = RGB( 2,  2,  2),  // was RGB(27, 26, 27) - stays dark, it is the text shadow
-    [ 4] = RGB(19, 15,  0),  // was RGB(23, 23, 23)
-    [ 5] = RGB(15, 18, 16),
+    [ 4] = RGB( 4,  3,  1),  // was RGB(23, 23, 23)
+    [ 5] = RGB(31, 27,  8),  // was RGB(15, 18, 16)
     [ 6] = RGB(10, 13, 12),
-    [ 7] = RGB( 4,  7,  0),
-    [ 8] = RGB( 7, 10,  8),
+    [ 7] = RGB(27, 21,  2),  // was RGB(4, 7, 0)
+    [ 8] = RGB(20, 15,  0),  // was RGB(7, 10, 8)
     [ 9] = RGB(31, 28,  0),
     [10] = RGB(31, 19, 18),
     [11] = RGB( 8, 25, 31),
@@ -268,16 +272,18 @@ static const u16 sDarkHealthboxPalGen4[16] =
     [15] = RGB(13, 18, 31),
 };
 
-// Shiny healthbox under the dark theme. Only slightly darker than the light
-// theme's gold: dimming it further turns the hue to brown and the box stops
-// reading as gold at all, which is the whole point of it.
+// Shiny healthbox under the dark theme, Gen 4 skin: dark body, gold lines.
+// Entry 1 cannot carry the gold here: it is the outline and also the shadow of
+// the dark theme's text (sDarkHealthBoxTextColorGen4). Entry 4 is the thin line
+// under the top edge and along the bottom, so that is where the gold goes;
+// 2 and 3 are the upper and lower body.
 static const u16 sDarkShinyHealthboxPalGen4[16] =
 {
     [ 0] = RGB( 0,  0,  0),
     [ 1] = RGB( 2,  2,  2),  // was RGB(8, 8, 8)
-    [ 2] = RGB(25, 21,  1),  // was RGB(28, 28, 28)
-    [ 3] = RGB(22, 18,  0),  // was RGB(23, 23, 23)
-    [ 4] = RGB(19, 15,  0),  // was RGB(19, 19, 19)
+    [ 2] = RGB( 6,  5,  3),  // was RGB(28, 28, 28)
+    [ 3] = RGB( 5,  4,  2),  // was RGB(23, 23, 23)
+    [ 4] = RGB(27, 21,  2),  // was RGB(19, 19, 19)
     [ 5] = RGB(15, 18, 16),
     [ 6] = RGB(31, 31, 31),
     [ 7] = RGB(14, 14, 14),
