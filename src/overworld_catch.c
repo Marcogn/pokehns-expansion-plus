@@ -1666,6 +1666,9 @@ bool32 OverworldCatch_TryStartResults(void)
 #define BANNER_TEXT_X       40
 #define BANNER_TILE_BASE    92
 #define PILE_ROWS_PER_NOTE  2   // rows each note under the top one sticks out by
+// Three tiles built from the frame (LoadPileJoinTiles), past the map name
+// pop-up's frame (0x21D-0x23C) and before the Match Call window (0x270).
+#define BANNER_JOIN_TILE    0x23D
 
 static u32 GetBannerTopRow(void)
 {
@@ -1781,13 +1784,53 @@ static void DrawTopNote(const struct CatchBanner *banner, u32 row)
     CopyWindowToVram(windowId, COPYWIN_FULL);
 }
 
+// The bottom edge of most frames (tiles 6, 7, 8) ends in one or two rows of
+// transparent pixels, 13 of the 20 frames among them the default one: a note
+// drawn right under another showed the map through that strip (user, 22/11).
+// The join tiles are the bottom edge (7) with its transparent pixels taken
+// from the paper of the note under it: its left side (3), its fill (4) and
+// its right side (5). Built from the frame's own data, not read back from
+// VRAM: the frame's tiles are queued for the same VBlank. Static, because the
+// copy to VRAM is queued too.
+static EWRAM_DATA u8 sPileJoinTiles[3][TILE_SIZE_4BPP] = {0};
+
+static void LoadPileJoinTiles(void)
+{
+    const u8 *frame = GetWindowFrameTilesPal(gSaveBlock2Ptr->optionsWindowFrameType)->tiles;
+
+    for (u32 t = 0; t < 3; t++)
+    {
+        for (u32 i = 0; i < TILE_SIZE_4BPP; i++)
+        {
+            u32 edge = frame[7 * TILE_SIZE_4BPP + i];
+            u32 paper = frame[(3 + t) * TILE_SIZE_4BPP + i];
+            u32 lo = (edge & 0xF) ? (edge & 0xF) : (paper & 0xF);
+            u32 hi = (edge & 0xF0) ? (edge & 0xF0) : (paper & 0xF0);
+
+            sPileJoinTiles[t][i] = hi | lo;
+        }
+    }
+    LoadBgTiles(0, sPileJoinTiles, sizeof(sPileJoinTiles), BANNER_JOIN_TILE);
+}
+
+// The bottom edge of a note at tile row y, over a note under it that spans
+// the columns left..right.
+static void DrawPileJoin(u32 y, u32 left, u32 right)
+{
+    FillBgTilemapBufferRect(0, BANNER_JOIN_TILE + 0, left, y, 1, 1, BANNER_FRAME_PAL);
+    FillBgTilemapBufferRect(0, BANNER_JOIN_TILE + 1, left + 1, y, right - left - 1, 1, BANNER_FRAME_PAL);
+    FillBgTilemapBufferRect(0, BANNER_JOIN_TILE + 2, right, y, 1, 1, BANNER_FRAME_PAL);
+}
+
 // The notes under the top one, each sticking out by two tile rows and one
 // tile narrower on each side: a row of paper (the frame's sides 3 and 5 and
 // its fill, tile 4, the theme's colour 14) and its bottom edge (6, 7, 8).
 // The bottom edge alone showed 2 px of paper over 5 of border: the notes
-// below looked see-through (user, 21/11).
+// below looked see-through (user, 21/11). The edge above each of them is
+// redrawn with the join tiles.
 static void DrawPileEdges(u32 row, u32 count)
 {
+    LoadPileJoinTiles();
     for (u32 k = 1; k <= count; k++)
     {
         u32 y = row + 4 + PILE_ROWS_PER_NOTE * (k - 1);
@@ -1798,6 +1841,8 @@ static void DrawPileEdges(u32 row, u32 count)
         FillBgTilemapBufferRect(0, BANNER_FRAME_TILE + 6, k, y + 1, 1, 1, BANNER_FRAME_PAL);
         FillBgTilemapBufferRect(0, BANNER_FRAME_TILE + 7, k + 1, y + 1, 28 - 2 * k, 1, BANNER_FRAME_PAL);
         FillBgTilemapBufferRect(0, BANNER_FRAME_TILE + 8, 29 - k, y + 1, 1, 1, BANNER_FRAME_PAL);
+        // The edge above: the top note's frame (row + 3) or the note above's.
+        DrawPileJoin(y - 1, k, 29 - k);
     }
     sCatch.bannerEdges = count;
     CopyBgTilemapBufferToVram(0);
@@ -1819,6 +1864,8 @@ static void RedrawPile(bool32 topChanged)
     else if (sCatch.bannerEdges != 0)
     {
         FillBgTilemapBufferRect(0, 0, 0, row + 4, 30, PILE_ROWS_PER_NOTE * sCatch.bannerEdges, 0);
+        // The top note's own bottom edge, joined to the note that was under it.
+        FillBgTilemapBufferRect(0, BANNER_FRAME_TILE + 7, 1, row + 3, 28, 1, BANNER_FRAME_PAL);
         sCatch.bannerEdges = 0;
     }
     if (sCatch.pileUp && sCatch.numBanners > 1)
