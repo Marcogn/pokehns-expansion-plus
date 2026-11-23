@@ -77,8 +77,7 @@ Piano: [`docs/plans/overworld-catch.md`](../../docs/plans/overworld-catch.md); p
   rientra nella Ball (`SendFollowerIntoPokeball`). Muri, dislivelli, oggetti
   non-OWE fermano la Ball. **Acqua (1) = terreno (3)** (`GetThrowLevel`).
   Colpito se all'arrivo `currentCoords` è `targetX/Y` (niente `y2`).
-- **Sprite: mai un assert**: senza sprite il volo prosegue invisibile
-  (`IsBallSpriteValid` copre i campi ricostruiti).
+- **Sprite: mai un assert**: senza sprite il volo prosegue invisibile.
 - **Pokémon nella Ball** (`holdsOWE`): congelato e `invisible`, **riasserito
   a ogni frame** (`KeepOWEInBall`: il `release` di uno script scongela tutti);
   flag "non sparire" (`HoldOWEForThrow`), se no il ricambio riusa slot e
@@ -86,9 +85,8 @@ Piano: [`docs/plans/overworld-catch.md`](../../docs/plans/overworld-catch.md); p
   un lancio a vuoto** (se no veniva dato due volte).
 - **Lotta che parte** (`OverworldCatch_OnBattleStart`): le Ball a terra
   finiscono prima (chi è dentro esce), quelle in volo atterrano dopo.
-- **Posa**: tenuta da `DELAY_16`. `ObjectEventIsMovementOverridden` dà
-  occupato anche un'azione finita e non tolta: `ClearHeldMovementIfFinished`
-  prima di `ObjectEventSetHeldMovement`.
+- **Posa**: tenuta da `DELAY_16`; `ClearHeldMovementIfFinished` prima di
+  `ObjectEventSetHeldMovement` (un'azione finita e non tolta dà occupato).
 - **Il Pokémon nasce sullo stack** (`CreateMonFromOWE`), **mai in
   `gEnemyParty`**: lo spawn lo usa nello stesso frame.
 - **Formula**: `ComputeCaptureOddsFromParams` (`battle_script_commands.c`;
@@ -97,23 +95,22 @@ Piano: [`docs/plans/overworld-catch.md`](../../docs/plans/overworld-catch.md); p
   Sfida: `GetCaptureChallengeChecks`. **Nuzlocke: solo una cattura riuscita
   segna la zona** (P3).
 - **Fallito**: `ForceOWEToNoticePlayer`, **mai su un OWE già allertato o
-  "vaga"** (il bit resterebbe; il "vaga" tiene il ×2). Salta distanza e vista
-  e usa il livello del lancio (acqua ≠ riva in `CanOWEReachPlayer`): su un
-  altro livello si consuma.
+  "vaga"** (il "vaga" tiene il ×2). Usa il livello del lancio (acqua ≠ riva).
 - **Ball tolta solo a cattura riuscita** (`GiveCaughtMon`): al lancio la
   borsa deve averne più di quelle in volo; all'impatto, se non c'è più (usata
   in una lotta partita durante il volo), è un lancio a vuoto.
 - **Ball a terra = ostacolo** (`OverworldCatch_IsBallOnGroundAt` in
   `GetVanillaCollision`): `landX/Y` della mappa del lancio, da `OPENING`.
-- **Banner a foglietti, senza script**: una finestra (il più
-  nuovo, tile BG0 da 92; DexNav 8-91) e sotto i vecchi, 2 righe ciascuno
-  (cornice 3/4/5 e 6/7/8: il solo bordo sembrava trasparente) nel tilemap,
-  con `CopyBgTilemapBufferToVram`. Max 3, 180 frame, esce il più vecchio.
-  `pileUp` come `panelUp`. Lotta, messaggio, menu o dissolvenza: nascosti
-  (`pileHidden`), poi ridisegnati. Il popup del nome mappa li cancella; in
-  ricerca DexNav la pila scende. **Pal 14 caricata da noi**
-  (`LoadCatchFrameGfx`): dopo il Continue resta quella del titolo. Soprannome
-  solo con la Nuzlocke.
+- **Foglietti, senza script**: il più nuovo è una finestra (BG0 da 92;
+  DexNav 8-91), i vecchi 2 righe di tilemap ciascuno (cornice 3/4/5 + 6/7/8).
+  **Il bordo 6/7/8 finisce con 1-2 righe trasparenti** (13 cornici su 20):
+  sopra ogni foglietto sotto va la giunzione (7 + carta 3/4/5,
+  `LoadPileJoinTiles`, BG0 0x23D-0x23F, dopo il popup del nome mappa e prima
+  della Pokégear 0x270; issue #82). Max 3, 180 frame, esce il più vecchio.
+  Lotta, messaggio, menu o dissolvenza: nascosti (`pileHidden`), poi
+  ridisegnati; il popup del nome mappa li cancella; in ricerca DexNav la pila
+  scende. **Pal 14 caricata da noi** (`LoadCatchFrameGfx`): dopo il Continue
+  c'è quella del titolo. Soprannome solo con la Nuzlocke.
 - **Pokémon lanciato**: `gOverworldThrowLeadSlot` (azzerato da
   `SetBattlePartyIds` e a controlli liberi). Roamer e sciami: lotta. Spento
   in Safari, Gara, Pike, Piramide, Trainer Hill.

@@ -53,6 +53,23 @@ in tema scuro e per farlo riscrive i pixel di ogni sprite della barra HP. Qui va
 scuri tutti i box insieme, così la palette della barra è uno scambio secco e nessuno
 sprite ha stato per-sprite che possa restare sbagliato dopo un cambio.
 
+**Shiny scura (issue #78)**: corpo scuro appena caldo `RGB(6,5,3)` e l'oro sul
+bordo; un oro pieno sotto testo bianco dava contrasto 2,2:1 (ora 14,6:1). Gen 3:
+anello esterno 7, angoli 5 e 8 (7 è anche un pezzo della cornice dell'esperienza,
+8 il contorno della stellina); 3 resta scura, è l'ombra del testo. Gen 4: oro
+sulla 4 (riga sotto il bordo alto e in fondo), **non sulla 1**: è il contorno ma
+anche l'ombra del testo scuro (`sDarkHealthBoxTextColorGen4`). Indici contati sui
+`.4bpp` di `hns/`: i `.png` hanno indici diversi.
+
+**Level-up (issue #80)**: l'animazione presta al box una copia della palette e
+`FreeHealthboxPalsForLevelUp` (`battle_anim_throw.c`) rimetteva sempre
+`TAG_HEALTHBOX_PAL`; ora `RestoreHealthboxPalette(battler)` ridà quella giusta.
+Misurato: 8 campioni col box normale fra Lv 9 e Lv 10 prima, 0 dopo.
+
+**FRB (issue #75)**: la sesta riga di `gen4/status*.png` era una seconda BRN;
+ridisegnata a indici (F, R dalla riga FRZ, B dalla BRN). Gen 3 e i menu
+(squadra, summary) avevano già FRB.
+
 **Attenzione alle stringhe con i colori incorporati.** `gText_BattleYesNoChoice` e
 `gText_BattleSwitchWhich` avevano `{BACKGROUND}`/`{TEXT_COLORS}` dentro il testo, che
 scavalcano il colore scelto da `BattlePutTextOnWindow`. In Soulgold quelle stringhe

@@ -56,7 +56,11 @@ ricalcola a ogni ingresso** (tappa *s* visibile se `STAGE < s` più la
 condizione di mappa), quindi nessuna migrazione. Condizioni: covo se
 `VAR_MAHOGANY_TOWN_STATE < 14`, negozio se `>= 14`; Goldenrod da
 `VAR_GOLDENROD_CITY_STATE >= 6`; Pallet da tappa `>= 4`, per sempre. Il font
-non ha la lineetta lunga ("stea… ahem"). Per provarlo: script di debug che
+non ha la lineetta lunga ("stea… ahem"). **Uscita di scena con
+`fadescreenswapbuffers`** (issue #84): `fadescreen FADE_TO_BLACK` salva le
+palette già tinte dall'ora e il `FADE_FROM_BLACK` le tingeva di nuovo (di notte
+luminosità media 79 → 36 fino al cambio mappa). Vale per ogni script che
+ri-schiarisce senza cambiare mappa. Per provarlo: script di debug che
 imposta tappa e stato della storia e teletrasporta; per Cerulean e Pallet una
 build con lo scienziato fermo (vagando non si pilota).
 
@@ -65,6 +69,10 @@ build con lo scienziato fermo (vagando non si pilota).
 `MIRROR THIEF` sembra la stessa cosa e **non lo è** (Mirror Mode combatti con
 una copia della squadra, "thief" te la lascia).
 
+- **Cattura certa** (issue #81): con il permesso `ComputeCaptureOdds` restituisce
+  `CAPTURE_GUARANTEED`, il percorso della Master Ball (tre scosse,
+  `FinalizeCapture`, `RecordTrainerMonCaught`). "Missione attiva" = TcloneR in
+  borsa, come il permesso; i selvatici non cambiano.
 - Blocco in `Cmd_handleballthrow` (`BALL_TRAINER_BLOCK`); permesso in
   `CanCatchTrainerMon()`, che esclude strutture, link, partner, primo
   tutorial e **Mirror Mode** (a fine lotta ripristina la squadra dal backup).
