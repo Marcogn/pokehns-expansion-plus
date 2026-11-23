@@ -2304,6 +2304,15 @@ static void UpdateHealthboxPalette(u8 healthboxSpriteId, struct Pokemon *mon, u8
     gSprites[gSprites[healthboxSpriteId].oam.affineParam].oam.paletteNum = paletteNum;
 }
 
+// Puts back the battler's own healthbox palette (gold if it is shiny). Used by
+// the level-up flash, which borrows a copy of the palette for the animation and
+// used to hand back the normal one: a shiny box showed the normal palette until
+// the level text was redrawn.
+void RestoreHealthboxPalette(enum BattlerId battler)
+{
+    UpdateHealthboxPalette(gHealthboxSpriteIds[battler], GetBattlerMon(battler), HEALTHBOX_ALL);
+}
+
 void UpdateHealthboxAttribute(u8 healthboxSpriteId, struct Pokemon *mon, u8 elementId)
 {
     enum BattlerId battler = gSprites[healthboxSpriteId].hMain_Battler;
