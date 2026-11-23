@@ -11092,6 +11092,13 @@ static u32 ComputeCaptureOdds(u32 wildMonBattler, u32 playerBattler)
     struct CaptureParams params;
     struct BattlePokemon *battleMon = &gBattleMons[wildMonBattler];
 
+    // The TcloneR takes a Trainer's Pokemon no matter what: when it lets the
+    // Ball be thrown at all (Cmd_handleballthrow blocks it otherwise), the
+    // catch is certain, through the Master Ball's own path (three shakes,
+    // FinalizeCapture, RecordTrainerMonCaught). Wild battles are untouched.
+    if ((gBattleTypeFlags & BATTLE_TYPE_TRAINER) && CanCatchTrainerMon())
+        return CAPTURE_GUARANTEED;
+
     params.species = battleMon->species;
     params.level = battleMon->level;
     params.hp = battleMon->hp;
