@@ -68,7 +68,7 @@ STATIC_ASSERT(OWE_SPAWNS_MAX_SAFARI_NO_CATCH <= OWE_SPAWNS_MAX, OWESpawnCapSafar
 #define OWE_SPAWN_HEIGHT_RADIUS         (OWE_SPAWN_HEIGHT_TOTAL - 1) / 2    // Distance from center to top/bottom edge (not including center).
 
 #define OWE_SPAWN_TIME_REPLACEMENT_NO_CATCH 240 // Hasep: the time before the catch plan, while OVERWORLD CATCH is off (plan D20).
-#define OWE_SPAWN_TIME_REPLACEMENT      480 // The number of frames before an existing spawn will be replaced with a new one (requires WE_OWE_SPAWN_REPLACEMENT). Hasep: 480, was 240 (catch plan D3: with the caps lowered, a full area churns half as often).
+#define OWE_SPAWN_TIME_REPLACEMENT      360 // The number of frames before an existing spawn will be replaced with a new one (requires WE_OWE_SPAWN_REPLACEMENT). Hasep: 360 (issue #83, user 23/11: land cap 3, fewer Pokémon but a new one more often, each lives ~18 s); was 480 (catch plan D3), 240 upstream.
 #define OWE_SPAWN_TIME_LURE             0
 #define OWE_SPAWN_TIME_MINIMUM          30  // The minimum value the spawn wait time can be reset to. Prevents spawn attempts every frame.
 #define OWE_SPAWN_TIME_PER_ACTIVE       30  // The number of frames that will be added to the countdown per currently active spawn.
