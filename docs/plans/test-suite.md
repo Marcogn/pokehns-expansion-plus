@@ -1,6 +1,9 @@
 # Piano: far girare i test che servono a Hasep
 
-Stato: **da fare**. Misure del 12/10/2026 su `668cfc6d`.
+Stato: **da fare**. Misure del 12/10/2026 su `668cfc6d`; i fatti del
+paragrafo qui sotto ricontrollati il 23/11 su `8e77fd4a` (la funzione ha
+ancora un parametro, `include/overworld.h:44`, e il test su R c'è ancora;
+R ora lancia le Ball, non apre più il DexNav).
 
 ## Da dove si parte
 

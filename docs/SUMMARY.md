@@ -1,6 +1,7 @@
 # Summary
 
 - [README](./README.md)
+- [Original Heart & Soul README](./HNS_README.md)
 - [FEATURES](./FEATURES.md)
 - [Installation](./INSTALL.md)
     - [Setting up WSL1 (Legacy Portion)](./legacy_WSL1_INSTALL.md)
@@ -23,7 +24,6 @@
 - [Styleguide and Principles](./STYLEGUIDE.md)
 - [Credits](./CREDITS.md)
 - [Soulgold port report](./SOULGOLD_PORT_REPORT.md)
-    - [Pre-port inventory (HnS 2.0.5)](./INVENTORY_SOULGOLD_VS_HNS_EXPANDED.md)
     - [Plan: Soulgold 1.2 options](./plans/sg-1.2-options.md)
     - [Plan: Overworld wild encounters](./plans/overworld-encounters.md)
     - [Plan: Overworld catching](./plans/overworld-catch.md)
@@ -33,10 +33,10 @@
     - [Plan: quest book and start menu strip](./plans/quest-log.md)
     - [Plan: item descriptions, Frostbite, Red's Path AI, agent docs](./plans/small-features-1.md)
     - [Plan: new quests](./plans/new_quests.md)
+    - [Plan: test suite](./plans/test-suite.md)
     - [Analysis (archive): Red's Path](./analysis/reds-path-research.md)
     - [Analysis (archive): quest book and start menu](./analysis/quest-book-research.md)
     - [Analysis (archive): overworld catching](./analysis/overworld-catch-research.md)
-- [Test plan](./TEST_PLAN.md)
 - [Emulator guide (for Claude)](./claude/emulator.md)
 - [Save migrations, history (for Claude)](./claude/save-history.md)
 - [DexNav, verification diary (for Claude)](./claude/dexnav-history.md)

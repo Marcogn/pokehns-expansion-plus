@@ -9,8 +9,8 @@ paths:
 # Release e patch BPS
 
 **Le note della release vengono da `CHANGELOG.md`** (in radice, ora il
-changelog del fork; quello di pokeemerald-expansion è in fondo allo stesso
-file). Il workflow pubblica la sezione `## <versione>` (senza la `v` del tag)
+changelog del fork; quelli di pokeemerald-expansion sono in
+`docs/changelogs/`, con un rimando in fondo al file). Il workflow pubblica la sezione `## <versione>` (senza la `v` del tag)
 estratta da `tools/changelog_section.py`, seguita da come applicare la patch e
 dall'elenco delle PR di GitHub. **Senza quella sezione la release si ferma
 subito**, prima della build: va scritta nel commit che si rilascia. Un port o

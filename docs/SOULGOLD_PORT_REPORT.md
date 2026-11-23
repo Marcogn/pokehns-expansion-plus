@@ -1,9 +1,9 @@
 # Report: cosa è arrivato da Soulgold, dove sta, cosa no e perché
 
-Documento vivo. Sostituisce come riferimento
-[`INVENTORY_SOULGOLD_VS_HNS_EXPANDED.md`](INVENTORY_SOULGOLD_VS_HNS_EXPANDED.md),
-che resta com'era: è l'analisi fatta **prima** del port (HnS 2.0.5) e serve a
-capire da dove si è partiti, non lo stato attuale.
+Documento vivo. L'inventario fatto **prima** del port (HnS 2.0.5,
+`docs/INVENTORY_SOULGOLD_VS_HNS_EXPANDED.md`) è stato tolto il 23/11/2026:
+tutto quello che diceva è superato da questo report; resta nella storia git
+(`git log --all -- docs/INVENTORY_SOULGOLD_VS_HNS_EXPANDED.md`).
 
 I dettagli tecnici, le trappole e le misure stanno in `.claude/rules/` (un file per area, indice in `CLAUDE.md` §7);
 qui c'è l'elenco, con il rimando al punto giusto.

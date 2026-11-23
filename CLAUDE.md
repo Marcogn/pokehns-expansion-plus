@@ -140,7 +140,7 @@ cui una feature è spenta senza che nessun flag lo dica.
 ## 8. Rotture preesistenti (non tue)
 
 `make all/firered/leafgreen` falliscono su `src/mom_savings.c`; `make check`
-fallisce (`test/save.c` stale). La CI (`build.yml`) costruisce **solo** `make hns`
+fallisce (`test/save.c` stale; piano in `docs/plans/test-suite.md`). La CI (`build.yml`) costruisce **solo** `make hns`
 con `UNUSED_ERROR=0` (con 1 fallirebbe su 40 funzioni spente dietro `IS_HNS`) e
 scrive quanto dei 32 MB è usato: **avviso dal 98%, errore dal 99,5%** (le mega da
 sole: 99,46%, `megas.md`).
