@@ -76,7 +76,7 @@ STATIC_ASSERT(OWE_SPAWNS_MAX_SAFARI_NO_CATCH <= OWE_SPAWNS_MAX, OWESpawnCapSafar
 #define OWE_DEFAULT_CHASE_RANGE         5
 #define OWE_RESTORED_MOVEMENT_FUNC_ID   10
 
-// Hasep: 0xFFFF, was 0xFF. The countdown is a u16 now: 480 frames (OWE_SPAWN_TIME_REPLACEMENT) does not fit a u8 and a u8 could only hold 254 next to this marker.
+// Hasep: 0xFFFF, was 0xFF. The countdown is a u16 now: OWE_SPAWN_TIME_REPLACEMENT (360 frames, 480 before) does not fit a u8 and a u8 could only hold 254 next to this marker.
 #define OWE_NO_ENCOUNTER_SET            0xFFFF
 #define OWE_INVALID_SPAWN_SLOT          0xFF
 

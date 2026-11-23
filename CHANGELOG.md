@@ -17,7 +17,8 @@ add the section before releasing. Feature details live in the tables of
   CATCH on, at most 3 on land (was 4) and 2 in the Safari Zone (was 3);
   water and caves stay at 2. When the area is full one of them is replaced
   every 6 seconds instead of 8, so new faces still come along. A save made
-  with more on the map drops the extra one on loading.
+  with more on the map loses the extra one a moment after loading (shiny
+  ones always stay).
 - **Shiny healthbox under the dark theme**: now dark like the other boxes,
   with a gold border (Gen 3 skin) or gold lines (Gen 4 skin) to tell it is
   shiny. It was a bright gold box under white text, hard to read.
