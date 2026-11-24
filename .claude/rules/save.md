@@ -45,8 +45,8 @@ da un bit**: u16 a SB1 +0, magic a SB1 +0x10E0. La prossima opzione va nei **7 b
 `autoRun` (`bool8`) ha i 7 bit alti a zero in quel `.sav`, ma non sono mai stati
 azzerati da una migrazione.
 Riusare un bit che ha già avuto un significato vuol dire che nei salvataggi
-passati per quelle build può valere 1 (per questo `< 7` azzera
-`unusedDexNavBit`); stessa cautela per `FLAG_FORCE_SHINY` (ex `FLAG_UNUSED_3`).
+passati per quelle build può valere 1 (per questo `< 7` azzerò il bit di
+DEXNAV SOULGOLD, oggi `noOverworldCatch`); stessa cautela per `FLAG_FORCE_SHINY` (ex `FLAG_UNUSED_3`).
 **Fondere due opzioni è anche il modo di recuperare bit.**
 
 ## Polarità

@@ -41,7 +41,8 @@ Go through the diff for each; every hit is a finding with file:line.
   SaveBlock2 fields cleared by hand on a new game; reused `FLAG_UNUSED_*`
   cleared in a migration.
 - **Quest ids / appended enums**: new ids at the end, never inserted
-  (`include/constants/quests.h`, the item enum with `ITEM_CANDY_JAR` last).
+  (`include/constants/quests.h`; the item enum, where `ITEM_CANDY_JAR` and
+  `ITEM_TCLONER` are the last ids before `ITEMS_COUNT`).
 - **Palettes**: values derived from this repo's `.4bpp`/`.gbapal`, with
   `// was RGB(...)` beside each change; a shared entry checked against all
   its users (`.claude/rules/battle_ui.md`). Values copied from Soulgold
@@ -53,8 +54,8 @@ Go through the diff for each; every hit is a finding with file:line.
 - **New symbols**: no collision (`nm --defined-only build/hns/src/<file>.o`).
 - **`LoadPalette` between a fade to black and the next screen**, screens
   without their own `SetVBlankCallback`.
-- **Test switches left on**: `QUEST_BOOK_TEST_QUESTS 0`, `CB2_TestBoot`
-  removed, no instrumented code.
+- **Test switches left on**: `QUEST_BOOK_TEST_QUESTS 0`, `debug.inc`
+  restored, no throwaway boot hooks or instrumented code.
 - **Docs**: run the `doc-sync` checklist; CHANGELOG section for the next
   version present (the release needs it).
 

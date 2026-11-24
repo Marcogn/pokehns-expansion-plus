@@ -51,8 +51,9 @@ branch, no commit, no PR.
 2. **Stop and ask the user before resolving** if upstream touches any of these,
    because each one silently rewrites existing saves:
    - `include/global.h` (`SaveBlock*`, `struct ChallengeSettings`, pinned to 32 bytes),
-   - the item enum in `include/constants/items.h` (Hasep's `ITEM_CANDY_JAR` must
-     stay last before `ITEMS_COUNT`, §6),
+   - the item enum in `include/constants/items.h` (Hasep's `ITEM_CANDY_JAR` and
+     `ITEM_TCLONER` must stay the last ids before `ITEMS_COUNT`: the enum is
+     implicit, so an id inserted above them shifts every save's bag),
    - `SAVE_VERSION` in `include/save.h` or the migration steps in `src/save.c`
      (upstream and Hasep might both claim the same `saveVersion < N`),
    - flags/vars Hasep reuses (`FLAG_FORCE_SHINY`, `FLAG_RECEIVED_FIRST_BALLS`, DexNav vars).
@@ -62,8 +63,7 @@ branch, no commit, no PR.
 4. A clean merge is not proof: for every file in the "touched by both" list,
    read the merged result around Hasep's changes. Watch `#if IS_HNS / #else`
    (§6: that is where features get switched off without any flag saying so) and
-   re-run `python3 /tmp/ppcheck.py` on files with preprocessor conflicts if the
-   script exists, otherwise check `#if`/`#endif` balance by hand.
+   check `#if`/`#endif` balance in every file that had a preprocessor conflict.
 
 ## 3. Job B — Soulgold upstream into the fork
 
@@ -107,8 +107,9 @@ what stops someone from re-evaluating them.
 - Toolchain if missing:
   `apt-get install -y --no-install-recommends binutils-arm-none-eabi gcc-arm-none-eabi libnewlib-arm-none-eabi libpng-dev`
 - Hasep: `make hns -j$(nproc) -O` must pass. Report how much of the 32 MB is
-  used before and after (§7bis: ~95% before megas; anything that pushes past
-  ~99% is a stop-and-ask).
+  used before and after, measured as `build.yml` does (95.13% on 24/11; the CI
+  warns from 98% and fails from 99.5%, CLAUDE.md §8; anything that pushes past
+  ~98% is a stop-and-ask).
 - mGBA is **not** part of the default run: driving it costs time and a
   screenshot per step. Instead, write in the PR and in the final message a
   short "cosa provare" list: for each behaviour change from job A or C, where
@@ -118,8 +119,9 @@ what stops someone from re-evaluating them.
   load the user's save and check that it still loads and the party is intact.
 - Never call a change "verified" when it was only built. Say "compila, non
   provato in gioco".
-- `make check` and the CI are already broken upstream (§8): their failure is
-  not a sync regression, and passing them is not a verification either.
+- `make check` is already broken upstream (CLAUDE.md §8, `docs/plans/test-suite.md`):
+  its failure is not a sync regression. The fork's CI (`build-hns`,
+  `docs_validate`) must stay green; passing it proves the build, not the game.
 
 ## 6. Record and deliver
 
