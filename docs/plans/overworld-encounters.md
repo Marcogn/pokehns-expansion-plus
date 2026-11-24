@@ -12,8 +12,8 @@ Stato (21/10, dopo la fase 7):
 | 6 casi speciali | fatta (prove nella regola dell'area) | `9ae6029a` (Gara) + commit successivo |
 | 7 documentazione | fatta (`CHANGELOG.md` 2.0.6.PLUS.4, `README.md`, CLAUDE.md, report SG) | commit dopo `f15f4f3d` |
 
-Tutto sul ramo `claude/overworld-encounters-fase-2-jomv77`, PR #19 (bozza),
-CI verde. Fasi 1-7 chiuse; dopo, su richiesta dell'utente: interruttore del
+Tutto sul ramo `claude/overworld-encounters-fase-2-jomv77`, PR #19, unita
+in master. Fasi 1-7 chiuse; dopo, su richiesta dell'utente: interruttore del
 PC tolto, spawn a 6 caselle per tentativo (8 da provare), niente comparse su
 caselle in uscita, OWE in acqua con gli sprite da
 nuoto di `src/surfable.c`, tetto 4 nel Safari.

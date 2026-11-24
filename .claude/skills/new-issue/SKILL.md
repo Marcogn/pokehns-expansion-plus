@@ -11,7 +11,9 @@ Italian. The repo has no labels of its own and the templates in
 
 ## 1. Before writing
 
-1. **Duplicates**: `search_issues` on `repo:Marcogn/pokehns-expansion-plus`
+1. **Duplicates**: search issues on `repo:Marcogn/pokehns-expansion-plus`
+   (`search_issues`, or `gh api -X GET search/issues -f q='...'` where the
+   MCP search tools are missing)
    with the key words, open and closed. If one exists, show it and ask
    whether to comment there instead.
 2. **Context from the code**: find the files, functions and constants

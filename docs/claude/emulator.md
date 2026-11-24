@@ -242,3 +242,20 @@ numero da `data/maps/map_groups.json`, es. Violet Gym = 3/5).
   toccano): per provare la collisione con la Ball a terra si scrive un
   record di `sCatch.throws` (48 byte: stato a 0, timer a 1, `spriteId` 64 a
   12, `landX/Y` a 34, bit `landBlocks` a 38) in un posto senza OWE.
+
+## Screenshot del README (`docs/screenshots/`, 23/11)
+
+Fatti da una nuova partita con il debug, senza `.srm`: nove PNG a 2x (`convert
+-filter point -resize 200%`), mostrati a 260 px di larghezza nel README.
+- Un clone senza tag disegna la striscia "PLUS.1" del PNG sotto PRESS START:
+  per il titolo, `make hns HNS_VERSION=v<ultima release>` (rifà solo il foglio).
+- Squadra: `Give X → Pokémon (Basic)` (specie e livello con Destra = passo
+  ×10, Su = +1); Ball: `PC/Bag → Fill… → Fill Pocket Poké Balls` (999 di
+  ognuna, la prima è la Strange Ball: L + Destra per cambiarla).
+- `Utilities → Cheat start` è quello di Emerald: mette le otto medaglie (il quest
+  book di Johto risulta finito) e i flag di Hoenn; va bene per le foto, non per i test.
+- Il cambio d'ora del debug vuole il Fake RTC: per la luce del giorno si salva e si
+  riapre `mgba` con `faketime -f "@AAAA-MM-GG 12:30:00"`.
+- Erba con OWE vicina a un warp: Route 30, warp 0 (gruppo 0, mappa 12), due passi a
+  destra. Il nord della Route 29 (warp 0) è solo alberi.
+- PRESS START lampeggia: più scatti a 0,4 s e si tiene quello con la scritta.

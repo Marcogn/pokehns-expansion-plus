@@ -1,25 +1,238 @@
 <p align="center"><img src="HnS_Plus_Logo.png" alt="Pokémon Heart &amp; Soul +" width="640"></p>
 
-# `pokehns-expansion-plus`
+<p align="center">
+  <b>Johto, its story and Kanto after it, on the GBA: Pokémon Heart &amp; Soul with Soulgold's best ideas and a few of its own.</b><br>
+  <a href="https://github.com/Marcogn/pokehns-expansion-plus/releases/latest"><b>Download the latest patch</b></a> ·
+  <a href="CHANGELOG.md">What changed</a> ·
+  <a href="#options">Options</a> ·
+  <a href="#credits">Credits</a>
+</p>
 
-**Pokémon Heart & Soul +** is a personal fork of
-[**`pokemonHnS-expansion`**](https://github.com/PokemonHnS-Development/pokehns-expansion)
-(Heart & Soul 2.0.6, built on pokeemerald-expansion 1.15.2). It back-ports a set
-of features from [**Soulgold**](https://eemeliri.github.io/soulgold/), switches
-on and finishes a few that were already in the code, and adds some of its own.
-The original README of the project this fork comes from is kept, unchanged,
-[at the bottom of this page](#original-readme-pokemonhns-expansion).
+<p align="center">
+  <img src="docs/screenshots/title.png" width="260" alt="Title screen with the + and the version">
+  <img src="docs/screenshots/overworld.png" width="260" alt="Wild Pokémon in the grass of Route 30, with a following Typhlosion">
+  <img src="docs/screenshots/catch.png" width="260" alt="A Weedle caught with a Ball thrown on the map">
+  <br>
+  <img src="docs/screenshots/strip_menu.png" width="260" alt="The pause menu strip">
+  <img src="docs/screenshots/quest_book.png" width="260" alt="The quest book">
+  <img src="docs/screenshots/battle_dark.png" width="260" alt="A wild battle with the dark UI">
+  <br>
+  <img src="docs/screenshots/party_swsh.png" width="260" alt="The Sword/Shield-style party menu, dark">
+  <img src="docs/screenshots/bag.png" width="260" alt="Soulgold's bag screen, dark">
+  <img src="docs/screenshots/options.png" width="260" alt="The OVERWORLD tab of the options">
+</p>
 
-Everything below is additive: no existing HnS feature was removed, and saves from
-the upstream release keep working. Nothing in the save ever moves - new fields
-are only ever appended, and a save written before a field existed is migrated on
-load (`SAVE_VERSION` in `include/save.h`).
+**Pokémon Heart & Soul +** is an unofficial fan game built on
+[**Pokémon Heart & Soul 2.0.6**](https://github.com/PokemonHnS-Development/pokehns-expansion),
+the GBA remake of Gold, Silver and Crystal and demake of HeartGold and
+SoulSilver. The whole of Heart & Soul is still there: Johto, Kanto, Gen 1-3
+Pokémon with their later evolutions, following Pokémon, day and night, HGSS
+music, the challenge modes. On top of it, the **+** brings over features from
+[**Soulgold**](https://eemeliri.github.io/soulgold/), switches on a few that
+were already in the code, and adds its own: wild Pokémon you can see and catch
+on the map, a quest book, two side quests and a darker interface.
 
-- [AI disclosure](#ai-disclosure)
-- [How to play](#how-to-play)
-- [New features](#new-features)
-- [Credits](#credits)
-- [Original README](#original-readme-pokemonhns-expansion)
+Nothing of Heart & Soul was removed, and **a save from Heart & Soul 2.0.6
+keeps working**: new data is only ever added at the end of the save.
+
+---
+
+## How to play
+
+1. Get a clean **Pokémon Emerald (USA)** ROM. Its SHA-1 must be
+   `f3ae088181bf583e55daf962a92bb46f4f1d07b7`: the patch works on that exact
+   file only.
+2. Download the `.bps` patch from the
+   [latest release](https://github.com/Marcogn/pokehns-expansion-plus/releases/latest).
+3. Apply it with a BPS patcher such as
+   [Rom Patcher JS](https://www.marcrobledo.com/RomPatcher.js/) (in the
+   browser) or [Flips](https://github.com/Alcaro/Flips). You get a 32 MB ROM.
+
+**Coming from Heart & Soul?** Rename your save to match the new ROM (for
+example `pokehns_plus.sav` next to `pokehns_plus.gba`). The title screen reads
+**HEART & SOUL +** with the version under PRESS START, and the save window
+shows it too: quote it when you report a bug.
+
+---
+
+## What's new
+
+### Exploring
+
+- **Wild Pokémon on the map.** Up to three roam the grass, two on water, in
+  caves and indoors, and they stop random battles there. Each species family
+  has a temperament: some wander, some watch you, some come closer, chase you,
+  run away or vanish. They hear you run or cycle from 5 tiles and walk from 2,
+  and see you only in front of them, never through trees or walls. Shiny ones
+  sparkle. Fishing, Rock Smash, Headbutt, Sweet Scent and the DexNav work as
+  before.
+- **Throw Balls from the map.** **R** throws the selected Ball at the wild
+  Pokémon in front of you, with a real throw: if it holds, the Pokémon is yours
+  without a battle. **L** switches to sending out a Pokémon instead, **L +
+  Left/Right** picks which. Catch it before it notices you and the odds
+  double: with `AUTORUN` on, hold **B** to creep.
+- **DexNav**, from the pause menu: in its Enhanced mode the search always finds
+  a spot and the Pokémon stays put, and the list shows every species in the
+  area, seen or not.
+- **Overworld speed-up** up to 4x (cutscenes stay at normal speed) and
+  **Fast HMs**: no prompt, no message, no pose.
+- **Item descriptions**: every item you find or receive shows its icon and
+  what it does at the top of the screen.
+- **Pokémon Centers at night** play the Diamond and Pearl night theme.
+
+### Battling
+
+- **Battle speed-up** up to 3x, animations kept intact.
+- **Types shown in battle**, with Soulgold's icons.
+- **Shiny healthbox**: a shiny Pokémon's box is gold, or dark with a gold
+  border under the dark theme.
+- **Frostbite replaces freezing**, as in Legends: Arceus: no more turns lost
+  to a freeze, but half damage on special moves and 1/8 HP lost every turn.
+- **Legends: Arceus formulas** (optional): stats, damage and the odds of a
+  Ball thrown on the map as in Arceus.
+- **Level scaling** (optional): Trainers and wild Pokémon follow your team's
+  level, never below what Heart & Soul gives them.
+- **Battle music theme**: Johto, Kanto, FRLG, RSE, DPPt or random for wild,
+  Trainer, Gym Leader and Elite Four battles.
+
+### Menus
+
+- **Pause menu strip**: Start opens a band of icons over the map (Pokédex,
+  DexNav, Party, Bag, Quests, Options) with the day and time; **Start**
+  saves, **L** opens the Trainer Card, **R** the Pokégear, **Select** moves
+  an icon.
+- **Quest book**: what to do next and where, for the Johto and Kanto badges
+  and the side quests below, with a picture for each.
+- **Dark UI**: a dark theme for battle, the bag, the summary, the party
+  screen, and every message and menu outside battle.
+- **Sword/Shield-style party menu**, or the classic one, and **Soulgold's bag
+  screen**.
+- **PC boxes**: sort a box or all of them by Pokédex number or name, and
+  search for a species across every box.
+- **Move relearner from the summary** (Start on the moves page), and the
+  **Pokédex from the party menu**.
+
+### Side quests
+
+- **The TcloneR**, an original story of this fork. One of Prof. Elm's former
+  assistants went over to Team Rocket and built a device that clones a
+  Trainer's Pokémon in battle. Meet him five times along Team Rocket's story,
+  starting in Azalea Town, and learn why he did it. With the TcloneR in the
+  bag a Ball always catches a Trainer's Pokémon; every 10 clones he has a
+  prize for you. <details><summary>Rules and prizes</summary>
+
+  The Trainer does not count as beaten (no badge, no story step), stops
+  noticing you until you leave the map, and has the full team back every
+  battle. Facility, link and partner battles, Mirror Mode and battles that
+  are part of a story scene (Silver, the Rocket admins, the hideout alarm
+  grunts, the Kimono Girls, Red…) are left out; Gym Leaders, the Elite Four
+  and the Champion can be cloned. Each Trainer counts once. Every 10 clones:
+  20 Quick Balls, 10 Nuggets, 20 Ultra Balls, 15 Max Repels, 10 Rare Candies,
+  10 Big Nuggets, then a Totodile, a Chikorita and a Cyndaquil at Lv5, and at
+  100 clones a Weezing, an Arbok and a Meowth at Lv50. The six Pokémon are
+  shiny and go to the PC.
+  </details>
+- **Red's Path.** Once you beat a Kanto Gym Leader, the guide at the entrance
+  offers a VR replay of Red's journey: you play as Red, with his team of the
+  time, against the Leader as he met them, in the order Red did. No running,
+  no Exp., nothing to lose; each win gives that Leader's ace at Lv70.
+
+### Items and shops
+
+- **Candy Jar**: a Key Item that turns 90% of the Exp. from every battle into
+  Exp. Candies. Elm's Aide hands it over in Violet City with the Togepi Egg.
+- **Shiny Genome** (Viridian City Mart, 1000): makes a Pokémon shiny.
+- **Shiny parents**: a Day-Care Egg is 4x as likely to be shiny with one shiny
+  parent, 8x with two.
+- **Cheaper Balls and special Balls in every Mart.** <details><summary>Prices</summary>
+
+  Poké Ball 10, Great Ball 15, Ultra Ball 30, Quick Ball 50 (Azalea Town).
+  Heal Ball 50, Nest and Repeat Ball 100 from the start; Net, Dive, Dusk,
+  Timer and Luxury Ball 100 from one badge; Kurt's Love, Lure, Friend, Heavy,
+  Moon, Fast and Level Ball 500 from two badges (Kurt still makes them for
+  Apricorns). Ability Patch 100 and Ability Capsule 75 (Violet City), the six
+  vitamins 700, the EV-lowering Berries at Goldenrod 4F, Nature Mints 100 at
+  the Goldenrod flower shop (from the third badge, with the challenge menu's
+  `MINTS` on). Town stock is added to the usual badge-based list, never in
+  place of it.
+  </details>
+
+---
+
+## Options
+
+Everything new can be switched off. These are the fork's own rows; the rest of
+the Options and Challenges menus is Heart & Soul's. The value in **bold** is
+what a new game starts with.
+
+| Option | Where | Values |
+| --- | --- | --- |
+| `DARK UI` | Options · GENERAL | **LIGHT** / DARK |
+| `PARTY MENU` | Options · GENERAL | CLASSIC / **SWSH** |
+| `NICKNAMES` | Options · GENERAL | **ON** / OFF |
+| `OW SPEED` | Options · OVERWORLD | **1x** / 2x / 3x / 4x |
+| `FAST HMS` | Options · OVERWORLD | **OFF** / ON |
+| `ENHANCED DEXNAV` | Options · OVERWORLD | **ON** / OFF |
+| `OVERWORLD CATCH` | Options · OVERWORLD | **ON** / OFF: off brings back R for the DexNav, the classic sight and hearing and more Pokémon on the map |
+| `WILD BATTLES` | Options · OVERWORLD | **ON** / OFF: off means no wild Pokémon at all |
+| `BATTLE SPEED` | Options · BATTLE | 1x / **2x** / 3x |
+| `ARCEUS FORMULAS` | Options · BATTLE | **OFF** / ON |
+| `BATTLE MUSIC` | Options · SOUND | **DEFAULT** / HG JOHTO / HG KANTO / FRLG / RSE / DPPT / RANDOM |
+| `NIGHT CENTER` | Options · SOUND | **ON** / OFF |
+| `EASY CATCH` | Challenges · DIFFICULTY | **OFF** / ON: every Ball catches |
+| `LEVEL SCALING` | Challenges · DIFFICULTY | **OFF** / ON |
+
+<details><summary>How the level scaling works</summary>
+
+It follows your team's average level, leaving out Pokémon 7 or more levels
+below your strongest. Trainers: their ace one level above that average, never
+below the level Heart & Soul gives them, with plain level evolutions applied;
+prize money on the real level plus 1% for every 5 levels of the level cap.
+Wild Pokémon: 2-4 levels below it, never below the area's own level, never more
+than 15 above it and never above the level cap. Scripted battles (the red
+Gyarados, Snorlax…) at the level cap; legendaries keep their level.
+</details>
+
+<details><summary>How the Legends: Arceus formulas work</summary>
+
+Effort levels from IVs and EVs, one catch rate for every non-legendary
+species, a rank from your Johto badges, ×1.25 same-type bonus, ×2.5 and ×0.4
+for double weaknesses and resistances; stat stages, abilities and items still
+multiply the damage. Potions heal 60, 100 and 150 as in Arceus, and wild
+Pokémon hit softer until the third Johto badge. Catches inside a battle keep
+the usual formula. The full rules are in the
+[changelog](CHANGELOG.md#206plus12).
+</details>
+
+---
+
+## Bugs and feedback
+
+Open an [issue](https://github.com/Marcogn/pokehns-expansion-plus/issues) with
+the version shown on the title screen, what you did and what you expected. A
+save file helps a lot. Bugs that are also in Heart & Soul 2.0.6 are worth
+reporting here too: this fork fixes them where it can.
+
+---
+
+## For developers
+
+```sh
+make hns -j$(nproc)          # builds pokehns.gba
+tools/make_patch.sh          # the BPS patch against clean Emerald
+```
+
+Setting up the toolchain: [`INSTALL.md`](INSTALL.md) (inherited from
+upstream: the target of this fork is `make hns`, not `make modern`).
+
+| Document | What it is |
+| --- | --- |
+| [`CHANGELOG.md`](CHANGELOG.md) | every release of the fork, with the details of each feature |
+| [`docs/SOULGOLD_PORT_REPORT.md`](docs/SOULGOLD_PORT_REPORT.md) | what came over from Soulgold, where it lives, what did not and why (Italian) |
+| [`docs/plans/`](docs/plans/) | the plan of each feature, with the decisions and how each phase was verified (Italian) |
+| [`CLAUDE.md`](CLAUDE.md), [`.claude/rules/`](.claude/rules/) | working notes for the AI that writes the code: traps and facts by area (Italian) |
+| [`FEATURES.md`](FEATURES.md), [`AVAILABLE_FEATURES.md`](AVAILABLE_FEATURES.md) | the features of Heart & Soul and of pokeemerald-expansion, from upstream |
+| [`docs/HNS_README.md`](docs/HNS_README.md) | the original README of Heart & Soul |
 
 ---
 
@@ -42,125 +255,8 @@ direction**. I want that stated plainly rather than buried.
   generated art or music. The "+" in the logo and on the title screen is drawn
   by script.
 
-The AI disclosure of the original project, which covers *their* code and not
-this fork's, is kept in the original README at the bottom.
-
----
-
-## How to play
-
-Download the `.bps` patch from the
-[latest release](https://github.com/Marcogn/pokehns-expansion-plus/releases/latest)
-and apply it to a clean **Pokémon Emerald (USA)** ROM with any BPS patcher, such
-as [Flips](https://github.com/Alcaro/Flips) or
-[Rom Patcher JS](https://www.marcrobledo.com/RomPatcher.js/). The result is a
-32 MiB ROM.
-
-The patch only works on the exact clean ROM: check that yours has SHA-1
-`f3ae088181bf583e55daf962a92bb46f4f1d07b7` before patching. A save from the
-upstream HnS release can be carried over: rename it to match the new ROM.
-
-The title screen reads **HEART & SOUL +**, with this fork's version under PRESS
-START, so it is easy to tell which game is running. What changed in each
-release is in [`CHANGELOG.md`](CHANGELOG.md).
-
----
-
-## New features
-
-Four groups: what was **ported from Soulgold**, what was **already in the
-codebase and was switched on or reworked**, what was **ported from other
-projects**, and what was **written from scratch** for this fork. Where a feature mixes origins, the notes say which half
-is whose.
-
-### Ported from Soulgold
-
-| Feature | Option | Notes |
-| --- | --- | --- |
-| Overworld speed-up | `OW SPEED` 1x–4x | Cutscenes always run at 1x. R throws a Ball at wild Pokémon on the map. |
-| Battle speed-up | `BATTLE SPEED` 1x–3x | Runs several software ticks per frame; animations keep their timing. |
-| SwSh party menu | `PARTY MENU` CLASSIC/SWSH | Both menus are built and selected at runtime. |
-| Soulgold bag screen | — | Replaces the bag graphics and layout. |
-| Dark UI | `DARK UI` LIGHT/DARK | Darkens the bag, the whole battle HUD, the Summary, the party screen (both styles' menus, the whole SwSh screen), and the messages and menus outside battle (dialogue, signposts, yes/no, choices, the save prompt). Soulgold's option only covers battle and the bag: the rest is this fork's own. |
-| Shiny healthbox | — | A shiny Pokémon gets a gold battle box; under the dark theme the box is dark with a gold border. |
-| Shiny Genome | — | Turns a Pokémon shiny. Sold at the Viridian City Mart for 1000. |
-| Compact start menu | — | The menu window grows with the number of entries, so nine fit. Since the strip pause menu (below) it is the list of the places that keep it: Safari Zone, Bug-Catching Contest, Battle Pike and Pyramid, Union Room, link and the Multi Partner Room. |
-| Candy Jar | — | A Key Item that skims 90% of the Exp from every battle and turns it into Exp. Candies. Elm's Aide hands it over in the Violet City Pokémon Center along with the Togepi Egg. |
-| Shiny parents | — | A Day-Care Egg is 4x as likely to be shiny with one shiny parent, 8x with two. |
-| Exp. Candy order | — | Sorting the bag by type lists the Exp. Candies by size, biggest first. |
-| Fast HMs | `FAST HMS` OFF/ON | Skips the yes/no prompt, the "used X" message and the field-move pose. Cut, Rock Smash, Strength, Waterfall and Headbutt already had no prompt or animation in HnS, so for them it only drops the message. |
-| Battle music theme | `BATTLE MUSIC` DEFAULT / HG JOHTO / HG KANTO / FRLG / RSE / DPPT / RANDOM | Wild, Trainer, Gym Leader and Elite Four battles. DEFAULT keeps each region's own themes. Bosses, rivals, Team Rocket, champions, legendaries, link and facility battles never change. Unlike Soulgold: the default is regional, HG JOHTO is an option, and the Elite Four follows the theme. |
-| Frostbite | — | Replaces freezing, as in Pokémon Legends: Arceus: a frostbitten Pokémon is never stuck, but its special moves do half damage and it loses HP at the end of every turn (as much as a burn does here: 1/8 of its max HP). Ice moves, Freeze-Dry, Tri Attack and Secret Power inflict it; an Ice Heal cures it. |
-| Item description box | — | Every item you pick up, find or are given shows its icon and description at the top of the screen while the message is up, as in Soulgold. It is shown every time, because remembering which items were already seen would need 113 bytes of save data that no save block has free. |
-| Night music in Pokémon Centers | `NIGHT CENTER` ON/OFF | At night the Center plays the DPPt night theme. On by default here; always on in Soulgold. |
-| Level scaling | `LEVEL SCALING` OFF/ON | Follows your team's average level (Pokémon 7+ levels below your strongest don't count). Trainers: ace one level above it, never below the level HnS gives them, plain level evolutions applied; prize money on the real level plus 1% per 5 levels of the level cap. Wild: 2-4 below it, never below the area's own level, never more than 15 above it and never above the level cap. Scripted battles (red Gyarados, Snorlax…) at the level cap; legendaries keep their level. Engine from Soulgold, rules of HnS. |
-
-### Reworked from existing code
-
-These were already in the codebase, disabled or half-wired, or exist elsewhere
-in a different form. The work was turning them on, making them behave, and
-reconciling them with Soulgold where it had something better.
-
-| Feature | Option | Notes |
-| --- | --- | --- |
-| Enhanced DexNav | `ENHANCED DEXNAV` ON/OFF | One switch, **on by default**, over two things that are never wanted apart. The search half is Soulgold's: it always finds a spot, the target neither relocates nor flees, and there is no timer, so creeping stops mattering exactly as it already does in Soulgold. The listing half is not Soulgold's — it gates the area list on the Pokédex the same way HnS does — and shows every species in the area, seen or not. Off leaves the HGSS-style behaviour HnS ships. |
-| Follower toggle in both party menus | — | The classic menu already had it; the SwSh menu now does too. |
-| Bag icons readable in both themes | — | The registered-item `SEL` badge and the HM badge sat on palette entries that flip with the theme, so each came out as a bright box over the dark bag. Both now use entries that mean the same colour in either theme. Not a port: Soulgold's own HM badge has the same problem. |
-
-Switched on or finished, with nothing written for this fork except the wiring:
-
-
-| Feature | Where it came from | What was done here |
-| --- | --- | --- |
-| DexNav | `src/dexnav.c`, already present with `DEXNAV_ENABLED FALSE` | Turned on, made the creeping reachable (R on foot started a search until 2.0.6.PLUS.11; it throws Balls now and the DexNav opens from the Start menu), and reconciled with Soulgold: search levels, SELECT to unbind, per-row caught counts, and a pile of Soulgold's robustness fixes. It opens on maps with no wild encounters instead of silently refusing. It also searches in Dark Cave once Flash is used: the stock check treated a Flash-lit cave as too dark. Elm's Aide hands it over with the first five Poké Balls, so it appears in the Start menu only from that scene on — by which point the player already has both the Pokégear and the Pokédex. |
-| Move relearner from the summary | `P_ENABLE_MOVE_RELEARNERS`, a pokeemerald-expansion feature | HnS drew the prompt but nothing handled START. Wired up, and kept to the Battle Moves page the way Soulgold does. Egg and tutor moves are paid for once, as in Soulgold: ¥44,444 to the Egg Move Master (Blackthorn City), ¥22,222 to the Tutor Move Master (Olivine City), half that again after becoming Johto Champion; TMs are always available. |
-| Types shown in battle | `src/type_icons.c`, with `B_SHOW_TYPES SHOW_TYPES_NEVER` | Turned on and aligned to Soulgold: the art is Soulgold's and is asymmetric, so the mirroring, the 4px stagger and the slide directions all had to match. |
-| HGSS Pokédex | `src/pokedex_plus_hgss.c`, already present | Used as-is. The party-menu entry point (see *Written from scratch*) is what was added. |
-| Wild Pokémon in the overworld | pokeemerald-expansion PR #8434 (expansion 1.16), ported with its fixes up to 1.16.4 | Always on; `WILD BATTLES` OFF turns them off too. Up to 3 on land, 2 in the Safari Zone, on water, in caves and indoors, one of them replaced every 6 seconds when the area is full; with it on, tall grass, surfing and caves stop starting random battles, while fishing, Rock Smash, Headbutt, Sweet Scent and the DexNav stay. Written here: a **temperament per species family** rolled at each spawn (wander, watch, come closer, chase, flee, vanish; weights modelled on the Wilds of Kanto mod), lower caps on water, in caves and in the Safari Zone, the Bug-Catching Contest left classic, the Safari Pokéblock bonus, faster spawning where grass is sparse, and fixes for full sprite memory (no crash screen, room kept for icons). On water they swim, with HnS's own surf-mount sprites. Shiny ones sparkle and stay on the map; roamers can appear among them. They hear you running or cycling within 5 tiles and walking within 2, see you in a cone 4-5 tiles deep but not through trees, walls or people, and only from right in front when you stand in tall grass; with `AUTORUN` on, holding B is a slow walk they cannot hear (also the DexNav creep, during a search, whatever `AUTORUN` says). |
-
-### Ported from other projects
-
-| Feature | Where it came from | Notes |
-| --- | --- | --- |
-| Quest book | PokemonSanFran's *Unbound Quest Menu* (`complex_quests` branch) | Opened from the Quests icon of the pause menu. For each quest: its state (locked, active, reward waiting, done), what to do next and where, with a picture; A opens its list (the badges, the prizes, the Leaders). R filters by state, Start sorts A-Z, Select marks a favourite; **NEW** marks a quest you have not looked at since it appeared, became "Reward" or was completed. The quests read the state the game already has, so they work on old saves: **Johto Badges** and **Kanto Badges** (the next Gym, one line per badge; Kanto shows up once you are Champion), **The TcloneR** (clones so far, the next prize, one line per prize) and **Red's Path** (the next challenge, one line per Leader). Rewritten on this fork's save data and state sources; follows the Dark UI. |
-| Pause menu strip | pollythadon's Unbound-style start menu (`unbound_start_menu.c`) | Start opens a strip of icons over the map instead of the list: Pokédex, DexNav, Party, Bag, Quests, Options, with the name of the entry and the day and time. **Start** saves, **L** opens the Trainer Card, **R** the Pokégear, B closes. **Select** picks up an icon: move it with left and right, put it down with A or Select (B undoes); the order is kept with your save, and an icon you do not have yet keeps its place. The special places listed under *Compact start menu* keep the list. Changed from the original: one page instead of several, Select instead of R to reorder, icons visible under Flash; the DexNav and Quests icons are new, and it follows the Dark UI. |
-
-### Written from scratch
-
-| Feature | Option | Notes |
-| --- | --- | --- |
-| Pokédex from the party menu | — | New entry in the party menu action list. |
-| Guaranteed capture | `EASY CATCH` OFF/ON | Every Ball catches without fail while it is on. |
-| Throwing Balls on the map | `R`, `L` | **R** throws the selected Ball (or Pokémon) at the wild Pokémon in front of you, with a real throw animation; **L** switches between Ball and Pokémon, **L + Left/Right** picks one, and a small panel at the bottom left shows the choice. Sneak up (hold **B** to creep) for double odds. `OVERWORLD CATCH` (Options · OVERWORLD) turns all of it off, together with the lower caps, the slow walk and the new sight and hearing: R then starts a DexNav search as before. Special Balls are sold in every Poké Mart (Heal, Nest, Repeat from the start, Net, Dive, Dusk, Timer, Luxury from one badge, Kurt's seven from two). Details in `docs/plans/overworld-catch.md`. |
-| Legends: Arceus formulas | `ARCEUS FORMULAS` OFF/ON | Options · BATTLE. Stats, damage and the odds of a thrown Ball as in Pokémon Legends: Arceus: effort levels from IVs and EVs, one catch rate for every non-legendary species, rank from your Johto badges, ×1.25 same-type bonus, ×2.5 / ×0.4 for double weaknesses and resistances; stat stages, abilities and items still multiply the damage as before. Potions heal 60 / 100 / 150 as in Arceus, and wild Pokémon hit softer until the third Johto badge. Battle catches stay as they are. Details in `docs/plans/overworld-catch.md` (D21). |
-| Nickname prompts | `NICKNAMES` ON/OFF | When off, catches, gift Pokémon and hatched eggs never ask. |
-| Wild encounters | `WILD BATTLES` ON/OFF | When off, grass, surfing, Rock Smash, Sweet Scent and fishing never trigger a wild battle. |
-| The TcloneR (side quest) | Starts in Azalea Town; replaced the `TRAINER CATCH` option | **An original side quest of this fork, with its own story and dialogue.** One of Prof. Elm's former assistants went over to Team Rocket and built the TcloneR, a device that clones an opponent's Pokémon in battle on tachyon particles drawn from a tuft of Celebi's hair. You meet him five times, following Team Rocket's story: in Azalea, in Mahogany (in the Rocket hideout, or outside the shop once it is cleared), outside the Goldenrod Radio Tower, outside the Cerulean Pokémon Center, and at last in Prof. Oak's lab, where he stays. Each meeting tells a little more (who he is, Team Rocket, the particles, Celebi, why he did it), and the first one, wherever it is, gives you the TcloneR. **The device**: a key item that stays in the Bag; a Ball thrown at a Trainer's Pokémon always catches it, and the battle ends with the catch. The Trainer does not count as beaten (no badge, no story step), stops noticing you until you leave the map, and has the full team back every battle. Facility, link and partner battles, Mirror Mode and battles that are part of a story scene (Silver, the Rocket admins, the hideout alarm grunts, the Kimono Girls, Red…) are left out; Gym Leaders, the Elite Four and the Champion can still be cloned. **Prizes**: each Trainer counts once, and every 10 clones the scientist pays out at your next meeting: 20 Quick Balls, 10 Nuggets, 20 Ultra Balls, 15 Max Repels, 10 Rare Candies, 10 Big Nuggets, then a Totodile, a Chikorita and a Cyndaquil at Lv5, and at 100 clones a Weezing, an Arbok and a Meowth at Lv50; the six Pokémon are shiny and go to the PC. The quest book follows it as **The TcloneR**: clones so far, the next prize, one line per prize. |
-| Full party editor (debug) | Debug menu → Party → Edit Pokemon → Edit All… | Level, shininess, nature (the stat one, as a Mint sets it), ability, Tera type, IVs, EVs and moves of a party Pokémon, each screen starting from its current values. |
-| Force Shiny (debug) | Debug menu → Flags & Vars → Toggle Force Shiny | Every wild, gift and hatched Pokémon comes out shiny while it is on. |
-| Title screen and version | — | A "+" after the HEART & SOUL banner and the fork's version under PRESS START. The save window shows the same version under the play time, so it can be read off when reporting a bug ("dev build" on a build without a release tag). |
-| Red's Path | The guide at the entrance of each Kanto Gym, once its Leader is beaten | The eight Kanto Gyms replayed in order with Red's team of the time against the Leaders as he met them, in a VR headset. You play as Red, cannot run, gain no Exp. and lose nothing; each win gives that Leader's ace at Lv70 as a prize (kept by the guide if your party is full). |
-| Box sort and search | A on the box name → `SORT` / `SEARCH` | **Sort** this box or all boxes, by Pokédex number or by species name. Numbers follow the Johto Pokédex until the National Dex is unlocked (Prof. Oak says so when he hands it over), then the national one; within a species the highest level comes first, Eggs and empty slots go last. Sorting all boxes asks first. **Search** picks a letter group, then a species present in the boxes, then A jumps to each one box after box, with a shiny sparkle on shiny ones. Both are hidden while holding a Pokémon. Only slots change: nothing new in the save. |
-
-### Shops and prices
-
-Nature Mints cost 100 each. They were already stocked at the Goldenrod flower shop,
-behind the third badge and the challenge menu's `MINTS` toggle.
-
-Shop and price changes: Poké Ball 10, Great Ball 15, Ultra Ball 30, Quick Ball 50,
-Ability Patch 100, Ability Capsule 75, and the six vitamins 700. Azalea Town stocks
-the Quick Ball, Violet City the Ability Patch and Capsule, and Goldenrod 4F now also
-sells the six EV-lowering Berries. Town-specific stock is appended to the usual
-badge-scaled inventory rather than replacing it, so those towns keep their normal
-progression.
-
-Special Balls in every Poké Mart's badge list: Heal Ball 50, Nest and Repeat Ball
-100 from the start; Net, Dive, Dusk, Timer and Luxury Ball 100 from one badge;
-Kurt's Love, Lure, Friend, Heavy, Moon, Fast and Level Ball 500 from two badges
-(Kurt still makes them for Apricorns).
-
-What came over from Soulgold, where it lives, what did not and why:
-[`docs/SOULGOLD_PORT_REPORT.md`](docs/SOULGOLD_PORT_REPORT.md) (in Italian).
+The AI disclosure of Heart & Soul, which covers *their* code and not this
+fork's, is in their [original README](docs/HNS_README.md).
 
 ---
 
@@ -168,35 +264,34 @@ What came over from Soulgold, where it lives, what did not and why:
 
 **This fork** is directed by [**Marcogn**](https://github.com/Marcogn) and
 written by **Claude Code** (Anthropic), as described in the
-[AI disclosure](#ai-disclosure).
-The **TcloneR** side quest is Marcogn's own: the idea, the story, the
-scientist and his dialogue.
+[AI disclosure](#ai-disclosure). The **TcloneR** side quest is Marcogn's own:
+the idea, the story, the scientist and his dialogue.
 
-**Soulgold.** Every feature in *Ported from Soulgold* is the work of the
-[Soulgold](https://eemeliri.github.io/soulgold/) project and its author
-[**Eemeliri**](https://github.com/eemeliri), and of the people Soulgold credits
-in turn: the overworld and battle speed-ups, the bag screen, the dark UI, the
-shiny healthbox, the Candy Jar, the Fast HMs, the battle-music theme and the
-Pokémon Center night music, the art of the in-battle type icons, the four
-Diamond/Pearl tracks, and the search half of the Enhanced DexNav. The bug fixes
-listed in the changelog as coming from Soulgold are theirs too. The full
-Soulgold credits are worth reading on their own: see the
+**Soulgold.** The overworld and battle speed-ups, the bag screen, the dark UI
+for battle and the bag, the shiny healthbox, the Candy Jar, the Shiny Genome,
+the Fast HMs, the battle-music theme and the Pokémon Center night music, the
+level-scaling engine, the item description box, the art of the in-battle type
+icons, the four Diamond/Pearl tracks and the search half of the Enhanced
+DexNav are the work of the [Soulgold](https://eemeliri.github.io/soulgold/)
+project and its author [**Eemeliri**](https://github.com/eemeliri), and of
+the people Soulgold credits in turn. The bug fixes listed in the changelog as
+coming from Soulgold are theirs too. The full Soulgold credits are worth
+reading on their own: see the
 [Soulgold repository](https://github.com/eemeliri/soulgold) and its site.
 
 - [**Mont**](https://github.com/montmoguri/pokeemerald-expansion/) - the SwSh
   party menu, which reached this fork by way of Soulgold.
 
-**Heart & Soul.** Everything in *Reworked from existing code* came with
-**`pokemonHnS-expansion`**, **`pokeemerald-expansion`** or both, and is the work
-of their authors, not of this fork: the DexNav, the HGSS Pokédex, the in-battle
-type icon code, the move relearner and the overworld wild Pokémon (by
-**Bivurnum** and **HashtagMarky**, who credit Pokabbie's *Emerald Rogue*). The
-temperament weights are modelled on
+**Heart & Soul and pokeemerald-expansion.** The DexNav, the HGSS Pokédex, the
+in-battle type icon code, the move relearner and the wild Pokémon on the map
+(by **Bivurnum** and **HashtagMarky**, who credit Pokabbie's *Emerald Rogue*)
+came with **`pokemonHnS-expansion`**, **`pokeemerald-expansion`** or both, and
+are the work of their authors: this fork switched them on and finished them.
+The temperament weights are modelled on
 [*Wilds of Kanto*](https://github.com/YoDrehDenSwagAuf/overworld-spawn-mod)
-(MIT). The game itself, Johto, the story, the
-art and the music are the work of the **Pokémon Heart & Soul** team and its
-contributors, listed in [`CREDITS.md`](CREDITS.md), which is inherited
-unchanged from upstream.
+(MIT). The game itself, Johto, the story, the art and the music are the work
+of the **Pokémon Heart & Soul** team and its contributors, listed in
+[`CREDITS.md`](CREDITS.md), which is inherited unchanged from upstream.
 
 **Other projects.** The quest book screen is PokemonSanFran's
 [*Unbound Quest Menu*](https://github.com/PokemonSanFran/pokeemerald/wiki/Unbound-Quest-Menu),
@@ -210,101 +305,8 @@ fork needed it (save data, state sources, one page, Flash, dark theme).
 **The chain below** applies to this fork unchanged: **`pokemonHnS-expansion`**,
 RHH's **`pokeemerald-expansion`**, resetes12's **`Modern Emerald`** and pret's
 **`pokeemerald`** decompilation. If you use this fork, credit **Pokémon Heart &
-Soul** and keep that chain, as the original README asks.
+Soul** and keep that chain, as the [original README](docs/HNS_README.md) asks.
 
 *Pokémon is a trademark of Nintendo, Game Freak and Creatures Inc. This is an
 unofficial fan project and is not affiliated with or endorsed by them. It
 distributes only a patch: you need your own clean Pokémon Emerald ROM.*
-
----
-
-<a id="original-readme-pokemonhns-expansion"></a>
-
-# Original README (`pokemonHnS-expansion`)
-
-*Everything below is the README of the project this fork comes from, kept
-exactly as it was. "We" and "our" there mean the Heart & Soul team, not this
-fork.*
-
----
-
-![HnS Logo](HnS_Logo.png)
-
-# About `pokemonHnS-expansion`
-
-<!-- If you want to re-record or change these gifs, here are some notes that I used: https://files.catbox.moe/05001g.md -->
-<!-- TODO: Actually change these gifs, and generally update contents to convey HnS-specific information -->
-![HnS Collage](HnS_Collage_YourAdventure.png)
-
-**`pokemonHnS-expansion`**, aka Pokémon Heart and Soul 2.0, is a GBA ROM hack that is both a remake of GSC and demake of HGSS, with added quality-of-life, customization, and more.  
-Originally built on top of [resetes12's **`Modern Emerald`**](https://github.com/resetes12/pokeemerald).  
-Now additionally built on top of [RHH's **`pokeemerald-expansion`**](https://github.com/rh-hideout/pokeemerald-expansion) GBA ROM hack base.  
-Finally, all of these projects are built on top of [pret's **`pokeemerald`**](https://github.com/pret/pokeemerald) decompilation project.
-
-> Pokémon Heart & Soul brings the classic Johto Region and its iconic story to the world of modern GBA decomp hacking. Built on Modern Emerald and pokeemerald-expansion, this project offers a fresh take on the GSC/HGSS experience, blending key aspects of the Gen 2 and Gen 4 games, while incorporating many modern QoL features, as well as some familiar mechanics from Gen 3 to Gen 9. Not only is Heart & Soul (HnS) a first-of-its-kind, fully completed, playtested, and largely faithful GSC remake / HGSS demake, it's also completely open source, and is intended to be a base for a new generation of Johto rom hacks.
-
-Unfortunately, saves from before 2.0 will not be compatible moving forward.
-
-2.0.1 will be the last "official" release of Pokémon Heart and Soul, after which any bug fixes, content updates, or any propogated updates from **`pokeemerald`** or **`pokeemerald-expansion`** will only be available via community forks of the project.
-
-# [Features](FEATURES.md)
-
-**`pokemonHnS-expansion`** includes a mix of vanilla Emerald/FRLG features, re/de-made implementations of GSC/HGSS features, custom **`Modern Emerald`** features, and both features from [core series Pokémon games](https://bulbapedia.bulbagarden.net/wiki/Core_series) and popular QOL enhancements made available by **`pokeemerald-expansion`**.  
-A full list of the features present in Pokémon Heart & Soul 2.0 can be found in [`FEATURES.md`](FEATURES.md)
-A full list of the features made available by **`pokeemerald-expansion`** can be found in [`AVAILABLE_FEATURES.md`](AVAILABLE_FEATURES.md).
-
-# [Credits](CREDITS.md)
-
-<!-- TODO: update .all-contributorsrc and CREDITS.md to match https://pokemonhns-development.github.io/pokehns-expansion-documentation/credits.html -->
-<!-- [![](https://img.shields.io/github/all-contributors/pokemonHnS-Development/pokemonHnS-expansion/upcoming)](CREDITS.md) -->
-
-<!-- TODO: confirm our actual crediting policy and how best to respect our upstreams -->
-If you use **`pokemonHnS-expansion`**, please credit **Pokemon Heart and Soul**, and retain the full chain of credits as best possible.  
-If you additionally use a more updated version of **`pokeemerald-expansion`**, please *specifically* credit **RHH (Rom Hacking Hideout)** and include the version number for clarity.
-For example:
-
-<!-- TODO: confirm the closest applicable expansion version number -->
-```
-pokemonHnS-expansion 2.0 is Based off RHH's pokeemerald-expansion version 1.15.1 https://github.com/rh-hideout/pokemonHnS-expansion/
-```
-
-Finally, please consider [crediting all contributors](CREDITS.md) involved in the project!
-
-# **`pokemonHnS-expansion`** multiplayer compatibility
-
-- **`pokemonHnS-expansion`** supports trade and link battle multiplayer functionality, which *should* extend to forks built on **`pokemonHnS-expansion`** but cannot be guaranteed.
-- **`pokemonHnS-expansion`** is not compatible with official Pokémon games, **`pokemonHnS 1.X`**, **`Modern Emerald`**, or other **`pokeemerald-expansion`** projects.
-
-# [Getting Started](INSTALL.md)
-
-❗❗ **Important**: Do not use GitHub's "Download Zip" option as it will not include commit history. This is necessary if you want to update or merge other feature branches from **`pokeemerald-expansion`**.
-
-If you're new to git and GitHub, [Team Aqua's Asset Repo](https://github.com/Pawkkie/Team-Aquas-Asset-Repo/) has a [guide to forking and cloning the repository](https://github.com/Pawkkie/Team-Aquas-Asset-Repo/wiki/The-Basics-of-GitHub). Then you can follow one of the following guides:
-
-<!-- TODO: update INSTALL.md to refer to HnS-specific things -->
-## 📥 [Installing **`pokemonHnS-expansion`**](INSTALL.md)
-## 🏗️ [Building **`pokemonHnS-expansion`**](INSTALL.md#Building-pokemonHnS-expansion)
-
-# [Documentation](https://pokemonhns-development.github.io/pokehns-expansion-documentation/)
-
-For our player-facing documentation, visit the [**`pokemonHnS-expansion`** documentation page](https://pokemonhns-development.github.io/pokehns-expansion-documentation/).
-
-# [Contributions and Community](https://discord.gg/ksNTFNSBj)
-
-[![](https://dcbadge.limes.pink/api/server/ksNTFNSBj)](https://discord.gg/ksNTFNSBj)
-
-If - in the window between 2.0 release and 2.0.1 release - you are looking to report a bug, make a suggestion, or give feedback, please join the [Pokémon Heart and Soul Discord server](https://discord.gg/ksNTFNSBj). You are also welcome to join just to participate in the community, including pinging our @guides (and only our guides) for help answering questions not sufficiently covered by our documentation or in-game resources.
-
-# AI Disclosure
-Since this is a controversial topic at the moment, we'd like to be transparent about use of AI for this project.
-
-Every line of code written for the game is either hand-written or manually reviewed by a member of the team. However, it is still important to point out that LLMs like Claude Code and GitHub Copilot have been used for some tasks.
-
-Here is what AI has been used for:
-- Code Reviews of hand-written code
-- Debugging more complex scenarios
-- Auto Completion (stuff like repeating lists, DebugPrints, etc.)
-- Creating Python Scripts for I/O procedures (like downloading/writing list data, I/O data with Excel, etc. namely for documentation)
-
-AI has not been used for:
-- Generating assets of any kind; Art or Music

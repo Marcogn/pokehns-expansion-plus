@@ -9,8 +9,8 @@ paths:
 # Release e patch BPS
 
 **Le note della release vengono da `CHANGELOG.md`** (in radice, ora il
-changelog del fork; quello di pokeemerald-expansion è in fondo allo stesso
-file). Il workflow pubblica la sezione `## <versione>` (senza la `v` del tag)
+changelog del fork; quelli di pokeemerald-expansion sono in
+`docs/changelogs/`, con un rimando in fondo al file). Il workflow pubblica la sezione `## <versione>` (senza la `v` del tag)
 estratta da `tools/changelog_section.py`, seguita da come applicare la patch e
 dall'elenco delle PR di GitHub. **Senza quella sezione la release si ferma
 subito**, prima della build: va scritta nel commit che si rilascia. Un port o
@@ -30,6 +30,6 @@ applicatore BPS scritto a parte, non solo con Flips che l'ha creata.
 
 **Pulizia dei run (ultimo step del workflow).** Dopo la pubblicazione, `release.yml`
 cancella tutti i run di Actions tranne: quelli di Release e l'ultimo di ogni altro
-workflow (build, docs, labels). Solo a release fatta, mai nei run normali; è
+workflow (build, labels). Solo a release fatta, mai nei run normali; è
 `continue-on-error` perché non deve rendere rossa una release già pubblicata. Serve
 `actions: write`. I run in corso non si possono cancellare e vengono saltati.
