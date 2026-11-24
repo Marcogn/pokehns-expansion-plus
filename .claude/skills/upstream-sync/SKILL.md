@@ -120,8 +120,8 @@ what stops someone from re-evaluating them.
 - Never call a change "verified" when it was only built. Say "compila, non
   provato in gioco".
 - `make check` is already broken upstream (CLAUDE.md §8, `docs/plans/test-suite.md`):
-  its failure is not a sync regression. The fork's CI (`build-hns`,
-  `docs_validate`) must stay green; passing it proves the build, not the game.
+  its failure is not a sync regression. The fork's CI (`build-hns`)
+  must stay green; passing it proves the build, not the game.
 
 ## 6. Record and deliver
 
