@@ -12,7 +12,7 @@ NUOVA MAPPA: Un giardino quadrato, di medie dimensioni, con acqua, alberi e erba
 Lì nell'erba e nell'acqua si troveranno, 1 per tipo, con relativo sprite OW (se disattivati generalmente, altrimenti non cambia nulla rispetto al resto)
 i pokèmon di Red esclusi dalla squadra di Monte Argento, circa al livello 80, all'ultimo stadio evolutivo disponibile (vedi sotto).
 Una volta sconfitti tutti, Bill ti chiederà di prenderti cura di loro. 
-Se accetti i pokemon di Red diventeranno automaticamente tuoi, con OT RED e OT-NUMBER 280998.
+Se accetti i pokemon di Red diventeranno automaticamente tuoi, con OT RED e OT-NUMBER 28998.
 Altrimenti, se non accetti, i pokemon di RED continueranno a stare nel giardino di red, pronti per una rivincita.
 Sia che il giocatore accetti o no, dopo la sconfitta, cominceranno ad apparire nell'erba alta le versioni normali della loro progenie (vedi sotto).
 
@@ -35,7 +35,7 @@ Oak racconta che molto tempo, quando ormai a RED rimane da battere la LEGA e il 
 Red gli ha detto che quel Bulbasaur era estremamente legato al Bosco Smeraldo. Oak riferisce che non ci sono mai stati Bulbasaur in quel posto però. 
 Molto tempo dopo Oak ha mandato un assistente ed effettivamente ha trovato una colonia 
 di Bulbasaur, evidentemente discendente dal Venusaur di RED. Ti chiede se vuoi prenderti cura di uno di loro che è rimasto ferito 
-in uno scontro con un Pidgey. Accettando, ricevi un Bulbasaur di livello 5 con OT OAK e OT-Num 151096.
+in uno scontro con un Pidgey. Accettando, ricevi un Bulbasaur di livello 5 con OT OAK e OT-Num 15196.
 _Parte 1 conclusa._
 
 **Parte 2**: Si sblocca parlando con OAK nel suo laboratorio a PALLET avendo terminato 5 capi palestra di RED'S PATH.
@@ -45,7 +45,7 @@ Oak stesso, quando era giovane aveva avuto dei grattacapi con quella banda a Lav
 Azzurropoli. Fuggendo avevano lasciato cadere una pokè ball, contenente uno Squirtle in gravi condizioni.
 Ha contattato le autorità e nel frattempo lo ha dato a RED che si è preso cura lui, fino a che è diventato un Blastoise 
 che a sua volta ha dato alla luce uno Squirtle che ha affidato a OAK. Ora quello Squirtle aspetta un allenatore che gli tenga testa.
-Se il giocatore accetta, ottiene uno Squirtle a liv 10 con OT OAK e OT-Num 151096.
+Se il giocatore accetta, ottiene uno Squirtle a liv 10 con OT OAK e OT-Num 15196.
 _Parte 2 conclusa._
 
 **Parte 3**: Si sblocca parlando con OAK nel suo laboratorio a PALLET avendo terminato 7 capi palestra di RED'S PATH.
@@ -55,7 +55,7 @@ Oak racconta che RED, dopo aver vinto la Lega, si è messo in cammino verso l'is
 l'eruzione del vulcano. Mentre aiutava le persone, i lsuo Charizard ha trovato e salvato un Charmander tra le macerie. Visto che nessuno 
 lo ha reclamato, ha pensato fosse selvatico e lo ha portato a Oak paffinchè ne prendesse cura. 
 Ora è tornato in forze e cerca un allenatore che lo aiuti a diventare un Charizard. 
-Se il giocatore accetta, ottiene un Charmander a liv 5 con OT OAK e OT-Num 151096.
+Se il giocatore accetta, ottiene un Charmander a liv 5 con OT OAK e OT-Num 15196.
 _Parte 3 conclusa._
 
 Dopo aver ottenuto i tre starter, la missione di Oak si chiude.
@@ -66,4 +66,4 @@ Si sblocca parlando con la signora della Villa, dopo aver completato la missione
 La signora racconta che ha ricevuto da RED una foto di un Espeon, evoluto dal suo Eevee, e chiede al giocatore di vedere dal vivo un UMBREON, 
 perché vuole capire quale sia il suo preferito.
 Una volta che il giocatore ha catturato un Umbreon, può tornare dalla signora della Villa e mostrarlo.
-La ricompensa  sarà un Eevee a livello 5 con Ot del giocatore, con una pietra shiny (per evolverlo in Espeon).
+La ricompensa sarà un Eevee a livello 5 con OT del giocatore e amicizia vicina alla soglia (Espeon si ottiene con l'amicizia di giorno, non con la Pietra Splendore: `docs/plans/side-quests.md` D6).
