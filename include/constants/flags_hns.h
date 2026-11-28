@@ -1193,7 +1193,13 @@
 #define FLAG_DEXNAV_SEARCHING                       0x496 // A DexNav search is running
 #define FLAG_DN_HIDDEN_MODE                         0x497 // Allow searching for hidden Pokemon
 
-// 0x498–0x4FF remaining reserved for future expansion
+// Side quests (docs/plans/side-quests.md): 16 flags, named by the phase that
+// takes them. No build wrote 0x498-0x4A7, but they are not provably clear in
+// every save: the SAVE_VERSION 16 step clears them.
+#define SIDE_QUEST_FLAGS_START                      0x498
+#define SIDE_QUEST_FLAGS_COUNT                      16
+
+// 0x4A8–0x4FF remaining reserved for future expansion
 
 // Trainer registered (match call) flags — one per rematchable trainer
 #define TRAINER_REGISTERED_FLAGS_START               0x310

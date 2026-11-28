@@ -10,6 +10,7 @@
 #include "battle_ai_main.h"
 #include "battle_ai_util.h"
 #include "candy_jar.h"
+#include "side_quests.h"
 #include "battle_scripts.h"
 #include "battle_switch_in.h"
 #include "battle_environment.h"
@@ -11266,6 +11267,21 @@ static void Cmd_handleballthrow(void)
     }
 }
 
+// The side quests' catch entry point (side_quests.h), once the Pokémon is
+// the player's: the field throw calls it from GiveCaughtMon.
+static void RecordSideQuestCatch(struct Pokemon *caughtMon)
+{
+    struct SideQuestCatch caught = {0};
+
+    caught.species = GetMonData(caughtMon, MON_DATA_SPECIES);
+    caught.personality = GetMonData(caughtMon, MON_DATA_PERSONALITY);
+    caught.ball = gLastThrownBall;
+    // battleTurnCounter goes up at the end of each turn (battle_main.c).
+    caught.firstTurn = (gBattleResults.battleTurnCounter == 0);
+    caught.trainerMon = ((gBattleTypeFlags & BATTLE_TYPE_TRAINER) != 0);
+    SideQuests_OnCatch(&caught);
+}
+
 static void Cmd_givecaughtmon(void)
 {
     CMD_ARGS(const u8 *passInstr);
@@ -11387,7 +11403,10 @@ static void Cmd_givecaughtmon(void)
                 break;
         }
 
-        if (GiveCapturedMonToPlayer(caughtMon) != MON_GIVEN_TO_PARTY
+        u32 givenTo = GiveCapturedMonToPlayer(caughtMon);
+        if (givenTo != MON_CANT_GIVE)
+            RecordSideQuestCatch(caughtMon);
+        if (givenTo != MON_GIVEN_TO_PARTY
          && gBattleCommunication[MULTISTRING_CHOOSER] != B_MSG_SWAPPED_INTO_PARTY)
         {
             if (!ShouldShowBoxWasFullMessage())

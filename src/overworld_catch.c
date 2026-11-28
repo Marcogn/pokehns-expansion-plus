@@ -28,6 +28,7 @@
 #include "pokemon_storage_system.h"
 #include "random.h"
 #include "safari_zone.h"
+#include "side_quests.h"
 #include "script.h"
 #include "sound.h"
 #include "string_util.h"
@@ -146,6 +147,8 @@ struct PendingThrow
     u8 direction;       // the player's facing at the throw: a backstrike is a Pokémon facing the same way
     u8 bannerShown:1;
     u8 caughtToParty:1;
+    u8 thrownFromLand:1; // the player was not surfing at the throw (side quests)
+    u8 distance;         // tiles from the player to the Pokémon, or to where a miss ends (side quests)
     u16 caughtSpecies;  // a catch: what its banner shows
     u32 caughtPersonality;
 };
@@ -858,6 +861,8 @@ bool32 OverworldCatch_TryThrow(void)
         throw->bannerShown = FALSE;
         throw->landBlocks = TRUE;
         throw->direction = player->facingDirection;
+        throw->distance = distance;
+        throw->thrownFromLand = !TestPlayerAvatarFlags(PLAYER_AVATAR_FLAG_SURFING | PLAYER_AVATAR_FLAG_UNDERWATER);
         throw->landMapNum = gSaveBlock1Ptr->location.mapNum;
         throw->landMapGroup = gSaveBlock1Ptr->location.mapGroup;
         if (owe != NULL)
@@ -1131,8 +1136,9 @@ static u32 RollShakes(u32 odds)
 // at the end of the battle), minus the screens: no experience (P6), no
 // Pokédex page (P18), no swap-into-party prompt (P8: a full party sends it to
 // the PC). Returns FALSE if the Pokémon could not be stored.
-static bool32 GiveCaughtMon(struct PendingThrow *throw, struct Pokemon *mon)
+static bool32 GiveCaughtMon(struct PendingThrow *throw, struct Pokemon *mon, struct ObjectEvent *owe, bool32 aware)
 {
+    struct SideQuestCatch questCatch = {0};
     u32 ball = throw->ball;
     u32 species = GetMonData(mon, MON_DATA_SPECIES);
     u32 personality = GetMonData(mon, MON_DATA_PERSONALITY);
@@ -1168,6 +1174,18 @@ static bool32 GiveCaughtMon(struct PendingThrow *throw, struct Pokemon *mon)
     // is used, unless the catch was one the rules do not count.
     if (IsNuzlockeActive() && !checks.speciesClause && !checks.oneTypeBlocked && !IsNuzlockeCaptureSuspended())
         NuzlockeFlagSet(NuzlockeGetCurrentRegionMapSectionId());
+
+    // The side quests hear of a catch here as they do from a battle
+    // (RecordSideQuestCatch in battle_script_commands.c).
+    questCatch.species = species;
+    questCatch.personality = personality;
+    questCatch.ball = ball;
+    questCatch.overworld = TRUE;
+    questCatch.unnoticed = !aware;
+    questCatch.thrownFromLand = throw->thrownFromLand;
+    questCatch.targetOnWater = MetatileBehavior_IsSurfableWaterOrUnderwater(owe->currentMetatileBehavior);
+    questCatch.distance = throw->distance;
+    SideQuests_OnCatch(&questCatch);
 
     throw->caughtSpecies = species;
     throw->caughtPersonality = personality;
@@ -1238,7 +1256,7 @@ static void ResolveImpact(struct PendingThrow *throw, struct ObjectEvent *owe)
 
     CreateMonFromOWE(&mon, owe);
     shakes = RollShakes(ComputeOverworldCaptureOdds(&mon, owe, throw->ball, aware, throw->direction));
-    throw->caught = (shakes == BALL_3_SHAKES_SUCCESS && GiveCaughtMon(throw, &mon));
+    throw->caught = (shakes == BALL_3_SHAKES_SUCCESS && GiveCaughtMon(throw, &mon, owe, aware));
     // BALL_3_SHAKES_FAIL breaks out after the third.
     throw->shakes = min(shakes, BALL_3_SHAKES_FAIL);
 

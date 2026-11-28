@@ -7,11 +7,33 @@ paths:
   - "src/data/quests.h"
   - "include/constants/quests.h"
   - "graphics/quest_book/**"
+  - "src/side_quests.c"
+  - "include/side_quests.h"
 ---
 
 # Quest book (piano in `docs/plans/quest-log.md`)
 
 Le 13 missioni secondarie in arrivo hanno il loro piano: `docs/plans/side-quests.md`.
+
+## Missioni secondarie: fondamenta (`src/side_quests.c`)
+
+- **Ogni cattura passa da `SideQuests_OnCatch`** (`struct SideQuestCatch`):
+  in lotta da `RecordSideQuestCatch` in `Cmd_givecaughtmon`
+  (`battle_script_commands.c`), solo se `GiveCapturedMonToPlayer` non dà
+  `MON_CANT_GIVE`; nel lancio da `GiveCaughtMon` (`overworld_catch.c`). Mai
+  per un lancio a vuoto o una Ball che si rompe. Una missione che conta
+  catture si aggancia **lì**, non in uno dei due posti.
+- `species` è quella salvata: **un Unown selvatico è `SPECIES_UNOWN` con la
+  lettera nella personality**; `SideQuests_GetUnownLetter` legge anche le
+  specie forma (`SPECIES_UNOWN_B`...).
+- `firstTurn` = `gBattleResults.battleTurnCounter == 0` (sale a fine turno);
+  `trainerMon` = TcloneR. Campi del lancio: `unnoticed` (`!IsOWEAwareOfPlayer`
+  all'impatto), `thrownFromLand`, `targetOnWater`, `distance` (caselle, dal
+  record del lancio).
+- Var `VAR_SQ_<MISSIONE>` già nominate per A, B, D, E, F, G, H, I, K, L; 16
+  flag da `SIDE_QUEST_FLAGS_START` (0x498) da nominare nella fase che li usa.
+  Sette var sono `VAR_GIFT_UNUSED_1..7`: con `FREE_MYSTERY_GIFT` FALSE la build
+  si ferma (`#error` in `side_quests.c`).
 
 `src/quest_book.c` è il port della schermata di PSF `complex_quests`
 (`src/quests.c`). Lo stato lo legge da `quest_log.c`, mai da bit propri.

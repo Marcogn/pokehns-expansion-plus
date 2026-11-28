@@ -206,6 +206,28 @@ passo `< 15` azzera il bit, la struct e i flag 0x304/0x305 del ricorda mosse
 - Il `.sav` vero (8 → 15) dà gli stessi byte. L'SB3 sta nel `saveBlock3Chunk`
   del settore con id 0 (offset 3968 del settore), fuori dal checksum.
 
+#### `SAVE_VERSION 16`: lettere Unown e var/flag delle missioni (28/11)
+
+Piano `side-quests`, fase 1. `unownLettersCaught` (u32) in coda a SaveBlock3,
+**offset 100**: SaveBlock3 a 104 byte, ne restano 12. Il passo `< 16` azzera
+la maschera e la **riempie con gli Unown in squadra e nel PC**
+(`SideQuests_SeedUnownLetters`; PC e squadra sono già caricati a quel punto),
+poi azzera 10 var `VAR_SQ_*` e i flag 0x498-0x4A7.
+
+- `.sav` dell'utente (versione 8, un solo Unown, lettera W, decodificato
+  offline: 128 Pokémon tutti con specie valida): dopo il caricamento
+  `saveVersion` 16, maschera `0x400000`, var e flag a 0, byte 31 `0x9d` →
+  `0x1d`. Salvato: slot 1, checksum dei 14 settori buoni (validatore provato
+  sul file originale), ricaricato con CONTINUE.
+- **Passo 16 da solo**: copia a versione 15 con maschera `ff ff ff ff`, var
+  0x40DE = 0x1234 e 0x40DA = 7, flag 0x498 e 0x4A7 a 1, checksum dei settori
+  1-2 di SB1 ricalcolati. Caricata con la ROM pulita: maschera `0x400101`
+  (A, I, W: due Unown presi nella prova), var e flag a 0.
+- Offset (compilati con `offsetof`): squadra a SB1 +0x23C (non 0x238 come
+  dice il commento di `global.h`), box a `PokemonStorage` +4 (allineamento),
+  `BoxPokemon` 80 byte, `SaveBlock2` 0xF34, `SaveBlock1` 0x3D90,
+  `PokemonStorage` 0x8560.
+
 #### C'è già un sistema di migrazione dei salvataggi: usalo
 
 Scoperto portando il Candy Jar, dopo aver scritto a mano un marker magico che

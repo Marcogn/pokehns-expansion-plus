@@ -13,7 +13,7 @@ paths:
 
 Cronaca di ogni `SAVE_VERSION` (come fu provata, checksum, byte): `docs/claude/save-history.md`.
 
-## Mappa dei blocchi (stato a `SAVE_VERSION 15`)
+## Mappa dei blocchi (stato a `SAVE_VERSION 16`)
 
 | Dove | Cosa | Versione |
 | --- | --- | --- |
@@ -22,10 +22,12 @@ Cronaca di ogni `SAVE_VERSION` (come fu provata, checksum, byte): `docs/claude/s
 | SB3 +60 | `struct QuestLogSaveData`, 32 byte dalla v13 (`seenHigh` a +24 della struct) | 12, 13 |
 | SB3 +92 | `stripMenuOrder[4]` (un nibble per posto, id icona + 1) | 14 |
 | SB3 +96 | `struct ExtraOptions`: `arceusFormulas` 1 bit + **7 bit liberi già azzerati** (`sizeof` 4) | 15 |
-| SB3 | 100 byte su `SAVE_BLOCK_3_CHUNK_SIZE` 116: **16 liberi** | |
+| SB3 +100 | `unownLettersCaught` (u32, un bit per lettera, A = bit 0; `side_quests.c`) | 16 |
+| SB3 | 104 byte su `SAVE_BLOCK_3_CHUNK_SIZE` 116: **12 liberi** | |
 | SB2 +0x28 | `pokedex.tclonerTrainerFlags`, 83 byte (dal vecchio `filler` del Pokédex, ne restano 21) | 9, 10 |
 | flag | `FLAG_REDS_PATH_BATTLE` (ex `EXTENDED_86`), `INTRO_SEEN` e `PRIZE_*` (ex `87..95`); liberi `96..99` ma **non dimostrabilmente a zero** | 10, 11 |
 | engine flag | `FLAG_FAST_HMS` (`ENGINE_FLAGS_START + 13`); liberi da `+14` | 8 |
+| var / flag | missioni secondarie: `VAR_SQ_*` (0x40D8-0x40DA, 0x40DE-0x40E4) e `SIDE_QUEST_FLAGS_START` 0x498-0x4A7, azzerati dal passo 16 (`SideQuests_ClearVarsAndFlags`) | 16 |
 
 `soundAndFieldOptions`: `fastHms` 1 bit, `battleMusicTheme` 3 (0 = regionale),
 `noNightCenterMusic` 1 (**invertito**), `levelScaling` 1, più due bit ignorati

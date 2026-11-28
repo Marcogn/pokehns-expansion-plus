@@ -18,6 +18,7 @@
 #include "constants/game_stat.h"
 #include "constants/rematches.h"
 #include "event_data.h"
+#include "side_quests.h"
 
 static u16 CalculateChecksum(void *, u16);
 static bool8 ReadFlashSector(u8, struct SaveSector *);
@@ -124,6 +125,8 @@ STATIC_ASSERT(sizeof(struct QuestLogSaveData) == 32, QuestLogSaveDataSize);
 STATIC_ASSERT(offsetof(struct SaveBlock3, stripMenuOrder) == 92, SaveBlock3StripMenuOrderOffset);
 // And for the extra options (SAVE_VERSION 15).
 STATIC_ASSERT(offsetof(struct SaveBlock3, extraOptions) == 96, SaveBlock3ExtraOptionsOffset);
+// And for the Unown letters caught (SAVE_VERSION 16).
+STATIC_ASSERT(offsetof(struct SaveBlock3, unownLettersCaught) == 100, SaveBlock3UnownLettersOffset);
 // (sizeof(struct SoundAndFieldOptions) is 4, not 1: -mabi=apcs-gnu rounds every
 // struct up to a word. Harmless, but it is why this is not asserted.) Appending
 // must not push SaveBlock3 out of sector 0's 116-byte tail.
@@ -1160,6 +1163,20 @@ u8 LoadGameSave(u8 saveType)
         FlagClear(FLAG_TUTOR_MOVES_UNLOCKED);
 #endif
         gSaveBlock1Ptr->saveVersion = 15;
+    }
+    if (gSaveBlock1Ptr->saveVersion < 16)
+    {
+        // The Unown letters were appended to SaveBlock3, after extraOptions:
+        // in an older save they hold whatever was in the sector buffer. The
+        // letters the player has in the party and the PC are counted as
+        // caught, so a save that already went to the Ruins of Alph keeps them.
+        gSaveBlock3Ptr->unownLettersCaught = 0;
+        SideQuests_SeedUnownLetters();
+        // The side quests' vars and flags are old Emerald ones that no HnS
+        // build writes, but that are not provably zero in every save: a stray
+        // value would be a quest half done.
+        SideQuests_ClearVarsAndFlags();
+        gSaveBlock1Ptr->saveVersion = 16;
     }
 
     // Add version migration steps here:
