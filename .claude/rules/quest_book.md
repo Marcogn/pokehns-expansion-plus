@@ -23,9 +23,12 @@ Le 13 missioni secondarie in arrivo hanno il loro piano: `docs/plans/side-quests
   `MON_CANT_GIVE`; nel lancio da `GiveCaughtMon` (`overworld_catch.c`). Mai
   per un lancio a vuoto o una Ball che si rompe. Una missione che conta
   catture si aggancia **lì**, non in uno dei due posti.
-- `species` è quella salvata: **un Unown selvatico è `SPECIES_UNOWN` con la
-  lettera nella personality**; `SideQuests_GetUnownLetter` legge anche le
-  specie forma (`SPECIES_UNOWN_B`...).
+- `species` è quella salvata, e **per un Unown la specie vince sulla
+  personality**: in lotta normale è `SPECIES_UNOWN` con la lettera nella
+  personality; da un OWE (lancio o lotta toccandolo) è la specie forma
+  (`SPECIES_UNOWN_B`...) con una personality qualsiasi, e la A è
+  `SPECIES_UNOWN` con lettera A (`CreateMonFromOWE`). Leggere sempre con
+  `SideQuests_GetUnownLetter`.
 - `firstTurn` = `gBattleResults.battleTurnCounter == 0` (sale a fine turno);
   `trainerMon` = TcloneR. Campi del lancio: `unnoticed` (`!IsOWEAwareOfPlayer`
   all'impatto), `thrownFromLand`, `targetOnWater`, `distance` (caselle, dal
