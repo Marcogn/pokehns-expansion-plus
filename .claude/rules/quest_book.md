@@ -11,6 +11,8 @@ paths:
 
 # Quest book (piano in `docs/plans/quest-log.md`)
 
+Le 13 missioni secondarie in arrivo hanno il loro piano: `docs/plans/side-quests.md`.
+
 `src/quest_book.c` è il port della schermata di PSF `complex_quests`
 (`src/quests.c`). Lo stato lo legge da `quest_log.c`, mai da bit propri.
 **Le verifiche per fase (25/10), le ricette GDB e i flag usati stanno
