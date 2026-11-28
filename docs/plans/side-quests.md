@@ -1,6 +1,6 @@
 # Piano: missioni secondarie (13 missioni del quest book)
 
-**Stato (27/11): piano scritto; prossima: fase 1 (Opus 5.5).**
+**Stato (28/11): fase 1 fatta; prossima: fase 2 (Opus 5.5).**
 
 Missioni scelte dall'utente il 27/11 da una proposta di 15 (numeri della
 proposta tra parentesi, tenuti per riferimento). Il "giardino di Bill"
@@ -127,7 +127,7 @@ nel salvataggio). Id in coda, mai in mezzo (`include/constants/quests.h`).
   propri su 16, 0 sottomissioni proprie su 32. Questo piano porta a **17
   missioni**; sottomissioni proprie: E 7 + M 4 = **11**.
 - **SaveBlock3**: 100 byte su 116, **16 liberi** (`.claude/rules/save.md`). La
-  maschera degli Unown ne usa 4 (passo `SAVE_VERSION 16`): ne restano 12.
+  maschera degli Unown ne usa 4 (passo `SAVE_VERSION 16`, fatto in fase 1): ne restano 12.
 - **Var**: servono circa 9 (contatori di A, B, I base, e "premi ritirati" di
   E, F, G, H, L, K). `include/constants/vars_hns.h` ha 44 righe `UNUSED`; sono
   ex var di Smeraldo: **la fase 1 deve dimostrare che sono a zero** nel `.srm`
@@ -154,6 +154,61 @@ fallisce prima della condizione.
 | 8 | **L Censimento DexNav** (D9) | **Sonnet 5.5** | build verde; lista delle specie per percorso generata dai dati degli incontri (non scritta a mano) e confrontata con il DexNav in emulatore su 3 percorsi; step che avanza solo a percorso completo |
 | 9 | **Documentazione**: CHANGELOG, `quest_book.md` (missioni e id), `README`, `SOULGOLD_PORT_REPORT.md` se serve, CLAUDE.md §7 solo se nasce una regola nuova | **Haiku 5.5** | ogni affermazione della regola controllata sul codice; `/doc-sync` pulito |
 | 10 | **Revisione finale**: `/code-review` medio sul diff delle fasi 1-9, punti aperti provati in emulatore, ROM consegnata | **Opus 5.5** | build e CI verdi, ROM sotto il 98%; tutte le 13 missioni aperte nel quest book in tutti e due i temi. **Serve il `.srm`** |
+
+### 5.1 Fase 1, com'è stata fatta (28/11)
+
+- **Aggancio comune**: `SideQuests_OnCatch(const struct SideQuestCatch *)` in
+  `src/side_quests.c`, chiamato da `Cmd_givecaughtmon` (dopo
+  `GiveCapturedMonToPlayer`, se non `MON_CANT_GIVE`) e da `GiveCaughtMon` del
+  lancio. Campi: specie, personality, Ball, `overworld`, `unnoticed`,
+  `firstTurn`, `trainerMon`, `thrownFromLand`, `targetOnWater`, `distance`.
+  Dettagli e trappole: `quest_book.md`, sezione "Missioni secondarie".
+- **Lettere Unown**: `unownLettersCaught` a SB3 +100, `SAVE_VERSION 16`. Il
+  passo azzera e **riempie la maschera con gli Unown che il giocatore ha in
+  squadra e nel PC** (decisione di questa fase: chi è già stato alle Rovine
+  non riparte da zero; chi ha liberato i suoi sì). Oggi la riempie solo
+  l'aggancio; la H la legge con `SideQuests_CountUnownLetters`.
+- **Var**: `VAR_SQ_THROW_MASTER` (A), `_NINJA` (B), `_OAK_STARTERS` (D),
+  `_KURT_BALLS` (E), `_JOHTO_DEX` (F), `_TYPE_COLLECTOR` (G), `_UNOWN_REPORT`
+  (H), `_DAY_CARE_BASE` (I), `_REMATCHES` (K), `_DEXNAV_CENSUS` (L): 0x40D8-0x40DA
+  e 0x40DE-0x40E4. C, J, M non ne hanno: stato negli slot propri del quest
+  book (16 liberi) o nei flag. **Flag**: 16 da 0x498 (`SIDE_QUEST_FLAGS_START`),
+  senza nome. Tutti a zero nel `.sav` dell'utente e azzerati dal passo 16.
+- **ROM**: 95,14% (95,13% prima; +800 byte).
+- **Verificato** (ROM strumentata: contatore e ultimo record in EWRAM, e un
+  trucco per una lotta con un Unown; dettagli in
+  `docs/claude/save-history.md`): `.sav` dell'utente a versione 8 caricato,
+  maschera `0x400000` (la W, calcolata offline dal PC), var e flag a 0;
+  cattura in lotta al turno 1 → contatore 1, `firstTurn` 1, lettera I; al
+  turno 2 (dopo un cambio) → 2, `firstTurn` 0, lettera A; lancio a vuoto →
+  resta 2; lancio su un Girafarig a 2 caselle → 3, `overworld`, `unnoticed`,
+  `thrownFromLand`, `distance` 2. Salvato, checksum buoni, ricaricato.
+  Passo 16 da solo su una copia sporcata: tutto azzerato e maschera
+  ricostruita.
+- **Non provato**: cattura del TcloneR (`trainerMon`) e `targetOnWater` a 1.
+
+**Handoff per la fase 2 (Opus 5.5)**
+
+- I contatori di A vanno in `VAR_SQ_THROW_MASTER` (16 bit: 10 + 5 + 3 entrano
+  in 4 + 3 + 2 bit; il resto per lo stato o il premio). Lo stato della
+  missione: slot proprio del quest book (`QUEST_OWN_SLOT_COUNT` è 0, si
+  aggiunge in coda) o la var.
+- "Non notato" in lotta (D2, OVERWORLD CATCH spenta) è `firstTurn` più la
+  Ball (Poké, Mega, Ultra): **non** c'è un bit "non notato" per le lotte.
+- `targetOnWater` legge `owe->currentMetatileBehavior` all'impatto
+  (`MetatileBehavior_IsSurfableWaterOrUnderwater`); `distance` è quella di
+  `FindThrowTarget`, la casella del Pokémon al lancio, non dove cade. Provare
+  in emulatore il lancio da riva a un Pokémon in acqua.
+- La critica col Cromamuleto (D3): `CriticalCapture` è `static` in
+  `battle_script_commands.c` e legge `B_CRITICAL_CAPTURE` (oggi FALSE): per
+  il lancio OW va esposta o riscritta, e `ResolveImpact` deve mostrare una
+  scossa sola.
+- Il client RAM senza GDB è quello di `docs/claude/emulator.md` (fase 9 di
+  overworld-catch); per leggere un `.sav` offline (slot attivo, checksum,
+  squadra e box decifrati) gli offset giusti sono in
+  `docs/claude/save-history.md`, sezione `SAVE_VERSION 16`.
+- Indirizzi della ROM pulita di questa fase: `gSaveBlock1Ptr` 0x030041C8,
+  `gSaveblock3` 0x02009244 (cambiano a ogni build: rileggerli con `nm`).
 
 ## 6. Scartato, e perché
 

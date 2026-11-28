@@ -636,7 +636,11 @@ void CreateMonFromOWE(struct Pokemon *mon, const struct ObjectEvent *owe)
     u32 speciesId = OW_SPECIES(owe);
     bool32 shiny = OW_SHINY(owe) ? TRUE : FALSE;
     u32 gender = OW_FEMALE(owe) ? MON_FEMALE : MON_MALE;
-    u32 personality = GetMonPersonality(speciesId, gender, PickWildMonNature(speciesId), RANDOM_UNOWN_LETTER);
+    // The object holds an Unown's letter in its species (SetSpeciesInfoForOWE:
+    // GetUnownSpeciesId), the form species for B to ? and plain SPECIES_UNOWN
+    // for A. A random letter here turned every A into another letter.
+    u32 unownLetter = (speciesId == SPECIES_UNOWN) ? 1 : RANDOM_UNOWN_LETTER; // 1 is A
+    u32 personality = GetMonPersonality(speciesId, gender, PickWildMonNature(speciesId), unownLetter);
 
     CreateMonWithIVs(mon, speciesId, GetOWELevel(owe), personality, OTID_STRUCT_PLAYER_ID, USE_RANDOM_IVS);
     TryApplyPokeblockBonus(mon, speciesId);

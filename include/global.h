@@ -435,6 +435,10 @@ struct SaveBlock3
     u8 stripMenuOrder[4];
     // Appended after stripMenuOrder (SAVE_VERSION 15).
     struct ExtraOptions extraOptions;
+    // Appended after extraOptions (SAVE_VERSION 16): the Unown letters
+    // caught, one bit per letter (src/side_quests.c). The Pokédex counts
+    // Unown as one species, so this is the only record of the letters.
+    u32 unownLettersCaught;
 }; /* max size 1624 bytes */
 
 extern struct SaveBlock3 *gSaveBlock3Ptr;

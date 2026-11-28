@@ -115,25 +115,26 @@
 #define VAR_UNUSED_HNS_0x40C9                            0x40C9 // Emerald VAR_SCOTT_PETALBURG_ENCOUNTER - PetalburgCity only (Emerald-gated map)
 #define VAR_UNUSED_HNS_0x40CA                            0x40CA // Emerald VAR_SKY_PILLAR_STATE - overworld.c reads only, both behind MAP_GROUP(MAP_SOOTOPOLIS_CITY)
 
-#define VAR_UNUSED_HNS_0x40D8                           0x40D8 // Emerald VAR_SOOTOPOLIS_WALLACE_STATE - SootopolisCity/scripts.inc, linked for labels, map not in HnS build
-#define VAR_UNUSED_HNS_0x40D9                           0x40D9 // Emerald VAR_HAS_TALKED_TO_SEAFLOOR_CAVERN_ENTRANCE_GRUNT - SeafloorCavern_Entrance only
-#define VAR_UNUSED_HNS_0x40DA                           0x40DA // Emerald VAR_REGISTER_BIRCH_STATE - ProfBirchsLab / Route110, linked for labels, unreachable
+#define VAR_SQ_DAY_CARE_BASE                            0x40D8 // Side quest I (docs/plans/side-quests.md). Emerald VAR_SOOTOPOLIS_WALLACE_STATE - SootopolisCity/scripts.inc, linked for labels, map not in HnS build
+#define VAR_SQ_REMATCHES                                0x40D9 // Side quest K. Emerald VAR_HAS_TALKED_TO_SEAFLOOR_CAVERN_ENTRANCE_GRUNT - SeafloorCavern_Entrance only
+#define VAR_SQ_DEXNAV_CENSUS                            0x40DA // Side quest L. Emerald VAR_REGISTER_BIRCH_STATE - ProfBirchsLab / Route110, linked for labels, unreachable
 #define VAR_VERMILION_CITY_SAMSON                           0x40DB // Emerald VAR_UNUSED_0x40DB - no references in any build
 #define VAR_ROUTE28_SCIENTIST                           0x40DC // Emerald VAR_UNUSED_0x40DC - no references in any build
 
 // --- CONDITIONAL: Mystery Gift block. The only writer is ClearMysteryGiftVars()
 // --- in src/event_data.c, which sits inside #if FREE_MYSTERY_GIFT == FALSE.
 // --- include/config/save.h currently has FREE_MYSTERY_GIFT TRUE, so nothing
-// --- writes these. Turning Mystery Gift back on zeroes all 8 on gift clear.
+// --- writes these. Turning Mystery Gift back on zeroes all 8 on gift clear,
+// --- and 0x40DE-0x40E4 are side quest vars now: side_quests.c refuses to build.
 #define VAR_UNUSED_HNS_0x40DD                           0x40DD // Emerald VAR_GIFT_PICHU_SLOT - also used by data/scripts/gift_pichu.inc (wonder card script, not reachable)
-#define VAR_UNUSED_HNS_0x40DE                           0x40DE // Emerald VAR_GIFT_UNUSED_1
-#define VAR_UNUSED_HNS_0x40DF                           0x40DF // Emerald VAR_GIFT_UNUSED_2
-#define VAR_UNUSED_HNS_0x40E0                           0x40E0 // Emerald VAR_GIFT_UNUSED_3
-#define VAR_UNUSED_HNS_0x40E1                           0x40E1 // Emerald VAR_GIFT_UNUSED_4
-#define VAR_UNUSED_HNS_0x40E2                           0x40E2 // Emerald VAR_GIFT_UNUSED_5
+#define VAR_SQ_THROW_MASTER                             0x40DE // Side quest A. Emerald VAR_GIFT_UNUSED_1
+#define VAR_SQ_NINJA                                    0x40DF // Side quest B. Emerald VAR_GIFT_UNUSED_2
+#define VAR_SQ_OAK_STARTERS                             0x40E0 // Side quest D. Emerald VAR_GIFT_UNUSED_3
+#define VAR_SQ_KURT_BALLS                               0x40E1 // Side quest E. Emerald VAR_GIFT_UNUSED_4
+#define VAR_SQ_JOHTO_DEX                                0x40E2 // Side quest F. Emerald VAR_GIFT_UNUSED_5
 
-#define VAR_UNUSED_HNS_0x40E3                            0x40E3 // Emerald VAR_GIFT_UNUSED_6 - see Mystery Gift block above
-#define VAR_UNUSED_HNS_0x40E4                            0x40E4 // Emerald VAR_GIFT_UNUSED_7 - see Mystery Gift block above
+#define VAR_SQ_TYPE_COLLECTOR                           0x40E3 // Side quest G. Emerald VAR_GIFT_UNUSED_6 - see Mystery Gift block above
+#define VAR_SQ_UNOWN_REPORT                             0x40E4 // Side quest H. Emerald VAR_GIFT_UNUSED_7 - see Mystery Gift block above
 
 #define VAR_TCLONER_COUNT                                0x40E5 // TcloneR: Trainers cloned. Emerald VAR_UNUSED_0x40E5 - no references in any build
 

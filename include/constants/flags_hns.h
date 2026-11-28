@@ -856,7 +856,8 @@
 #define HNS_CONTENT_FLAGS_END                       0x308
 
 // Extended content flags (0x36A – 0x495)
-// 300 slots for new content; 0x496–0x4FF reserved for future expansion.
+// 300 slots for new content; 0x4A8–0x4FF reserved for future expansion
+// (0x496-0x497 DexNav, 0x498-0x4A7 side quests).
 //
 // WARNING: this block butts directly against the trainer registered (match call)
 // flags below it, with NO gap. Those start at 0x310 and use one flag per rematch
@@ -868,7 +869,7 @@
 // secret_base.c. Note MAX_REMATCH_ENTRIES is 100, so the saveblock reserves 10 more
 // entries than there is flag room for -- the reservation is NOT the safe limit here.
 // If the rematch table needs to grow, move this whole block up into the free
-// 0x496-0x4FF window first (or wherever there is room), do not extend downward.
+// 0x4A8-0x4FF window first (or wherever there is room), do not extend downward.
 #define HNS_EXTENDED_CONTENT_START                  0x36A
 #define FLAG_DECORATION_1                           (HNS_EXTENDED_CONTENT_START + 0)
 #define FLAG_DECORATION_2                           (HNS_EXTENDED_CONTENT_START + 1)
@@ -1193,7 +1194,13 @@
 #define FLAG_DEXNAV_SEARCHING                       0x496 // A DexNav search is running
 #define FLAG_DN_HIDDEN_MODE                         0x497 // Allow searching for hidden Pokemon
 
-// 0x498–0x4FF remaining reserved for future expansion
+// Side quests (docs/plans/side-quests.md): 16 flags, named by the phase that
+// takes them. No build wrote 0x498-0x4A7, but they are not provably clear in
+// every save: the SAVE_VERSION 16 step clears them.
+#define SIDE_QUEST_FLAGS_START                      0x498
+#define SIDE_QUEST_FLAGS_COUNT                      16
+
+// 0x4A8–0x4FF remaining reserved for future expansion
 
 // Trainer registered (match call) flags — one per rematchable trainer
 #define TRAINER_REGISTERED_FLAGS_START               0x310

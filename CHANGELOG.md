@@ -40,8 +40,13 @@ feature; [`README.md`](README.md) is the short tour for players.
 - **Night after the TcloneR scientist leaves**: at night, once he walked off
   (Goldenrod and every other place he appears) the whole town stayed darker
   than the night until you went through a door.
+- **Unown A caught on the map**: an Unown A met on the map (thrown at or
+  walked into) became another letter once caught. It stays an A now.
 
 ### Notes
+- **Save format 16**: the game now remembers which Unown letters you have
+  caught, for a coming side quest. Loading an older save counts the Unown
+  already in your party and PC.
 - **ARCEUS FORMULAS and one-hit KOs**: checked, not a bug. The damage the
   game deals matches the formula exactly; with Pokémon of the same level a
   neutral STAB move takes 2-3 hits (3-4 with the classic formula) and a
